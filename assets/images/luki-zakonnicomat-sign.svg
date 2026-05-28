@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Uncle Luki's Zakonnicomat</title>
+  <desc id="desc">Decorative wooden sign for the Luki panel.</desc>
+  <defs>
+    <linearGradient id="wood" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#7c3f1d"/>
+      <stop offset=".45" stop-color="#3f1f12"/>
+      <stop offset="1" stop-color="#9a5b2a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" x2="1">
+      <stop offset="0" stop-color="#ffdf8a"/>
+      <stop offset=".5" stop-color="#f6b84a"/>
+      <stop offset="1" stop-color="#7c3f12"/>
+    </linearGradient>
+    <linearGradient id="bluePanel" x1="0" x2="1">
+      <stop offset="0" stop-color="#12315a"/>
+      <stop offset="1" stop-color="#07182f"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000" flood-opacity=".45"/>
+    </filter>
+    <pattern id="grain" width="90" height="28" patternUnits="userSpaceOnUse">
+      <path d="M0 18 C20 5 50 32 90 12" fill="none" stroke="#b7783d" stroke-width="3" opacity=".25"/>
+      <path d="M0 7 C30 18 56 -4 90 16" fill="none" stroke="#2a1209" stroke-width="2" opacity=".3"/>
+    </pattern>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M76 321 V129 C76 54 157 36 214 61 C266 84 302 48 365 39 H835 C898 48 934 84 986 61 C1043 36 1124 54 1124 129 V321 Z" fill="url(#wood)" stroke="#211006" stroke-width="10"/>
+    <path d="M102 295 V146 C102 92 160 81 210 98 C270 119 305 75 372 66 H828 C895 75 930 119 990 98 C1040 81 1098 92 1098 146 V295 Z" fill="url(#grain)" opacity=".75"/>
+    <rect x="118" y="164" width="964" height="122" rx="18" fill="url(#bluePanel)" stroke="#f5c86a" stroke-width="8"/>
+    <rect x="138" y="181" width="924" height="88" rx="10" fill="none" stroke="#120807" stroke-width="5" opacity=".8"/>
+    <text x="600" y="128" text-anchor="middle" font-family="Georgia, serif" font-size="82" font-weight="700" fill="url(#gold)" stroke="#170b05" stroke-width="5" paint-order="stroke">Uncle Luki's</text>
+    <text x="600" y="248" text-anchor="middle" font-family="Georgia, serif" font-size="96" font-weight="900" letter-spacing="8" fill="#cf3b22" stroke="#f8d17b" stroke-width="8" paint-order="stroke">ZAKONNICOMAT</text>
+    <g transform="translate(142 82)">
+      <path d="M0 58 C26 10 70 10 96 58 C70 106 26 106 0 58Z" fill="#1f7a3d" stroke="#f8c65a" stroke-width="5"/>
+      <path d="M48 18 L62 58 L48 98 L34 58Z" fill="#dc4b24" stroke="#1b0903" stroke-width="3"/>
+      <circle cx="48" cy="58" r="10" fill="#f5c542" stroke="#1b0903" stroke-width="3"/>
+    </g>
+    <g transform="translate(962 82)">
+      <path d="M96 58 C70 10 26 10 0 58 C26 106 70 106 96 58Z" fill="#1f7a3d" stroke="#f8c65a" stroke-width="5"/>
+      <path d="M48 18 L62 58 L48 98 L34 58Z" fill="#dc4b24" stroke="#1b0903" stroke-width="3"/>
+      <circle cx="48" cy="58" r="10" fill="#f5c542" stroke="#1b0903" stroke-width="3"/>
+    </g>
+  </g>
+</svg>

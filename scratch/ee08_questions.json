@@ -1,0 +1,2714 @@
+[
+    {
+        "question": "Układy sekwencyjne zbudowane z zespołu przerzutników, najczęściej synchronicznych typu D, służące do\r\nprzechowywania danych, to",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/2.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na przedstawionej płycie głównej możliwy jest montaż procesora z obudową typu",
+        "options": {
+            "A": "LGA",
+            "B": "PGA",
+            "C": "SECC",
+            "D": "SPGA"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/3.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Kompatybilne podzespoły oznaczono w tabeli numerami",
+        "options": {
+            "A": "1, 3, 5",
+            "B": "1, 4, 6",
+            "C": "2, 4, 5",
+            "D": "2, 4, 6"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/4.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przed rozpoczęciem modernizacji komputerów osobistych oraz serwerów, polegającej na dołożeniu nowych\r\nmodułów pamięci RAM, należy sprawdzić",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/13.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Za pomocą programu Acrylic Wi-Fi Home wykonano test, którego wyniki przedstawiono na zrzucie. Na ich\r\npodstawie można stwierdzić, że dostępna sieć bezprzewodowa",
+        "options": {
+            "A": "jest nieszyfrowana.",
+            "B": "korzysta z kanałów 10 ÷ 12.",
+            "C": "ma bardzo dobrą jakość sygnału.",
+            "D": "osiąga maksymalną szybkość transferu 72 Mbps."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/14.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który adres IP należy do klasy A?",
+        "options": {
+            "A": "warstwę fosforową.",
+            "B": "warstwę dielektryka.",
+            "C": "elektrody adresujące.",
+            "D": "elektrody wyświetlacza."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/18.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na ilustracji zaznaczono strzałkami funkcję przycisków znajdujących się na obudowie projektora\r\nmultimedialnego. Za pomocą tych przycisków można",
+        "options": {
+            "A": "przełączać sygnały wejściowe",
+            "B": "regulować zniekształcony obraz.",
+            "C": "zmieniać poziom jasności obrazu.",
+            "D": "regulować odwzorowanie przestrzeni kolorów"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/19.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Pierwszą czynnością niezbędną do zabezpieczenia rutera przed dostępem do jego panelu konfiguracyjnego\r\nprzez osoby niepowołane jest",
+        "options": {
+            "A": "czas między wysyłaniem kolejnych komunikatów o poprawnej pracy urządzenia wynosi\r\n3 sekundy.",
+            "B": "maksymalny czas krążenia w sieci komunikatów protokołu BPDU wynosi 20 sekund.",
+            "C": "minimalny czas krążenia w sieci komunikatów protokołu BPDU wynosi 25 sekund.",
+            "D": "maksymalny czas pomiędzy zmianami statusu łącza wynosi 5 sekund."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/22.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawione polecenia, uruchomione w interfejsie CLI rutera firmy CISCO, spowodują",
+        "options": {
+            "A": "dopuszczenie ruchu pochodzącego z sieci o adresie 10.0.0.1",
+            "B": "określenie puli adresów wewnętrznych 10.0.0.1 ÷ 255.255.255.0",
+            "C": "ustawienie interfejsu zewnętrznego o adresie 10.0.0.1\/24 dla technologii NAT",
+            "D": "ustawienie interfejsu wewnętrznego o adresie 10.0.0.1\/24 dla technologii NAT"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/23.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Schemat przedstawia zasadę działania sieci VPN o nazwie",
+        "options": {
+            "A": "Client - to -Site",
+            "B": "Site - to - Site",
+            "C": "Gateway",
+            "D": "L2TP"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/24.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawione narzędzie może być wykorzystane do",
+        "options": {
+            "A": "podgrzania i zamontowania elementu elektronicznego.",
+            "B": "sprawdzenia długości badanego kabla sieciowego.",
+            "C": "pomiaru wartości napięcia w zasilaczu",
+            "D": "utrzymania drukarki w czystości."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/25.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż program systemu Linux, służący do kompresji danych.",
+        "options": {
+            "A": "492,00 zł",
+            "B": "455,20 zł",
+            "C": "436,80 zł",
+            "D": "400,00 zł"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/32.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby w systemie Windows zmienić parametry konfiguracyjne Menu Start i paska zadań należy wykorzystać\r\nprzystawkę",
+        "options": {
+            "A": "maksymalnej liczby dni ważności konta.",
+            "B": "minimalnej liczby znaków w hasłach użytkowników.",
+            "C": "maksymalnej liczby dni między zmianami haseł użytkowników.",
+            "D": "minimalnej liczby minut, przez które użytkownik może być zalogowany."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/37.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Protokół RDP jest wykorzystywany w usłudze",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/42.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiona jest karta",
+        "options": {
+            "A": "kontrolera RAID",
+            "B": "kontrolera SCSII",
+            "C": "sieciowa Token Ring",
+            "D": "sieciowa Fibre Channel"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/43.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono schemat blokowy karty",
+        "options": {
+            "A": "sieciowej.",
+            "B": "graficznej.",
+            "C": "dźwiękowej.",
+            "D": "telewizyjnej."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/44.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono fragment dokumentacji technicznej płyty głównej GA-K8NF-9-RH rev. 2.x.\r\nWynika z niej, że maksymalna liczba możliwych do zamontowania kart rozszerzeń (pomijając interfejs USB)\r\nwynosi",
+        "options": {
+            "A": "6",
+            "B": "5",
+            "C": "3",
+            "D": "2"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/45.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono tylny panel stacji roboczej. Strzałką oznaczono port",
+        "options": {
+            "A": "HDMI",
+            "B": "eSATA",
+            "C": "USB 3.0",
+            "D": "DisplayPort"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/46.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono komunikat systemowy. Jakie działanie powinien wykonać użytkownik, aby\r\nusunąć błąd?",
+        "options": {
+            "A": "Podłączyć monitor do złącza HDMI.",
+            "B": "Odświeżyć okno Menedżer urządzeń.",
+            "C": "Zainstalować sterownik do karty graficznej.",
+            "D": "Zainstalować sterownik do Karty HD Graphics."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/47.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Shareware to rodzaj licencji polegającej na",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/50.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który typ fizycznej topologii sieci komputerowej przedstawiono na rysunku?",
+        "options": {
+            "A": "Siatki.",
+            "B": "Gwiazdy.",
+            "C": "Magistrali.",
+            "D": "Podwójnego pierścienia."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/51.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Ile domen kolizyjnych i rozgłoszeniowych jest widocznych na schemacie?",
+        "options": {
+            "A": "9 domen kolizyjnych i 1 domena\r\nrozgłoszeniowa",
+            "B": "9 domen kolizyjnych i 4 domeny\r\nrozgłoszeniowe.",
+            "C": "1 domena kolizyjna i 9 domen\r\nrozgłoszeniowych.",
+            "D": "4 domeny kolizyjne i 9 domen\r\nrozgłoszeniowych."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/52.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Zasady budowy systemu okablowania strukturalnego, specyfikacja parametrów kabli oraz procedury\r\ntestowania obowiązujące w Polsce zostały zawarte w normach",
+        "options": {
+            "A": "służy do przechwytywania i nagrywania pakietów danych w sieciach komputerowych.",
+            "B": "odpowiada za przekazywanie ramki między segmentami sieci z doborem portu, na który jest\r\nprzekazywana.",
+            "C": "umożliwia zamianę sygnału pochodzącego z okablowania miedzianego na okablowanie\r\nświatłowodowe.",
+            "D": "odpowiada za wytworzenie na wyjściu sygnału analogowego, będącego wzmocnionym\r\nsygnałem wejściowym, kosztem zużycia energii pobieranej ze źródła prądu."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/56.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które urządzenie zastosowane w sieci komputerowej nie zmienia liczby domen kolizyjnych?",
+        "options": {
+            "A": "typu skrętka.",
+            "B": "telefonicznego.",
+            "C": "koncentrycznego.",
+            "D": "światłowodowego."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/58.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawione na rysunku urządzenie wraz ze specyfikacją techniczną można wykorzystać do pomiarów\r\nokablowania",
+        "options": {
+            "A": "telefonicznego.",
+            "B": "skrętki cat. 5e \/ 6.",
+            "C": "koncentrycznego.",
+            "D": "światłowodowego."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/59.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który tryb pracy Access Pointa jest stosowany dla zapewnienia urządzeniom bezprzewodowym dostępu do\r\nprzewodowej sieci LAN?",
+        "options": {
+            "A": "Błąd zwarcia.",
+            "B": "Błąd rozwarcia.",
+            "C": "Odwrócenie pary.",
+            "D": "Rozdzielenie pary."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/63.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono fragment wyniku działania programu do testowania sieci. Wskazuje to na\r\nzastosowanie sieciowego polecenia testującego",
+        "options": {
+            "A": "arp",
+            "B": "route",
+            "C": "tracert",
+            "D": "netstat"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/64.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które z protokołów przekazują okresowe kopie tablic rutingu do sąsiedniego rutera i nie mają pełnej\r\ninformacji o odległych ruterach?",
+        "options": {
+            "A": "monitora LCD.",
+            "B": "plotera tnącego.",
+            "C": "drukarki laserowej.",
+            "D": "skanera lustrzanego."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/67.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które oprogramowanie należy zainstalować, aby umożliwić zeskanowanie tekstu z wydrukowanego\r\ndokumentu do edytora tekstu?",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/70.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który protokół działa w warstwie aplikacji modelu ISO\/OSI umożliwiając wymianę informacji kontrolnych\r\npomiędzy urządzeniami sieciowymi?",
+        "options": {
+            "A": "Do portów 1 i 2",
+            "B": "Do portów 2 i 3",
+            "C": "Do portów 1 i 3",
+            "D": "Do portów 3 i 4"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/72.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono konfigurację urządzenia, z której wynika, że",
+        "options": {
+            "A": "utworzono dwa nowe VLAN-y: ID13, ID48",
+            "B": "do VLAN z ID48 przypisano wszystkie porty.",
+            "C": "utworzono trzy nowe VLAN-y: ID1, ID13, ID48",
+            "D": "VLAN z ID48 jest skonfigurowany jako zarządzalny."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/73.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono okno konfiguracyjne rutera. Ustawione parametry świadczą o tym, że",
+        "options": {
+            "A": "na komputerze o adresie MAC 44-8A-5B-5A-56-D0 ustawiono adres IP 192.168.17.30\r\nza pomocą Panelu Sterowania.",
+            "B": "komputer o adresie MAC 44-8A-5B-5A-56-D0 i adresie IP 192.168.17.30 nie będzie mógł\r\npołączyć się z urządzeniami tej sieci.",
+            "C": "komputer o adresie MAC 44-8A-5B-5A-56-D0 i adresie IP 192.168.17.30 został wykluczony\r\nz sieci.",
+            "D": "komputerowi o adresie MAC 44-8A-5B-5A-56-D0 usługa DHCP rutera przydzieli adres\r\nIP 192.168.17.30"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/74.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który typ zabezpieczeń w sieci WiFi posiada najlepszy poziom zabezpieczeń?",
+        "options": {
+            "A": "WEP",
+            "B": "WPA",
+            "C": "WPA2",
+            "D": "NTFS"
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Jeżeli przy uruchamianiu komputera procedura POST zasygnalizuje błąd odczytu\/zapisu pamięci CMOS, to\r\nnależy",
+        "options": {
+            "A": "ntuser.sys",
+            "B": "ntuser.man",
+            "C": "$ntuser.bat",
+            "D": "$ntuser.exe"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/80.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiony na rysunku element elektroniczny to",
+        "options": {
+            "A": "cewka.",
+            "B": "rezystor.",
+            "C": "tranzystor.",
+            "D": "kondensator."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/81.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W dokumentacji technicznej efektywność głośnika podłączonego do komputera zapisuje się w jednostce",
+        "options": {
+            "A": "2,5 W",
+            "B": "7,5 W",
+            "C": "11,0 W",
+            "D": "18,75 W"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/83.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Gniazdo LGA znajdujące się na płycie głównej komputera stacjonarnego umożliwia zainstalowanie\r\nprocesora",
+        "options": {
+            "A": "bus",
+            "B": "star",
+            "C": "ring",
+            "D": "mesh"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/89.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Łącze światłowodowe wykorzystywane do transmisji danych w standardzie 10GBASE-SR może mieć\r\ndługość wynoszącą maksymalnie",
+        "options": {
+            "A": "głowica tnąca.",
+            "B": "atrament żelowy.",
+            "C": "zestaw metalowych rylców.",
+            "D": "farba na bazie rozpuszczalników."
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Za pomocą polecenia ipconfig \/flushdns można wykonać konserwację urządzenia sieciowego\r\npolegającą na",
+        "options": {
+            "A": "usunięcie portów 0 i 1 przełącznika z sieci vlan.",
+            "B": "zmianę ustawienia prędkości dla portu 0\/1 na fastethernet.",
+            "C": "konfigurację wirtualnej sieci lokalnej o nazwie vlan 10 w przełączniku.",
+            "D": "ustawienie nazwy fastEthernet dla pierwszych dziesięciu portów przełącznika."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/104.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiony fragment konfiguracji zapory sieciowej zezwala na ruch sieciowy z wykorzystaniem\r\nprotokołów",
+        "options": {
+            "A": "FTP, SSH",
+            "B": "POP3, TFTP",
+            "C": "HTTP, SMPT",
+            "D": "HTTPS, IMAP"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/105.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawione na rysunku narzędzie służy do testowania",
+        "options": {
+            "A": "zasilacza.",
+            "B": "płyty głównej.",
+            "C": "karty sieciowej.",
+            "D": "okablowania LAN."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/106.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Kopię danych w systemie Linux można wykonać za pomocą polecenia",
+        "options": {
+            "A": "Ustawiony czas aktywacji konta Test.",
+            "B": "Ustawiona data wygaśnięcia konta Test.",
+            "C": "Sprawdzona data ostatniego logowania na konto Test.",
+            "D": "Wymuszona zmiana hasła na koncie Test w podanym terminie."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/111.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Użytkownik systemu operacyjnego Linux chce przypisać adres IP 152.168.1.200 255.255.0.0 interfejsowi\r\nsieciowemu. Które polecenie powinien wydać, mając uprawnienia root?",
+        "options": {
+            "A": "koszt metryki na 0 przeskoków",
+            "B": "adres docelowej sieci na 192.168.35.0",
+            "C": "25 bitową maskę dla adresu docelowego",
+            "D": "maskę 255.255.255.0 dla adresu IP bramy 192.168.0.2"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/113.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Sprawdzenie minimalnego okresu ważności hasła w systemie Windows umożliwia polecenie",
+        "options": {
+            "A": "use",
+            "B": "view",
+            "C": "share",
+            "D": "connect"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/116.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które ze zdań jest prawdziwe dla przedstawionej konfiguracji usługi DHCP w systemie Linux?",
+        "options": {
+            "A": "System zamieni adres IP 192.168.221.102 na nazwę main",
+            "B": "Komputery otrzymają adres IP z zakresu 176.16.20.251 ÷ 255.255.255.0",
+            "C": "Karcie sieciowej komputera main przypisany zostanie adres IP 39:12:86:07:55:00",
+            "D": "Komputery pracujące w sieci otrzymają adres IP z zakresu 176.16.20.50 ÷ 176.16.20.250"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/117.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Dla danego użytkownika w systemie Linux polecenie usermod -s pozwala na",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/122.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku został przedstawiony schemat budowy logicznej",
+        "options": {
+            "A": "procesora.",
+            "B": "klawiatury.",
+            "C": "karty graficznej.",
+            "D": "myszy komputerowej."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/123.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Oznaczenie przedstawionego procesora informuje o",
+        "options": {
+            "A": "jego małej obudowie.",
+            "B": "wersji mobilnej procesora.",
+            "C": "braku blokady mnożnika (unlocked).",
+            "D": "bardzo niskim zużyciu energii przez procesor."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/124.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż podzespół niekompatybilny z płytą główną o przedstawionych w tabeli parametrach.",
+        "options": {
+            "A": "Monitor: Dell, 34”, 1x DisplayPort, 1x miniDP, 2x USB 3.0 Upstream, 4x USB 3.0\r\nDownstream",
+            "B": "Karta graficzna: Gigabyte GeForce GTX 1050 OC, 2GB, GDDR5, 128 bit, PCI-Express 3.0\r\nx16",
+            "C": "Procesor: INTEL CORE i3-4350, 3.60 GHz, x2\/4, 4 MB, 54W, HD 4600, BOX, s-1150",
+            "D": "Pamięć RAM: Corsair Vengeance LPX, DDR4, 2x16GB, 3000MHz, CL15 Black"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/125.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W zestawie komputerowym o parametrach przedstawionych w tabeli należy wymienić kartę graficzną na\r\nkartę \r\nGeForce GTX 1070 Ti Titanium 8G DDR5, PCI EX-x16 3.0, 256b, 1683 MHz\/1607 MHz, Power\r\nconsumption 180W, 3x DP, 2x HDMI, recommended power supply 500W, DirectX 12, OpenGL 4.5 \r\nW związku z tym modernizacja tego komputera wymaga również wymiany",
+        "options": {
+            "A": "karty sieciowej.",
+            "B": "płyty głównej.",
+            "C": "procesora.",
+            "D": "zasilacza."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/126.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Do aktualizacji systemów Linux można wykorzystać programy",
+        "options": {
+            "A": "zaakceptowania ograniczenia czasowego podczas instalacji.",
+            "B": "uiszczenia dobrowolnej opłaty na cele charytatywne.",
+            "C": "wysłania tradycyjnej kartki pocztowej do autora.",
+            "D": "przesłania przelewu z kwotą 1$ na konto autora."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/128.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W dwóch przyległych pomieszczeniach pewnej firmy występują bardzo silne zakłócenia elektromagnetyczne.\r\nAby zapewnić możliwie największą przepustowość podczas pracy istniejącej sieci LAN, jako medium\r\ntransmisyjne należy zastosować",
+        "options": {
+            "A": "153,20 zł",
+            "B": "166,40 zł",
+            "C": "195,40 zł",
+            "D": "198,60 zł"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/145.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby ikony widoczne na przedstawionym obrazie pojawiły się na Pasku zadań, należy w systemie Windows\r\nskonfigurować",
+        "options": {
+            "A": "funkcję Snap i Peek.",
+            "B": "funkcję Pokaż pulpit.",
+            "C": "obszar powiadomień.",
+            "D": "obszar Action Center."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/146.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Po analizie zamieszczonych wyników konfiguracji kart sieciowych zainstalowanych na komputerze można\r\nstwierdzić, że",
+        "options": {
+            "A": "karta bezprzewodowa ma nazwę Net11",
+            "B": "wszystkie karty mogą uzyskać adres IP automatycznie.",
+            "C": "karta przewodowa ma adres MAC 8C-70-5A-F3-75-BC",
+            "D": "interfejs Bluetooth ma przydzielony adres IPv4 192.168.0.102"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/147.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie Windows przeprowadzenie analizy wpływu uruchamianych programów na wydajność komputera\r\njest między innymi możliwe po użyciu polecenia",
+        "options": {
+            "A": "zerowania.",
+            "B": "mapowania.",
+            "C": "oczyszczania.",
+            "D": "defragmentacji."
+        },
+        "correct": "B",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Serwer Samba umożliwia współdzielenie plików i drukarek w sieci za pomocą demona",
+        "options": {
+            "A": "uszkodzeniu sterowników.",
+            "B": "wykryciu nieprawidłowej adresacji IP.",
+            "C": "uszkodzeniu plików startowych systemu.",
+            "D": "konieczności wykonania kopii zapasowej systemu."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/157.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Symbolem literowym P oznacza się",
+        "options": {
+            "A": "wymóg selektywnej zbiórki sprzętu elektronicznego.",
+            "B": "konieczność utylizacji wszystkich elementów elektrycznych.",
+            "C": "brak możliwości składowania odpadów aluminiowych oraz innych tworzyw metalicznych.",
+            "D": "zielony punkt upoważniający do wniesienia opłaty pieniężnej na rzecz organizacji odzysku\r\nopakowań."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/162.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Moc zasilacza wynosi 450 W, czyli",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/168.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Technika przekazywania żetonu (ang. token) jest stosowana w topologii",
+        "options": {
+            "A": "Tusz.",
+            "B": "Pisak.",
+            "C": "Filament.",
+            "D": "Atrament."
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby w systemie Windows wyczyścić bufor nazw domenowych, należy zastosować polecenie",
+        "options": {
+            "A": "Otwarcie portu 53 dla protokołu TCP.",
+            "B": "Usunięcie z zapory sieciowej reguły o nazwie Open.",
+            "C": "Import ustawienia zapory sieciowej z katalogu in action.",
+            "D": "Blokowanie działania usługi DNS opartej na w protokole TCP."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/179.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które z poleceń systemu Linux nie umożliwia przeprowadzenia diagnostyki sprzętu komputerowego?",
+        "options": {
+            "A": "włączenie dynamicznego przypisywania adresów IP.",
+            "B": "ustawienie adresu 151.10.0.1 jako bramy domyślnej.",
+            "C": "ustawienie 24 bitowej maski.",
+            "D": "wyłączenie interfejsu."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/184.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby ustawić routing statyczny do sieci 192.168.10.0, należy wydać polecenie",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/192.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Obraz przedstawia oznaczenie sygnalizacji świetlnej w dokumentacji technicznej laptopa. Wskaż numer \r\noznaczający kontrolkę zapalającą się podczas ładowania baterii.",
+        "options": {
+            "A": "2",
+            "B": "3",
+            "C": "4",
+            "D": "5"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/193.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż poprawną kolejność czynności prowadzących do zamontowania procesora w gnieździe LGA na nowej \r\npłycie głównej, odłączonej od źródła zasilania.",
+        "options": {
+            "A": "5, 2, 3, 4, 1, 6, 7",
+            "B": "5, 6, 1, 7, 2, 3, 4",
+            "C": "5, 7, 6, 1, 4, 3, 2",
+            "D": "5, 1, 7, 3, 6, 2, 4"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/194.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W trybie graficznym systemów Ubuntu lub SuSE Linux, do zainstalowania aktualizacji oprogramowania \r\nsystemu można użyć programów",
+        "options": {
+            "A": "Rozgłaszania.",
+            "B": "Magistrali.",
+            "C": "Gwiazdy.",
+            "D": "Siatki."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/199.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Widoczny na schemacie symbol okablowania oznacza kabel",
+        "options": {
+            "A": "szeregowy",
+            "B": "światłowodowy",
+            "C": "ethernetowy prosty.",
+            "D": "ethernetowy krosowany."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/200.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Zastosowanie skrętki kategorii 6 (CAT 6) o długości 20 metrów w sieci LAN wskazuje na jej maksymalną \r\nprzepustowość równą",
+        "options": {
+            "A": "-i 3",
+            "B": "-c 9",
+            "C": "-a 81",
+            "D": "-s 75"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/206.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Drukarką przeznaczoną do druku etykiet i kodów kreskowych, która drukuje poprzez roztapianie pokrycia\r\nspecjalnej taśmy, w wyniku czego barwnik z niej zostaje przyklejony do materiału, na którym następuje \r\ndrukowanie jest drukarka",
+        "options": {
+            "A": "USB",
+            "B": "Ethernet",
+            "C": "FireWire",
+            "D": "Centronics"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/208.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie Windows Professional do konfiguracji czasu dostępności drukarki należy wykorzystać zakładkę",
+        "options": {
+            "A": "Zmiana nazwy systemowej.",
+            "B": "Wyświetlenie tablicy ARP.",
+            "C": "Określanie haseł dostępu.",
+            "D": "Tworzenie sieci VLAN"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/212.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby ukryć identyfikator sieci bezprzewodowej, należy w ruterze zmienić jego konfigurację w polu oznaczonym \r\nnumerem",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/213.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Konfiguracja rutingu statycznego na ruterze polega na",
+        "options": {
+            "A": "A",
+            "B": "B",
+            "C": "C",
+            "D": "D"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/215.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Do naprawy zasilacza laptopa polegającej na wymianie kondensatorów należy zastosować",
+        "options": {
+            "A": "karty graficznej.",
+            "B": "dysku twardego",
+            "C": "karty sieciowe",
+            "D": "pamięci RAM."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/219.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "System operacyjny został zaatakowany przez oprogramowanie szpiegujące. Po usunięciu usterek, aby \r\nuniknąć kolejnego ataku, zaleca się",
+        "options": {
+            "A": "231,00 zł",
+            "B": "300,00 zł",
+            "C": "369,00 zł",
+            "D": "480,00 zł"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/221.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby po uruchomieniu systemu Windows automatycznie włączał się program Kalkulator, należy wykonać \r\nkonfigurację",
+        "options": {
+            "A": "ping",
+            "B": "ip route",
+            "C": "ifconfig",
+            "D": "ip addr down"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/223.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż polecenie systemu Linux służące do sprawdzenia, w którym katalogu znajduje się użytkownik.",
+        "options": {
+            "A": "archiwizowanie.",
+            "B": "przenoszenie.",
+            "C": "szyfrowanie.",
+            "D": "kopiowanie."
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Usługa systemu Windows Server, służąca do zdalnej instalacji systemów operacyjnych na komputerach \r\nzarządzanych przez serwer, to",
+        "options": {
+            "A": "1, 2, 4, 5, 3, 6",
+            "B": "1, 3, 2, 4, 5, 6",
+            "C": "1, 5, 4, 2, 3, 6",
+            "D": "1, 5, 2, 3, 4, 6"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/242.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W przypadku, gdy ruter jest urządzeniem brzegowym dwóch domen kolizyjnych, jego rolą jest",
+        "options": {
+            "A": "1 GB",
+            "B": "2 GB",
+            "C": "8 GB",
+            "D": "256 MB"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/246.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Licencja wolnego i otwartego oprogramowania to",
+        "options": {
+            "A": "telefonicznego.",
+            "B": "skrętki kat. 5e\/6.",
+            "C": "koncentrycznego.",
+            "D": "światłowodowego."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/248.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Rysunek przedstawia panel konfiguracyjny bezprzewodowego urządzenia dostępowego, który umożliwia",
+        "options": {
+            "A": "nadanie nazwy hosta.",
+            "B": "przypisanie maski podsieci.",
+            "C": "konfigurację serwera DHCP.",
+            "D": "przypisanie adresów MAC kart sieciowych."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/249.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wydane na filmie polecenia wykonane w systemie Windows spowodują",
+        "options": {
+            "A": "usunięcie pliku tekstowego test.txt z katalogu C:\\egzamin",
+            "B": "zmianę uprawnień konta administrator do katalogu C:\\egzamin na r-x",
+            "C": "utworzenie i ukrycie pliku tekstowego zawierającego listę plików z katalogu C:\\egzamin",
+            "D": "ustawienie atrybutu zabezpieczającego przed przypadkowym usunięciem katalogu C:\\egzamin"
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie operacyjnym Ubuntu konto użytkownika student można usunąć za pomocą polecenia",
+        "options": {
+            "A": "2D",
+            "B": "3D",
+            "C": "ręcznego",
+            "D": "płaskiego"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/256.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Do serwisu komputerowego dostarczono laptop z matrycą bardzo słabo wyświetlającą obraz. Ponadto obraz jest bardzo ciemny i widoczny tylko z bliska. Przyczyną usterki jest",
+        "options": {
+            "A": "zastosowanie dysku SAS.",
+            "B": "zastosowanie kontrolera RAID.",
+            "C": "zainstalowanie dwóch procesorów.",
+            "D": "zainstalowanie pamięci RAM we wszystkich gniazdach."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/258.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który port na przedstawionej płycie głównej umożliwia podłączenie zewnętrznego dysku poprzez interfejs e-SATA?",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/259.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na podstawie instrukcji przełącznika wskaż, która z opcji menu przywraca ustawienia fabryczne.",
+        "options": {
+            "A": "Reset System",
+            "B": "Reboot Device",
+            "C": "Firmware Upgrade",
+            "D": "Save Configuration"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/260.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Do podłączenia dysku wyposażonego w interfejs SAS należy zastosować",
+        "options": {
+            "A": "złącze 1",
+            "B": "złącze 2",
+            "C": "złącze 3",
+            "D": "złącze 4"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/261.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Toner jest stosowany w drukarkach",
+        "options": {
+            "A": "brak tonera w kasecie",
+            "B": "uszkodzony podajnik papieru",
+            "C": "uszkodzony bęben światłoczuły",
+            "D": "zaschnięty tusz na głowicy drukującej"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/265.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiony opis dotyczy",
+        "options": {
+            "A": "podłączenia zasilacza awaryjnego",
+            "B": "montażu procesora na płycie głównej",
+            "C": "podłączania zasilania do płyty głównej",
+            "D": "procedury wymiany radiatora z wentylatorem"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/266.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na którym rysunku przedstawiono topologię sieci typu rozszerzona gwiazda?",
+        "options": {
+            "A": "Na rysunku 1",
+            "B": "Na rysunku 2",
+            "C": "Na rysunku 3",
+            "D": "Na rysunku 4"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/267.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie Windows profil użytkownika tworzony podczas pierwszego logowania do komputera i przechowywany na lokalnym dysku twardym komputera, charakteryzujący się tym, że każda jego modyfikacja dotyczy jedynie komputera, na którym została ona wprowadzona, to profil",
+        "options": {
+            "A": "Zostanie wpisany tekst \"ola.txt\" do pliku ala.txt",
+            "B": "Zostanie wpisany tekst \"ala.txt\" do pliku ola.txt",
+            "C": "Zawartość pliku ola.txt zostanie skopiowana do pliku ala.txt",
+            "D": "Zawartość pliku ala.txt zostanie skopiowana do pliku ola.txt"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/269.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W filmie przedstawiono adapter",
+        "options": {
+            "A": "DisplayPort – HDMI",
+            "B": "DisplayPort – DVI",
+            "C": "HDMI – FireWire",
+            "D": "HDMI – D-Sub"
+        },
+        "correct": "A",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby, za pomocą polecenia ping, było możliwe sprawdzenie poprawności komunikacji z innymi urządzeniami pracującymi w sieci, należy w zaporze Windows skonfigurować reguły dotyczące protokołu",
+        "options": {
+            "A": "przełącznik",
+            "B": "koncentrator",
+            "C": "zasilacz PoE",
+            "D": "punkt dostępowy"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/272.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Centralny punkt infrastruktury sieciowej, z którego rozprowadzane jest okablowanie szkieletowe, to punkt",
+        "options": {
+            "A": "set",
+            "B": "attrib",
+            "C": "ftype",
+            "D": "chmod"
+        },
+        "correct": "B",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Zgodnie z Kodeksem pracy do obowiązków pracownika w zakresie bezpieczeństwa i higieny pracy należy",
+        "options": {
+            "A": "symbol 1",
+            "B": "symbol 2",
+            "C": "symbol 3",
+            "D": "symbol 4"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/283.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż materiał eksploatacyjny typowy dla drukarek żelowych.",
+        "options": {
+            "A": "materiał 1",
+            "B": "materiał 2",
+            "C": "materiał 3",
+            "D": "materiał 4"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/284.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Poleceniem służącym do śledzenia trasy pakietów przesyłanych z komputera do punktu docelowego w sieci\r\nkomputerowej jest",
+        "options": {
+            "A": "6",
+            "B": "5",
+            "C": "4",
+            "D": "3"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/291.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Protokół, który tłumaczy nazwy domenowe na adresy IP, to",
+        "options": {
+            "A": "BNC",
+            "B": "8P8C",
+            "C": "6P2C",
+            "D": "SC\/APC"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/293.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunkach technicznych instalacji sieci komputerowej wraz z dedykowaną jej instalacją elektryczną\r\nsymbolem przedstawionym na rysunku oznacza się gniazdo",
+        "options": {
+            "A": "telefoniczne",
+            "B": "ethernetowe",
+            "C": "elektryczne bez styku ochronnego",
+            "D": "elektryczne ze stykiem ochronnym"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/294.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż typ złącza przedstawionej karty graficznej.",
+        "options": {
+            "A": "AGP x2",
+            "B": "AGP x8",
+            "C": "PCI-E x4",
+            "D": "PCI-E x16"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/295.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Która przystawka w systemie Windows umożliwia sprawdzenie stanu sprzętu, aktualizację sterowników oraz\r\nrozwiązanie konfliktów urządzeń?",
+        "options": {
+            "A": "jeden dysk twardy został podzielony na 6 partycji podstawowych",
+            "B": "zamontowano trzy dyski twarde oznaczone sda1, sda2 oraz sda3",
+            "C": "partycja rozszerzona ma wielkość 24,79 GiB",
+            "D": "partycja wymiany zajmuje 2 GiB"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/299.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które z przedstawionych źródeł stresu jest zaliczane do czynników fizycznych?",
+        "options": {
+            "A": "Wahania temperatury otoczenia",
+            "B": "Nadmiar zadań",
+            "C": "Pośpiech",
+            "D": "Mobbing"
+        },
+        "correct": "A",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Woda jest środkiem gaśniczym, którego należy użyć podczas gaszenia pożaru",
+        "options": {
+            "A": "control userpasswords2",
+            "B": "﻿show userpasswords",
+            "C": "net localgroup",
+            "D": "net users"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/304.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Metoda dostępu do medium CSMA\/CA jest stosowana w sieci o standardzie",
+        "options": {
+            "A": "6",
+            "B": "12",
+            "C": "16",
+            "D": "24"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/311.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wadą metody sieciowej analizy oszacowania czasu trwania zadania jest",
+        "options": {
+            "A": "zaciskania złącz BNC",
+            "B": "zaciskania złącz 8P8C",
+            "C": "zdejmowania izolacji z kabli",
+            "D": "montażu okablowania w gnieździe sieciowym"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/314.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Miarą podawaną w decybelach, będącą różnicą mocy sygnału przesyłanego w parze zakłócającej i sygnału\r\nwytworzonego w parze zakłócanej jest",
+        "options": {
+            "A": "tusz",
+            "B": "toner",
+            "C": "kartridż",
+            "D": "taśmę barwiącą"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/322.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż adres sieci",
+        "options": {
+            "A": "S\/UTP",
+            "B": "U\/UTP",
+            "C": "optycznego",
+            "D": "koncentrycznego"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/325.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na fotografii przedstawiono",
+        "options": {
+            "A": "reflektometr",
+            "B": "tester sieciowy",
+            "C": "zaciskarkę do tulejek",
+            "D": "zaciskarkę wtyków 8P8C"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/326.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż domyślny port do przekazywania poleceń (command) serwera usługi FTP",
+        "options": {
+            "A": "wyniku 1.",
+            "B": "wyniku 2.",
+            "C": "wyniku 3.",
+            "D": "wyniku 4."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/335.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż, zgodną z obowiązującymi normami, maksymalną odległość pomiędzy urządzeniami sieciowymi, \r\npołączonymi bezpośrednio skrętką kategorii 5e?",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/339.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Nadzorem i kontrolą w zakresie przestrzegania zasad bezpieczeństwa i higieny pracy oraz przepisów \r\nzwiązanych z zatrudnieniem w Polsce zajmuje się",
+        "options": {
+            "A": "ruter.",
+            "B": "przełącznik.",
+            "C": "koncentrator.",
+            "D": "panel krosowy."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/345.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Zgodnie z zasadami etykiety związanymi ze spotkaniami służbowymi należy pamiętać, aby",
+        "options": {
+            "A": "jego małej obudowie.",
+            "B": "wersji mobilnej procesora.",
+            "C": "braku blokady mnożnika (unlocked).",
+            "D": "bardzo niskim zużyciu energii przez procesor."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/347.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na ilustracji przedstawiono",
+        "options": {
+            "A": "impulsator.",
+            "B": "sondę logiczną.",
+            "C": "czujnik temperatury.",
+            "D": "tester płyt głównych."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/348.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Podczas podłączenia sprawnego monitora do innego komputera jest wyświetlany komunikat przedstawiony \r\nna ilustracji. Pojawienie się komunikatu jest spowodowane",
+        "options": {
+            "A": "wyłączeniem komputera.",
+            "B": "zbyt wysoko ustawioną ostrością obrazu.",
+            "C": "uszkodzeniem monitora podczas podłączania.",
+            "D": "zbyt wysoką lub zbyt niską częstotliwością sygnału."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/349.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Ile maksymalnie komputerów może być zaadresowanych w podsieci o adresie 192.168.1.0\/25?",
+        "options": {
+            "A": "62",
+            "B": "126",
+            "C": "254",
+            "D": "510"
+        },
+        "correct": "B",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Urządzeniem stosowanym do połączenia 6 komputerów w sieć lokalną jest",
+        "options": {
+            "A": "karty sieciowej",
+            "B": "płyty głównej",
+            "C": "procesora",
+            "D": "zasilacza"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/352.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby zmienić właściciela pliku w systemie Linux, należy użyć polecenia",
+        "options": {
+            "A": "wirtualnych sieci.",
+            "B": "sieci bezprzewodowej.",
+            "C": "przekierowania portów.",
+            "D": "rezerwacji adresów MAC."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/354.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przed wykonaniem prac serwisowych związanych z modyfikacją rejestru systemu Windows należy wykonać",
+        "options": {
+            "A": "rutera.",
+            "B": "mostu.",
+            "C": "przełącznika.",
+            "D": "punktu dostępowego."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/357.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W Wierszu polecenia wydano komendę: wykonaj.bat przyklad.txt \r\nWykonanie skryptu spowoduje",
+        "options": {
+            "A": "zabezpieczenie pliku przykład.txt hasłem hsr",
+            "B": "dopisanie ciągu znaków „hsr” do zawartości pliku wykonaj.bat",
+            "C": "nadanie dla pliku wykonaj.bat atrybutów ukryty, systemowy, tylko do odczytu",
+            "D": "nadanie dla pliku przykład.txt atrybutów ukryty, skompresowany, tylko do odczytu"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/358.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby udrożnić zatkane dysze kartridża drukarki atramentowej, należy oczyścić dysze",
+        "options": {
+            "A": "zablokowania podanego adresu fizycznego urządzenia sieciowego w zakresie sieci LAN.",
+            "B": "klonowania adresu fizycznego rutera z puli testowej i zachowania go pod nazwą Stacja002.",
+            "C": "rezerwacji adresu IP z puli adresów określonych przez serwer DHCP dla komputera o podanym\r\nadresie MAC.",
+            "D": "utworzenia polisy dla komputera o nazwie Stacja002, aby mógł łączyć się do rutera łączem\r\nprzewodowym."
+        },
+        "correct": "A",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż zakres grupy, który jest ustawiany domyślnie dla nowo utworzonej grupy w kontrolerze domeny \r\nsystemu Windows Serwer?",
+        "options": {
+            "A": "FTP",
+            "B": "DNS",
+            "C": "DHCP",
+            "D": "WWW"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/365.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Protokół DNS odpowiada za",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/371.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemach operacyjnych Windows natywnym systemem plików, który umożliwia ograniczenie użytkownikom dostępu do poszczególnych katalogów, plików lub dysków jest",
+        "options": {
+            "A": "rutera.",
+            "B": "mostu.",
+            "C": "regeneratora.",
+            "D": "koncentratora."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/374.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Plik ma rozmiar 2 KiB. W przeliczeniu na bity jest to",
+        "options": {
+            "A": "2000 bitów.",
+            "B": "2048 bitów.",
+            "C": "16000 bitów.",
+            "D": "16384 bitów."
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Do wyświetlenia zawartości katalogu w systemie Linux służy polecenie",
+        "options": {
+            "A": "karty graficznej.",
+            "B": "pamięci RAM.",
+            "C": "procesora.",
+            "D": "radiatora."
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Narzędziem blokującym ataki hakerskie z zewnątrz jest",
+        "options": {
+            "A": "PCI",
+            "B": "AGP",
+            "C": "PCIe x1",
+            "D": "PCIe x16"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/381.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiony opis usterki i procedura jej rozwiązania zawarta w dokumentacji technicznej dotyczy problemu związanego",
+        "options": {
+            "A": "z podłączeniem skanera bębnowego.",
+            "B": "z niepoprawnym wydrukiem z drukarki laserowej.",
+            "C": "z konfiguracją skanera bębnowego do pracy sieciowej.",
+            "D": "z niepoprawnym wydrukiem z drukarki termosublimacyjnej."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/382.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Zgodnie z przepisami BHP oraz zasadami ergonomii stanowiska pracy, maksymalna odległość ekranu monitora komputerowego od oczu pracownika wynosi",
+        "options": {
+            "A": "M.2",
+            "B": "USB 3.0",
+            "C": "Serial ATA",
+            "D": "cyfrowe audio"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/388.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiona karta przechwytująca wideo będzie współpracowała z płytą główną wyposażoną w port",
+        "options": {
+            "A": "AGP",
+            "B": "PCI-e",
+            "C": "1-Wire",
+            "D": "eSATA"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/389.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Podczas instalacji systemu Windows, tuż po uruchomieniu instalatora w trybie graficznym, możliwe jest \r\nuruchomienie Wiersza poleceń (konsoli) za pomocą kombinacji przycisków",
+        "options": {
+            "A": "7 budynkowych punktów dystrybucyjnych",
+            "B": "2 kampusowe punkty dystrybucyjne",
+            "C": "4 kondygnacyjne punkty dostępowe",
+            "D": "9 gniazd telekomunikacyjnych"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/394.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Co można powiedzieć o budowie skrętki S\/FTP?",
+        "options": {
+            "A": "lokalizacji uszkodzeń włókien światłowodowych",
+            "B": "spawania przewodów światłowodowych",
+            "C": "zdejmowania izolacji okablowania",
+            "D": "zaciskania wtyków RJ11 i RJ45"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/396.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Testowanie okablowania strukturalnego światłowodowego można wykonać za pomocą",
+        "options": {
+            "A": "14",
+            "B": "16",
+            "C": "30",
+            "D": "62"
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Informacje przedstawione na wydruku zostały wyświetlone w wyniku wywołania",
+        "options": {
+            "A": "netstat -r",
+            "B": "route change",
+            "C": "ipconfig \/all",
+            "D": "traceroute -src"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/401.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Urządzeniem sieciowym pracującym w drugiej warstwie modelu OSI, w którym sygnał na podstawie analizy \r\nadresu MAC nadawcy i odbiorcy jest przesyłany do portu połączonego z urządzeniem odbierającym dane, \r\njest",
+        "options": {
+            "A": "HDMI",
+            "B": "USB A-A",
+            "C": "FireWire",
+            "D": "D-SUB VGA"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/403.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby w systemie Windows zmienić port zainstalowanej drukarki, należy wykorzystać funkcję",
+        "options": {
+            "A": "konfigurator IP",
+            "B": "skaner portów",
+            "C": "zapora sieciowa",
+            "D": "konfigurator sieci"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/406.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Do sprawdzenia stanu podłączonego kabla i zdiagnozowania odległości od miejsca awarii sieci należy \r\nwykorzystać funkcję przełącznika oznaczoną numerem",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/407.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Podczas konfiguracji rutera, aby wprowadzić parametry połączenia dostarczone przez dostawcę \r\ninternetowego należy wybrać obszar oznaczony numerem",
+        "options": {
+            "A": "4",
+            "B": "3",
+            "C": "2",
+            "D": "1"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/408.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Do czyszczenia układów optycznych w sprzęcie komputerowym należy użyć",
+        "options": {
+            "A": "160,00 zł",
+            "B": "196,80 zł",
+            "C": "215,00 zł",
+            "D": "264,45 zł"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/413.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "System Linux Ubuntu zainstalowano na dysku obok systemu Windows. Aby skonfigurować kolejność \r\nuruchamianych systemów operacyjnych, należy zmodyfikować zawartość",
+        "options": {
+            "A": "zakres ten jest aktywny",
+            "B": "zakres ten jest nieaktywny",
+            "C": "pula adresów w tym zakresie jest wyczerpana w 100%",
+            "D": "pula adresów w tym zakresie jest wyczerpana na poziomie bliskim 100%"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/419.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż polecenie systemu Linux służące do wyświetlenia numeru identyfikacyjnego użytkownika.",
+        "options": {
+            "A": "adres rozgłoszeniowy",
+            "B": "bramę domyślną",
+            "C": "adres MAC",
+            "D": "adres IP"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/423.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Higiena pracy to:",
+        "options": {
+            "A": "Zdarzeniem traktowanym na równi z wypadkiem przy pracy",
+            "B": "Wypadkiem przy pracy",
+            "C": "Wypadkiem zbiorowym",
+            "D": "Zdarzeniem potencjalnie wypadkowym"
+        },
+        "correct": "B",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Wypadek śmiertelny przy pracy to wypadek, w którego wyniku nastąpiła śmierć poszkodowanego pracownika",
+        "options": {
+            "A": "napęd karetki",
+            "B": "filtr dichroiczny",
+            "C": "głowica termiczna",
+            "D": "grzałka utrwalająca"
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Adresem pętli zwrotnej w protokole IPv6 jest",
+        "options": {
+            "A": "NCQ",
+            "B": "IRDA",
+            "C": "SAS",
+            "D": "S.M.A.R.T"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/435.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Udostępnienie linuksowych usług drukowania oraz serwera plików stacjom roboczym Windows, OS X, Linux umożliwia serwer",
+        "options": {
+            "A": "liczbę udanych i nieudanych prób logowania",
+            "B": "numer koloru czcionki i numer koloru tła w terminalu",
+            "C": "identyfikatory użytkownika i grupy w systemie",
+            "D": "liczbę dni do ostatniej zmiany hasła i liczbę dni do wygaśnięcia hasła"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/438.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Zgodnie z przedstawioną instrukcją montażu płyty głównej należy",
+        "options": {
+            "A": "w przypadku braku opaski ESD, przed dotknięciem elementów elektronicznych, najpierw dotknąć metalowy przedmiot",
+            "B": "unikat wyłączania zasilania sieciowego przed demontażem płyty głównej",
+            "C": "umieścić podzespół w dowolnym miejscu i dowolnym opakowaniu przed jego zainstalowaniem",
+            "D": "dotykać w dowolny sposób i w dowolnej kolejności metalowe przewody lub złącza"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/439.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Psychicznym skutkiem przewlekłego stresu może być",
+        "options": {
+            "A": "pierścienia",
+            "B": "magistrali",
+            "C": "gwiazdy rozszerzonej",
+            "D": "pełnej siatki"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/442.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż domyślną maskę szesnastobitowego adresu IPv4",
+        "options": {
+            "A": "wymusi na użytkowniku zmianę hasła po 10 dniach",
+            "B": "wymusi utworzenie hasła zawierającego nie mniej niż 12 znaków",
+            "C": "będzie rejestrował zdarzenia, jeśli hasło będzie krótsze niż 8 znaków",
+            "D": "pozwoli zmienić hasło na takie samo po 4 dniach"
+        },
+        "correct": "A",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Serwerowa płyta główna do poprawnego działania wymaga pamięci z rejestrem, Który z wymienionych modułów pamięci będzie kompatybilny z taką płytą?",
+        "options": {
+            "A": "koncetrycznego",
+            "B": "światłowodowego",
+            "C": "YTDY",
+            "D": "F\/UTP"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/449.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "IMAP jest protokołem obsługującym",
+        "options": {
+            "A": "wysyłanie poczty elektronicznej",
+            "B": "odbiór poczty elektronicznej",
+            "C": "monitorowanie urządzeń sieciowych",
+            "D": "synchronizację czasu z serwerami"
+        },
+        "correct": "B",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Która technologia umożliwia dostęp do Internetu?",
+        "options": {
+            "A": "fe80::3d6:e6d2:1c93:56e2",
+            "B": "172.16.21.255",
+            "C": "a0:b3:cc:28:8f:37",
+            "D": "172.16.21.100"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/459.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Jeśli pracownik przebywał na zwolnieniu lekarskim dłużej niż 30 dni, to przed powrotem do pracy musi przejść badania",
+        "options": {
+            "A": "PS\/2",
+            "B": "IEEE 1284",
+            "C": "DVI-D",
+            "D": "mini USB"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/462.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przed rozpoczęciem czynności instalacyjnych wykonano przygotowanie dysku twardego. widoczne na ilustracji wydane polecenia prowadzą do",
+        "options": {
+            "A": "ustawienia systemu plików NTFS dla dysków nr 1 i nr 2",
+            "B": "oczyszczenia dysków nr 0 i nr 2",
+            "C": "konwersji partycji GPT na MBR na dysku nr 1",
+            "D": "formatowania i utraty danych na dysku nr 0"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/463.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na której ilustracji zostało przedstawione narzędzie używane w symulatorze Cisco Packet Tracer, umożliwiające zastosowanie światłowodu jako medium transmisyjnego w projektowaniu sieci? (Ilustracje pochodzą z programu w wersji 8.0.0.0212)",
+        "options": {
+            "A": "na ilustracji 3",
+            "B": "na ilustracji 1",
+            "C": "na ilustracji 4",
+            "D": "na ilustracji 2"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/464.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiony panel tylny płyty głównej jest wyposażony w interfejsy",
+        "options": {
+            "A": "2 x PS2; 1 xRJ45; 6 x USB 2.0, 1.1",
+            "B": "2 x USB 3.0; 2 x USB 2.0, 1.1; 2 x DP, 1 x DVI",
+            "C": "2 x USB 3.0; 4 x USB 2.0, 1.1; 1 x D-SUB",
+            "D": "2 x HDMI, 1 x D-SUB, 1 x RJ11, 6 x USB 2.0"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/465.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Urządzenie przedstawione na rysunku jest stosowane do",
+        "options": {
+            "A": "zabezpieczenia przed niepożądanym dostępem z sieci",
+            "B": "wzmocnienia sygnału",
+            "C": "zamiany transmisji sygnału kablem światłowodowym na skrętkę",
+            "D": "rozdzielenia sygnału"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/466.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "w której topologii logicznej sieci komputerowej urządzenia wysyłające dane używają znacznika nazywanego tokenem?",
+        "options": {
+            "A": "montażu modułu drukującego i zgarniacza.",
+            "B": "konserwacji ekstrudera.",
+            "C": "ładowania i wymiany filamentu.",
+            "D": "czyszczenia platformy roboczej z resztek filamentu."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/468.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż materiał eksploatacyjny stosowany w kolorowych drukarkach laserowych.",
+        "options": {
+            "A": "Na ilustracji 1",
+            "B": "Na ilustracji 4",
+            "C": "Na ilustracji 2",
+            "D": "Na ilustracji 3"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/473.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Adresem rozgłoszeniowym w sieci 172.16.0.0\/19 w adresacji IPv4 jest",
+        "options": {
+            "A": "chroot",
+            "B": "chkntfs",
+            "C": "chmod",
+            "D": "chkdsk"
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby uniknąć nieodwracalnego uszkodzenia komórek nerwowych, resuscytacja krążeniowo-oddechowa (RKO) powinna zostać rozpoczęta w przypadku zatrzymania oddechu i krążenia przed upływem",
+        "options": {
+            "A": "Adress Leases",
+            "B": "Reservations",
+            "C": "Address Pool",
+            "D": "Policies"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/478.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Kliknięcie wskazanej na ilustracji ikony, dostępnej w urządzeniu mobilnym, umożliwi",
+        "options": {
+            "A": "konfigurowanie ustawień zapory systemowej.",
+            "B": "konfigurowanie usługi sieci komórkowej.",
+            "C": "przeglądanie i pobieranie aplikacji wybranych do zainstalowania.",
+            "D": "włączenie i używanie wbudowanych funkcji ochrony i bezpieczeństwa."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/479.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Lokalna polityka bezpieczeństwa w systemie Windows 10 polegająca na definiowaniu zasad zabezpieczeń dla komputerów, może być zrealizowana za pomocą narzędzia",
+        "options": {
+            "A": "monochromatyczna, w której wydruk można otrzymać w czasie czterech przebiegów papieru.",
+            "B": "kolorowa, w której wydruk można otrzymać w czasie czterech przebiegów papieru.",
+            "C": "monochromatyczna, w której wydruk można otrzymać w czasie jednego przebiegu papieru.",
+            "D": "kolorowa, w której wydruk można otrzymać w czasie jednego przebiegu papieru."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/481.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na ilustracji przedstawiono kartę",
+        "options": {
+            "A": "graficzną.",
+            "B": "dzwiękową.",
+            "C": "sieciową bezprzewodową",
+            "D": "pamięci secure digital"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/482.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Celem normalizacji krajowej jest",
+        "options": {
+            "A": "zezwolić komputerowi o adresie MAC 38:f2:3e:1e:f1:b4 na dostęp do sieci bezprzewodowej.",
+            "B": "zabronić komputerowi o adresie MAC 38:f2:3e:1e:f1:b4 dostępu do sieci bezprzewodowej.",
+            "C": "wykonać klonowanie adresu MAC punktu dostępowego i skojarzyć go z nazwą Stacja-1.",
+            "D": "wyświetlić adresy sprzętowe wszystkich aktywnych klientów punktu dostępowego."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/484.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które urządzenie, pracujące w warstwie pierwszej modelu OSI, będące połączeniem nadajnika i odbiornika, wykorzystywane jest w sieciach informatycznych do zamiany sygnału przesyłanego światłowodem na sygnał przesyłany kablem miedzianym i odwrotnie?",
+        "options": {
+            "A": "Użytkownik: jedynie prawo do zapisu, grupa: prawo do odczytu i wykonania, pozostali: brak praw do pliku.",
+            "B": "Użytkownik: prawo do odczytu i wykonania, grupa: pełne prawa, pozostali: brak praw do pliku.",
+            "C": "Użytkownik: pełne prawa, grupa: prawo do odczytu, pozostali: brak praw do pliku.",
+            "D": "Użytkownik: prawo do zapisu, grupa: brak praw, pozostali: brak praw do pliku."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/488.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Narzędziem przeznaczonym do wypięcia żyły kabla U\/UTP z modułu Keystone jest",
+        "options": {
+            "A": "zadeklarowano w nim zmienną o nazwie p.",
+            "B": "użyto w nim zmienną środowiskową przynajmniej raz.",
+            "C": "wykorzystano w nim instrukcję warunkową.",
+            "D": "zastosowano w nim instrukcję pętli."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/495.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż bezpłatny program, który umożliwi przygotowanie prezentacji multimedialnej dla klienta.",
+        "options": {
+            "A": "PS\/2",
+            "B": "DVI-D",
+            "C": "mini USB",
+            "D": "IEEE 1284"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/498.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W modelu ISO\/OSI protokół ICMP działa w warstwie",
+        "options": {
+            "A": "3",
+            "B": "4",
+            "C": "2",
+            "D": "1"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/500.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W programie Oracle VM VirtualBox należy zainstalować dwa serwerowe systemy operacyjne z kartami sieciowymi, umożliwiającymi komunikowanie się z siecią, w której pracuje fizyczny komputer. Dodatkowo skonfigurowane na wirtualnych serwerach usługi powinny być dostępne dla komputerów w tej sieci.\r\nW tym celu, przed instalacją, należy w programie do wirtualizacji w ustawieniach sieci ustawić tryb karty sieciowej na",
+        "options": {
+            "A": "most",
+            "B": "hub",
+            "C": "modem",
+            "D": "ruter"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/503.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W filmie przedstawiono",
+        "options": {
+            "A": "czyszczenie głowicy drukarki atramentowej.",
+            "B": "montaż papieru termicznego w drukarce termicznej.",
+            "C": "wymianę głowicy drukującej w drukarce igłowej.",
+            "D": "wymianę tonera w drukarce laserowej."
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Które porty należy zablokować w zaporze sieciowej, aby uniemożliwić połączenie z serwerem FTP?",
+        "options": {
+            "A": "Przepust kablowy 2U",
+            "B": "Wieszak do kabli 2U",
+            "C": "Maskownica 1U",
+            "D": "Panel krosowy 1U"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/509.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż zgodną z zasadami netykiety, formę oficjalnego e-maila zawierającego CV, który ma zostać wysłany do potencjalnego pracodawcy.",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/510.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który standard szyfrowania stosowany w sieciach bezprzewodowych zapewnia najniższy poziom bezpieczeństwa?",
+        "options": {
+            "A": "kolektywnej.",
+            "B": "eksperckiej.",
+            "C": "chirurgicznej.",
+            "D": "izomorficznej"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/515.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wynikiem sumowania liczb binarnych 1001101 i 11001 jest",
+        "options": {
+            "A": "Błędny adres serwera DNS lub brak połączenia z serwerem DNS.",
+            "B": "Stacja robocza ma przypisany nieprawidłowy adres bramy sieciowej.",
+            "C": "Host o adresie IP 212.77.98.9 nie jest dostępny.",
+            "D": "Domena o nazwie www.wp.pl jest niedostępna w sieci."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/523.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Do realizacji iloczynu logicznego z negacją należy użyć funktora",
+        "options": {
+            "A": "\/etc\/samba\/smb.conf",
+            "B": "\/etc\/vsftpd.conf",
+            "C": "\/etc\/postfix\/main.cf",
+            "D": "\/etc\/ssh\/sshd_config"
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Który standard złącza DVI umożliwia przesyłanie wyłącznie sygnału analogowego?",
+        "options": {
+            "A": "1",
+            "B": "2",
+            "C": "3",
+            "D": "4"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/526.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie Linux program dd, którego przykład zastosowania przedstawiono w ramce, pozwala na\r\ndd if=\/dev\/sdb of=\/home\/użytkownik\/Linux.iso",
+        "options": {
+            "A": "Torx",
+            "B": "Krzyżowego",
+            "C": "Imbus",
+            "D": "Tri-wing"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/533.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który rodzaj plotera, stosowany do pracy z płaskimi powierzchniami wielkoformatowymi, wykorzystuje do wydruku odpornego na czynniki zewnętrzne farby na bazie rozpuszczalników?",
+        "options": {
+            "A": "1",
+            "B": "3",
+            "C": "4",
+            "D": "2"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/539.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który zapis w systemie binarnym odpowiada liczbie 91H?",
+        "options": {
+            "A": "20.18 Mbps z opóźnieniem 9 ms.",
+            "B": "20.18 Mbps z opóźnieniem 15 ms.",
+            "C": "34.78 Mbps z opóźnieniem 9 ms.",
+            "D": "34.78 Mbps z opóźnieniem 15 ms"
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Która usługa Windows Serwer umożliwia zdalną oraz szybką instalację systemów klienckich Windows na komputerach podłączonych bezpośrednio do sieci LAN?",
+        "options": {
+            "A": "2",
+            "B": "6",
+            "C": "3",
+            "D": "5"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/544.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie Linux polecenie ln służy do +++++++++++++++++",
+        "options": {
+            "A": "crack.",
+            "B": "nmap.",
+            "C": "backdoor.",
+            "D": "keylogger."
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Rozkazem procesora realizującym funkcję odejmowania w języku asembler jest",
+        "options": {
+            "A": "informacji o skojarzeniach plików wykonywalnych.",
+            "B": "listy katalogów otwartych przez użytkownika zdalnego o nazwie szachy.",
+            "C": "atrybuty katalogu szachy.",
+            "D": "uprawnień do zasobu lokalnego."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/553.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Administrator podzielił sieć komputerową o adresie IPv4 192.168.1.0\/24, na mniejsze sieci każda o masce 27 bitowej. Ile adresów hostów ma obecnie do dyspozycji w każdej z nich?",
+        "options": {
+            "A": "Typu B",
+            "B": "Typu A",
+            "C": "Typu AB",
+            "D": "Typu C"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/557.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "# iptables -A INPUT --protocol tcp --destination-port 5555 -j ???\r\n\r\nW ramce przedstawiono polecenie systemu Linux służące do konfiguracji zapory sieciowej. Co należy wpisać w miejscu znaków zapytania, aby reguła zezwalała na ruch przychodzący na tym porcie?",
+        "options": {
+            "A": "Dyspozytor.",
+            "B": "Round Robin.",
+            "C": "Dziadek-Ojciec-Syn.",
+            "D": "Wieża Hanoi."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/560.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie Linux programem służącym do monitorowania działania sieci komputerowej jest",
+        "options": {
+            "A": "różnicy symetrycznej.",
+            "B": "negacji alternatywy wykluczającej.",
+            "C": "negacji sumy logicznej.",
+            "D": "koniunkcji."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/571.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Kierownik działu IT opracował szczegółowy plan zmian funkcjonowania swojego działu. Na którym etapie realizacji tego planu będzie mógł uzyskać dane z otoczenia o efektach wprowadzonych zmian?",
+        "options": {
+            "A": "centralny punkt dystrybucyjny",
+            "B": "lokalny punkt dystrybucyjny",
+            "C": "kondygnacyjny punkt dystrybucyjny",
+            "D": "budynkowy punkt dystrybucyjny"
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "W ramce przedstawiono wymagania konfiguracyjne przełącznika. Na podstawie filmu określ, jaki błąd popełnił administrator podczas jego konfiguracji?\r\nadres IP: 192.168.0.1\/24, brama domyślna: 192.168.0.2VLAN 802.1q o ID=1 z przypisanymi wszystkimi portami w trybie dostępuVLAN 802.1q o ID=2 z przypisanymi portami nr 1 i 3 w trybie trunk oraz portem nr 2 w trybie dostępuVLAN 802.1q o ID=3 z przypisanym port nr 1 w trybie trunk oraz portem nr 4 w trybie dostępu",
+        "options": {
+            "A": "Ustawiono błędną maskę podsieci.",
+            "B": "Nie została włączona obsługa VLAN 802.1Q.",
+            "C": "Niepoprawnie ustawiono port nr 1 dla VLAN o ID=3.",
+            "D": "Przypisano do przełącznika dynamiczną adresację IP."
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Chorobą zawodową informatyka jest",
+        "options": {
+            "A": "karty graficznej do notebooka.",
+            "B": "dysku SSD.",
+            "C": "modułu pamięci Cache.",
+            "D": "GPU."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/578.png",
+        "category": "EE.08"
+    },
+    {
+        "question": "Elementem służącym do utrwalania tonera na papierze podczas wydruku z drukarki laserowej jest",
+        "options": {
+            "A": "Zwarcie.",
+            "B": "Pary odwrócone.",
+            "C": "Rozwarcie.",
+            "D": "Pary skrzyżowane."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/585.png",
+        "category": "EE.08"
+    },
+    {
+        "question": "Narzędziem służącym do połączenia pigtaila z włóknami kabla światłowodowego jest",
+        "options": {
+            "A": "FREEWARE",
+            "B": "MOLP",
+            "C": "ADWARE",
+            "D": "GNU GPL"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/600.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na podstawie którego adresu w przełączniku jest podejmowana decyzja o przesyłaniu ramki?",
+        "options": {
+            "A": "Nie utworzono wirtualnego dysku twardego dla tej maszyny wirtualnej.",
+            "B": "Przydzielono zbyt mały rozmiar pamięci RAM.",
+            "C": "Zastosowano niepoprawny znak podkreślenia w nazwie wirtualnej maszyny.",
+            "D": "Została wyłączona wirtualizacja sprzętowa w programie."
+        },
+        "correct": "B",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Kabel typu skrętka, w którym każda para przewodów znajduje się w osobnym ekranie z folii, przy czym wszystkie pary dodatkowo znajdują się w ekranie z folii, jest oznaczony symbolem",
+        "options": {
+            "A": "150",
+            "B": "250",
+            "C": "50",
+            "D": "80"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/610.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wyznaczanie optymalnej trasy dla połączenia sieciowego, to",
+        "options": {
+            "A": "SDRAM",
+            "B": "SIMM",
+            "C": "RIMM",
+            "D": "RAMBUS"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/615.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Jakie elementy znajdują się na przedstawionej płycie głównej?",
+        "options": {
+            "A": "2 złącza ISA, 3 złącza PCI, 4 złącza pamięci DIMM",
+            "B": "3 złącza ISA, 4 złącza PCI, 2 złącza pamięci DIMM",
+            "C": "2 złącza ISA, 4 złącza PCI, 3 złącza pamięci DIMM",
+            "D": "4 złącza ISA, 2 złącza PCI, 3 złącza pamięci DIMM"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/616.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na podstawie przedstawionego cennika oblicz, jaki będzie koszt brutto jednego dwumodułowegopodwójnego natynkowego gniazda abonenckiego.",
+        "options": {
+            "A": "25,00 zł",
+            "B": "32,00 zł",
+            "C": "28,00 zł",
+            "D": "18,00 zł"
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/617.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na rysunku przedstawiono zrzut ekranu z przeprowadzonego testu",
+        "options": {
+            "A": "czasu oczekiwania pamięci.",
+            "B": "czasu dostępu do dysku twardego.",
+            "C": "czasu dostępu do napędu optycznego.",
+            "D": "czasu opróżniania buforu systemowego."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/618.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Co pozwala utrzymać równomierny rozkład ciepła między procesorem a radiatorem?",
+        "options": {
+            "A": "Obraz A.",
+            "B": "Obraz B.",
+            "C": "Obraz C.",
+            "D": "Obraz D."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/620.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Z przedstawionego zrzutu wynika, że za pomocą przeglądarki internetowej wykonano pomiar",
+        "options": {
+            "A": "strat mocy optycznej.",
+            "B": "tłumienia kabla miedzianego.",
+            "C": "czasu odpowiedzi od wybranego serwera.",
+            "D": "liczby transmitowanych pakietów między wybranymi serwerami."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/621.png",
+        "category": "EE.08"
+    },
+    {
+        "question": "Którego wkrętu należy użyć, aby zamocować napęd optyczny o szerokości 5,25” w obudowie wymagającej przykręcania napędów?",
+        "options": {
+            "A": "Obraz A.",
+            "B": "Obraz B.",
+            "C": "Obraz C.",
+            "D": "Obraz D."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/622.png",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiona na obrazie usterka, widoczna na ekranie komputera, nie może być spowodowana przez",
+        "options": {
+            "A": "przegrzewanie się karty graficznej.",
+            "B": "złe napięcia podawane przez zasilacz.",
+            "C": "uszkodzenie modułów pamięci operacyjnej.",
+            "D": "spalenie rdzenia lub pamięci karty graficznej po overclockingu."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/623.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby w systemie Windows 10 wykonać przedstawioną konfigurację słuchawek w Panelu sterowania, należy użyć apletu",
+        "options": {
+            "A": "ekran.",
+            "B": "dźwięk.",
+            "C": "menedżer urządzeń.",
+            "D": "menedżer poświadczeń."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/624.png",
+        "category": "EE.08"
+    },
+    {
+        "question": "Protokół przeznaczony do korzystania z usług katalogowych, bazujący na standardzie X.500 i wykorzystywany między innymi do komunikacji z usługą Active Directory, to",
+        "options": {
+            "A": "LDAP",
+            "B": "NNTP",
+            "C": "OpenID",
+            "D": "IMAP"
+        },
+        "correct": "A",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Adres IPv4 192.168.100.250 zapisany w systemie dwójkowym ma postać",
+        "options": {
+            "A": "interfejs ether1 ma przypisany adres 192.168.1.32\/24 i jest on przypisany statycznie.",
+            "B": "adres IP interfejsu ether2 został ustawiony na 192.168.100.100\/24, po czym został zmodyfikowany  na 10.10.10.10.\/8.",
+            "C": "adresy IP interfejsów ether3 oraz ether2 zostały ustawione statycznie.",
+            "D": "wszystkie interfejsy rutera (przewodowe i bezprzewodowe) zostały zaadresowane."
+        },
+        "correct": "C",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "W systemie serwerowym Linux, w celu konfiguracji karty sieciowej o nazwie LAN1 oraz adresacji IP 192.168.100.100\/24 wraz z uruchomieniem interfejsu, należy użyć polecenia",
+        "options": {
+            "A": "dysk SSD M.2",
+            "B": "pamięć SO-DIMM do drukarki",
+            "C": "pamięć przenośną USB",
+            "D": "moduł SFP"
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/630.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Która warstwa modelu TCP\/IP  opiera się na wykorzystywaniu określonych portów dla każdego połączenia oraz gwarantuje pewność transmisji?",
+        "options": {
+            "A": "Źródło.",
+            "B": "Opcje podawania papieru.",
+            "C": "Tryb wykończenia.",
+            "D": "Format."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/633.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawione na ilustracji narzędzie przeznaczone jest do",
+        "options": {
+            "A": "łączenia włókien światłowodowych.",
+            "B": "przycinania kabli koncentrycznych.",
+            "C": "instalacji kabla w gnieździe LSA.",
+            "D": "testowania uszkodzonych par przewodów."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/634.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W serwerowym systemie operacyjnym Linux, aby uruchomić serwer plików, można użyć oprogramowania",
+        "options": {
+            "A": "skażeniem biologicznym.",
+            "B": "promieniowaniem laserowym.",
+            "C": "porażeniem prądem elektrycznym.",
+            "D": "silnym polem magnetycznym."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/636.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który protokół służy do połączenia z siecią szerokopasmową w sytuacji, gdy login i hasło użytkownika zostało nadane przez ISP?",
+        "options": {
+            "A": "tester miedzianych przewodów sieciowych.",
+            "B": "miernik uniwersalny.",
+            "C": "miernik mocy sygnału sieci bezprzewodowej.",
+            "D": "tester światłowodowych przewodów sieciowych."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/641.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Ile minimalnie dysków należy użyć do utworzenia macierzy RAID 5?",
+        "options": {
+            "A": "brak ustawionego adresu IP dla serwera DNS.",
+            "B": "ustawienie błędnego adresu maski podsieci.",
+            "C": "błędny adres IP bramy domyślnej.",
+            "D": "ustawienie dwóch różnych adresów IP karty sieciowej."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/643.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby w systemie Linux Ubuntu dodać konto istniejącego użytkownika do grupy, można użyć polecenia",
+        "options": {
+            "A": "wydruku 381 stron.",
+            "B": "konieczności załadowania papieru do podajnika.",
+            "C": "Informacji o wydruku jedynie 381 stron jednym tonerem.",
+            "D": "zacięcia papieru."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/645.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W celu nawiązania połączenia stacjonarnego odbiornika z odległym nadajnikiem (połączenie punkt-punkt) stosuje się anteny",
+        "options": {
+            "A": "Na ilustracji A.",
+            "B": "Na ilustracji B.",
+            "C": "Na ilustracji C.",
+            "D": "Na ilustracji D."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/648.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który ze standardów sieci bezprzewodowych używa techniki  wielodostępu z ortogonalnym podziałem częstotliwości OFDMA (Orthogonal frequency-division multiple access)?",
+        "options": {
+            "A": "711",
+            "B": "744",
+            "C": "733",
+            "D": "755"
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiona procedura z dokumentacji technicznej drukarki, dotyczy komunikatu oraz sposobu postępowania w przypadku",
+        "options": {
+            "A": "kalibracji głowic w drukarce atramentowej.",
+            "B": "wymiany bębna światłoczułego.",
+            "C": "błędnej instalacji kolorowej kasety tonera w odpowiednim miejscu.",
+            "D": "wymiany zestawu tuszy w drukarce atramentowej."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/651.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Który rekord należy skonfigurować, aby powiązać nazwę domeny DNS na jej adres IPv6?",
+        "options": {
+            "A": "Urządzenie A.",
+            "B": "Urządzenie B.",
+            "C": "Urządzenie C.",
+            "D": "Urządzenie D."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/655.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Narzędzie, lub zestaw narzędzi, którego należy użyć do otwierania obudowy laptopa, by zminimalizować prawdopodobieństwo uszkodzenia obudowy (rysy, załamania tworzywa) przedstawiono na",
+        "options": {
+            "A": "ilustracji A.",
+            "B": "ilustracji B.",
+            "C": "ilustracji C.",
+            "D": "ilustracji D."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/656.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Na ilustracji przedstawiono schemat ideowy",
+        "options": {
+            "A": "jednozakresowego punktu dostępowego z portem Fast Ethernet.",
+            "B": "przełącznika ośmioportowego.",
+            "C": "przełącznika warstwy trzeciej z pięcioma portami Gigabit Ethernet.",
+            "D": "dwuzakresowego rutera sieci bezprzewodowej z pięcioma portami Fast Ethernet."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/657.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które wartości zostaną uzyskane na wyjściu przedstawionego układu kombinacyjnego?",
+        "options": {
+            "A": "X = 1, Y = 0",
+            "B": "X = 0, Y = 1",
+            "C": "X = 0, Y = 0",
+            "D": "X = 1, Y = 1"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/658.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Która ilustracja przedstawia pasywny element sieci?",
+        "options": {
+            "A": "Ilustracja A.",
+            "B": "Ilustracja B.",
+            "C": "Ilustracja C.",
+            "D": "Ilustracja D."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/659.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Wskaż przedstawioną w filmie czynność, wykonywaną przez serwisanta.",
+        "options": {
+            "A": "Montaż karty sieciowej USB.",
+            "B": "Wymiana modułu pamięci RAM.",
+            "C": "Wymiana karty graficznej PCI-E.",
+            "D": "Montaż karty sieciowej PCI."
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Na ilustracji przedstawiono konfigurację dostępu do sieci bezprzewodowej, która dotyczy",
+        "options": {
+            "A": "ustawienia zabezpieczeń przez wpisanie adresów MAC urządzeń mających dostęp do tej sieci.",
+            "B": "nadania SSID sieci i określenia ilości dostępnych kanałów.",
+            "C": "podziału pasma przez funkcję QoS.",
+            "D": "ustawienia zabezpieczeń poprzez nadanie klucza dostępu do sieci Wi-Fi."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/661.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Trollowanie w Internecie polega na",
+        "options": {
+            "A": "karta sieciowa maszyny wirtualnej będzie zmostkowana z kartą maszyny fizycznej.",
+            "B": "karta sieciowa maszyny wirtualnej będzie pracować w sieci wirtualnej.",
+            "C": "system wirtualny będzie zachowywać się tak, jakby był podłączony do rutera udostępniającego połączenie sieciowe.",
+            "D": "system wirtualny nie będzie miał zainstalowanej karty sieciowej."
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/664.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Grafik komputerowy sygnalizuje bardzo wolną pracę komputera. Z ilustracji przedstawiającej okno wydajności komputera wynika, że przyczyną tego może być",
+        "options": {
+            "A": "zbyt mała ilości pamięci RAM.",
+            "B": "wolna praca dysku twardego.",
+            "C": "wolne łącze internetowe.",
+            "D": "niska wydajność procesora graficznego."
+        },
+        "correct": "A",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/666.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Która pula adresów IPv6 jest odpowiednikiem adresów prywatnych w IPv4?",
+        "options": {
+            "A": "ping \\?",
+            "B": "ping >?",
+            "C": "ping |?",
+            "D": "ping \/?"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/673.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Liczba 10D w systemie uzupełnień do dwóch jest równa",
+        "options": {
+            "A": "IP Security.",
+            "B": "Link aggregation.",
+            "C": "Port Mirroring.",
+            "D": "Bandwidth control."
+        },
+        "correct": "D",
+        "image": null,
+        "category": "EE.08"
+    },
+    {
+        "question": "Przedstawiony schemat sieci kampusowej zawiera",
+        "options": {
+            "A": "6 pośrednich punktów dystrybucyjnych.",
+            "B": "6 budynkowych punktów dystrybucyjnych w 2 różnych obszarach.",
+            "C": "2 budynkowe punkty dystrybucyjne.",
+            "D": "2 piętrowe punkty dystrybucyjne z 6 gniazdami abonenckimi."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/676.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Aby była możliwa komunikacja pomiędzy dwiema różnymi sieciami, do których należą karty sieciowe serwera, należy w systemie Windows Server dodać rolę",
+        "options": {
+            "A": "2960-48TT-L",
+            "B": "2960-24PC-L",
+            "C": "2960-24LT-L",
+            "D": "2960-48TC-L"
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/679.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "W procedurze Power-On Self-Test w pierwszej kolejności wykonywane jest sprawdzanie",
+        "options": {
+            "A": "oczyszczania elementów scalonych z kurzu.",
+            "B": "testowania płyty głównej.",
+            "C": "lutowania.",
+            "D": "pomiaru rezystancji."
+        },
+        "correct": "C",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/682.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Które urządzenie może zostać wykorzystane do rutowania ruchu sieciowego między sieciami VLAN?",
+        "options": {
+            "A": "wyłączenie konta Gość",
+            "B": "zmiana nazwy konta Administrator na Superużytkownik",
+            "C": "dodanie użytkownika Superużytkownik",
+            "D": "zmiana nazwy konta Gość na Superużytkownik"
+        },
+        "correct": "B",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/686.jpg",
+        "category": "EE.08"
+    },
+    {
+        "question": "Ile hostów można zaadresować w sieci o adresie 172.16.3.96\/28?",
+        "options": {
+            "A": "łączenia okablowania światłowodowego.",
+            "B": "montażu okablowania miedzianego.",
+            "C": "zdejmowania izolacji z okablowania miedzianego.",
+            "D": "zdejmowania izolacji z okablowania światłowodowego."
+        },
+        "correct": "D",
+        "image": "https:\/\/www.praktycznyegzamin.pl\/ee08\/688.jpg",
+        "category": "EE.08"
+    }
+]

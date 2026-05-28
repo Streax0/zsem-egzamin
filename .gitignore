@@ -1,0 +1,9 @@
+.env
+.xampp-sync.log
+.codex-screens/
+*.log
+.vscode/
+.idea/
+node_modules/
+Thumbs.db
+Desktop.ini

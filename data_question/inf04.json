@@ -1,0 +1,3566 @@
+[
+  {
+    "question": "Który język programowania jest najczęściej używany do tworzenia aplikacji desktopowych w środowisku Windows w technologii .NET?",
+    "options": {
+      "A": "PHP",
+      "B": "C#",
+      "C": "SQL",
+      "D": "HTML"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w języku C# służy do wyświetlenia tekstu w konsoli?",
+    "options": {
+      "A": "print()",
+      "B": "echo",
+      "C": "Console.WriteLine()",
+      "D": "cout"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych w C# służy do przechowywania liczb całkowitych?",
+    "options": {
+      "A": "float",
+      "B": "char",
+      "C": "bool",
+      "D": "int"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykona się co najmniej jeden raz?",
+    "options": {
+      "A": "for",
+      "B": "while",
+      "C": "do...while",
+      "D": "foreach"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# oznacza przypisanie wartości?",
+    "options": {
+      "A": "==",
+      "B": "=",
+      "C": "!=",
+      "D": "==="
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja warunkowa wykonuje kod, gdy warunek jest prawdziwy?",
+    "options": {
+      "A": "for",
+      "B": "switch",
+      "C": "if",
+      "D": "return"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który symbol służy do zakończenia instrukcji w języku C#?",
+    "options": {
+      "A": ".",
+      "B": ":",
+      "C": ",",
+      "D": ";"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zamienia tekst na liczbę całkowitą w C#?",
+    "options": {
+      "A": "Convert.ToInt32()",
+      "B": "ToString()",
+      "C": "ParseText()",
+      "D": "Integer()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje wartości logiczne prawda/fałsz?",
+    "options": {
+      "A": "string",
+      "B": "char",
+      "C": "bool",
+      "D": "int"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Które słowo kluczowe tworzy nowy obiekt klasy?",
+    "options": {
+      "A": "class",
+      "B": "void",
+      "C": "new",
+      "D": "object"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który element odpowiada za przechowywanie wielu wartości tego samego typu?",
+    "options": {
+      "A": "tablica",
+      "B": "klasa",
+      "C": "metoda",
+      "D": "interfejs"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Które słowo kluczowe oznacza brak zwracanej wartości przez metodę?",
+    "options": {
+      "A": "null",
+      "B": "void",
+      "C": "return",
+      "D": "public"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja służy do wyboru jednej z wielu opcji?",
+    "options": {
+      "A": "switch",
+      "B": "for",
+      "C": "while",
+      "D": "break"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator oznacza logiczne AND?",
+    "options": {
+      "A": "||",
+      "B": "&&",
+      "C": "!",
+      "D": "%"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda odczytuje dane wpisane z klawiatury w aplikacji konsolowej?",
+    "options": {
+      "A": "Console.ReadLine()",
+      "B": "Console.WriteLine()",
+      "C": "Input()",
+      "D": "ReadText()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje tekst?",
+    "options": {
+      "A": "char",
+      "B": "bool",
+      "C": "string",
+      "D": "float"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Które słowo kluczowe służy do dziedziczenia klasy w C#?",
+    "options": {
+      "A": "extends",
+      "B": "inherits",
+      "C": ":",
+      "D": "base"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja przerywa działanie pętli?",
+    "options": {
+      "A": "continue",
+      "B": "stop",
+      "C": "return",
+      "D": "break"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator służy do porównania równości wartości?",
+    "options": {
+      "A": "=",
+      "B": "==",
+      "C": "!=",
+      "D": "<>"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje dane w postaci klucz-wartość?",
+    "options": {
+      "A": "tablica",
+      "B": "lista",
+      "C": "Dictionary",
+      "D": "Queue"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który wyjątek może wystąpić przy dzieleniu przez zero?",
+    "options": {
+      "A": "NullReferenceException",
+      "B": "FormatException",
+      "C": "DivideByZeroException",
+      "D": "IOException"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który blok służy do obsługi wyjątków?",
+    "options": {
+      "A": "if-catch",
+      "B": "try-catch",
+      "C": "throw-break",
+      "D": "switch-case"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu oznacza dostęp tylko w obrębie klasy?",
+    "options": {
+      "A": "public",
+      "B": "protected",
+      "C": "private",
+      "D": "internal"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ pętli służy do iteracji po kolekcji elementów?",
+    "options": {
+      "A": "while",
+      "B": "for",
+      "C": "foreach",
+      "D": "loop"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Które słowo kluczowe kończy działanie metody i zwraca wartość?",
+    "options": {
+      "A": "break",
+      "B": "return",
+      "C": "void",
+      "D": "continue"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator oznacza logiczne OR?",
+    "options": {
+      "A": "&&",
+      "B": "!",
+      "C": "||",
+      "D": "&"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który element programu definiuje cechy i zachowanie obiektów?",
+    "options": {
+      "A": "metoda",
+      "B": "klasa",
+      "C": "zmienna",
+      "D": "tablica"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych służy do przechowywania liczb zmiennoprzecinkowych?",
+    "options": {
+      "A": "bool",
+      "B": "string",
+      "C": "float",
+      "D": "char"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja pomija bieżącą iterację pętli?",
+    "options": {
+      "A": "continue",
+      "B": "break",
+      "C": "skip",
+      "D": "pass"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który framework służy do tworzenia aplikacji okienkowych w C#?",
+    "options": {
+      "A": "WinForms",
+      "B": "Laravel",
+      "C": "Django",
+      "D": "React"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która biblioteka w C# służy do pracy z kolekcjami?",
+    "options": {
+      "A": "System.Collections",
+      "B": "System.IO",
+      "C": "System.Net",
+      "D": "System.Text"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje pojedynczy znak?",
+    "options": {
+      "A": "string",
+      "B": "char",
+      "C": "int",
+      "D": "bool"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda konwertuje liczbę na tekst w C#?",
+    "options": {
+      "A": "ToString()",
+      "B": "Convert.ToString()",
+      "C": "Parse()",
+      "D": "Format()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator zwiększa wartość zmiennej o 1?",
+    "options": {
+      "A": "++",
+      "B": "--",
+      "C": "+=",
+      "D": "-="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura kontrolna wykonuje kod wielokrotnie?",
+    "options": {
+      "A": "if",
+      "B": "switch",
+      "C": "for",
+      "D": "try"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp z dowolnego miejsca?",
+    "options": {
+      "A": "private",
+      "B": "protected",
+      "C": "internal",
+      "D": "public"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która kolekcja przechowuje elementy w kolejności dodania?",
+    "options": {
+      "A": "Dictionary",
+      "B": "HashSet",
+      "C": "List",
+      "D": "Stack"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który wyjątek występuje przy próbie dostępu do null?",
+    "options": {
+      "A": "ArgumentException",
+      "B": "NullReferenceException",
+      "C": "IndexOutOfRangeException",
+      "D": "InvalidOperationException"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja warunkowa sprawdza wiele warunków?",
+    "options": {
+      "A": "if",
+      "B": "else if",
+      "C": "switch",
+      "D": "case"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje tekst?",
+    "options": {
+      "A": "int",
+      "B": "string",
+      "C": "bool",
+      "D": "double"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się co najmniej raz?",
+    "options": {
+      "A": "for",
+      "B": "while",
+      "C": "do-while",
+      "D": "foreach"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator porównuje wartości?",
+    "options": {
+      "A": "=",
+      "B": "==",
+      "C": "!=",
+      "D": "==="
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda dodaje element do listy?",
+    "options": {
+      "A": "Add()",
+      "B": "Remove()",
+      "C": "Insert()",
+      "D": "Clear()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp tylko w klasie?",
+    "options": {
+      "A": "public",
+      "B": "private",
+      "C": "protected",
+      "D": "internal"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje pary klucz-wartość?",
+    "options": {
+      "A": "List",
+      "B": "Array",
+      "C": "Dictionary",
+      "D": "Queue"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja przerywa wykonywanie pętli?",
+    "options": {
+      "A": "continue",
+      "B": "break",
+      "C": "return",
+      "D": "exit"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej może przechowywać null?",
+    "options": {
+      "A": "int",
+      "B": "string",
+      "C": "int?",
+      "D": "bool"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda konwertuje string na int?",
+    "options": {
+      "A": "Parse()",
+      "B": "ToString()",
+      "C": "Convert()",
+      "D": "Format()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje liczby całkowite?",
+    "options": {
+      "A": "int",
+      "B": "float",
+      "C": "double",
+      "D": "decimal"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się określoną liczbę razy?",
+    "options": {
+      "A": "for",
+      "B": "while",
+      "C": "do-while",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator logiczny oznacza 'i'?",
+    "options": {
+      "A": "&&",
+      "B": "||",
+      "C": "!",
+      "D": "&"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda usuwa element z listy?",
+    "options": {
+      "A": "Remove()",
+      "B": "Delete()",
+      "C": "Erase()",
+      "D": "Clear()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp w całym assembly?",
+    "options": {
+      "A": "internal",
+      "B": "public",
+      "C": "private",
+      "D": "protected"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje elementy w kolejności?",
+    "options": {
+      "A": "Queue",
+      "B": "Stack",
+      "C": "Dictionary",
+      "D": "HashSet"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja przerywa bieżącą iterację pętli?",
+    "options": {
+      "A": "continue",
+      "B": "break",
+      "C": "return",
+      "D": "exit"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej może przechowywać wartość lub null?",
+    "options": {
+      "A": "Nullable<T>",
+      "B": "Optional<T>",
+      "C": "Maybe<T>",
+      "D": "Null<T>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda formatuje string?",
+    "options": {
+      "A": "Format()",
+      "B": "ToString()",
+      "C": "Parse()",
+      "D": "Convert()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje liczby zmiennoprzecinkowe?",
+    "options": {
+      "A": "float",
+      "B": "int",
+      "C": "string",
+      "D": "bool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla sprawdza warunek przed wykonaniem?",
+    "options": {
+      "A": "while",
+      "B": "for",
+      "C": "do-while",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator porównuje referencje?",
+    "options": {
+      "A": "==",
+      "B": "Equals()",
+      "C": "ReferenceEquals()",
+      "D": "Compare()"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda dodaje element na koniec listy?",
+    "options": {
+      "A": "Add()",
+      "B": "Insert()",
+      "C": "Append()",
+      "D": "Push()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp w klasie i pochodnych?",
+    "options": {
+      "A": "protected",
+      "B": "private",
+      "C": "internal",
+      "D": "public"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje elementy bez duplikatów?",
+    "options": {
+      "A": "HashSet",
+      "B": "List",
+      "C": "Array",
+      "D": "Dictionary"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wychodzi z metody?",
+    "options": {
+      "A": "return",
+      "B": "break",
+      "C": "continue",
+      "D": "exit"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje wartość logiczną?",
+    "options": {
+      "A": "bool",
+      "B": "int",
+      "C": "string",
+      "D": "char"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda sprawdza, czy lista zawiera element?",
+    "options": {
+      "A": "Contains()",
+      "B": "Has()",
+      "C": "Includes()",
+      "D": "Exists()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje pojedynczy znak?",
+    "options": {
+      "A": "char",
+      "B": "string",
+      "C": "int",
+      "D": "bool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla iteruje po elementach kolekcji?",
+    "options": {
+      "A": "foreach",
+      "B": "for",
+      "C": "while",
+      "D": "do-while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator zwiększa wartość o 1?",
+    "options": {
+      "A": "++",
+      "B": "--",
+      "C": "+=",
+      "D": "-="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca indeks elementu w liście?",
+    "options": {
+      "A": "IndexOf()",
+      "B": "FindIndex()",
+      "C": "Search()",
+      "D": "Locate()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp wszędzie?",
+    "options": {
+      "A": "public",
+      "B": "private",
+      "C": "protected",
+      "D": "internal"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje pary klucz-wartość?",
+    "options": {
+      "A": "Dictionary",
+      "B": "List",
+      "C": "Queue",
+      "D": "Stack"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wykonuje kod warunkowo?",
+    "options": {
+      "A": "if",
+      "B": "switch",
+      "C": "for",
+      "D": "while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje duże liczby?",
+    "options": {
+      "A": "long",
+      "B": "int",
+      "C": "short",
+      "D": "byte"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda sortuje listę?",
+    "options": {
+      "A": "Sort()",
+      "B": "Order()",
+      "C": "Arrange()",
+      "D": "Sequence()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje liczby dziesiętne?",
+    "options": {
+      "A": "decimal",
+      "B": "float",
+      "C": "double",
+      "D": "int"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się co najmniej raz?",
+    "options": {
+      "A": "do-while",
+      "B": "while",
+      "C": "for",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator logiczny oznacza 'lub'?",
+    "options": {
+      "A": "||",
+      "B": "&&",
+      "C": "!",
+      "D": "|"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca liczbę elementów w liście?",
+    "options": {
+      "A": "Count",
+      "B": "Length",
+      "C": "Size",
+      "D": "Capacity"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp tylko w klasie?",
+    "options": {
+      "A": "private",
+      "B": "public",
+      "C": "protected",
+      "D": "internal"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych działa na zasadzie LIFO?",
+    "options": {
+      "A": "Stack",
+      "B": "Queue",
+      "C": "List",
+      "D": "Array"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wykonuje kod dla różnych przypadków?",
+    "options": {
+      "A": "switch",
+      "B": "if",
+      "C": "for",
+      "D": "while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje małe liczby?",
+    "options": {
+      "A": "short",
+      "B": "int",
+      "C": "long",
+      "D": "byte"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda sprawdza, czy string zawiera podciąg?",
+    "options": {
+      "A": "Contains()",
+      "B": "Has()",
+      "C": "Includes()",
+      "D": "Exists()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje bajty?",
+    "options": {
+      "A": "byte",
+      "B": "int",
+      "C": "char",
+      "D": "bool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się określoną liczbę razy?",
+    "options": {
+      "A": "for",
+      "B": "while",
+      "C": "do-while",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator zmniejsza wartość o 1?",
+    "options": {
+      "A": "--",
+      "B": "++",
+      "C": "-=",
+      "D": "+="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca część stringa?",
+    "options": {
+      "A": "Substring()",
+      "B": "Slice()",
+      "C": "Cut()",
+      "D": "Part()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp w assembly?",
+    "options": {
+      "A": "internal",
+      "B": "public",
+      "C": "private",
+      "D": "protected"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje elementy w kolejności dodania?",
+    "options": {
+      "A": "List",
+      "B": "Dictionary",
+      "C": "HashSet",
+      "D": "Queue"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wykonuje kod w pętli?",
+    "options": {
+      "A": "for",
+      "B": "if",
+      "C": "switch",
+      "D": "return"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje bardzo duże liczby?",
+    "options": {
+      "A": "ulong",
+      "B": "long",
+      "C": "int",
+      "D": "short"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda usuwa wszystkie elementy z listy?",
+    "options": {
+      "A": "Clear()",
+      "B": "RemoveAll()",
+      "C": "Delete()",
+      "D": "Erase()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje liczby ujemne i dodatnie?",
+    "options": {
+      "A": "sbyte",
+      "B": "byte",
+      "C": "int",
+      "D": "uint"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla sprawdza warunek po wykonaniu?",
+    "options": {
+      "A": "do-while",
+      "B": "while",
+      "C": "for",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator logiczny neguje wartość?",
+    "options": {
+      "A": "!",
+      "B": "&&",
+      "C": "||",
+      "D": "~"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca długość stringa?",
+    "options": {
+      "A": "Length",
+      "B": "Count",
+      "C": "Size",
+      "D": "Capacity"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje obiekty?",
+    "options": {
+      "A": "object",
+      "B": "var",
+      "C": "dynamic",
+      "D": "any"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się dla każdego elementu?",
+    "options": {
+      "A": "foreach",
+      "B": "for",
+      "C": "while",
+      "D": "do-while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator przypisuje wartość?",
+    "options": {
+      "A": "=",
+      "B": "==",
+      "C": "!=",
+      "D": "==="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda wstawia element do listy?",
+    "options": {
+      "A": "Insert()",
+      "B": "Add()",
+      "C": "Push()",
+      "D": "Append()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp w klasie pochodnej?",
+    "options": {
+      "A": "protected",
+      "B": "private",
+      "C": "internal",
+      "D": "public"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych działa na zasadzie FIFO?",
+    "options": {
+      "A": "Queue",
+      "B": "Stack",
+      "C": "List",
+      "D": "Array"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wychodzi z bloku?",
+    "options": {
+      "A": "break",
+      "B": "continue",
+      "C": "return",
+      "D": "exit"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej może być dynamiczny?",
+    "options": {
+      "A": "dynamic",
+      "B": "var",
+      "C": "object",
+      "D": "any"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda sprawdza równość?",
+    "options": {
+      "A": "Equals()",
+      "B": "Compare()",
+      "C": "Same()",
+      "D": "Equal()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje tekst?",
+    "options": {
+      "A": "string",
+      "B": "char",
+      "C": "int",
+      "D": "bool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się dopóki warunek jest prawdziwy?",
+    "options": {
+      "A": "while",
+      "B": "for",
+      "C": "do-while",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator sprawdza nierówność?",
+    "options": {
+      "A": "!=",
+      "B": "==",
+      "C": "<>",
+      "D": "!=="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca pierwszy element listy?",
+    "options": {
+      "A": "First()",
+      "B": "Get(0)",
+      "C": "Head()",
+      "D": "Top()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp w całym projekcie?",
+    "options": {
+      "A": "internal",
+      "B": "public",
+      "C": "private",
+      "D": "protected"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje elementy unikalne?",
+    "options": {
+      "A": "HashSet",
+      "B": "List",
+      "C": "Queue",
+      "D": "Stack"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja pomija bieżącą iterację?",
+    "options": {
+      "A": "continue",
+      "B": "break",
+      "C": "return",
+      "D": "skip"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje wartość domyślną?",
+    "options": {
+      "A": "default(T)",
+      "B": "null",
+      "C": "0",
+      "D": "empty"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda łączy stringi?",
+    "options": {
+      "A": "Concat()",
+      "B": "Join()",
+      "C": "Merge()",
+      "D": "Combine()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje pojedynczy znak?",
+    "options": {
+      "A": "char",
+      "B": "string",
+      "C": "int",
+      "D": "bool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla iteruje po kolekcji?",
+    "options": {
+      "A": "foreach",
+      "B": "for",
+      "C": "while",
+      "D": "do-while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator dodaje wartość?",
+    "options": {
+      "A": "+=",
+      "B": "-=",
+      "C": "*=",
+      "D": "/="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca ostatni element listy?",
+    "options": {
+      "A": "Last()",
+      "B": "Get(Count-1)",
+      "C": "Tail()",
+      "D": "Bottom()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp wszędzie?",
+    "options": {
+      "A": "public",
+      "B": "private",
+      "C": "protected",
+      "D": "internal"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje pary klucz-wartość?",
+    "options": {
+      "A": "Dictionary",
+      "B": "List",
+      "C": "Queue",
+      "D": "Stack"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wykonuje kod warunkowo?",
+    "options": {
+      "A": "if",
+      "B": "switch",
+      "C": "for",
+      "D": "while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje duże liczby całkowite?",
+    "options": {
+      "A": "long",
+      "B": "int",
+      "C": "short",
+      "D": "byte"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda odwraca listę?",
+    "options": {
+      "A": "Reverse()",
+      "B": "Flip()",
+      "C": "Invert()",
+      "D": "Turn()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje liczby dziesiętne wysokiej precyzji?",
+    "options": {
+      "A": "decimal",
+      "B": "float",
+      "C": "double",
+      "D": "int"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się co najmniej raz?",
+    "options": {
+      "A": "do-while",
+      "B": "while",
+      "C": "for",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator logiczny oznacza 'lub'?",
+    "options": {
+      "A": "||",
+      "B": "&&",
+      "C": "!",
+      "D": "|"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca liczbę elementów?",
+    "options": {
+      "A": "Count",
+      "B": "Length",
+      "C": "Size",
+      "D": "Capacity"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp tylko w klasie?",
+    "options": {
+      "A": "private",
+      "B": "public",
+      "C": "protected",
+      "D": "internal"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych działa na zasadzie LIFO?",
+    "options": {
+      "A": "Stack",
+      "B": "Queue",
+      "C": "List",
+      "D": "Array"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wykonuje kod dla różnych przypadków?",
+    "options": {
+      "A": "switch",
+      "B": "if",
+      "C": "for",
+      "D": "while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje małe liczby całkowite?",
+    "options": {
+      "A": "short",
+      "B": "int",
+      "C": "long",
+      "D": "byte"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda sprawdza, czy string zaczyna się od podciągu?",
+    "options": {
+      "A": "StartsWith()",
+      "B": "BeginsWith()",
+      "C": "HasPrefix()",
+      "D": "Prefix()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje bajty?",
+    "options": {
+      "A": "byte",
+      "B": "int",
+      "C": "char",
+      "D": "bool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla wykonuje się określoną liczbę razy?",
+    "options": {
+      "A": "for",
+      "B": "while",
+      "C": "do-while",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator zmniejsza wartość o 1?",
+    "options": {
+      "A": "--",
+      "B": "++",
+      "C": "-=",
+      "D": "+="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca część stringa?",
+    "options": {
+      "A": "Substring()",
+      "B": "Slice()",
+      "C": "Cut()",
+      "D": "Part()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator dostępu pozwala na dostęp w assembly?",
+    "options": {
+      "A": "internal",
+      "B": "public",
+      "C": "private",
+      "D": "protected"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która struktura danych przechowuje elementy w kolejności dodania?",
+    "options": {
+      "A": "List",
+      "B": "Dictionary",
+      "C": "HashSet",
+      "D": "Queue"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja wykonuje kod w pętli?",
+    "options": {
+      "A": "for",
+      "B": "if",
+      "C": "switch",
+      "D": "return"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ zmiennej przechowuje bardzo duże liczby dodatnie?",
+    "options": {
+      "A": "ulong",
+      "B": "long",
+      "C": "int",
+      "D": "short"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda usuwa wszystkie elementy z listy?",
+    "options": {
+      "A": "Clear()",
+      "B": "RemoveAll()",
+      "C": "Delete()",
+      "D": "Erase()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ danych przechowuje liczby ze znakiem?",
+    "options": {
+      "A": "sbyte",
+      "B": "byte",
+      "C": "int",
+      "D": "uint"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która pętla sprawdza warunek po wykonaniu?",
+    "options": {
+      "A": "do-while",
+      "B": "while",
+      "C": "for",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator logiczny neguje wartość?",
+    "options": {
+      "A": "!",
+      "B": "&&",
+      "C": "||",
+      "D": "~"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda zwraca długość stringa?",
+    "options": {
+      "A": "Length",
+      "B": "Count",
+      "C": "Size",
+      "D": "Capacity"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "W C#, jaki modyfikator dostępu pozwala na dostęp tylko w tej samej klasie?",
+    "options": {
+      "A": "private",
+      "B": "protected",
+      "C": "internal",
+      "D": "public"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje LINQ query?",
+    "options": {
+      "A": "from ... select",
+      "B": "query ... select",
+      "C": "linq ... select",
+      "D": "select ... from"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia asynchroniczne operacje?",
+    "options": {
+      "A": "Task",
+      "B": "Async",
+      "C": "Thread",
+      "D": "Background"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ generyczny w C# umożliwia słownik?",
+    "options": {
+      "A": "Dictionary<TKey, TValue>",
+      "B": "List<T>",
+      "C": "HashSet<T>",
+      "D": "Queue<T>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# obsługuje wyjątki?",
+    "options": {
+      "A": "try-catch",
+      "B": "catch-try",
+      "C": "handle-exception",
+      "D": "exception-catch"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# konwertuje string na int?",
+    "options": {
+      "A": "int.Parse()",
+      "B": "Convert.ToInt32()",
+      "C": "int.TryParse()",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# sprawdza null?",
+    "options": {
+      "A": "??",
+      "B": "?",
+      "C": "::",
+      "D": "?."
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia wyrażenia regularne?",
+    "options": {
+      "A": "Regex",
+      "B": "Pattern",
+      "C": "RegExp",
+      "D": "Match"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na dziedziczenie?",
+    "options": {
+      "A": "virtual",
+      "B": "abstract",
+      "C": "override",
+      "D": "sealed"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje pętlę foreach?",
+    "options": {
+      "A": "foreach",
+      "B": "for",
+      "C": "while",
+      "D": "do"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest referencyjny?",
+    "options": {
+      "A": "class",
+      "B": "struct",
+      "C": "enum",
+      "D": "interface"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# dodaje element do listy?",
+    "options": {
+      "A": "Add()",
+      "B": "Insert()",
+      "C": "Push()",
+      "D": "Append()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje warunkowe przypisanie?",
+    "options": {
+      "A": "?:",
+      "B": "??",
+      "C": "?=",
+      "D": "::="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia strumienie?",
+    "options": {
+      "A": "Stream",
+      "B": "FileStream",
+      "C": "MemoryStream",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# uniemożliwia dziedziczenie?",
+    "options": {
+      "A": "sealed",
+      "B": "final",
+      "C": "static",
+      "D": "readonly"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje switch?",
+    "options": {
+      "A": "switch",
+      "B": "case",
+      "C": "if-else",
+      "D": "select"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest wartościowy?",
+    "options": {
+      "A": "int",
+      "B": "string",
+      "C": "object",
+      "D": "array"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# usuwa element z listy?",
+    "options": {
+      "A": "Remove()",
+      "B": "Delete()",
+      "C": "Pop()",
+      "D": "Erase()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje dostęp do członka?",
+    "options": {
+      "A": ".",
+      "B": "->",
+      "C": "::",
+      "D": "[]"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia XML?",
+    "options": {
+      "A": "XmlDocument",
+      "B": "XmlReader",
+      "C": "XmlWriter",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na wielokrotne wystąpienia?",
+    "options": {
+      "A": "params",
+      "B": "array",
+      "C": "list",
+      "D": "multiple"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje goto?",
+    "options": {
+      "A": "goto",
+      "B": "jump",
+      "C": "break",
+      "D": "continue"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest nullable?",
+    "options": {
+      "A": "int?",
+      "B": "string?",
+      "C": "object?",
+      "D": "Wszystkie typy wartościowe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# sortuje listę?",
+    "options": {
+      "A": "Sort()",
+      "B": "OrderBy()",
+      "C": "Arrange()",
+      "D": "Sequence()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje rzutowanie?",
+    "options": {
+      "A": "(type)",
+      "B": "as",
+      "C": "cast",
+      "D": "convert"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia JSON?",
+    "options": {
+      "A": "JsonSerializer",
+      "B": "JsonConvert",
+      "C": "Newtonsoft.Json",
+      "D": "System.Text.Json"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na współdzielenie?",
+    "options": {
+      "A": "static",
+      "B": "shared",
+      "C": "global",
+      "D": "common"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje using?",
+    "options": {
+      "A": "using",
+      "B": "import",
+      "C": "include",
+      "D": "namespace"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest delegatem?",
+    "options": {
+      "A": "Action",
+      "B": "Func",
+      "C": "Predicate",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# sprawdza zawieranie?",
+    "options": {
+      "A": "Contains()",
+      "B": "Includes()",
+      "C": "Has()",
+      "D": "Exists()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje inkrementację?",
+    "options": {
+      "A": "++",
+      "B": "--",
+      "C": "+=",
+      "D": "-="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia HTTP?",
+    "options": {
+      "A": "HttpClient",
+      "B": "WebClient",
+      "C": "HttpWebRequest",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na przeciążanie?",
+    "options": {
+      "A": "override",
+      "B": "new",
+      "C": "virtual",
+      "D": "abstract"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje lock?",
+    "options": {
+      "A": "lock",
+      "B": "sync",
+      "C": "mutex",
+      "D": "critical"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest anonimowym?",
+    "options": {
+      "A": "var",
+      "B": "dynamic",
+      "C": "object",
+      "D": "anonymous"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Where?",
+    "options": {
+      "A": "Where()",
+      "B": "Filter()",
+      "C": "Select()",
+      "D": "Find()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje porównanie?",
+    "options": {
+      "A": "==",
+      "B": "!=",
+      "C": "<>",
+      "D": "eq"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia bazy danych?",
+    "options": {
+      "A": "SqlConnection",
+      "B": "DbConnection",
+      "C": "Entity Framework",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na abstrakcję?",
+    "options": {
+      "A": "abstract",
+      "B": "interface",
+      "C": "virtual",
+      "D": "pure"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje yield?",
+    "options": {
+      "A": "yield return",
+      "B": "return yield",
+      "C": "yield break",
+      "D": "break yield"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest dynamicznym?",
+    "options": {
+      "A": "dynamic",
+      "B": "var",
+      "C": "object",
+      "D": "expando"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Select?",
+    "options": {
+      "A": "Select()",
+      "B": "Map()",
+      "C": "Transform()",
+      "D": "Project()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje logiczne AND?",
+    "options": {
+      "A": "&&",
+      "B": "&",
+      "C": "and",
+      "D": "AND"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia szyfrowanie?",
+    "options": {
+      "A": "Aes",
+      "B": "Rsa",
+      "C": "Sha256",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na unsafe code?",
+    "options": {
+      "A": "unsafe",
+      "B": "unmanaged",
+      "C": "pointer",
+      "D": "raw"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje checked?",
+    "options": {
+      "A": "checked",
+      "B": "unchecked",
+      "C": "overflow",
+      "D": "underflow"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest tuple?",
+    "options": {
+      "A": "(int, string)",
+      "B": "Tuple<int, string>",
+      "C": "ValueTuple",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ GroupBy?",
+    "options": {
+      "A": "GroupBy()",
+      "B": "Group()",
+      "C": "Categorize()",
+      "D": "Cluster()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje bitowe OR?",
+    "options": {
+      "A": "|",
+      "B": "||",
+      "C": "or",
+      "D": "OR"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "W C#, jaka klasa umożliwia Entity Framework?",
+    "options": {
+      "A": "DbContext",
+      "B": "EntityContext",
+      "C": "DatabaseContext",
+      "D": "EFContext"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Join?",
+    "options": {
+      "A": "Join()",
+      "B": "Merge()",
+      "C": "Combine()",
+      "D": "Link()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje bitowe XOR?",
+    "options": {
+      "A": "^",
+      "B": "~",
+      "C": "&",
+      "D": "|"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia ASP.NET MVC?",
+    "options": {
+      "A": "Controller",
+      "B": "View",
+      "C": "Model",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na częściowe klasy?",
+    "options": {
+      "A": "partial",
+      "B": "part",
+      "C": "split",
+      "D": "divide"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje async?",
+    "options": {
+      "A": "async",
+      "B": "await",
+      "C": "task",
+      "D": "async void"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest record?",
+    "options": {
+      "A": "record",
+      "B": "struct",
+      "C": "class",
+      "D": "immutable"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ OrderBy?",
+    "options": {
+      "A": "OrderBy()",
+      "B": "Sort()",
+      "C": "Arrange()",
+      "D": "Sequence()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje przesunięcie bitowe?",
+    "options": {
+      "A": "<<",
+      "B": ">>",
+      "C": "<>",
+      "D": "<<="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia WPF?",
+    "options": {
+      "A": "Window",
+      "B": "UserControl",
+      "C": "Page",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na zdarzenia?",
+    "options": {
+      "A": "event",
+      "B": "delegate",
+      "C": "action",
+      "D": "func"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje await?",
+    "options": {
+      "A": "await",
+      "B": "async",
+      "C": "task",
+      "D": "wait"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest init-only?",
+    "options": {
+      "A": "init",
+      "B": "readonly",
+      "C": "const",
+      "D": "immutable"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Distinct?",
+    "options": {
+      "A": "Distinct()",
+      "B": "Unique()",
+      "C": "RemoveDuplicates()",
+      "D": "FilterUnique()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje typeof?",
+    "options": {
+      "A": "typeof",
+      "B": "type",
+      "C": "GetType()",
+      "D": "TypeOf"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia WinForms?",
+    "options": {
+      "A": "Form",
+      "B": "Control",
+      "C": "Button",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na właściwości?",
+    "options": {
+      "A": "get; set;",
+      "B": "property",
+      "C": "accessor",
+      "D": "field"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje nameof?",
+    "options": {
+      "A": "nameof",
+      "B": "name",
+      "C": "GetName()",
+      "D": "NameOf"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest pattern matching?",
+    "options": {
+      "A": "is",
+      "B": "switch",
+      "C": "when",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ First?",
+    "options": {
+      "A": "First()",
+      "B": "FirstOrDefault()",
+      "C": "Single()",
+      "D": "ElementAt(0)"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje sizeof?",
+    "options": {
+      "A": "sizeof",
+      "B": "size",
+      "C": "GetSize()",
+      "D": "SizeOf"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia UWP?",
+    "options": {
+      "A": "Page",
+      "B": "MainPage",
+      "C": "App",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na indeksatory?",
+    "options": {
+      "A": "this[]",
+      "B": "indexer",
+      "C": "array",
+      "D": "list"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje using statement?",
+    "options": {
+      "A": "using ()",
+      "B": "dispose",
+      "C": "resource",
+      "D": "cleanup"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest ref struct?",
+    "options": {
+      "A": "ref struct",
+      "B": "value struct",
+      "C": "stack struct",
+      "D": "managed struct"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Skip?",
+    "options": {
+      "A": "Skip()",
+      "B": "Take()",
+      "C": "Jump()",
+      "D": "Offset()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje stackalloc?",
+    "options": {
+      "A": "stackalloc",
+      "B": "alloc",
+      "C": "new",
+      "D": "malloc"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia Blazor?",
+    "options": {
+      "A": "ComponentBase",
+      "B": "RazorComponent",
+      "C": "@page",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na required?",
+    "options": {
+      "A": "required",
+      "B": "mandatory",
+      "C": "must",
+      "D": "needed"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje with?",
+    "options": {
+      "A": "with",
+      "B": "copy",
+      "C": "clone",
+      "D": "duplicate"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest file-scoped namespace?",
+    "options": {
+      "A": "file",
+      "B": "scoped",
+      "C": "namespace",
+      "D": "global"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Aggregate?",
+    "options": {
+      "A": "Aggregate()",
+      "B": "Reduce()",
+      "C": "Fold()",
+      "D": "Accumulate()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje is not?",
+    "options": {
+      "A": "is not",
+      "B": "!is",
+      "C": "not is",
+      "D": "!= is"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia MAUI?",
+    "options": {
+      "A": "ContentPage",
+      "B": "Shell",
+      "C": "App",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na global using?",
+    "options": {
+      "A": "global using",
+      "B": "using global",
+      "C": "import global",
+      "D": "global import"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje record struct?",
+    "options": {
+      "A": "record struct",
+      "B": "struct record",
+      "C": "immutable struct",
+      "D": "value record"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest target-typed new?",
+    "options": {
+      "A": "new()",
+      "B": "new T()",
+      "C": "target new",
+      "D": "typed new"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Zip?",
+    "options": {
+      "A": "Zip()",
+      "B": "Combine()",
+      "C": "Pair()",
+      "D": "Merge()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje and?",
+    "options": {
+      "A": "and",
+      "B": "&&",
+      "C": "&",
+      "D": "AND"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia SignalR?",
+    "options": {
+      "A": "Hub",
+      "B": "Connection",
+      "C": "Client",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na notnull?",
+    "options": {
+      "A": "notnull",
+      "B": "nonnull",
+      "C": "required",
+      "D": "mandatory"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje switch expression?",
+    "options": {
+      "A": "switch { }",
+      "B": "switch ()",
+      "C": "case =>",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest covariant?",
+    "options": {
+      "A": "out T",
+      "B": "in T",
+      "C": "T out",
+      "D": "T in"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Except?",
+    "options": {
+      "A": "Except()",
+      "B": "Difference()",
+      "C": "Subtract()",
+      "D": "Remove()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje or?",
+    "options": {
+      "A": "or",
+      "B": "||",
+      "C": "|",
+      "D": "OR"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia gRPC?",
+    "options": {
+      "A": "Greeter.GreeterClient",
+      "B": "GrpcClient",
+      "C": "ProtoClient",
+      "D": "ServiceClient"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na unmanaged?",
+    "options": {
+      "A": "unmanaged",
+      "B": "unsafe",
+      "C": "pointer",
+      "D": "raw"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje top-level statements?",
+    "options": {
+      "A": "Console.WriteLine();",
+      "B": "Main()",
+      "C": "static void Main",
+      "D": "Program.cs"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest contravariant?",
+    "options": {
+      "A": "in T",
+      "B": "out T",
+      "C": "T in",
+      "D": "T out"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Intersect?",
+    "options": {
+      "A": "Intersect()",
+      "B": "Common()",
+      "C": "Overlap()",
+      "D": "Cross()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje not?",
+    "options": {
+      "A": "not",
+      "B": "!",
+      "C": "~",
+      "D": "NOT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "W C#, jaka funkcjonalność umożliwia source generators?",
+    "options": {
+      "A": "ISourceGenerator",
+      "B": "CodeGenerator",
+      "C": "SourceBuilder",
+      "D": "Generator"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Union?",
+    "options": {
+      "A": "Union()",
+      "B": "Merge()",
+      "C": "Combine()",
+      "D": "Join()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje checked arithmetic?",
+    "options": {
+      "A": "checked",
+      "B": "unchecked",
+      "C": "overflow",
+      "D": "safe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia ML.NET?",
+    "options": {
+      "A": "MLContext",
+      "B": "MachineLearning",
+      "C": "PredictionEngine",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na caller info?",
+    "options": {
+      "A": "CallerMemberName",
+      "B": "CallerFilePath",
+      "C": "CallerLineNumber",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje interpolated strings?",
+    "options": {
+      "A": "$\"\"",
+      "B": "@\"\"",
+      "C": "\"\"",
+      "D": "string.Format"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest native int?",
+    "options": {
+      "A": "nint",
+      "B": "IntPtr",
+      "C": "native int",
+      "D": "System.IntPtr"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Concat?",
+    "options": {
+      "A": "Concat()",
+      "B": "Append()",
+      "C": "Join()",
+      "D": "Merge()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje range?",
+    "options": {
+      "A": "..",
+      "B": "...",
+      "C": "-",
+      "D": "to"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia Orleans?",
+    "options": {
+      "A": "Grain",
+      "B": "Silo",
+      "C": "Cluster",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na init accessor?",
+    "options": {
+      "A": "init",
+      "B": "set init",
+      "C": "readonly set",
+      "D": "immutable set"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje raw strings?",
+    "options": {
+      "A": "\"\"\"",
+      "B": "@\"\"\"",
+      "C": "$\"\"\"",
+      "D": "raw\"\""
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest function pointer?",
+    "options": {
+      "A": "delegate*",
+      "B": "func*",
+      "C": "pointer delegate",
+      "D": "unsafe delegate"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ ToLookup?",
+    "options": {
+      "A": "ToLookup()",
+      "B": "ToDictionary()",
+      "C": "Group()",
+      "D": "Index()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje index from end?",
+    "options": {
+      "A": "^",
+      "B": "$",
+      "C": "~",
+      "D": "end"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia Akka.NET?",
+    "options": {
+      "A": "ActorSystem",
+      "B": "Actor",
+      "C": "Props",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na data member?",
+    "options": {
+      "A": "[DataMember]",
+      "B": "[Serializable]",
+      "C": "[JsonProperty]",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje UTF-8 literals?",
+    "options": {
+      "A": "\"\"u8",
+      "B": "u8\"\"",
+      "C": "utf8\"\"",
+      "D": "byte[]"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest half?",
+    "options": {
+      "A": "Half",
+      "B": "Float16",
+      "C": "short float",
+      "D": "System.Half"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ ToHashSet?",
+    "options": {
+      "A": "ToHashSet()",
+      "B": "ToSet()",
+      "C": "Distinct().ToList()",
+      "D": "Unique()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje null forgiving?",
+    "options": {
+      "A": "!",
+      "B": "??",
+      "C": "?",
+      "D": "null!"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia Polly?",
+    "options": {
+      "A": "Policy",
+      "B": "Resilience",
+      "C": "Retry",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na module initializer?",
+    "options": {
+      "A": "[ModuleInitializer]",
+      "B": "[Init]",
+      "C": "[Startup]",
+      "D": "[Initialize]"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje list patterns?",
+    "options": {
+      "A": "[1, 2, ..]",
+      "B": "list { }",
+      "C": "pattern []",
+      "D": "match list"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest native uint?",
+    "options": {
+      "A": "nuint",
+      "B": "UIntPtr",
+      "C": "native uint",
+      "D": "System.UIntPtr"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Chunk?",
+    "options": {
+      "A": "Chunk()",
+      "B": "Split()",
+      "C": "Partition()",
+      "D": "Divide()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje relational patterns?",
+    "options": {
+      "A": "<",
+      "B": ">",
+      "C": "<=",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia BenchmarkDotNet?",
+    "options": {
+      "A": "[Benchmark]",
+      "B": "BenchmarkRunner",
+      "C": "BenchmarkConfig",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na experimental?",
+    "options": {
+      "A": "[Experimental]",
+      "B": "[Obsolete]",
+      "C": "[Preview]",
+      "D": "[Beta]"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje slice patterns?",
+    "options": {
+      "A": "..",
+      "B": "[..]",
+      "C": "slice",
+      "D": "range"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest ref field?",
+    "options": {
+      "A": "ref int",
+      "B": "ref field",
+      "C": "scoped ref",
+      "D": "reference field"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ TryGetNonEnumeratedCount?",
+    "options": {
+      "A": "TryGetNonEnumeratedCount()",
+      "B": "Count()",
+      "C": "Length",
+      "D": "Size"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje logical patterns?",
+    "options": {
+      "A": "and",
+      "B": "or",
+      "C": "not",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia NativeAOT?",
+    "options": {
+      "A": "PublishAot",
+      "B": "AOT",
+      "C": "Native",
+      "D": "Trimmed"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na inline arrays?",
+    "options": {
+      "A": "[InlineArray]",
+      "B": "[FixedBuffer]",
+      "C": "[Array]",
+      "D": "[Inline]"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje collection expressions?",
+    "options": {
+      "A": "[1, 2, 3]",
+      "B": "new[] { }",
+      "C": "List<int> { }",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest scoped ref?",
+    "options": {
+      "A": "scoped ref",
+      "B": "ref scoped",
+      "C": "scoped reference",
+      "D": "local ref"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ MaxBy?",
+    "options": {
+      "A": "MaxBy()",
+      "B": "Max()",
+      "C": "Maximum()",
+      "D": "Top()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje type patterns?",
+    "options": {
+      "A": "is string",
+      "B": "typeof",
+      "C": "GetType()",
+      "D": "instanceof"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia Hot Reload?",
+    "options": {
+      "A": "HotReload",
+      "B": "LiveReload",
+      "C": "EditContinue",
+      "D": "DebugReload"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na generic attributes?",
+    "options": {
+      "A": "[GenericAttribute<T>]",
+      "B": "[Attribute<T>]",
+      "C": "[TypedAttribute]",
+      "D": "[ParamAttribute]"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje primary constructors?",
+    "options": {
+      "A": "class C(int x)",
+      "B": "class C { int x; }",
+      "C": "class C(int x) : base(x)",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest discriminated union?",
+    "options": {
+      "A": "union",
+      "B": "variant",
+      "C": "sum type",
+      "D": "Brak wbudowanego"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ MinBy?",
+    "options": {
+      "A": "MinBy()",
+      "B": "Min()",
+      "C": "Minimum()",
+      "D": "Bottom()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje property patterns?",
+    "options": {
+      "A": "{ X: 1 }",
+      "B": "X = 1",
+      "C": "X == 1",
+      "D": "property X"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która klasa w C# umożliwia Roslyn?",
+    "options": {
+      "A": "SyntaxTree",
+      "B": "Compilation",
+      "C": "SemanticModel",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który modyfikator w C# pozwala na interceptors?",
+    "options": {
+      "A": "[InterceptsLocation]",
+      "B": "[Intercept]",
+      "C": "[Hook]",
+      "D": "[Override]"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która instrukcja w C# wykonuje lock object?",
+    "options": {
+      "A": "lock (obj)",
+      "B": "Monitor.Enter()",
+      "C": "Mutex.WaitOne()",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który typ w C# jest extension methods?",
+    "options": {
+      "A": "static class",
+      "B": "this T",
+      "C": "extension",
+      "D": "helper"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Która metoda w C# wykonuje LINQ Index?",
+    "options": {
+      "A": "Index()",
+      "B": "ElementAt()",
+      "C": "FindIndex()",
+      "D": "Position()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.04"
+  },
+  {
+    "question": "Który operator w C# wykonuje positional patterns?",
+    "options": {
+      "A": "(int x, int y)",
+      "B": "Point p",
+      "C": "deconstruct",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.04"
+  }
+]

@@ -1,0 +1,447 @@
+* { box-sizing: border-box; }
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #10202f;
+  background: #eef3f6;
+}
+
+.landing-page {
+  min-height: 100vh;
+  background: #eef3f6;
+}
+
+.landing-hero {
+  min-height: 92vh;
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1rem, 3vw, 2rem);
+  color: #f8fafc;
+  background:
+    linear-gradient(90deg, rgba(5, 12, 18, .94), rgba(5, 12, 18, .70) 46%, rgba(5, 12, 18, .18)),
+    url("../img/hero-learning-lab.svg");
+  background-size: cover;
+  background-position: center;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.landing-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 22vh;
+  background: linear-gradient(180deg, transparent, #eef3f6);
+  pointer-events: none;
+}
+
+.landing-nav,
+.landing-hero-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.landing-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.landing-brand img {
+  border-radius: 8px;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, .24);
+}
+
+.landing-nav-actions,
+.landing-actions,
+.landing-rules {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .7rem;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 850;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 44px;
+}
+
+.btn-ghost-light {
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.08);
+  padding: .55rem .9rem;
+}
+
+.btn-solid-light,
+.btn-primary-hero {
+  color: #07111f;
+  background: #f8fafc;
+  border: 1px solid #f8fafc;
+  padding: .65rem 1.05rem;
+}
+
+.btn-primary-hero {
+  color: #fff;
+  background: #2563eb;
+  border-color: #2563eb;
+  min-height: 54px;
+  padding-inline: 1.4rem;
+}
+
+.btn-outline-hero {
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.34);
+  background: rgba(255,255,255,.08);
+  min-height: 54px;
+  padding-inline: 1.4rem;
+}
+
+.landing-hero-grid {
+  align-self: center;
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(360px, .78fr);
+  gap: clamp(1.25rem, 5vw, 5rem);
+  align-items: center;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 7vh 0 13vh;
+}
+
+.landing-copy h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(4rem, 12vw, 8.8rem);
+  line-height: .82;
+  font-weight: 950;
+  letter-spacing: 0;
+  color: #fff;
+}
+
+.landing-copy p {
+  max-width: 680px;
+  margin: 0 0 1.75rem;
+  color: rgba(241,245,249,.82);
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.55;
+}
+
+.landing-rules {
+  margin-top: 1.4rem;
+}
+
+.landing-rules span {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: rgba(248,250,252,.86);
+  font-weight: 750;
+  font-size: .92rem;
+}
+
+.landing-stage {
+  border-radius: 8px;
+  background: rgba(248,250,252,.94);
+  color: #0f172a;
+  box-shadow: 0 30px 90px rgba(0,0,0,.32);
+  border: 1px solid rgba(255,255,255,.72);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .85rem 1rem;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.stage-header span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ef4444;
+}
+
+.stage-header span:nth-child(2) { background: #f59e0b; }
+.stage-header span:nth-child(3) { background: #22c55e; }
+.stage-header strong { margin-left: auto; font-size: .8rem; }
+
+.stage-question {
+  padding: 1.2rem;
+}
+
+.stage-meter {
+  height: 8px;
+  border-radius: 999px;
+  background: #dbeafe;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.stage-meter span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #14b8a6);
+}
+
+.stage-question h2 {
+  font-size: clamp(1.25rem, 2.4vw, 1.85rem);
+  line-height: 1.15;
+  font-weight: 900;
+  margin: 0 0 1rem;
+}
+
+.stage-options {
+  display: grid;
+  gap: .7rem;
+}
+
+.stage-options span {
+  border-radius: 8px;
+  border: 1px solid #dbe4f0;
+  padding: .8rem;
+  background: #fff;
+  font-weight: 750;
+}
+
+.stage-options .is-correct {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.stage-code {
+  padding: 1rem;
+  border-top: 1px solid #dbe4f0;
+  background: #f8fafc;
+}
+
+.stage-code label {
+  display: block;
+  font-size: .78rem;
+  text-transform: uppercase;
+  font-weight: 900;
+  color: #64748b;
+  margin-bottom: .45rem;
+}
+
+.stage-code div {
+  display: flex;
+  gap: .55rem;
+}
+
+.stage-code input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: .8rem .9rem;
+  font-weight: 900;
+  letter-spacing: .18rem;
+  text-transform: uppercase;
+}
+
+.stage-code button {
+  width: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+}
+
+.landing-band,
+.landing-product {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 6rem) 0;
+}
+
+.landing-band {
+  display: grid;
+  grid-template-columns: minmax(0, .78fr) minmax(0, 1fr);
+  gap: clamp(1.2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+.landing-band h2,
+.landing-product h2 {
+  font-size: clamp(2.2rem, 5vw, 4.6rem);
+  line-height: .94;
+  font-weight: 950;
+  letter-spacing: 0;
+  margin: 0 0 1rem;
+}
+
+.landing-band p,
+.landing-product p {
+  color: #536276;
+  font-size: 1.06rem;
+  line-height: 1.7;
+}
+
+.landing-mode-grid,
+.product-rail {
+  display: grid;
+  gap: .85rem;
+}
+
+.landing-mode-grid article,
+.product-rail article {
+  border-radius: 8px;
+  border: 1px solid #d8e2ea;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 16px 40px rgba(15,23,42,.06);
+}
+
+.landing-mode-grid article {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: .2rem .8rem;
+}
+
+.landing-mode-grid i {
+  grid-row: span 2;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 1.3rem;
+}
+
+.landing-mode-grid strong,
+.product-rail strong {
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.landing-mode-grid span,
+.product-rail p {
+  color: #64748b;
+  margin: 0;
+}
+
+.landing-product {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1fr);
+  gap: clamp(1.2rem, 5vw, 4rem);
+  border-top: 1px solid #d8e2ea;
+}
+
+.product-rail {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.product-rail article > span {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  font-weight: 900;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 940px) {
+  .landing-hero-grid,
+  .landing-band,
+  .landing-product {
+    grid-template-columns: 1fr;
+  }
+  .landing-stage {
+    max-width: 620px;
+  }
+  .product-rail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-hero {
+    padding: 1rem;
+    background:
+      linear-gradient(90deg, rgba(5, 12, 18, .98), rgba(5, 12, 18, .94)),
+      url("../img/hero-learning-lab.svg");
+    background-position: 62% center;
+  }
+  .landing-hero-grid {
+    width: 100%;
+    gap: 1.4rem;
+    padding-top: 5vh;
+  }
+  .landing-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .landing-nav-actions .btn {
+    min-height: 40px;
+    padding-inline: .75rem;
+  }
+  .landing-copy h1 {
+    font-size: clamp(2.85rem, 16vw, 3.65rem);
+    line-height: .92;
+    max-width: 100%;
+  }
+  .landing-copy {
+    max-width: calc(100vw - 2rem);
+  }
+  .landing-copy p {
+    font-size: 1rem;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .landing-stage {
+    width: 100%;
+    min-width: 0;
+  }
+  .stage-question,
+  .stage-code {
+    padding: .85rem;
+  }
+  .stage-question h2 {
+    font-size: 1.15rem;
+  }
+  .stage-options span {
+    padding: .65rem;
+  }
+  .landing-actions .btn,
+  .landing-actions form {
+    width: 100%;
+  }
+  .landing-actions .btn {
+    justify-content: center;
+  }
+  .landing-rules span {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}

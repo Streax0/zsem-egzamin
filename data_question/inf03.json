@@ -1,0 +1,4130 @@
+[
+  {
+    "question": "Który język znaczników służy do tworzenia struktury strony internetowej?",
+    "options": {
+      "A": "CSS",
+      "B": "HTML",
+      "C": "PHP",
+      "D": "SQL"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML służy do utworzenia hiperłącza?",
+    "options": {
+      "A": "<link>",
+      "B": "<href>",
+      "C": "<a>",
+      "D": "<url>"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Za wygląd strony internetowej odpowiada język",
+    "options": {
+      "A": "Java",
+      "B": "PHP",
+      "C": "SQL",
+      "D": "CSS"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS odpowiada za kolor tekstu?",
+    "options": {
+      "A": "font-color",
+      "B": "background",
+      "C": "color",
+      "D": "text-style"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język wykonywany jest po stronie serwera?",
+    "options": {
+      "A": "HTML",
+      "B": "CSS",
+      "C": "JavaScript",
+      "D": "PHP"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wyświetla tekst na ekranie?",
+    "options": {
+      "A": "printText",
+      "B": "echo",
+      "C": "console.log",
+      "D": "write"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który operator w PHP służy do porównania wartości i typu?",
+    "options": {
+      "A": "=",
+      "B": "==",
+      "C": "===",
+      "D": "!="
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML służy do wstawienia obrazu?",
+    "options": {
+      "A": "<image>",
+      "B": "<picture>",
+      "C": "<img>",
+      "D": "<src>"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut znacznika img określa ścieżkę do obrazu?",
+    "options": {
+      "A": "alt",
+      "B": "href",
+      "C": "src",
+      "D": "path"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który typ danych w SQL służy do przechowywania tekstu?",
+    "options": {
+      "A": "INT",
+      "B": "DATE",
+      "C": "VARCHAR",
+      "D": "FLOAT"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL służy do pobierania danych z tabeli?",
+    "options": {
+      "A": "GET",
+      "B": "SELECT",
+      "C": "SHOW",
+      "D": "EXTRACT"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje nowy rekord do tabeli?",
+    "options": {
+      "A": "ADD",
+      "B": "CREATE",
+      "C": "INSERT",
+      "D": "UPDATE"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL usuwa dane z tabeli?",
+    "options": {
+      "A": "DELETE",
+      "B": "DROP",
+      "C": "REMOVE",
+      "D": "ERASE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML definiuje formularz?",
+    "options": {
+      "A": "<table>",
+      "B": "<form>",
+      "C": "<input>",
+      "D": "<fieldset>"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który typ pola formularza ukrywa wpisywane znaki?",
+    "options": {
+      "A": "text",
+      "B": "hidden",
+      "C": "password",
+      "D": "email"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który protokół odpowiada za bezpieczne połączenie ze stroną internetową?",
+    "options": {
+      "A": "HTTP",
+      "B": "FTP",
+      "C": "HTTPS",
+      "D": "SMTP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy listę numerowaną?",
+    "options": {
+      "A": "<ul>",
+      "B": "<li>",
+      "C": "<ol>",
+      "D": "<dl>"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript wyświetla okno dialogowe z komunikatem?",
+    "options": {
+      "A": "prompt()",
+      "B": "alert()",
+      "C": "confirm()",
+      "D": "message()"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który zapis komentarza jest poprawny w CSS?",
+    "options": {
+      "A": "// komentarz",
+      "B": "# komentarz",
+      "C": "<!-- komentarz -->",
+      "D": "/* komentarz */"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia wewnętrzny odstęp elementu?",
+    "options": {
+      "A": "margin",
+      "B": "padding",
+      "C": "spacing",
+      "D": "border"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który selektor CSS wybiera element o identyfikatorze menu?",
+    "options": {
+      "A": ".menu",
+      "B": "#menu",
+      "C": "*menu",
+      "D": "menu#"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML służy do tworzenia tabeli?",
+    "options": {
+      "A": "<tb>",
+      "B": "<tr>",
+      "C": "<table>",
+      "D": "<td>"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element SQL definiuje klucz główny tabeli?",
+    "options": {
+      "A": "UNIQUE",
+      "B": "PRIMARY KEY",
+      "C": "INDEX",
+      "D": "AUTO_INCREMENT"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda przesyłania formularza ukrywa dane przed adresem URL?",
+    "options": {
+      "A": "GET",
+      "B": "POST",
+      "C": "SEND",
+      "D": "INPUT"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język służy do programowania logiki po stronie klienta?",
+    "options": {
+      "A": "PHP",
+      "B": "SQL",
+      "C": "JavaScript",
+      "D": "Python"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL służy do modyfikacji istniejących danych?",
+    "options": {
+      "A": "ALTER",
+      "B": "UPDATE",
+      "C": "MODIFY",
+      "D": "CHANGE"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML definiuje największy nagłówek?",
+    "options": {
+      "A": "<heading>",
+      "B": "<h6>",
+      "C": "<head>",
+      "D": "<h1>"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP służy do połączenia z bazą MySQL?",
+    "options": {
+      "A": "mysql_open()",
+      "B": "mysqli_connect()",
+      "C": "db_connect()",
+      "D": "sql_connect()"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML odpowiada za wstawienie pola tekstowego formularza?",
+    "options": {
+      "A": "<textarea>",
+      "B": "<label>",
+      "C": "<input>",
+      "D": "<button>"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS odpowiada za ustawienie koloru tła?",
+    "options": {
+      "A": "background-color",
+      "B": "color",
+      "C": "bgcolor",
+      "D": "fill"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML służy do tworzenia akapitu?",
+    "options": {
+      "A": "<p>",
+      "B": "<div>",
+      "C": "<span>",
+      "D": "<br>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia rozmiar czcionki?",
+    "options": {
+      "A": "font-size",
+      "B": "text-size",
+      "C": "size",
+      "D": "font-weight"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy przycisk?",
+    "options": {
+      "A": "<input>",
+      "B": "<button>",
+      "C": "<submit>",
+      "D": "<click>"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript pobiera element o identyfikatorze?",
+    "options": {
+      "A": "getElementById()",
+      "B": "querySelector()",
+      "C": "getElementByClass()",
+      "D": "getElementsByTagName()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL tworzy nową tabelę?",
+    "options": {
+      "A": "CREATE TABLE",
+      "B": "NEW TABLE",
+      "C": "ADD TABLE",
+      "D": "MAKE TABLE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML określa alternatywny tekst dla obrazu?",
+    "options": {
+      "A": "title",
+      "B": "alt",
+      "C": "desc",
+      "D": "text"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP sprawdza warunek?",
+    "options": {
+      "A": "if",
+      "B": "for",
+      "C": "while",
+      "D": "switch"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML definiuje sekcję strony?",
+    "options": {
+      "A": "<section>",
+      "B": "<article>",
+      "C": "<div>",
+      "D": "<span>"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia grubość obramowania?",
+    "options": {
+      "A": "border-width",
+      "B": "border-size",
+      "C": "border-thickness",
+      "D": "border-style"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL sortuje wyniki?",
+    "options": {
+      "A": "SORT",
+      "B": "ORDER BY",
+      "C": "GROUP BY",
+      "D": "FILTER"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy listę wypunktowaną?",
+    "options": {
+      "A": "<ol>",
+      "B": "<ul>",
+      "C": "<li>",
+      "D": "<dl>"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia odstęp między elementami?",
+    "options": {
+      "A": "margin",
+      "B": "padding",
+      "C": "border",
+      "D": "spacing"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript dodaje element na końcu tablicy?",
+    "options": {
+      "A": "push()",
+      "B": "pop()",
+      "C": "shift()",
+      "D": "unshift()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wyświetla tekst na stronie?",
+    "options": {
+      "A": "echo",
+      "B": "print",
+      "C": "write",
+      "D": "display"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL usuwa dane z tabeli?",
+    "options": {
+      "A": "DELETE",
+      "B": "REMOVE",
+      "C": "DROP",
+      "D": "CLEAR"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy tabelę?",
+    "options": {
+      "A": "<table>",
+      "B": "<tr>",
+      "C": "<td>",
+      "D": "<th>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia rozmiar czcionki?",
+    "options": {
+      "A": "font-size",
+      "B": "text-size",
+      "C": "size",
+      "D": "font-weight"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript pobiera element po ID?",
+    "options": {
+      "A": "getElementById()",
+      "B": "getElementsByClassName()",
+      "C": "querySelector()",
+      "D": "getElementByTagName()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy zmienna jest tablicą?",
+    "options": {
+      "A": "is_array()",
+      "B": "is_string()",
+      "C": "is_int()",
+      "D": "is_bool()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje dane do tabeli?",
+    "options": {
+      "A": "INSERT",
+      "B": "ADD",
+      "C": "UPDATE",
+      "D": "CREATE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy formularz?",
+    "options": {
+      "A": "<form>",
+      "B": "<input>",
+      "C": "<button>",
+      "D": "<textarea>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia kolor tekstu?",
+    "options": {
+      "A": "color",
+      "B": "background-color",
+      "C": "text-color",
+      "D": "font-color"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca długość tablicy?",
+    "options": {
+      "A": "length",
+      "B": "size()",
+      "C": "count()",
+      "D": "len()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP dołącza plik?",
+    "options": {
+      "A": "include",
+      "B": "require",
+      "C": "import",
+      "D": "load"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL wybiera dane z tabeli?",
+    "options": {
+      "A": "SELECT",
+      "B": "GET",
+      "C": "FETCH",
+      "D": "READ"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy link?",
+    "options": {
+      "A": "<a>",
+      "B": "<link>",
+      "C": "<href>",
+      "D": "<url>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia szerokość elementu?",
+    "options": {
+      "A": "width",
+      "B": "height",
+      "C": "size",
+      "D": "length"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript zmienia zawartość elementu?",
+    "options": {
+      "A": "innerHTML",
+      "B": "textContent",
+      "C": "value",
+      "D": "content"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy plik istnieje?",
+    "options": {
+      "A": "file_exists()",
+      "B": "is_file()",
+      "C": "exists()",
+      "D": "check_file()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL aktualizuje dane w tabeli?",
+    "options": {
+      "A": "UPDATE",
+      "B": "MODIFY",
+      "C": "CHANGE",
+      "D": "EDIT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy obraz?",
+    "options": {
+      "A": "<img>",
+      "B": "<image>",
+      "C": "<pic>",
+      "D": "<photo>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia pozycjonowanie?",
+    "options": {
+      "A": "position",
+      "B": "float",
+      "C": "display",
+      "D": "align"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript dodaje zdarzenie?",
+    "options": {
+      "A": "addEventListener()",
+      "B": "onClick()",
+      "C": "event()",
+      "D": "listen()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP tworzy zmienną?",
+    "options": {
+      "A": "$zmienna",
+      "B": "var zmienna",
+      "C": "let zmienna",
+      "D": "const zmienna"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL tworzy tabelę?",
+    "options": {
+      "A": "CREATE TABLE",
+      "B": "MAKE TABLE",
+      "C": "NEW TABLE",
+      "D": "ADD TABLE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy nagłówek?",
+    "options": {
+      "A": "<h1>",
+      "B": "<header>",
+      "C": "<head>",
+      "D": "<title>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia przezroczystość?",
+    "options": {
+      "A": "opacity",
+      "B": "transparent",
+      "C": "alpha",
+      "D": "visibility"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript parsuje JSON?",
+    "options": {
+      "A": "JSON.parse()",
+      "B": "parseJSON()",
+      "C": "toJSON()",
+      "D": "stringify()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP zwraca długość stringa?",
+    "options": {
+      "A": "strlen()",
+      "B": "length()",
+      "C": "size()",
+      "D": "count()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL usuwa tabelę?",
+    "options": {
+      "A": "DROP TABLE",
+      "B": "DELETE TABLE",
+      "C": "REMOVE TABLE",
+      "D": "CLEAR TABLE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy przycisk?",
+    "options": {
+      "A": "<button>",
+      "B": "<input type='button'>",
+      "C": "<btn>",
+      "D": "<click>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia obramowanie?",
+    "options": {
+      "A": "border",
+      "B": "outline",
+      "C": "frame",
+      "D": "edge"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca losową liczbę?",
+    "options": {
+      "A": "Math.random()",
+      "B": "random()",
+      "C": "rand()",
+      "D": "getRandom()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP sprawdza warunek?",
+    "options": {
+      "A": "if",
+      "B": "when",
+      "C": "check",
+      "D": "condition"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL sortuje wyniki?",
+    "options": {
+      "A": "ORDER BY",
+      "B": "SORT BY",
+      "C": "GROUP BY",
+      "D": "FILTER BY"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy listę numerowaną?",
+    "options": {
+      "A": "<ol>",
+      "B": "<ul>",
+      "C": "<li>",
+      "D": "<list>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia tło?",
+    "options": {
+      "A": "background",
+      "B": "bg",
+      "C": "back",
+      "D": "ground"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript usuwa element z tablicy?",
+    "options": {
+      "A": "splice()",
+      "B": "remove()",
+      "C": "delete()",
+      "D": "pop()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza typ zmiennej?",
+    "options": {
+      "A": "gettype()",
+      "B": "typeof()",
+      "C": "type()",
+      "D": "var_type()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL grupuje wyniki?",
+    "options": {
+      "A": "GROUP BY",
+      "B": "ORDER BY",
+      "C": "SORT BY",
+      "D": "FILTER BY"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy akapit?",
+    "options": {
+      "A": "<p>",
+      "B": "<para>",
+      "C": "<text>",
+      "D": "<line>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia wysokość?",
+    "options": {
+      "A": "height",
+      "B": "width",
+      "C": "size",
+      "D": "length"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript konwertuje na string?",
+    "options": {
+      "A": "toString()",
+      "B": "string()",
+      "C": "convert()",
+      "D": "str()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje pętlę?",
+    "options": {
+      "A": "for",
+      "B": "loop",
+      "C": "repeat",
+      "D": "cycle"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL liczy wiersze?",
+    "options": {
+      "A": "COUNT()",
+      "B": "SUM()",
+      "C": "AVG()",
+      "D": "MAX()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy linię poziomą?",
+    "options": {
+      "A": "<hr>",
+      "B": "<line>",
+      "C": "<br>",
+      "D": "<div>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia czcionkę?",
+    "options": {
+      "A": "font-family",
+      "B": "text-font",
+      "C": "typeface",
+      "D": "font"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript dodaje klasę CSS?",
+    "options": {
+      "A": "classList.add()",
+      "B": "addClass()",
+      "C": "setClass()",
+      "D": "appendClass()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy zmienna jest pusta?",
+    "options": {
+      "A": "empty()",
+      "B": "is_null()",
+      "C": "null()",
+      "D": "check_empty()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL łączy tabele?",
+    "options": {
+      "A": "JOIN",
+      "B": "MERGE",
+      "C": "UNION",
+      "D": "CONNECT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy pole tekstowe?",
+    "options": {
+      "A": "<input type='text'>",
+      "B": "<textarea>",
+      "C": "<text>",
+      "D": "<field>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia margines?",
+    "options": {
+      "A": "margin",
+      "B": "padding",
+      "C": "border",
+      "D": "space"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca datę?",
+    "options": {
+      "A": "new Date()",
+      "B": "Date()",
+      "C": "getDate()",
+      "D": "currentDate()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP definiuje funkcję?",
+    "options": {
+      "A": "function",
+      "B": "def",
+      "C": "func",
+      "D": "method"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL ogranicza wyniki?",
+    "options": {
+      "A": "LIMIT",
+      "B": "TOP",
+      "C": "FIRST",
+      "D": "RESTRICT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy sekcję?",
+    "options": {
+      "A": "<div>",
+      "B": "<section>",
+      "C": "<part>",
+      "D": "<area>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia wyświetlanie?",
+    "options": {
+      "A": "display",
+      "B": "show",
+      "C": "visible",
+      "D": "render"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript ustawia timer?",
+    "options": {
+      "A": "setTimeout()",
+      "B": "timer()",
+      "C": "delay()",
+      "D": "wait()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP koduje JSON?",
+    "options": {
+      "A": "json_encode()",
+      "B": "encode_json()",
+      "C": "to_json()",
+      "D": "json_stringify()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL zmienia nazwę tabeli?",
+    "options": {
+      "A": "ALTER TABLE RENAME",
+      "B": "RENAME TABLE",
+      "C": "CHANGE TABLE",
+      "D": "MODIFY TABLE"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy meta dane?",
+    "options": {
+      "A": "<meta>",
+      "B": "<head>",
+      "C": "<data>",
+      "D": "<info>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia cień?",
+    "options": {
+      "A": "box-shadow",
+      "B": "shadow",
+      "C": "text-shadow",
+      "D": "drop-shadow"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript sprawdza typ?",
+    "options": {
+      "A": "typeof",
+      "B": "type",
+      "C": "instanceof",
+      "D": "checktype"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje pętlę while?",
+    "options": {
+      "A": "while",
+      "B": "for",
+      "C": "loop",
+      "D": "repeat"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje kolumnę?",
+    "options": {
+      "A": "ALTER TABLE ADD",
+      "B": "ADD COLUMN",
+      "C": "INSERT COLUMN",
+      "D": "CREATE COLUMN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy nawigację?",
+    "options": {
+      "A": "<nav>",
+      "B": "<menu>",
+      "C": "<navigate>",
+      "D": "<links>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia flexbox?",
+    "options": {
+      "A": "display: flex",
+      "B": "flex",
+      "C": "box",
+      "D": "grid"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript usuwa zdarzenie?",
+    "options": {
+      "A": "removeEventListener()",
+      "B": "off()",
+      "C": "unbind()",
+      "D": "detach()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP dekoduje JSON?",
+    "options": {
+      "A": "json_decode()",
+      "B": "decode_json()",
+      "C": "from_json()",
+      "D": "json_parse()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL usuwa kolumnę?",
+    "options": {
+      "A": "ALTER TABLE DROP",
+      "B": "DROP COLUMN",
+      "C": "DELETE COLUMN",
+      "D": "REMOVE COLUMN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy stopkę?",
+    "options": {
+      "A": "<footer>",
+      "B": "<bottom>",
+      "C": "<end>",
+      "D": "<foot>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia gradient?",
+    "options": {
+      "A": "background: linear-gradient",
+      "B": "gradient",
+      "C": "color-gradient",
+      "D": "bg-gradient"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca część stringa?",
+    "options": {
+      "A": "substring()",
+      "B": "slice()",
+      "C": "substr()",
+      "D": "cut()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje pętlę foreach?",
+    "options": {
+      "A": "foreach",
+      "B": "for",
+      "C": "each",
+      "D": "loop"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje indeks?",
+    "options": {
+      "A": "CREATE INDEX",
+      "B": "ADD INDEX",
+      "C": "INSERT INDEX",
+      "D": "NEW INDEX"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy artykuł?",
+    "options": {
+      "A": "<article>",
+      "B": "<content>",
+      "C": "<text>",
+      "D": "<post>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia transformację?",
+    "options": {
+      "A": "transform",
+      "B": "rotate",
+      "C": "scale",
+      "D": "translate"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript sprawdza, czy zawiera?",
+    "options": {
+      "A": "includes()",
+      "B": "contains()",
+      "C": "has()",
+      "D": "exist()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy jest liczbą?",
+    "options": {
+      "A": "is_numeric()",
+      "B": "is_number()",
+      "C": "numeric()",
+      "D": "check_number()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje klucz obcy?",
+    "options": {
+      "A": "FOREIGN KEY",
+      "B": "ADD FOREIGN",
+      "C": "CREATE FOREIGN",
+      "D": "SET FOREIGN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy aside?",
+    "options": {
+      "A": "<aside>",
+      "B": "<sidebar>",
+      "C": "<side>",
+      "D": "<extra>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia animację?",
+    "options": {
+      "A": "animation",
+      "B": "animate",
+      "C": "motion",
+      "D": "move"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca indeks?",
+    "options": {
+      "A": "indexOf()",
+      "B": "findIndex()",
+      "C": "search()",
+      "D": "locate()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje switch?",
+    "options": {
+      "A": "switch",
+      "B": "case",
+      "C": "select",
+      "D": "choose"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje wyzwalacz?",
+    "options": {
+      "A": "CREATE TRIGGER",
+      "B": "ADD TRIGGER",
+      "C": "INSERT TRIGGER",
+      "D": "NEW TRIGGER"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy figure?",
+    "options": {
+      "A": "<figure>",
+      "B": "<image>",
+      "C": "<pic>",
+      "D": "<photo>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia z-index?",
+    "options": {
+      "A": "z-index",
+      "B": "layer",
+      "C": "depth",
+      "D": "level"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript sortuje tablicę?",
+    "options": {
+      "A": "sort()",
+      "B": "order()",
+      "C": "arrange()",
+      "D": "sequence()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP zwraca czas?",
+    "options": {
+      "A": "time()",
+      "B": "date()",
+      "C": "now()",
+      "D": "current_time()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje widok?",
+    "options": {
+      "A": "CREATE VIEW",
+      "B": "ADD VIEW",
+      "C": "INSERT VIEW",
+      "D": "NEW VIEW"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy time?",
+    "options": {
+      "A": "<time>",
+      "B": "<date>",
+      "C": "<clock>",
+      "D": "<timer>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia overflow?",
+    "options": {
+      "A": "overflow",
+      "B": "scroll",
+      "C": "hidden",
+      "D": "visible"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca liczbę?",
+    "options": {
+      "A": "parseInt()",
+      "B": "toNumber()",
+      "C": "int()",
+      "D": "number()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje try-catch?",
+    "options": {
+      "A": "try",
+      "B": "catch",
+      "C": "except",
+      "D": "error"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje procedurę?",
+    "options": {
+      "A": "CREATE PROCEDURE",
+      "B": "ADD PROCEDURE",
+      "C": "INSERT PROCEDURE",
+      "D": "NEW PROCEDURE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy progress?",
+    "options": {
+      "A": "<progress>",
+      "B": "<bar>",
+      "C": "<meter>",
+      "D": "<status>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia cursor?",
+    "options": {
+      "A": "cursor",
+      "B": "pointer",
+      "C": "mouse",
+      "D": "hand"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript filtruje tablicę?",
+    "options": {
+      "A": "filter()",
+      "B": "select()",
+      "C": "choose()",
+      "D": "pick()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy jest tablicą?",
+    "options": {
+      "A": "is_array()",
+      "B": "array()",
+      "C": "check_array()",
+      "D": "type_array()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje funkcję?",
+    "options": {
+      "A": "CREATE FUNCTION",
+      "B": "ADD FUNCTION",
+      "C": "INSERT FUNCTION",
+      "D": "NEW FUNCTION"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy details?",
+    "options": {
+      "A": "<details>",
+      "B": "<summary>",
+      "C": "<expand>",
+      "D": "<info>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia transition?",
+    "options": {
+      "A": "transition",
+      "B": "animate",
+      "C": "change",
+      "D": "move"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript mapuje tablicę?",
+    "options": {
+      "A": "map()",
+      "B": "transform()",
+      "C": "convert()",
+      "D": "apply()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje require_once?",
+    "options": {
+      "A": "require_once",
+      "B": "include_once",
+      "C": "load_once",
+      "D": "import_once"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje schemat?",
+    "options": {
+      "A": "CREATE SCHEMA",
+      "B": "ADD SCHEMA",
+      "C": "INSERT SCHEMA",
+      "D": "NEW SCHEMA"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który znacznik HTML tworzy mark?",
+    "options": {
+      "A": "<mark>",
+      "B": "<highlight>",
+      "C": "<bold>",
+      "D": "<strong>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS ustawia list-style?",
+    "options": {
+      "A": "list-style",
+      "B": "bullet",
+      "C": "marker",
+      "D": "item"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript redukuje tablicę?",
+    "options": {
+      "A": "reduce()",
+      "B": "fold()",
+      "C": "sum()",
+      "D": "combine()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP zwraca dirname?",
+    "options": {
+      "A": "dirname()",
+      "B": "path()",
+      "C": "folder()",
+      "D": "dir()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która właściwość CSS3 umożliwia tworzenie gradientów liniowych?",
+    "options": {
+      "A": "linear-gradient()",
+      "B": "radial-gradient()",
+      "C": "conic-gradient()",
+      "D": "repeating-linear-gradient()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W JavaScript, jaki operator sprawdza zarówno wartość jak i typ?",
+    "options": {
+      "A": "===",
+      "B": "==",
+      "C": "!=",
+      "D": "!=="
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP służy do łączenia się z bazą danych MySQL?",
+    "options": {
+      "A": "mysqli_connect()",
+      "B": "mysql_connect()",
+      "C": "pdo_connect()",
+      "D": "db_connect()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje lewe połączenie między tabelami?",
+    "options": {
+      "A": "LEFT JOIN",
+      "B": "RIGHT JOIN",
+      "C": "INNER JOIN",
+      "D": "FULL JOIN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia rysowanie grafiki 2D?",
+    "options": {
+      "A": "<canvas>",
+      "B": "<svg>",
+      "C": "<img>",
+      "D": "<picture>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka jednostka jest względna do rozmiaru czcionki rodzica?",
+    "options": {
+      "A": "em",
+      "B": "rem",
+      "C": "px",
+      "D": "vh"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript dodaje element na końcu tablicy?",
+    "options": {
+      "A": "push()",
+      "B": "pop()",
+      "C": "shift()",
+      "D": "unshift()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP sprawdza, czy zmienna jest ustawiona?",
+    "options": {
+      "A": "isset()",
+      "B": "empty()",
+      "C": "is_null()",
+      "D": "defined()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL grupuje wyniki według kolumny?",
+    "options": {
+      "A": "GROUP BY",
+      "B": "ORDER BY",
+      "C": "HAVING",
+      "D": "LIMIT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa maksymalną długość pola tekstowego?",
+    "options": {
+      "A": "maxlength",
+      "B": "max",
+      "C": "size",
+      "D": "length"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość kontroluje przepełnienie zawartości?",
+    "options": {
+      "A": "overflow",
+      "B": "scroll",
+      "C": "hidden",
+      "D": "visible"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript konwertuje string na liczbę?",
+    "options": {
+      "A": "parseInt()",
+      "B": "toString()",
+      "C": "split()",
+      "D": "join()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która klasa PHP umożliwia pracę z plikami?",
+    "options": {
+      "A": "SplFileObject",
+      "B": "FileHandler",
+      "C": "FileManager",
+      "D": "FileClass"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL usuwa duplikaty z wyników?",
+    "options": {
+      "A": "DISTINCT",
+      "B": "UNIQUE",
+      "C": "GROUP BY",
+      "D": "HAVING"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 przechowuje dane formularza?",
+    "options": {
+      "A": "<datalist>",
+      "B": "<output>",
+      "C": "<progress>",
+      "D": "<meter>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia pozycjonowanie absolutne?",
+    "options": {
+      "A": "position: absolute",
+      "B": "position: relative",
+      "C": "position: fixed",
+      "D": "position: static"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript usuwa ostatni element tablicy?",
+    "options": {
+      "A": "pop()",
+      "B": "push()",
+      "C": "shift()",
+      "D": "unshift()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza długość stringa?",
+    "options": {
+      "A": "strlen()",
+      "B": "str_len()",
+      "C": "length()",
+      "D": "size()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL sortuje wyniki malejąco?",
+    "options": {
+      "A": "ORDER BY DESC",
+      "B": "ORDER BY ASC",
+      "C": "SORT BY DESC",
+      "D": "GROUP BY DESC"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa typ pola formularza?",
+    "options": {
+      "A": "type",
+      "B": "inputtype",
+      "C": "fieldtype",
+      "D": "formtype"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia przezroczystość?",
+    "options": {
+      "A": "opacity",
+      "B": "transparent",
+      "C": "alpha",
+      "D": "visibility"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca indeks elementu w tablicy?",
+    "options": {
+      "A": "indexOf()",
+      "B": "findIndex()",
+      "C": "search()",
+      "D": "match()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje kod warunkowo?",
+    "options": {
+      "A": "if",
+      "B": "switch",
+      "C": "for",
+      "D": "while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL dodaje warunek do GROUP BY?",
+    "options": {
+      "A": "HAVING",
+      "B": "WHERE",
+      "C": "ORDER BY",
+      "D": "LIMIT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia odtwarzanie wideo?",
+    "options": {
+      "A": "<video>",
+      "B": "<audio>",
+      "C": "<media>",
+      "D": "<player>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia cień tekstu?",
+    "options": {
+      "A": "text-shadow",
+      "B": "box-shadow",
+      "C": "shadow",
+      "D": "text-effect"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript łączy elementy tablicy w string?",
+    "options": {
+      "A": "join()",
+      "B": "concat()",
+      "C": "merge()",
+      "D": "combine()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP usuwa białe znaki z początku i końca stringa?",
+    "options": {
+      "A": "trim()",
+      "B": "strip()",
+      "C": "clean()",
+      "D": "remove()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL ogranicza liczbę wyników?",
+    "options": {
+      "A": "LIMIT",
+      "B": "TOP",
+      "C": "FIRST",
+      "D": "COUNT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa wartość domyślną pola?",
+    "options": {
+      "A": "value",
+      "B": "default",
+      "C": "initial",
+      "D": "start"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia elastyczny layout?",
+    "options": {
+      "A": "display: flex",
+      "B": "display: grid",
+      "C": "display: block",
+      "D": "display: inline"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript sprawdza, czy wartość jest tablicą?",
+    "options": {
+      "A": "Array.isArray()",
+      "B": "isArray()",
+      "C": "typeof array",
+      "D": "instanceof Array"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która klasa PHP umożliwia wysyłanie e-maili?",
+    "options": {
+      "A": "PHPMailer",
+      "B": "MailSender",
+      "C": "EmailClass",
+      "D": "SMTPMailer"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje pełne połączenie między tabelami?",
+    "options": {
+      "A": "FULL JOIN",
+      "B": "LEFT JOIN",
+      "C": "RIGHT JOIN",
+      "D": "INNER JOIN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 przechowuje metadane strony?",
+    "options": {
+      "A": "<meta>",
+      "B": "<head>",
+      "C": "<title>",
+      "D": "<link>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia animację?",
+    "options": {
+      "A": "animation",
+      "B": "transition",
+      "C": "transform",
+      "D": "keyframes"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript wykonuje funkcję po opóźnieniu?",
+    "options": {
+      "A": "setTimeout()",
+      "B": "setInterval()",
+      "C": "delay()",
+      "D": "wait()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP koduje dane do formatu JSON?",
+    "options": {
+      "A": "json_encode()",
+      "B": "json_decode()",
+      "C": "serialize()",
+      "D": "encode_json()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje prawe połączenie między tabelami?",
+    "options": {
+      "A": "RIGHT JOIN",
+      "B": "LEFT JOIN",
+      "C": "INNER JOIN",
+      "D": "FULL JOIN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa, czy pole jest wymagane?",
+    "options": {
+      "A": "required",
+      "B": "mandatory",
+      "C": "needed",
+      "D": "must"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia gradient kołowy?",
+    "options": {
+      "A": "radial-gradient()",
+      "B": "linear-gradient()",
+      "C": "conic-gradient()",
+      "D": "repeating-radial-gradient()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca część stringa?",
+    "options": {
+      "A": "substring()",
+      "B": "substr()",
+      "C": "slice()",
+      "D": "splice()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje pętlę while?",
+    "options": {
+      "A": "while",
+      "B": "for",
+      "C": "foreach",
+      "D": "do-while"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje wewnętrze połączenie między tabelami?",
+    "options": {
+      "A": "INNER JOIN",
+      "B": "LEFT JOIN",
+      "C": "RIGHT JOIN",
+      "D": "FULL JOIN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia rysowanie wektorowej grafiki?",
+    "options": {
+      "A": "<svg>",
+      "B": "<canvas>",
+      "C": "<img>",
+      "D": "<picture>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia transformację?",
+    "options": {
+      "A": "transform",
+      "B": "translate",
+      "C": "rotate",
+      "D": "scale"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript usuwa pierwszy element tablicy?",
+    "options": {
+      "A": "shift()",
+      "B": "pop()",
+      "C": "unshift()",
+      "D": "push()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy plik istnieje?",
+    "options": {
+      "A": "file_exists()",
+      "B": "is_file()",
+      "C": "exists()",
+      "D": "check_file()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje krzyżowe połączenie między tabelami?",
+    "options": {
+      "A": "CROSS JOIN",
+      "B": "INNER JOIN",
+      "C": "LEFT JOIN",
+      "D": "RIGHT JOIN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W JavaScript ES6, jaka składnia deklaruje funkcję strzałkową?",
+    "options": {
+      "A": "() => {}",
+      "B": "function() {}",
+      "C": "func() {}",
+      "D": "=> () {}"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która klasa PHP PDO umożliwia przygotowane zapytania?",
+    "options": {
+      "A": "PDOStatement",
+      "B": "PDOQuery",
+      "C": "PDOPrepare",
+      "D": "PDOExecute"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL tworzy indeks na kolumnie?",
+    "options": {
+      "A": "CREATE INDEX",
+      "B": "ADD INDEX",
+      "C": "INDEX ON",
+      "D": "SET INDEX"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 przechowuje dane binarne?",
+    "options": {
+      "A": "<input type='file'>",
+      "B": "<input type='binary'>",
+      "C": "<file>",
+      "D": "<binary>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia wielokrotne tła?",
+    "options": {
+      "A": "background-image",
+      "B": "background-multiple",
+      "C": "multi-background",
+      "D": "backgrounds"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript obsługuje asynchroniczne operacje?",
+    "options": {
+      "A": "async/await",
+      "B": "sync/wait",
+      "C": "promise/then",
+      "D": "callback"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza typ zmiennej?",
+    "options": {
+      "A": "gettype()",
+      "B": "typeof()",
+      "C": "type()",
+      "D": "var_type()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje transakcję?",
+    "options": {
+      "A": "BEGIN TRANSACTION",
+      "B": "START TRANS",
+      "C": "INIT TRANSACTION",
+      "D": "OPEN TRANS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa wzorzec walidacji?",
+    "options": {
+      "A": "pattern",
+      "B": "validate",
+      "C": "regex",
+      "D": "match"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia siatkę?",
+    "options": {
+      "A": "display: grid",
+      "B": "display: flex",
+      "C": "display: table",
+      "D": "display: block"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript tworzy nowy obiekt Promise?",
+    "options": {
+      "A": "new Promise()",
+      "B": "Promise.create()",
+      "C": "new Async()",
+      "D": "Async.new()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje pętlę foreach?",
+    "options": {
+      "A": "foreach",
+      "B": "for",
+      "C": "while",
+      "D": "do"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL zmienia strukturę tabeli?",
+    "options": {
+      "A": "ALTER TABLE",
+      "B": "MODIFY TABLE",
+      "C": "CHANGE TABLE",
+      "D": "UPDATE TABLE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia geolokalizację?",
+    "options": {
+      "A": "navigator.geolocation",
+      "B": "<geo>",
+      "C": "<location>",
+      "D": "<gps>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia cień pudełka?",
+    "options": {
+      "A": "box-shadow",
+      "B": "text-shadow",
+      "C": "shadow",
+      "D": "box-effect"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript klonuje obiekt?",
+    "options": {
+      "A": "Object.assign()",
+      "B": "Object.clone()",
+      "C": "clone()",
+      "D": "copy()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP koduje URL?",
+    "options": {
+      "A": "urlencode()",
+      "B": "encode_url()",
+      "C": "url_code()",
+      "D": "encodeURL()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje podzapytanie?",
+    "options": {
+      "A": "SELECT ... (SELECT ...)",
+      "B": "SUB SELECT",
+      "C": "NESTED SELECT",
+      "D": "INNER SELECT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa krok dla liczby?",
+    "options": {
+      "A": "step",
+      "B": "increment",
+      "C": "range",
+      "D": "interval"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia elastyczne elementy?",
+    "options": {
+      "A": "flex",
+      "B": "grid",
+      "C": "float",
+      "D": "position"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript parsuje JSON?",
+    "options": {
+      "A": "JSON.parse()",
+      "B": "parseJSON()",
+      "C": "JSON.decode()",
+      "D": "decodeJSON()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która klasa PHP umożliwia sesje?",
+    "options": {
+      "A": "SessionHandler",
+      "B": "PHPSession",
+      "C": "SessionClass",
+      "D": "SessionManager"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL usuwa tabelę?",
+    "options": {
+      "A": "DROP TABLE",
+      "B": "DELETE TABLE",
+      "C": "REMOVE TABLE",
+      "D": "CLEAR TABLE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 przechowuje czas?",
+    "options": {
+      "A": "<time>",
+      "B": "<datetime>",
+      "C": "<date>",
+      "D": "<clock>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia przejścia?",
+    "options": {
+      "A": "transition",
+      "B": "animation",
+      "C": "transform",
+      "D": "effect"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript wykonuje funkcję cyklicznie?",
+    "options": {
+      "A": "setInterval()",
+      "B": "setTimeout()",
+      "C": "repeat()",
+      "D": "cycle()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy zmienna jest liczbą?",
+    "options": {
+      "A": "is_numeric()",
+      "B": "is_number()",
+      "C": "numeric()",
+      "D": "is_int()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje unię wyników?",
+    "options": {
+      "A": "UNION",
+      "B": "JOIN",
+      "C": "MERGE",
+      "D": "COMBINE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa minimalną wartość?",
+    "options": {
+      "A": "min",
+      "B": "minimum",
+      "C": "low",
+      "D": "start"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia kolumny?",
+    "options": {
+      "A": "column-count",
+      "B": "columns",
+      "C": "multi-column",
+      "D": "column"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca losową liczbę?",
+    "options": {
+      "A": "Math.random()",
+      "B": "random()",
+      "C": "Math.rand()",
+      "D": "rand()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która instrukcja PHP wykonuje pętlę do-while?",
+    "options": {
+      "A": "do-while",
+      "B": "while",
+      "C": "for",
+      "D": "foreach"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL dodaje klucz obcy?",
+    "options": {
+      "A": "ADD FOREIGN KEY",
+      "B": "SET FOREIGN KEY",
+      "C": "FOREIGN KEY ADD",
+      "D": "KEY FOREIGN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia przeciąganie?",
+    "options": {
+      "A": "draggable",
+      "B": "<drag>",
+      "C": "<move>",
+      "D": "<pull>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia filtry?",
+    "options": {
+      "A": "filter",
+      "B": "effect",
+      "C": "blur",
+      "D": "brightness"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript sortuje tablicę?",
+    "options": {
+      "A": "sort()",
+      "B": "order()",
+      "C": "arrange()",
+      "D": "sequence()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP zwraca czas wykonania?",
+    "options": {
+      "A": "microtime()",
+      "B": "time()",
+      "C": "execution_time()",
+      "D": "runtime()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje warunkowe wstawianie?",
+    "options": {
+      "A": "INSERT ... ON DUPLICATE KEY",
+      "B": "INSERT IF",
+      "C": "CONDITIONAL INSERT",
+      "D": "INSERT WHEN"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa maksymalną wartość?",
+    "options": {
+      "A": "max",
+      "B": "maximum",
+      "C": "high",
+      "D": "end"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia obszar bezpieczny?",
+    "options": {
+      "A": "safe-area-inset",
+      "B": "viewport-safe",
+      "C": "safe-zone",
+      "D": "inset-safe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript sprawdza NaN?",
+    "options": {
+      "A": "isNaN()",
+      "B": "NaN()",
+      "C": "checkNaN()",
+      "D": "is_nan()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która klasa PHP umożliwia ciasteczka?",
+    "options": {
+      "A": "setcookie()",
+      "B": "CookieHandler",
+      "C": "PHPCookie",
+      "D": "CookieClass"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL tworzy widok?",
+    "options": {
+      "A": "CREATE VIEW",
+      "B": "ADD VIEW",
+      "C": "VIEW CREATE",
+      "D": "SET VIEW"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 przechowuje postęp?",
+    "options": {
+      "A": "<progress>",
+      "B": "<meter>",
+      "C": "<bar>",
+      "D": "<status>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia calc()?",
+    "options": {
+      "A": "calc()",
+      "B": "compute()",
+      "C": "math()",
+      "D": "calculate()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript filtruje tablicę?",
+    "options": {
+      "A": "filter()",
+      "B": "select()",
+      "C": "choose()",
+      "D": "pick()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza, czy plik jest czytelny?",
+    "options": {
+      "A": "is_readable()",
+      "B": "readable()",
+      "C": "can_read()",
+      "D": "file_readable()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje rekursywne zapytanie?",
+    "options": {
+      "A": "WITH RECURSIVE",
+      "B": "RECURSIVE SELECT",
+      "C": "LOOP SELECT",
+      "D": "REPEAT SELECT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W JavaScript, jaki interfejs umożliwia WebSockets?",
+    "options": {
+      "A": "WebSocket",
+      "B": "Socket",
+      "C": "WebSock",
+      "D": "NetSocket"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka PHP umożliwia routing?",
+    "options": {
+      "A": "Slim",
+      "B": "RouterPHP",
+      "C": "PHPRoute",
+      "D": "RouteLib"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL wykonuje pełnotekstowe wyszukiwanie?",
+    "options": {
+      "A": "MATCH ... AGAINST",
+      "B": "FULLTEXT SEARCH",
+      "C": "SEARCH TEXT",
+      "D": "TEXT MATCH"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia offline aplikacje?",
+    "options": {
+      "A": "Service Worker",
+      "B": "<offline>",
+      "C": "<cache>",
+      "D": "<appcache>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia zmienną?",
+    "options": {
+      "A": "--variable",
+      "B": "$variable",
+      "C": "@variable",
+      "D": "var()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript obsługuje fetch API?",
+    "options": {
+      "A": "fetch()",
+      "B": "ajax()",
+      "C": "request()",
+      "D": "get()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP umożliwia autoloading klas?",
+    "options": {
+      "A": "spl_autoload_register()",
+      "B": "autoload()",
+      "C": "class_load()",
+      "D": "register_autoload()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje pivot?",
+    "options": {
+      "A": "PIVOT",
+      "B": "TRANSFORM",
+      "C": "ROTATE",
+      "D": "SWITCH"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa kontekst kanwy?",
+    "options": {
+      "A": "getContext()",
+      "B": "context",
+      "C": "canvas-context",
+      "D": "draw-context"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia clip-path?",
+    "options": {
+      "A": "clip-path",
+      "B": "clip",
+      "C": "path-clip",
+      "D": "shape-clip"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca obietnicę?",
+    "options": {
+      "A": "Promise.resolve()",
+      "B": "resolve()",
+      "C": "promise()",
+      "D": "async_resolve()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która klasa PHP umożliwia buforowanie wyjścia?",
+    "options": {
+      "A": "ob_start()",
+      "B": "OutputBuffer",
+      "C": "BufferClass",
+      "D": "CacheOutput"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL wykonuje optymalizację tabeli?",
+    "options": {
+      "A": "OPTIMIZE TABLE",
+      "B": "REPAIR TABLE",
+      "C": "ANALYZE TABLE",
+      "D": "CHECK TABLE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia web workers?",
+    "options": {
+      "A": "Worker",
+      "B": "<worker>",
+      "C": "<thread>",
+      "D": "<background>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia will-change?",
+    "options": {
+      "A": "will-change",
+      "B": "change-will",
+      "C": "optimize-change",
+      "D": "performance"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript wykonuje głębokie klonowanie?",
+    "options": {
+      "A": "structuredClone()",
+      "B": "deepClone()",
+      "C": "cloneDeep()",
+      "D": "Object.deepCopy()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP sprawdza składnię kodu?",
+    "options": {
+      "A": "php -l",
+      "B": "syntax_check()",
+      "C": "check_syntax()",
+      "D": "validate_php()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje CTE?",
+    "options": {
+      "A": "WITH",
+      "B": "CTE",
+      "C": "COMMON TABLE",
+      "D": "TEMP TABLE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa crossorigin?",
+    "options": {
+      "A": "crossorigin",
+      "B": "cross-origin",
+      "C": "origin-cross",
+      "D": "allow-cross"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia maskę?",
+    "options": {
+      "A": "mask",
+      "B": "clip-mask",
+      "C": "image-mask",
+      "D": "layer-mask"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca iterator?",
+    "options": {
+      "A": "Symbol.iterator",
+      "B": "iterator()",
+      "C": "getIterator()",
+      "D": "createIterator()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka PHP umożliwia ORM?",
+    "options": {
+      "A": "Doctrine",
+      "B": "ORM PHP",
+      "C": "PHPORMLib",
+      "D": "ObjectMapper"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL wykonuje backup?",
+    "options": {
+      "A": "mysqldump",
+      "B": "BACKUP DATABASE",
+      "C": "EXPORT DB",
+      "D": "SAVE DB"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia push notifications?",
+    "options": {
+      "A": "Notification",
+      "B": "<notify>",
+      "C": "<push>",
+      "D": "<alert>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia contain?",
+    "options": {
+      "A": "contain",
+      "B": "layout-contain",
+      "C": "optimize-layout",
+      "D": "performance-contain"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript wykonuje mapowanie?",
+    "options": {
+      "A": "map()",
+      "B": "transform()",
+      "C": "convert()",
+      "D": "apply()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP umożliwia kompilację JIT?",
+    "options": {
+      "A": "opcache.jit",
+      "B": "jit_compile()",
+      "C": "compile_jit()",
+      "D": "php_jit()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje window function?",
+    "options": {
+      "A": "OVER",
+      "B": "WINDOW",
+      "C": "FRAME",
+      "D": "PARTITION"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa referrerpolicy?",
+    "options": {
+      "A": "referrerpolicy",
+      "B": "referrer-policy",
+      "C": "policy-referrer",
+      "D": "ref-policy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia backdrop-filter?",
+    "options": {
+      "A": "backdrop-filter",
+      "B": "background-filter",
+      "C": "filter-backdrop",
+      "D": "blur-backdrop"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca generator?",
+    "options": {
+      "A": "function*",
+      "B": "generator()",
+      "C": "yield",
+      "D": "createGenerator()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która klasa PHP umożliwia interfejsy?",
+    "options": {
+      "A": "interface",
+      "B": "InterfaceClass",
+      "C": "PHPInterface",
+      "D": "Contract"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL wykonuje replikację?",
+    "options": {
+      "A": "CHANGE MASTER TO",
+      "B": "SET REPLICA",
+      "C": "REPLICATE FROM",
+      "D": "COPY MASTER"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia web components?",
+    "options": {
+      "A": "customElements",
+      "B": "<component>",
+      "C": "<custom>",
+      "D": "<element>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia scroll-behavior?",
+    "options": {
+      "A": "scroll-behavior",
+      "B": "smooth-scroll",
+      "C": "behavior-scroll",
+      "D": "scroll-smooth"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript wykonuje redukcję?",
+    "options": {
+      "A": "reduce()",
+      "B": "fold()",
+      "C": "accumulate()",
+      "D": "sum()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP umożliwia rozszerzenia?",
+    "options": {
+      "A": "extension_loaded()",
+      "B": "load_extension()",
+      "C": "php_extension()",
+      "D": "check_extension()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje JSON extraction?",
+    "options": {
+      "A": "JSON_EXTRACT",
+      "B": "EXTRACT JSON",
+      "C": "GET JSON",
+      "D": "PARSE JSON"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który atrybut HTML5 określa loading?",
+    "options": {
+      "A": "loading",
+      "B": "lazy",
+      "C": "load-mode",
+      "D": "defer"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS3, jaka właściwość ustawia shape-outside?",
+    "options": {
+      "A": "shape-outside",
+      "B": "outside-shape",
+      "C": "float-shape",
+      "D": "shape-float"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja JavaScript zwraca proxy?",
+    "options": {
+      "A": "new Proxy()",
+      "B": "Proxy.create()",
+      "C": "createProxy()",
+      "D": "proxy()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka PHP umożliwia dependency injection?",
+    "options": {
+      "A": "Symfony DI",
+      "B": "PHP DI",
+      "C": "DependencyLib",
+      "D": "InjectPHP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które polecenie SQL wykonuje partitioning?",
+    "options": {
+      "A": "PARTITION BY",
+      "B": "DIVIDE BY",
+      "C": "SPLIT BY",
+      "D": "GROUP PARTITION"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który element HTML5 umożliwia web storage?",
+    "options": {
+      "A": "localStorage",
+      "B": "<storage>",
+      "C": "<local>",
+      "D": "<cache>"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "W CSS, jaka właściwość ustawia isolation?",
+    "options": {
+      "A": "isolation",
+      "B": "layer-isolation",
+      "C": "stacking-context",
+      "D": "z-index-isolation"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która metoda JavaScript wykonuje some()?",
+    "options": {
+      "A": "some()",
+      "B": "any()",
+      "C": "exists()",
+      "D": "check()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która funkcja PHP umożliwia garbage collection?",
+    "options": {
+      "A": "gc_collect_cycles()",
+      "B": "collect_garbage()",
+      "C": "gc()",
+      "D": "garbage_collect()"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Które zapytanie SQL wykonuje spatial query?",
+    "options": {
+      "A": "ST_Distance",
+      "B": "SPATIAL QUERY",
+      "C": "GEO SEARCH",
+      "D": "LOCATION QUERY"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która technologia umożliwia WebSockets w HTML5?",
+    "options": {
+      "A": "WebSocket API",
+      "B": "Server-Sent Events",
+      "C": "WebRTC",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia React Hooks?",
+    "options": {
+      "A": "useState",
+      "B": "useEffect",
+      "C": "useContext",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia Sass?",
+    "options": {
+      "A": "Sass",
+      "B": "Less",
+      "C": "Stylus",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia PHP 8.0?",
+    "options": {
+      "A": "Named Arguments",
+      "B": "Union Types",
+      "C": "Attributes",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia PostgreSQL JSONB?",
+    "options": {
+      "A": "JSONB",
+      "B": "JSON",
+      "C": "HSTORE",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia Canvas API?",
+    "options": {
+      "A": "Canvas",
+      "B": "SVG",
+      "C": "WebGL",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Vue 3 Composition API?",
+    "options": {
+      "A": "Composition API",
+      "B": "Options API",
+      "C": "Class API",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia Tailwind CSS?",
+    "options": {
+      "A": "Utility-first",
+      "B": "Component-based",
+      "C": "Atomic CSS",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Python Django?",
+    "options": {
+      "A": "Django",
+      "B": "Flask",
+      "C": "FastAPI",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia MongoDB Aggregation?",
+    "options": {
+      "A": "Aggregation Pipeline",
+      "B": "MapReduce",
+      "C": "Indexing",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia Geolocation API?",
+    "options": {
+      "A": "Geolocation",
+      "B": "Device Orientation",
+      "C": "Ambient Light",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Angular Ivy?",
+    "options": {
+      "A": "Ivy",
+      "B": "View Engine",
+      "C": "Renderer2",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia Bootstrap 5?",
+    "options": {
+      "A": "Bootstrap",
+      "B": "Foundation",
+      "C": "Bulma",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Node.js Express?",
+    "options": {
+      "A": "Express",
+      "B": "Koa",
+      "C": "Hapi",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia Redis Pub/Sub?",
+    "options": {
+      "A": "Pub/Sub",
+      "B": "Streams",
+      "C": "Geo",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia Web Storage?",
+    "options": {
+      "A": "localStorage",
+      "B": "sessionStorage",
+      "C": "IndexedDB",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Svelte?",
+    "options": {
+      "A": "Svelte",
+      "B": "SolidJS",
+      "C": "Preact",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia PostCSS?",
+    "options": {
+      "A": "PostCSS",
+      "B": "Autoprefixer",
+      "C": "CSS Modules",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Ruby on Rails?",
+    "options": {
+      "A": "Rails",
+      "B": "Sinatra",
+      "C": "Hanami",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia Elasticsearch DSL?",
+    "options": {
+      "A": "Query DSL",
+      "B": "Aggregation",
+      "C": "Mapping",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia Web Workers?",
+    "options": {
+      "A": "Web Workers",
+      "B": "Service Workers",
+      "C": "Shared Workers",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Next.js?",
+    "options": {
+      "A": "Next.js",
+      "B": "Nuxt.js",
+      "C": "Gatsby",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia Styled Components?",
+    "options": {
+      "A": "Styled Components",
+      "B": "Emotion",
+      "C": "Styled JSX",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Go Gin?",
+    "options": {
+      "A": "Gin",
+      "B": "Echo",
+      "C": "Fiber",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia Cassandra CQL?",
+    "options": {
+      "A": "CQL",
+      "B": "Thrift",
+      "C": "GraphQL",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia WebRTC?",
+    "options": {
+      "A": "WebRTC",
+      "B": "Web Audio",
+      "C": "Media Capture",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Ember.js?",
+    "options": {
+      "A": "Ember.js",
+      "B": "Backbone.js",
+      "C": "Knockout.js",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia Material UI?",
+    "options": {
+      "A": "Material UI",
+      "B": "Ant Design",
+      "C": "Semantic UI",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Java Spring Boot?",
+    "options": {
+      "A": "Spring Boot",
+      "B": "Spring MVC",
+      "C": "Spring Data",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia Neo4j Cypher?",
+    "options": {
+      "A": "Cypher",
+      "B": "Gremlin",
+      "C": "SPARQL",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia Drag and Drop?",
+    "options": {
+      "A": "Drag and Drop",
+      "B": "File API",
+      "C": "FormData",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Meteor?",
+    "options": {
+      "A": "Meteor",
+      "B": "Derby",
+      "C": "SocketStream",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia CSS Grid?",
+    "options": {
+      "A": "CSS Grid",
+      "B": "Flexbox",
+      "C": "CSS Columns",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia C# ASP.NET Core?",
+    "options": {
+      "A": "ASP.NET Core",
+      "B": "ASP.NET MVC",
+      "C": "ASP.NET Web API",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia SQLite FTS?",
+    "options": {
+      "A": "FTS",
+      "B": "R*Tree",
+      "C": "JSON1",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia History API?",
+    "options": {
+      "A": "History API",
+      "B": "Location API",
+      "C": "Navigation API",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Polymer?",
+    "options": {
+      "A": "Polymer",
+      "B": "Lit",
+      "C": "Stencil",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia CSS Variables?",
+    "options": {
+      "A": "CSS Variables",
+      "B": "CSS Custom Properties",
+      "C": "CSS Env",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Kotlin Ktor?",
+    "options": {
+      "A": "Ktor",
+      "B": "Vert.x",
+      "C": "Quarkus",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia InfluxDB Flux?",
+    "options": {
+      "A": "Flux",
+      "B": "InfluxQL",
+      "C": "PromQL",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia Web Components?",
+    "options": {
+      "A": "Custom Elements",
+      "B": "Shadow DOM",
+      "C": "HTML Templates",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Mithril?",
+    "options": {
+      "A": "Mithril",
+      "B": "Riot",
+      "C": "Hyperapp",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia CSS-in-JS?",
+    "options": {
+      "A": "Styled Components",
+      "B": "JSS",
+      "C": "Aphrodite",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Rust Rocket?",
+    "options": {
+      "A": "Rocket",
+      "B": "Actix",
+      "C": "Warp",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia CouchDB Mango?",
+    "options": {
+      "A": "Mango",
+      "B": "MapReduce",
+      "C": "Views",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który standard HTML5 umożliwia WebAssembly?",
+    "options": {
+      "A": "WebAssembly",
+      "B": "Emscripten",
+      "C": "Binaryen",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który framework JavaScript umożliwia Alpine.js?",
+    "options": {
+      "A": "Alpine.js",
+      "B": "Petite Vue",
+      "C": "Reef",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która biblioteka CSS umożliwia CSS Houdini?",
+    "options": {
+      "A": "CSS Houdini",
+      "B": "Worklets",
+      "C": "Paint API",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Który język programowania umożliwia Scala Play?",
+    "options": {
+      "A": "Play",
+      "B": "Akka HTTP",
+      "C": "Finch",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  },
+  {
+    "question": "Która baza danych umożliwia ArangoDB AQL?",
+    "options": {
+      "A": "AQL",
+      "B": "GraphQL",
+      "C": "Foxx",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.03"
+  }
+]

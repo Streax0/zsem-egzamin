@@ -1,0 +1,73 @@
+<?php
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+
+startSecureSession();
+header('Content-Type: application/json; charset=utf-8');
+
+if (!isLoggedIn()) {
+    http_response_code(401);
+    echo json_encode(['ok' => false, 'results' => []]);
+    exit;
+}
+
+$userId = (int)$_SESSION['user_id'];
+$role = $_SESSION['role'] ?? 'user';
+$query = trim((string)($_GET['q'] ?? ''));
+
+if (!consumeRateLimit($pdo, 'live_user_search', (string)$userId . '|' . clientIpAddress(), 60, 300)) {
+    http_response_code(429);
+    echo json_encode(['ok' => false, 'results' => []]);
+    exit;
+}
+
+if (mb_strlen($query) < 1) {
+    echo json_encode(['ok' => true, 'results' => []]);
+    exit;
+}
+
+try {
+    if (roleHasAdminAccess($role)) {
+        $stmt = $pdo->prepare("
+            SELECT id, username, role, is_verified, xp, allow_friend_requests, last_activity, avatar_path
+            FROM users
+            WHERE id != ? AND username LIKE ?
+            ORDER BY last_activity DESC, xp DESC, username ASC
+            LIMIT 6
+        ");
+        $stmt->execute([$userId, '%' . $query . '%']);
+    } else {
+        $stmt = $pdo->prepare("
+            SELECT id, username, role, is_verified, xp, allow_friend_requests, last_activity, avatar_path
+            FROM users
+            WHERE id != ? AND searchable = 1 AND profile_public = 1 AND username LIKE ?
+            ORDER BY last_activity DESC, xp DESC, username ASC
+            LIMIT 6
+        ");
+        $stmt->execute([$userId, '%' . $query . '%']);
+    }
+
+    $rows = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $status = getFriendshipStatus($pdo, $userId, (int)$row['id']);
+        $rows[] = [
+            'id' => (int)$row['id'],
+            'username' => $row['username'],
+            'role' => $row['role'] ?? 'user',
+            'verified' => ((int)($row['is_verified'] ?? 0) === 1) || in_array($row['role'] ?? 'user', privilegedStaffRoles(), true),
+            'xp' => (int)($row['xp'] ?? 0),
+            'status' => $status,
+            'online' => isUserOnline($row['last_activity'] ?? null),
+            'avatar' => userAvatarSrc($row['avatar_path'] ?? ''),
+            'can_add' => canSendFriendRequest($role, $row['role'] ?? 'user', (int)($row['allow_friend_requests'] ?? 1) === 1)
+        ];
+    }
+
+    echo json_encode(['ok' => true, 'results' => $rows], JSON_UNESCAPED_UNICODE);
+} catch (PDOException $e) {
+    error_log('Live user search failed: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'results' => []]);
+}

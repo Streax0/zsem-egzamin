@@ -1,0 +1,546 @@
+.sandbox-shell {
+  max-width: 1320px;
+}
+
+.sandbox-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+  border-radius: 8px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 88% 10%, rgba(255,255,255,.26), transparent 24%),
+    linear-gradient(135deg, #1d4ed8, #0f172a 72%);
+  box-shadow: 0 20px 50px rgba(29,78,216,.18);
+}
+
+.sandbox-hero p {
+  color: rgba(255,255,255,.78);
+}
+
+.sandbox-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+.sandbox-tool-tile {
+  position: relative;
+  min-height: 190px;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148,163,184,.22);
+  background: #fff;
+  color: #0f172a;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  box-shadow: 0 14px 34px rgba(15,23,42,.06);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.sandbox-tool-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37,99,235,.38);
+  box-shadow: 0 22px 44px rgba(37,99,235,.12);
+}
+
+.sandbox-tool-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #1d4ed8;
+  background: rgba(37,99,235,.1);
+  font-size: 1.45rem;
+}
+
+.sandbox-tool-tile span:not(.sandbox-tool-icon) {
+  color: #64748b;
+}
+
+.sandbox-tool-chip {
+  margin-top: auto;
+  width: fit-content;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  background: rgba(37,99,235,.1);
+  color: #1d4ed8 !important;
+  font-size: .72rem;
+  font-weight: 900;
+}
+
+.sandbox-arrow {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  font-size: 1.6rem;
+  color: #1d4ed8;
+}
+
+.sandbox-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+
+.sandbox-tabs a {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .65rem .9rem;
+  border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid rgba(148,163,184,.25);
+  color: #334155;
+  background: #fff;
+  font-weight: 800;
+  font-size: .86rem;
+}
+
+.sandbox-tabs a.active {
+  color: #fff;
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+}
+
+.sandbox-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.logic-workbench,
+.psu-workbench,
+.subnet-workbench,
+.numbers-workbench,
+.live-workbench {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.subnet-workbench,
+.numbers-workbench,
+.live-workbench {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sandbox-rail,
+.sandbox-panel,
+.logic-canvas-panel,
+.sandbox-result-panel,
+.preview-frame {
+  border: 1px solid rgba(148,163,184,.22);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(15,23,42,.06);
+}
+
+.sandbox-rail,
+.sandbox-panel,
+.logic-canvas-panel,
+.sandbox-result-panel {
+  padding: 1rem;
+}
+
+.toolbox-group {
+  display: grid;
+  gap: .45rem;
+  margin-bottom: 1rem;
+}
+
+.toolbox-group > span {
+  color: #64748b;
+  font-size: .72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.toolbox-group button,
+.logic-toolbar button {
+  border: 1px solid rgba(148,163,184,.28);
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: .55rem .7rem;
+  font-weight: 800;
+  text-align: left;
+}
+
+.logic-toolbar .btn-primary {
+  background: #1d4ed8 !important;
+  color: #fff !important;
+  border-color: #1d4ed8 !important;
+  text-align: center;
+}
+
+.toolbox-group button {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  cursor: grab;
+}
+
+.toolbox-group button:active {
+  cursor: grabbing;
+}
+
+.toolbox-group button.is-active {
+  border-color: #1d4ed8;
+  background: rgba(37,99,235,.1);
+  color: #1d4ed8;
+}
+
+.logic-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.logic-canvas-panel {
+  overflow-x: auto;
+}
+
+.logic-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-weight: 900;
+}
+
+.logic-canvas {
+  min-height: 380px;
+  min-width: 100%;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(37,99,235,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,.08) 1px, transparent 1px),
+    #f8fafc;
+  background-size: 28px 28px;
+}
+
+.logic-canvas.is-drop-target {
+  outline: 2px dashed rgba(37,99,235,.55);
+  outline-offset: -8px;
+}
+
+.logic-wire-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.logic-wire-path {
+  fill: none;
+  stroke: #64748b;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.logic-wire-path.is-active {
+  stroke: #22c55e;
+  filter: drop-shadow(0 0 6px rgba(34,197,94,.45));
+}
+
+.logic-node {
+  position: absolute;
+  min-width: 96px;
+  padding: .85rem 1rem;
+  border-radius: 8px;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 0 12px 26px rgba(15,23,42,.08);
+  z-index: 2;
+  user-select: none;
+}
+
+.logic-node.is-new {
+  animation: logicPop .18s ease-out;
+}
+
+.logic-node.is-dragging {
+  cursor: grabbing;
+  z-index: 5;
+  box-shadow: 0 18px 34px rgba(37,99,235,.18);
+}
+
+@keyframes logicPop {
+  from { opacity: .35; transform: scale(.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.logic-node-dynamic {
+  min-width: 126px;
+  padding: .65rem;
+}
+
+.logic-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .5rem;
+  cursor: grab;
+}
+
+.logic-node-header strong {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-width: 0;
+}
+
+.logic-node-delete {
+  border: 0;
+  background: rgba(15,23,42,.08);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  line-height: 1;
+  color: #475569;
+}
+
+.logic-node-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-height: 34px;
+}
+
+.logic-ports-in {
+  display: grid;
+  gap: .35rem;
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.logic-port {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid #94a3b8;
+  background: #fff;
+  padding: 0;
+}
+
+.logic-port-out {
+  position: absolute;
+  right: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.logic-port:hover,
+.logic-port.is-pending,
+.logic-port.is-on {
+  border-color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.logic-switch {
+  min-width: 42px;
+  border: 1px solid rgba(148,163,184,.35);
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 900;
+  padding: .25rem .65rem;
+}
+
+.logic-switch.is-on {
+  background: #22c55e;
+  color: #fff;
+}
+
+.logic-gate-label {
+  color: #1d4ed8;
+  font-weight: 900;
+}
+
+.input-node { left: 8%; top: 26%; }
+.logic-node-b { top: 58%; }
+.gate-node { left: 42%; top: 42%; color: #1d4ed8; border-color: #93c5fd; }
+.output-node { right: 8%; top: 42%; border-color: #86efac; }
+
+.logic-wire {
+  position: absolute;
+  height: 4px;
+  width: 20%;
+  top: 50%;
+  background: #64748b;
+  border-radius: 999px;
+}
+
+.logic-wire:nth-of-type(2) { left: 22%; }
+.logic-wire:nth-of-type(4) { right: 22%; }
+
+.logic-led {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  background: #94a3b8;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
+}
+
+.logic-led.is-on {
+  background: #22c55e;
+  box-shadow: 0 0 0 8px rgba(34,197,94,.14), 0 0 24px rgba(34,197,94,.55);
+}
+
+.truth-table-wrap {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.component-grid,
+.code-editors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.code-editors {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.component-grid label,
+.code-editors label {
+  font-weight: 800;
+  color: #334155;
+}
+
+.code-editors textarea {
+  min-height: 240px;
+  max-height: 260px;
+  margin-top: .45rem;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .86rem;
+  resize: none;
+  overflow: auto;
+}
+
+.sandbox-result-panel {
+  display: grid;
+  align-content: center;
+  text-align: center;
+  min-height: 260px;
+  color: #fff;
+  background: linear-gradient(135deg, #dc2626, #0f172a);
+}
+
+.sandbox-result-panel span {
+  text-transform: uppercase;
+  font-size: .78rem;
+  font-weight: 900;
+  opacity: .75;
+}
+
+.sandbox-result-panel strong {
+  display: block;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: 1;
+  margin: .5rem 0 1rem;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .7rem;
+}
+
+.result-grid div {
+  padding: .75rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid rgba(148,163,184,.18);
+  overflow-wrap: anywhere;
+}
+
+.result-grid span {
+  display: block;
+  color: #64748b;
+  font-size: .72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.preview-frame {
+  width: 100%;
+  min-height: 560px;
+}
+
+body.dark-mode .sandbox-tool-tile,
+body.dark-mode .sandbox-tabs a,
+body.dark-mode .sandbox-rail,
+body.dark-mode .sandbox-panel,
+body.dark-mode .logic-canvas-panel,
+body.dark-mode .logic-node,
+body.dark-mode .preview-frame {
+  background: #1e293b;
+  color: #e5e7eb;
+  border-color: rgba(148,163,184,.24);
+}
+
+body.dark-mode .logic-canvas,
+body.dark-mode .result-grid div,
+body.dark-mode .toolbox-group button,
+body.dark-mode .logic-port,
+body.dark-mode .logic-switch {
+  background-color: #111827;
+  color: #e5e7eb;
+  border-color: #334155;
+}
+
+@media (max-width: 1100px) {
+  .logic-workbench,
+  .psu-workbench,
+  .subnet-workbench,
+  .numbers-workbench,
+  .live-workbench,
+  .component-grid,
+  .code-editors {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .sandbox-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .logic-canvas {
+    min-height: 460px;
+  }
+  .input-node,
+  .logic-node-b,
+  .gate-node,
+  .output-node {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+  .input-node { top: 8%; }
+  .logic-node-b { top: 26%; }
+  .gate-node { top: 48%; }
+  .output-node { top: 70%; }
+  .logic-wire { display: none; }
+  .logic-node-dynamic {
+    transform: none !important;
+  }
+}

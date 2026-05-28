@@ -1,0 +1,55 @@
+# Security rules for the PHP application.
+
+Options -Indexes
+RewriteEngine On
+
+# Redirect production traffic to HTTPS while leaving local development alone.
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# Block internal application directories from direct HTTP access.
+RewriteRule ^(includes|config|data|data_question|scratch|cron)(/|$) - [F,L,NC]
+
+# Block local diagnostics, logs, migrations, raw data and helper scripts.
+RewriteRule ^(phpinfo|db_check|tmp_db_update|migrate_.*|fix_violations_db|seed_questions)\.php$ - [F,L,NC]
+RewriteRule ^(debug\.log|cookies\.txt|csrf\.txt|response\.json|qid\.txt|full_schema\.sql|sync-to-xampp\.ps1|start\.bat)$ - [F,L,NC]
+
+<FilesMatch "(^\.|\.env$|.*\.(log|sql|ps1|bat|bak|ini|env)$)">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "0"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    Header always set Cross-Origin-Embedder-Policy "unsafe-none"
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+    Header always set X-Permitted-Cross-Domain-Policies "none"
+    Header always unset X-Powered-By
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" "expr=%{HTTPS} == 'on'"
+    # Content-Security-Policy is emitted dynamically by includes/session.php with per-request script nonces.
+    # Dynamic CSP keeps img-src https://api.qrserver.com for QR fallback.
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 month"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css
+    AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+</IfModule>

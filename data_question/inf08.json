@@ -1,0 +1,2870 @@
+[
+  {
+    "question": "Który protokół routingu jest protokołem wektora odległości?",
+    "options": {
+      "A": "OSPF",
+      "B": "BGP",
+      "C": "RIP",
+      "D": "IS-IS"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Które urządzenie służy do trasowania pakietów między sieciami?",
+    "options": {
+      "A": "Switch",
+      "B": "Router",
+      "C": "Access Point",
+      "D": "Repeater"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół odpowiada za automatyczne przydzielanie adresów IP?",
+    "options": {
+      "A": "DNS",
+      "B": "FTP",
+      "C": "DHCP",
+      "D": "SMTP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do tłumaczenia nazw domen na adresy IP?",
+    "options": {
+      "A": "DNS",
+      "B": "HTTP",
+      "C": "SNMP",
+      "D": "SSH"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który port domyślnie wykorzystuje usługa HTTPS?",
+    "options": {
+      "A": "20",
+      "B": "21",
+      "C": "80",
+      "D": "443"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego zdalnego logowania?",
+    "options": {
+      "A": "Telnet",
+      "B": "FTP",
+      "C": "SSH",
+      "D": "SNMP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla konfigurację interfejsów sieciowych?",
+    "options": {
+      "A": "ping",
+      "B": "tracert",
+      "C": "ipconfig",
+      "D": "netstat"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół wykorzystuje polecenie ping?",
+    "options": {
+      "A": "TCP",
+      "B": "UDP",
+      "C": "ICMP",
+      "D": "ARP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Które urządzenie pracuje w warstwie 3 modelu OSI?",
+    "options": {
+      "A": "Hub",
+      "B": "Switch",
+      "C": "Router",
+      "D": "Repeater"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do monitorowania urządzeń sieciowych?",
+    "options": {
+      "A": "SNMP",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy prywatnej?",
+    "options": {
+      "A": "8.8.8.8",
+      "B": "172.16.0.1",
+      "C": "1.1.1.1",
+      "D": "209.85.231.104"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która maska podsieci odpowiada prefiksowi /24?",
+    "options": {
+      "A": "255.255.255.0",
+      "B": "255.255.0.0",
+      "C": "255.0.0.0",
+      "D": "255.255.255.128"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół działa bezpołączeniowo?",
+    "options": {
+      "A": "TCP",
+      "B": "UDP",
+      "C": "FTP",
+      "D": "SSH"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół odpowiada za przesyłanie stron WWW?",
+    "options": {
+      "A": "HTTP",
+      "B": "SMTP",
+      "C": "FTP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Które polecenie systemu Linux wyświetla tablicę routingu?",
+    "options": {
+      "A": "route",
+      "B": "mkdir",
+      "C": "passwd",
+      "D": "grep"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje algorytm SPF?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "EIGRP",
+      "D": "BGP"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard sieci bezprzewodowej pracuje w paśmie 5 GHz?",
+    "options": {
+      "A": "802.11a",
+      "B": "802.3",
+      "C": "802.15",
+      "D": "802.16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół odpowiada za synchronizację czasu w sieci?",
+    "options": {
+      "A": "NTP",
+      "B": "SMTP",
+      "C": "SNMP",
+      "D": "DHCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje adres IPv4 hosta?",
+    "options": {
+      "A": "MX",
+      "B": "AAAA",
+      "C": "A",
+      "D": "CNAME"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który port jest domyślnie używany przez SSH?",
+    "options": {
+      "A": "21",
+      "B": "22",
+      "C": "23",
+      "D": "25"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do odbierania poczty elektronicznej?",
+    "options": {
+      "A": "POP3",
+      "B": "FTP",
+      "C": "DNS",
+      "D": "SNMP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres jest adresem pętli zwrotnej IPv4?",
+    "options": {
+      "A": "192.168.1.1",
+      "B": "10.0.0.1",
+      "C": "127.0.0.1",
+      "D": "255.255.255.255"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Które urządzenie rozsyła sygnał do wszystkich portów?",
+    "options": {
+      "A": "Router",
+      "B": "Switch",
+      "C": "Hub",
+      "D": "Firewall"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który mechanizm zwiększa bezpieczeństwo sieci poprzez filtrowanie ruchu?",
+    "options": {
+      "A": "Proxy",
+      "B": "Firewall",
+      "C": "Switch",
+      "D": "Bridge"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia automatyczne tłumaczenie adresów IP na MAC?",
+    "options": {
+      "A": "ARP",
+      "B": "ICMP",
+      "C": "DNS",
+      "D": "TCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Które polecenie pozwala sprawdzić trasę pakietów do hosta?",
+    "options": {
+      "A": "ping",
+      "B": "nslookup",
+      "C": "tracert",
+      "D": "net use"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard odpowiada za sieci Ethernet?",
+    "options": {
+      "A": "802.11",
+      "B": "802.3",
+      "C": "802.15",
+      "D": "802.16"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do przesyłania plików?",
+    "options": {
+      "A": "FTP",
+      "B": "SMTP",
+      "C": "SNMP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv6 jest odpowiednikiem adresu loopback?",
+    "options": {
+      "A": "::1",
+      "B": "FFFF::1",
+      "C": "2001::1",
+      "D": "FE80::1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół jest używany do dynamicznego routingu między systemami autonomicznymi?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem stanu łącza?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy A?",
+    "options": {
+      "A": "10.0.0.1",
+      "B": "172.16.0.1",
+      "C": "192.168.1.1",
+      "D": "224.0.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przesyłania stron WWW?",
+    "options": {
+      "A": "HTTP",
+      "B": "HTTPS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest link-local?",
+    "options": {
+      "A": "::1",
+      "B": "FE80::/10",
+      "C": "2001::/16",
+      "D": "FC00::/7"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne zarządzanie urządzeniami sieciowymi?",
+    "options": {
+      "A": "SNMP",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która maska podsieci odpowiada prefiksowi /16?",
+    "options": {
+      "A": "255.255.0.0",
+      "B": "255.255.255.0",
+      "C": "255.0.0.0",
+      "D": "255.255.255.128"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest wewnętrznym protokołem bramy?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy B?",
+    "options": {
+      "A": "10.0.0.1",
+      "B": "172.16.0.1",
+      "C": "192.168.1.1",
+      "D": "224.0.0.1"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przesyłania stron WWW?",
+    "options": {
+      "A": "HTTP",
+      "B": "HTTPS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest link-local?",
+    "options": {
+      "A": "::1",
+      "B": "FE80::/10",
+      "C": "2001::/16",
+      "D": "FC00::/7"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne zarządzanie urządzeniami sieciowymi?",
+    "options": {
+      "A": "SNMP",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która maska podsieci odpowiada prefiksowi /16?",
+    "options": {
+      "A": "255.255.0.0",
+      "B": "255.255.255.0",
+      "C": "255.0.0.0",
+      "D": "255.255.255.128"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest wewnętrznym protokołem bramy?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy C?",
+    "options": {
+      "A": "10.0.0.1",
+      "B": "172.16.0.1",
+      "C": "192.168.1.1",
+      "D": "224.0.0.1"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do wysyłania poczty elektronicznej?",
+    "options": {
+      "A": "POP3",
+      "B": "IMAP",
+      "C": "SMTP",
+      "D": "DNS"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest globalny?",
+    "options": {
+      "A": "::1",
+      "B": "FE80::/10",
+      "C": "2001::/16",
+      "D": "FC00::/7"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę hop count?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy D?",
+    "options": {
+      "A": "224.0.0.1",
+      "B": "192.168.1.1",
+      "C": "10.0.0.1",
+      "D": "172.16.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przeglądania stron WWW?",
+    "options": {
+      "A": "HTTPS",
+      "B": "HTTP",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest link-local?",
+    "options": {
+      "A": "FE80::/10",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FC00::/7"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne zarządzanie urządzeniami sieciowymi?",
+    "options": {
+      "A": "SNMP",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która maska podsieci odpowiada prefiksowi /8?",
+    "options": {
+      "A": "255.0.0.0",
+      "B": "255.255.0.0",
+      "C": "255.255.255.0",
+      "D": "255.255.255.128"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest wewnętrznym protokołem bramy?",
+    "options": {
+      "A": "BGP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy C?",
+    "options": {
+      "A": "192.168.1.1",
+      "B": "10.0.0.1",
+      "C": "172.16.0.1",
+      "D": "224.0.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do wysyłania poczty elektronicznej?",
+    "options": {
+      "A": "SMTP",
+      "B": "POP3",
+      "C": "IMAP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest unique local?",
+    "options": {
+      "A": "FC00::/7",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje algorytm SPF?",
+    "options": {
+      "A": "OSPF",
+      "B": "RIP",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 jest adresem broadcast?",
+    "options": {
+      "A": "255.255.255.255",
+      "B": "127.0.0.1",
+      "C": "192.168.1.1",
+      "D": "10.0.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do odbierania poczty elektronicznej?",
+    "options": {
+      "A": "POP3",
+      "B": "SMTP",
+      "C": "IMAP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest loopback?",
+    "options": {
+      "A": "::1",
+      "B": "FE80::/10",
+      "C": "2001::/16",
+      "D": "FC00::/7"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem wektora odległości?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy B?",
+    "options": {
+      "A": "172.16.0.1",
+      "B": "10.0.0.1",
+      "C": "192.168.1.1",
+      "D": "224.0.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego zdalnego logowania?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "SNMP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest site-local?",
+    "options": {
+      "A": "FEC0::/10",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem stanu łącza?",
+    "options": {
+      "A": "OSPF",
+      "B": "RIP",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy A?",
+    "options": {
+      "A": "10.0.0.1",
+      "B": "172.16.0.1",
+      "C": "192.168.1.1",
+      "D": "224.0.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do tłumaczenia nazw domen na adresy IP?",
+    "options": {
+      "A": "DNS",
+      "B": "DHCP",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest multicast?",
+    "options": {
+      "A": "FF00::/8",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę bandwidth?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 jest adresem loopback?",
+    "options": {
+      "A": "127.0.0.1",
+      "B": "192.168.1.1",
+      "C": "10.0.0.1",
+      "D": "172.16.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do automatycznego przydzielania adresów IP?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest anycast?",
+    "options": {
+      "A": "Anycast",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest używany w internecie?",
+    "options": {
+      "A": "BGP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy prywatnej?",
+    "options": {
+      "A": "192.168.1.1",
+      "B": "8.8.8.8",
+      "C": "1.1.1.1",
+      "D": "209.85.231.104"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do przesyłania plików?",
+    "options": {
+      "A": "FTP",
+      "B": "HTTP",
+      "C": "SMTP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest unicast?",
+    "options": {
+      "A": "Unicast",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest wewnętrznym protokołem autonomicznego systemu?",
+    "options": {
+      "A": "IGP",
+      "B": "EGP",
+      "C": "BGP",
+      "D": "RIP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 jest adresem sieci?",
+    "options": {
+      "A": "192.168.1.0",
+      "B": "192.168.1.1",
+      "C": "192.168.1.255",
+      "D": "255.255.255.0"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do monitorowania urządzeń sieciowych?",
+    "options": {
+      "A": "SNMP",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest solicited-node?",
+    "options": {
+      "A": "FF02::1:FF00:0/104",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę cost?",
+    "options": {
+      "A": "OSPF",
+      "B": "RIP",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy E?",
+    "options": {
+      "A": "240.0.0.1",
+      "B": "192.168.1.1",
+      "C": "10.0.0.1",
+      "D": "172.16.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do synchronizacji czasu w sieci?",
+    "options": {
+      "A": "NTP",
+      "B": "SMTP",
+      "C": "SNMP",
+      "D": "DHCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje adres IPv6 hosta?",
+    "options": {
+      "A": "AAAA",
+      "B": "MX",
+      "C": "A",
+      "D": "CNAME"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest hybrydowy?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 jest adresem hosta?",
+    "options": {
+      "A": "192.168.1.1",
+      "B": "192.168.1.0",
+      "C": "192.168.1.255",
+      "D": "255.255.255.0"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przesyłania stron WWW?",
+    "options": {
+      "A": "HTTPS",
+      "B": "HTTP",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest Teredo?",
+    "options": {
+      "A": "2001::/32",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę administrative distance?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do klasy multicast?",
+    "options": {
+      "A": "224.0.0.1",
+      "B": "192.168.1.1",
+      "C": "10.0.0.1",
+      "D": "172.16.0.1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do tłumaczenia adresów IP na MAC?",
+    "options": {
+      "A": "ARP",
+      "B": "ICMP",
+      "C": "DNS",
+      "D": "TCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje adres IPv4 hosta?",
+    "options": {
+      "A": "A",
+      "B": "MX",
+      "C": "AAAA",
+      "D": "CNAME"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem link-state?",
+    "options": {
+      "A": "OSPF",
+      "B": "RIP",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 jest adresem broadcast podsieci?",
+    "options": {
+      "A": "192.168.1.255",
+      "B": "192.168.1.0",
+      "C": "192.168.1.1",
+      "D": "255.255.255.0"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do sprawdzania dostępności hosta?",
+    "options": {
+      "A": "ICMP",
+      "B": "TCP",
+      "C": "UDP",
+      "D": "ARP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje alias?",
+    "options": {
+      "A": "CNAME",
+      "B": "MX",
+      "C": "A",
+      "D": "AAAA"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę delay?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu prywatnego klasy A?",
+    "options": {
+      "A": "10.0.0.0/8",
+      "B": "172.16.0.0/12",
+      "C": "192.168.0.0/16",
+      "D": "224.0.0.0/4"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przesyłania plików?",
+    "options": {
+      "A": "SFTP",
+      "B": "FTP",
+      "C": "HTTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest 6to4?",
+    "options": {
+      "A": "2002::/16",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem distance-vector?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu prywatnego klasy B?",
+    "options": {
+      "A": "172.16.0.0/12",
+      "B": "10.0.0.0/8",
+      "C": "192.168.0.0/16",
+      "D": "224.0.0.0/4"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do zdalnego logowania?",
+    "options": {
+      "A": "Telnet",
+      "B": "SSH",
+      "C": "FTP",
+      "D": "SNMP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje serwer poczty?",
+    "options": {
+      "A": "MX",
+      "B": "A",
+      "C": "AAAA",
+      "D": "CNAME"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę reliability?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu prywatnego klasy C?",
+    "options": {
+      "A": "192.168.0.0/16",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "224.0.0.0/4"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do przesyłania stron WWW?",
+    "options": {
+      "A": "HTTP",
+      "B": "SMTP",
+      "C": "FTP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest ISATAP?",
+    "options": {
+      "A": "FE5E::/64",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem path-vector?",
+    "options": {
+      "A": "BGP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu multicast?",
+    "options": {
+      "A": "224.0.0.0/4",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do monitorowania sieci?",
+    "options": {
+      "A": "SNMP",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje nazwę kanoniczną?",
+    "options": {
+      "A": "CNAME",
+      "B": "MX",
+      "C": "A",
+      "D": "AAAA"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę load?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu link-local?",
+    "options": {
+      "A": "169.254.0.0/16",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego zdalnego zarządzania?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "SNMP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje tekst?",
+    "options": {
+      "A": "TXT",
+      "B": "MX",
+      "C": "A",
+      "D": "AAAA"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem IGP?",
+    "options": {
+      "A": "RIP",
+      "B": "BGP",
+      "C": "OSPF",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu test-net?",
+    "options": {
+      "A": "192.0.2.0/24",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do przesyłania poczty?",
+    "options": {
+      "A": "SMTP",
+      "B": "POP3",
+      "C": "IMAP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest embedded IPv4?",
+    "options": {
+      "A": "::FFFF:0:0/96",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem EGP?",
+    "options": {
+      "A": "BGP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu 6to4?",
+    "options": {
+      "A": "192.88.99.0/24",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do odbierania poczty?",
+    "options": {
+      "A": "POP3",
+      "B": "SMTP",
+      "C": "IMAP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje wskaźnik?",
+    "options": {
+      "A": "PTR",
+      "B": "MX",
+      "C": "A",
+      "D": "AAAA"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę MTU?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu CGNAT?",
+    "options": {
+      "A": "100.64.0.0/10",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przesyłania poczty?",
+    "options": {
+      "A": "SMTPS",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest documentation?",
+    "options": {
+      "A": "2001:DB8::/32",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem classless?",
+    "options": {
+      "A": "RIPv2",
+      "B": "RIPv1",
+      "C": "OSPF",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu APIPA?",
+    "options": {
+      "A": "169.254.0.0/16",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego odbierania poczty?",
+    "options": {
+      "A": "POP3S",
+      "B": "POP3",
+      "C": "IMAP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje start of authority?",
+    "options": {
+      "A": "SOA",
+      "B": "MX",
+      "C": "A",
+      "D": "AAAA"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę hop count?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "BGP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu bogon?",
+    "options": {
+      "A": "0.0.0.0/8",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przeglądania?",
+    "options": {
+      "A": "HTTPS",
+      "B": "HTTP",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest benchmarking?",
+    "options": {
+      "A": "2001:2::/48",
+      "B": "::1",
+      "C": "2001::/16",
+      "D": "FE80::/10"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest protokołem classful?",
+    "options": {
+      "A": "RIPv1",
+      "B": "RIPv2",
+      "C": "OSPF",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu reserved?",
+    "options": {
+      "A": "240.0.0.0/4",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do bezpiecznego przesyłania plików?",
+    "options": {
+      "A": "FTPS",
+      "B": "FTP",
+      "C": "HTTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który typ rekordu DNS przechowuje nameserver?",
+    "options": {
+      "A": "NS",
+      "B": "MX",
+      "C": "A",
+      "D": "AAAA"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu wykorzystuje metrykę composite?",
+    "options": {
+      "A": "EIGRP",
+      "B": "RIP",
+      "C": "OSPF",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który adres IPv4 należy do zakresu current network?",
+    "options": {
+      "A": "0.0.0.0/8",
+      "B": "10.0.0.0/8",
+      "C": "172.16.0.0/12",
+      "D": "192.168.0.0/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół służy do synchronizacji czasu?",
+    "options": {
+      "A": "NTP",
+      "B": "SMTP",
+      "C": "SNMP",
+      "D": "DHCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki hop count OSPF?",
+    "options": {
+      "A": "OSPF",
+      "B": "RIP",
+      "C": "EIGRP",
+      "D": "BGP"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia MPLS VPN?",
+    "options": {
+      "A": "MPLS",
+      "B": "VPN",
+      "C": "L2TP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard oferuje IPv6 autokonfigurację SLAAC?",
+    "options": {
+      "A": "SLAAC",
+      "B": "DHCPv6",
+      "C": "RA",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DNS używa rekursywnych resolverów?",
+    "options": {
+      "A": "Recursive Resolver",
+      "B": "Authoritative Server",
+      "C": "Caching Server",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne VPN IPsec?",
+    "options": {
+      "A": "IPsec",
+      "B": "PPTP",
+      "C": "L2TP",
+      "D": "SSTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa VLAN tagging 802.1Q?",
+    "options": {
+      "A": "802.1Q",
+      "B": "ISL",
+      "C": "VTP",
+      "D": "DTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest path vector BGP?",
+    "options": {
+      "A": "BGP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje opcje vendor specific?",
+    "options": {
+      "A": "DHCP Options",
+      "B": "BOOTP",
+      "C": "RARP",
+      "D": "ARP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje roaming 802.11r?",
+    "options": {
+      "A": "802.11r",
+      "B": "802.11k",
+      "C": "802.11v",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN OpenFlow?",
+    "options": {
+      "A": "OpenFlow",
+      "B": "NetConf",
+      "C": "RESTCONF",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 443 HTTPS?",
+    "options": {
+      "A": "HTTPS",
+      "B": "HTTP",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP synchronizuje czas?",
+    "options": {
+      "A": "NTP",
+      "B": "SNTP",
+      "C": "PTP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki bandwidth EIGRP?",
+    "options": {
+      "A": "EIGRP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia NFV VNF?",
+    "options": {
+      "A": "VNF",
+      "B": "VM",
+      "C": "Container",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Ethernet oferuje PoE 802.3bt?",
+    "options": {
+      "A": "802.3bt",
+      "B": "802.3af",
+      "C": "802.3at",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa SNMP używa MIB?",
+    "options": {
+      "A": "MIB",
+      "B": "OID",
+      "C": "Trap",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia multicast IGMP?",
+    "options": {
+      "A": "IGMP",
+      "B": "PIM",
+      "C": "DVMRP",
+      "D": "MOSPF"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa tunneling GRE?",
+    "options": {
+      "A": "GRE",
+      "B": "IPsec",
+      "C": "L2TP",
+      "D": "PPTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest link state OSPF?",
+    "options": {
+      "A": "OSPF",
+      "B": "RIP",
+      "C": "EIGRP",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje relay agent?",
+    "options": {
+      "A": "DHCP Relay",
+      "B": "DHCP Server",
+      "C": "DHCP Client",
+      "D": "BOOTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje mesh 802.11s?",
+    "options": {
+      "A": "802.11s",
+      "B": "802.11r",
+      "C": "802.11k",
+      "D": "802.11v"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN ONOS?",
+    "options": {
+      "A": "ONOS",
+      "B": "ODL",
+      "C": "Floodlight",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 53 DNS?",
+    "options": {
+      "A": "DNS",
+      "B": "DHCP",
+      "C": "NTP",
+      "D": "SNMP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP używa stratum?",
+    "options": {
+      "A": "Stratum",
+      "B": "Leap Second",
+      "C": "UTC",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki delay EIGRP?",
+    "options": {
+      "A": "EIGRP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "IS-IS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia NFV ETSI?",
+    "options": {
+      "A": "ETSI NFV",
+      "B": "ONF SDN",
+      "C": "IETF",
+      "D": "IEEE"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 100G 802.3ba?",
+    "options": {
+      "A": "802.3ba",
+      "B": "802.3ae",
+      "C": "802.3an",
+      "D": "802.3aq"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa SNMP używa community string?",
+    "options": {
+      "A": "Community String",
+      "B": "Username",
+      "C": "Certificate",
+      "D": "Token"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia multicast PIM?",
+    "options": {
+      "A": "PIM",
+      "B": "IGMP",
+      "C": "DVMRP",
+      "D": "MOSPF"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa tunneling VXLAN?",
+    "options": {
+      "A": "VXLAN",
+      "B": "NVGRE",
+      "C": "STT",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest distance vector RIP?",
+    "options": {
+      "A": "RIP",
+      "B": "OSPF",
+      "C": "IS-IS",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje failover?",
+    "options": {
+      "A": "DHCP Failover",
+      "B": "DHCP Split",
+      "C": "DHCP Load Balance",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje security 802.11i?",
+    "options": {
+      "A": "802.11i",
+      "B": "WPA",
+      "C": "WPA2",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN Ryu?",
+    "options": {
+      "A": "Ryu",
+      "B": "POX",
+      "C": "NOX",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 123 NTP?",
+    "options": {
+      "A": "NTP",
+      "B": "SNTP",
+      "C": "PTP",
+      "D": "Time"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP używa NTPv4?",
+    "options": {
+      "A": "NTPv4",
+      "B": "NTPv3",
+      "C": "SNTP",
+      "D": "PTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki reliability EIGRP?",
+    "options": {
+      "A": "EIGRP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia NFV OpenStack?",
+    "options": {
+      "A": "OpenStack",
+      "B": "Kubernetes",
+      "C": "Docker",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 40G 802.3ba?",
+    "options": {
+      "A": "802.3ba",
+      "B": "802.3ae",
+      "C": "802.3an",
+      "D": "802.3aq"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa SNMP używa v3 security?",
+    "options": {
+      "A": "SNMPv3",
+      "B": "SNMPv2c",
+      "C": "SNMPv1",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia multicast DVMRP?",
+    "options": {
+      "A": "DVMRP",
+      "B": "PIM",
+      "C": "MOSPF",
+      "D": "IGMP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa tunneling Geneve?",
+    "options": {
+      "A": "Geneve",
+      "B": "VXLAN",
+      "C": "NVGRE",
+      "D": "STT"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest hybrid EIGRP?",
+    "options": {
+      "A": "EIGRP",
+      "B": "OSPF",
+      "C": "IS-IS",
+      "D": "RIP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje superscope?",
+    "options": {
+      "A": "Superscope",
+      "B": "Multicast Scope",
+      "C": "Scope",
+      "D": "Pool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje QoS 802.11e?",
+    "options": {
+      "A": "802.11e",
+      "B": "WMM",
+      "C": "EDCA",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN Floodlight?",
+    "options": {
+      "A": "Floodlight",
+      "B": "Beacon",
+      "C": "Trema",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 161 SNMP?",
+    "options": {
+      "A": "SNMP",
+      "B": "NTP",
+      "C": "DHCP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP używa chrony?",
+    "options": {
+      "A": "chrony",
+      "B": "ntpd",
+      "C": "systemd-timesyncd",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki load EIGRP?",
+    "options": {
+      "A": "EIGRP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia NFV Kubernetes?",
+    "options": {
+      "A": "Kubernetes",
+      "B": "Docker Swarm",
+      "C": "Mesos",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 25G 802.3by?",
+    "options": {
+      "A": "802.3by",
+      "B": "802.3ba",
+      "C": "802.3ae",
+      "D": "802.3an"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa SNMP używa inform?",
+    "options": {
+      "A": "Inform",
+      "B": "Trap",
+      "C": "Get",
+      "D": "Set"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia multicast MOSPF?",
+    "options": {
+      "A": "MOSPF",
+      "B": "PIM",
+      "C": "DVMRP",
+      "D": "IGMP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa tunneling STT?",
+    "options": {
+      "A": "STT",
+      "B": "VXLAN",
+      "C": "NVGRE",
+      "D": "Geneve"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest link state IS-IS?",
+    "options": {
+      "A": "IS-IS",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje reservation?",
+    "options": {
+      "A": "Reservation",
+      "B": "Lease",
+      "C": "Pool",
+      "D": "Scope"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje location 802.11k?",
+    "options": {
+      "A": "802.11k",
+      "B": "802.11r",
+      "C": "802.11v",
+      "D": "802.11s"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN ODL?",
+    "options": {
+      "A": "ODL",
+      "B": "ONOS",
+      "C": "Floodlight",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 67 DHCP?",
+    "options": {
+      "A": "DHCP Server",
+      "B": "DHCP Client",
+      "C": "BOOTP",
+      "D": "TFTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP używa PTP?",
+    "options": {
+      "A": "PTP",
+      "B": "NTP",
+      "C": "SNTP",
+      "D": "Chrony"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki MTU EIGRP?",
+    "options": {
+      "A": "EIGRP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "IS-IS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia NFV VMware?",
+    "options": {
+      "A": "VMware NSX",
+      "B": "Cisco ACI",
+      "C": "Juniper Contrail",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 50G 802.3cd?",
+    "options": {
+      "A": "802.3cd",
+      "B": "802.3ba",
+      "C": "802.3by",
+      "D": "802.3ae"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa SNMP używa report?",
+    "options": {
+      "A": "Report",
+      "B": "Inform",
+      "C": "Trap",
+      "D": "Get"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia multicast CBT?",
+    "options": {
+      "A": "CBT",
+      "B": "PIM",
+      "C": "DVMRP",
+      "D": "MOSPF"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa tunneling NVGRE?",
+    "options": {
+      "A": "NVGRE",
+      "B": "VXLAN",
+      "C": "STT",
+      "D": "Geneve"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest policy based BGP?",
+    "options": {
+      "A": "BGP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje exclusion?",
+    "options": {
+      "A": "Exclusion",
+      "B": "Reservation",
+      "C": "Lease",
+      "D": "Pool"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje management 802.11v?",
+    "options": {
+      "A": "802.11v",
+      "B": "802.11k",
+      "C": "802.11r",
+      "D": "802.11s"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN POX?",
+    "options": {
+      "A": "POX",
+      "B": "Ryu",
+      "C": "NOX",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 68 DHCP?",
+    "options": {
+      "A": "DHCP Client",
+      "B": "DHCP Server",
+      "C": "BOOTP",
+      "D": "TFTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP używa leap second?",
+    "options": {
+      "A": "Leap Second",
+      "B": "Stratum",
+      "C": "UTC",
+      "D": "TAI"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki K values EIGRP?",
+    "options": {
+      "A": "EIGRP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "BGP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia NFV Cisco ACI?",
+    "options": {
+      "A": "Cisco ACI",
+      "B": "VMware NSX",
+      "C": "Juniper Contrail",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 200G 802.3bs?",
+    "options": {
+      "A": "802.3bs",
+      "B": "802.3ba",
+      "C": "802.3cd",
+      "D": "802.3by"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa SNMP używa proxy?",
+    "options": {
+      "A": "Proxy",
+      "B": "Agent",
+      "C": "Manager",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia multicast BGMP?",
+    "options": {
+      "A": "BGMP",
+      "B": "PIM",
+      "C": "DVMRP",
+      "D": "MOSPF"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa tunneling LISP?",
+    "options": {
+      "A": "LISP",
+      "B": "VXLAN",
+      "C": "NVGRE",
+      "D": "Geneve"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest exterior BGP?",
+    "options": {
+      "A": "eBGP",
+      "B": "iBGP",
+      "C": "OSPF",
+      "D": "RIP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje class?",
+    "options": {
+      "A": "Class",
+      "B": "Vendor",
+      "C": "User",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje BSS transition 802.11r?",
+    "options": {
+      "A": "802.11r",
+      "B": "802.11k",
+      "C": "802.11v",
+      "D": "802.11s"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN Trema?",
+    "options": {
+      "A": "Trema",
+      "B": "Floodlight",
+      "C": "Beacon",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 162 SNMP?",
+    "options": {
+      "A": "SNMP Trap",
+      "B": "SNMP",
+      "C": "NTP",
+      "D": "DHCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP używa TAI?",
+    "options": {
+      "A": "TAI",
+      "B": "UTC",
+      "C": "GPS",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu używa metryki AS path BGP?",
+    "options": {
+      "A": "BGP",
+      "B": "OSPF",
+      "C": "RIP",
+      "D": "EIGRP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia NFV Juniper Contrail?",
+    "options": {
+      "A": "Juniper Contrail",
+      "B": "Cisco ACI",
+      "C": "VMware NSX",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 400G 802.3bs?",
+    "options": {
+      "A": "802.3bs",
+      "B": "802.3ba",
+      "C": "802.3cd",
+      "D": "802.3by"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa SNMP używa dual stack?",
+    "options": {
+      "A": "Dual Stack",
+      "B": "IPv4/IPv6",
+      "C": "SNMPv3",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół umożliwia multicast MSDP?",
+    "options": {
+      "A": "MSDP",
+      "B": "PIM",
+      "C": "DVMRP",
+      "D": "MOSPF"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia używa tunneling MPLS?",
+    "options": {
+      "A": "MPLS",
+      "B": "GRE",
+      "C": "IPsec",
+      "D": "L2TP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół routingu jest interior iBGP?",
+    "options": {
+      "A": "iBGP",
+      "B": "eBGP",
+      "C": "OSPF",
+      "D": "RIP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa DHCP oferuje option 82?",
+    "options": {
+      "A": "Option 82",
+      "B": "Relay Agent",
+      "C": "GIADDR",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje WPS?",
+    "options": {
+      "A": "WPS",
+      "B": "WPA",
+      "C": "WPA2",
+      "D": "WPA3"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która technologia umożliwia SDN NOX?",
+    "options": {
+      "A": "NOX",
+      "B": "POX",
+      "C": "Ryu",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Który protokół używa port 514 Syslog?",
+    "options": {
+      "A": "Syslog",
+      "B": "SNMP",
+      "C": "NTP",
+      "D": "DHCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.08"
+  },
+  {
+    "question": "Która usługa NTP używa GPS?",
+    "options": {
+      "A": "GPS",
+      "B": "TAI",
+      "C": "UTC",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.08"
+  }
+]

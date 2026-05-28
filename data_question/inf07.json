@@ -1,0 +1,2966 @@
+[
+  {
+    "question": "Który system operacyjny jest systemem typu open source?",
+    "options": {
+      "A": "Windows",
+      "B": "Linux",
+      "C": "macOS",
+      "D": "MS-DOS"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows służy do sprawdzenia konfiguracji sieci?",
+    "options": {
+      "A": "ping",
+      "B": "ipconfig",
+      "C": "netstat",
+      "D": "tracert"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe działa w warstwie drugiej modelu OSI?",
+    "options": {
+      "A": "Router",
+      "B": "Modem",
+      "C": "Switch",
+      "D": "Repeater"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznego przydzielania adresów IP?",
+    "options": {
+      "A": "DNS",
+      "B": "DHCP",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół odpowiada za tłumaczenie nazw domen na adresy IP?",
+    "options": {
+      "A": "DNS",
+      "B": "SMTP",
+      "C": "DHCP",
+      "D": "POP3"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie w systemie Linux służy do wyświetlenia zawartości katalogu?",
+    "options": {
+      "A": "mkdir",
+      "B": "ls",
+      "C": "cd",
+      "D": "pwd"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który adres IP należy do klasy prywatnej?",
+    "options": {
+      "A": "8.8.8.8",
+      "B": "172.16.0.1",
+      "C": "1.1.1.1",
+      "D": "91.198.174.192"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy różne sieci komputerowe?",
+    "options": {
+      "A": "Switch",
+      "B": "Hub",
+      "C": "Router",
+      "D": "Access Point"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który kabel sieciowy jest najczęściej używany w sieciach Ethernet?",
+    "options": {
+      "A": "Koncentryczny",
+      "B": "Światłowód",
+      "C": "Skrętka UTP",
+      "D": "Telefoniczny"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie służy do sprawdzenia dostępności hosta w sieci?",
+    "options": {
+      "A": "ping",
+      "B": "ftp",
+      "C": "dir",
+      "D": "route"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który port domyślnie wykorzystuje usługa HTTP?",
+    "options": {
+      "A": "21",
+      "B": "25",
+      "C": "80",
+      "D": "443"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który port domyślnie wykorzystuje usługa HTTPS?",
+    "options": {
+      "A": "110",
+      "B": "443",
+      "C": "53",
+      "D": "23"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux służy do zmiany katalogu?",
+    "options": {
+      "A": "mv",
+      "B": "pwd",
+      "C": "cd",
+      "D": "rm"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który system plików jest domyślnie używany przez system Linux?",
+    "options": {
+      "A": "NTFS",
+      "B": "FAT32",
+      "C": "ext4",
+      "D": "exFAT"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który skrót oznacza sieć lokalną?",
+    "options": {
+      "A": "WAN",
+      "B": "LAN",
+      "C": "MAN",
+      "D": "PAN"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie umożliwia bezprzewodowy dostęp do sieci?",
+    "options": {
+      "A": "Switch",
+      "B": "Access Point",
+      "C": "Patch panel",
+      "D": "Serwer"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie w systemie Windows wyświetla aktywne połączenia sieciowe?",
+    "options": {
+      "A": "netstat",
+      "B": "ping",
+      "C": "tasklist",
+      "D": "hostname"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który adres IP jest adresem localhost?",
+    "options": {
+      "A": "0.0.0.0",
+      "B": "255.255.255.255",
+      "C": "127.0.0.1",
+      "D": "192.168.1.1"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do przesyłania poczty elektronicznej?",
+    "options": {
+      "A": "FTP",
+      "B": "SMTP",
+      "C": "SSH",
+      "D": "DNS"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie Linux usuwa plik?",
+    "options": {
+      "A": "del",
+      "B": "erase",
+      "C": "rm",
+      "D": "delete"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który element sieci odpowiada za filtrację ruchu sieciowego?",
+    "options": {
+      "A": "Switch",
+      "B": "Firewall",
+      "C": "Repeater",
+      "D": "Hub"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w sposób szyfrowany?",
+    "options": {
+      "A": "Telnet",
+      "B": "FTP",
+      "C": "SSH",
+      "D": "SNMP"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ topologii sieci wykorzystuje centralny punkt połączeń?",
+    "options": {
+      "A": "Magistrali",
+      "B": "Pierścienia",
+      "C": "Gwiazdy",
+      "D": "Siatki"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który adres MAC ma długość?",
+    "options": {
+      "A": "16 bitów",
+      "B": "32 bitów",
+      "C": "48 bitów",
+      "D": "64 bitów"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie w Linuxie wyświetla bieżącą ścieżkę katalogu?",
+    "options": {
+      "A": "pwd",
+      "B": "cd",
+      "C": "path",
+      "D": "where"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który system operacyjny jest najczęściej stosowany na serwerach WWW?",
+    "options": {
+      "A": "Android",
+      "B": "Linux",
+      "C": "iOS",
+      "D": "DOS"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie Windows służy do sprawdzenia trasy pakietów?",
+    "options": {
+      "A": "route",
+      "B": "ping",
+      "C": "tracert",
+      "D": "pathping"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do transferu plików?",
+    "options": {
+      "A": "FTP",
+      "B": "HTTP",
+      "C": "DNS",
+      "D": "IMAP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie regeneruje sygnał sieciowy?",
+    "options": {
+      "A": "Router",
+      "B": "Repeater",
+      "C": "Switch",
+      "D": "Bridge"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który skrót oznacza wirtualną sieć lokalną?",
+    "options": {
+      "A": "VPN",
+      "B": "VLAN",
+      "C": "VoIP",
+      "D": "WAN"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi pracuje w paśmie 2.4 GHz?",
+    "options": {
+      "A": "802.11a",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie Linux tworzy katalog?",
+    "options": {
+      "A": "touch",
+      "B": "mkdir",
+      "C": "cp",
+      "D": "mv"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do odbierania poczty elektronicznej?",
+    "options": {
+      "A": "SMTP",
+      "B": "POP3",
+      "C": "IMAP",
+      "D": "DNS"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy urządzenia w sieci bezprzewodowej?",
+    "options": {
+      "A": "Router",
+      "B": "Switch",
+      "C": "Access Point",
+      "D": "Modem"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który port domyślnie wykorzystuje usługa FTP?",
+    "options": {
+      "A": "20",
+      "B": "21",
+      "C": "22",
+      "D": "23"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie Windows wyświetla informacje o systemie?",
+    "options": {
+      "A": "systeminfo",
+      "B": "tasklist",
+      "C": "netstat",
+      "D": "hostname"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ adresu IP jest używany w internecie?",
+    "options": {
+      "A": "Prywatny",
+      "B": "Publiczny",
+      "C": "Lokalny",
+      "D": "Zastrzeżony"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie przekształca sygnał analogowy na cyfrowy?",
+    "options": {
+      "A": "Router",
+      "B": "Modem",
+      "C": "Switch",
+      "D": "Hub"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w systemie Linux?",
+    "options": {
+      "A": "Telnet",
+      "B": "SSH",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla listę procesów?",
+    "options": {
+      "A": "tasklist",
+      "B": "netstat",
+      "C": "ipconfig",
+      "D": "ping"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieci Ethernet?",
+    "options": {
+      "A": "Koaksjalny",
+      "B": "Twisted pair",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za adresację logiczną?",
+    "options": {
+      "A": "Fizyczna",
+      "B": "Łącza danych",
+      "C": "Sieciowa",
+      "D": "Transportowa"
+    },
+    "correct": "C",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia uprawnienia pliku?",
+    "options": {
+      "A": "chmod",
+      "B": "chown",
+      "C": "ls",
+      "D": "pwd"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje najwyższą prędkość?",
+    "options": {
+      "A": "802.11b",
+      "B": "802.11g",
+      "C": "802.11n",
+      "D": "802.11ac"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy segmenty sieci?",
+    "options": {
+      "A": "Bridge",
+      "B": "Router",
+      "C": "Gateway",
+      "D": "Repeater"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznej konfiguracji urządzeń w sieci?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza usługami?",
+    "options": {
+      "A": "services.msc",
+      "B": "taskmgr",
+      "C": "regedit",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w systemie Linux?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla listę procesów?",
+    "options": {
+      "A": "tasklist",
+      "B": "netstat",
+      "C": "ipconfig",
+      "D": "ping"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieci Ethernet?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za adresację logiczną?",
+    "options": {
+      "A": "Sieciowa",
+      "B": "Łącza danych",
+      "C": "Transportowa",
+      "D": "Fizyczna"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia uprawnienia pliku?",
+    "options": {
+      "A": "chmod",
+      "B": "chown",
+      "C": "ls",
+      "D": "pwd"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje najwyższą prędkość?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy segmenty sieci?",
+    "options": {
+      "A": "Bridge",
+      "B": "Router",
+      "C": "Gateway",
+      "D": "Repeater"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznej konfiguracji urządzeń w sieci?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza usługami?",
+    "options": {
+      "A": "services.msc",
+      "B": "taskmgr",
+      "C": "regedit",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w systemie Linux?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla listę procesów?",
+    "options": {
+      "A": "tasklist",
+      "B": "netstat",
+      "C": "ipconfig",
+      "D": "ping"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieci Ethernet?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za adresację logiczną?",
+    "options": {
+      "A": "Sieciowa",
+      "B": "Łącza danych",
+      "C": "Transportowa",
+      "D": "Fizyczna"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia uprawnienia pliku?",
+    "options": {
+      "A": "chmod",
+      "B": "chown",
+      "C": "ls",
+      "D": "pwd"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje najwyższą prędkość?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy segmenty sieci?",
+    "options": {
+      "A": "Bridge",
+      "B": "Router",
+      "C": "Gateway",
+      "D": "Repeater"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznej konfiguracji urządzeń w sieci?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza usługami?",
+    "options": {
+      "A": "services.msc",
+      "B": "taskmgr",
+      "C": "regedit",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w systemie Linux?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla listę procesów?",
+    "options": {
+      "A": "tasklist",
+      "B": "netstat",
+      "C": "ipconfig",
+      "D": "ping"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieci Ethernet?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za adresację logiczną?",
+    "options": {
+      "A": "Sieciowa",
+      "B": "Łącza danych",
+      "C": "Transportowa",
+      "D": "Fizyczna"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia uprawnienia pliku?",
+    "options": {
+      "A": "chmod",
+      "B": "chown",
+      "C": "ls",
+      "D": "pwd"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje najwyższą prędkość?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy segmenty sieci?",
+    "options": {
+      "A": "Bridge",
+      "B": "Router",
+      "C": "Gateway",
+      "D": "Repeater"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznej konfiguracji urządzeń w sieci?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza usługami?",
+    "options": {
+      "A": "services.msc",
+      "B": "taskmgr",
+      "C": "regedit",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w systemie Linux?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla listę procesów?",
+    "options": {
+      "A": "tasklist",
+      "B": "netstat",
+      "C": "ipconfig",
+      "D": "ping"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieci Ethernet?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za adresację logiczną?",
+    "options": {
+      "A": "Sieciowa",
+      "B": "Łącza danych",
+      "C": "Transportowa",
+      "D": "Fizyczna"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia uprawnienia pliku?",
+    "options": {
+      "A": "chmod",
+      "B": "chown",
+      "C": "ls",
+      "D": "pwd"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje najwyższą prędkość?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy segmenty sieci?",
+    "options": {
+      "A": "Bridge",
+      "B": "Router",
+      "C": "Gateway",
+      "D": "Repeater"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznej konfiguracji urządzeń w sieci?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza usługami?",
+    "options": {
+      "A": "services.msc",
+      "B": "taskmgr",
+      "C": "regedit",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w systemie Linux?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla listę procesów?",
+    "options": {
+      "A": "tasklist",
+      "B": "netstat",
+      "C": "ipconfig",
+      "D": "ping"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieci Ethernet?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za adresację logiczną?",
+    "options": {
+      "A": "Sieciowa",
+      "B": "Łącza danych",
+      "C": "Transportowa",
+      "D": "Fizyczna"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia uprawnienia pliku?",
+    "options": {
+      "A": "chmod",
+      "B": "chown",
+      "C": "ls",
+      "D": "pwd"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje najwyższą prędkość?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy segmenty sieci?",
+    "options": {
+      "A": "Bridge",
+      "B": "Router",
+      "C": "Gateway",
+      "D": "Repeater"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznej konfiguracji urządzeń w sieci?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza usługami?",
+    "options": {
+      "A": "services.msc",
+      "B": "taskmgr",
+      "C": "regedit",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne logowanie w systemie Linux?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla listę procesów?",
+    "options": {
+      "A": "tasklist",
+      "B": "netstat",
+      "C": "ipconfig",
+      "D": "ping"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieci Ethernet?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za adresację logiczną?",
+    "options": {
+      "A": "Sieciowa",
+      "B": "Łącza danych",
+      "C": "Transportowa",
+      "D": "Fizyczna"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia uprawnienia pliku?",
+    "options": {
+      "A": "chmod",
+      "B": "chown",
+      "C": "ls",
+      "D": "pwd"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje najwyższą prędkość?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy segmenty sieci?",
+    "options": {
+      "A": "Bridge",
+      "B": "Router",
+      "C": "Gateway",
+      "D": "Repeater"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do automatycznej konfiguracji urządzeń w sieci?",
+    "options": {
+      "A": "DHCP",
+      "B": "DNS",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux wyświetla katalog bieżący?",
+    "options": {
+      "A": "pwd",
+      "B": "ls",
+      "C": "cd",
+      "D": "mkdir"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla konfigurację sieciową?",
+    "options": {
+      "A": "ipconfig",
+      "B": "ping",
+      "C": "tracert",
+      "D": "netstat"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do przesyłania plików?",
+    "options": {
+      "A": "FTP",
+      "B": "HTTP",
+      "C": "SMTP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za transmisję bitów?",
+    "options": {
+      "A": "Fizyczna",
+      "B": "Łącza danych",
+      "C": "Sieciowa",
+      "D": "Transportowa"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux tworzy katalog?",
+    "options": {
+      "A": "mkdir",
+      "B": "touch",
+      "C": "cp",
+      "D": "mv"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi pracuje w paśmie 2.4 GHz?",
+    "options": {
+      "A": "802.11b",
+      "B": "802.11a",
+      "C": "802.11g",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie wzmacnia sygnał sieciowy?",
+    "options": {
+      "A": "Repeater",
+      "B": "Router",
+      "C": "Switch",
+      "D": "Hub"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do tłumaczenia nazw na adresy IP?",
+    "options": {
+      "A": "DNS",
+      "B": "DHCP",
+      "C": "FTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza zadaniami?",
+    "options": {
+      "A": "taskmgr",
+      "B": "services.msc",
+      "C": "regedit",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne zdalne logowanie?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza połączenie?",
+    "options": {
+      "A": "ping",
+      "B": "ipconfig",
+      "C": "tracert",
+      "D": "netstat"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest odporny na zakłócenia?",
+    "options": {
+      "A": "Optyczny",
+      "B": "Koaksjalny",
+      "C": "Twisted pair",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za niezawodność?",
+    "options": {
+      "A": "Transportowa",
+      "B": "Sesji",
+      "C": "Prezentacji",
+      "D": "Aplikacji"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux wyświetla zawartość katalogu?",
+    "options": {
+      "A": "ls",
+      "B": "pwd",
+      "C": "cd",
+      "D": "mkdir"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje prędkość do 54 Mbps?",
+    "options": {
+      "A": "802.11g",
+      "B": "802.11b",
+      "C": "802.11n",
+      "D": "802.11ac"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie filtruje ruch sieciowy?",
+    "options": {
+      "A": "Firewall",
+      "B": "Router",
+      "C": "Switch",
+      "D": "Hub"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do wysyłania poczty?",
+    "options": {
+      "A": "SMTP",
+      "B": "POP3",
+      "C": "IMAP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza rejestrem?",
+    "options": {
+      "A": "regedit",
+      "B": "taskmgr",
+      "C": "services.msc",
+      "D": "msconfig"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia monitorowanie urządzeń?",
+    "options": {
+      "A": "SNMP",
+      "B": "SSH",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla połączenia sieciowe?",
+    "options": {
+      "A": "netstat",
+      "B": "ipconfig",
+      "C": "ping",
+      "D": "tracert"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach długodystansowych?",
+    "options": {
+      "A": "Optyczny",
+      "B": "Koaksjalny",
+      "C": "Twisted pair",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za dialog?",
+    "options": {
+      "A": "Sesji",
+      "B": "Transportowa",
+      "C": "Prezentacji",
+      "D": "Aplikacji"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux kopiuje pliki?",
+    "options": {
+      "A": "cp",
+      "B": "mv",
+      "C": "touch",
+      "D": "mkdir"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje prędkość do 11 Mbps?",
+    "options": {
+      "A": "802.11b",
+      "B": "802.11g",
+      "C": "802.11n",
+      "D": "802.11ac"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie przekształca sygnały?",
+    "options": {
+      "A": "Modem",
+      "B": "Router",
+      "C": "Switch",
+      "D": "Hub"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do odbierania poczty?",
+    "options": {
+      "A": "POP3",
+      "B": "SMTP",
+      "C": "IMAP",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza konfiguracją systemu?",
+    "options": {
+      "A": "msconfig",
+      "B": "taskmgr",
+      "C": "services.msc",
+      "D": "regedit"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne wykonywanie poleceń?",
+    "options": {
+      "A": "SSH",
+      "B": "Telnet",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza trasę pakietów?",
+    "options": {
+      "A": "tracert",
+      "B": "ipconfig",
+      "C": "ping",
+      "D": "netstat"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest tani i popularny?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za kodowanie danych?",
+    "options": {
+      "A": "Prezentacji",
+      "B": "Sesji",
+      "C": "Transportowa",
+      "D": "Aplikacji"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux przenosi pliki?",
+    "options": {
+      "A": "mv",
+      "B": "cp",
+      "C": "touch",
+      "D": "mkdir"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje prędkość do 150 Mbps?",
+    "options": {
+      "A": "802.11n",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11ac"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie łączy sieci o różnych protokołach?",
+    "options": {
+      "A": "Gateway",
+      "B": "Router",
+      "C": "Switch",
+      "D": "Hub"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do synchronizacji czasu?",
+    "options": {
+      "A": "NTP",
+      "B": "SMTP",
+      "C": "POP3",
+      "D": "DNS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza dyskami?",
+    "options": {
+      "A": "diskmgmt.msc",
+      "B": "taskmgr",
+      "C": "services.msc",
+      "D": "regedit"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne przesyłanie plików?",
+    "options": {
+      "A": "SFTP",
+      "B": "FTP",
+      "C": "HTTP",
+      "D": "SMTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla informacje o systemie?",
+    "options": {
+      "A": "systeminfo",
+      "B": "ipconfig",
+      "C": "ping",
+      "D": "tracert"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w telewizji kablowej?",
+    "options": {
+      "A": "Koaksjalny",
+      "B": "Twisted pair",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za interfejs użytkownika?",
+    "options": {
+      "A": "Aplikacji",
+      "B": "Prezentacji",
+      "C": "Sesji",
+      "D": "Transportowa"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux usuwa pliki?",
+    "options": {
+      "A": "rm",
+      "B": "del",
+      "C": "erase",
+      "D": "remove"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje prędkość do 1300 Mbps?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11b",
+      "C": "802.11g",
+      "D": "802.11n"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie rozsyła sygnał do wszystkich urządzeń?",
+    "options": {
+      "A": "Hub",
+      "B": "Router",
+      "C": "Switch",
+      "D": "Bridge"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do tłumaczenia adresów IP na MAC?",
+    "options": {
+      "A": "ARP",
+      "B": "ICMP",
+      "C": "DNS",
+      "D": "DHCP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza użytkownikami?",
+    "options": {
+      "A": "lusrmgr.msc",
+      "B": "taskmgr",
+      "C": "services.msc",
+      "D": "regedit"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne zarządzanie?",
+    "options": {
+      "A": "SNMP",
+      "B": "SSH",
+      "C": "FTP",
+      "D": "HTTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla wersję systemu?",
+    "options": {
+      "A": "ver",
+      "B": "ipconfig",
+      "C": "ping",
+      "D": "tracert"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach komputerowych?",
+    "options": {
+      "A": "Twisted pair",
+      "B": "Koaksjalny",
+      "C": "Optyczny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za kontrolę błędów?",
+    "options": {
+      "A": "Łącza danych",
+      "B": "Fizyczna",
+      "C": "Sieciowa",
+      "D": "Transportowa"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux wyświetla procesy?",
+    "options": {
+      "A": "ps",
+      "B": "top",
+      "C": "kill",
+      "D": "bg"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne tunelowanie SSH?",
+    "options": {
+      "A": "SSH tunneling",
+      "B": "VPN",
+      "C": "SSL",
+      "D": "TLS"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux wyświetla informacje o dysku?",
+    "options": {
+      "A": "df -h",
+      "B": "du",
+      "C": "lsblk",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje prędkość do 600 Mbps?",
+    "options": {
+      "A": "802.11n",
+      "B": "802.11ac",
+      "C": "802.11ax",
+      "D": "802.11b"
+    },
+    "correct": "B",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe filtruje ruch na poziomie aplikacji?",
+    "options": {
+      "A": "Application Gateway",
+      "B": "Firewall",
+      "C": "Proxy",
+      "D": "Router"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do synchronizacji czasu NTP?",
+    "options": {
+      "A": "NTP",
+      "B": "SNTP",
+      "C": "PTP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza integralność systemu?",
+    "options": {
+      "A": "sfc /scannow",
+      "B": "chkdsk",
+      "C": "dism",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest odporny na interferencje elektromagnetyczne?",
+    "options": {
+      "A": "STP",
+      "B": "UTP",
+      "C": "Koaksjalny",
+      "D": "Optyczny"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu TCP/IP odpowiada za adresację?",
+    "options": {
+      "A": "Internet",
+      "B": "Network",
+      "C": "Transport",
+      "D": "Application"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux zmienia właściciela pliku?",
+    "options": {
+      "A": "chown",
+      "B": "chmod",
+      "C": "chgrp",
+      "D": "chattr"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 10 Gbps?",
+    "options": {
+      "A": "10GBASE-T",
+      "B": "1000BASE-T",
+      "C": "100BASE-TX",
+      "D": "10BASE-T"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe łączy segmenty LAN?",
+    "options": {
+      "A": "Bridge",
+      "B": "Switch",
+      "C": "Router",
+      "D": "Hub"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia zdalne zarządzanie SNMP?",
+    "options": {
+      "A": "SNMP",
+      "B": "ICMP",
+      "C": "ARP",
+      "D": "RARP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows wyświetla procesy?",
+    "options": {
+      "A": "tasklist",
+      "B": "ps",
+      "C": "top",
+      "D": "htop"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ adresu MAC jest uniwersalny?",
+    "options": {
+      "A": "UAA",
+      "B": "LAA",
+      "C": "OUI",
+      "D": "NIC"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Linux zarządza usługami?",
+    "options": {
+      "A": "systemd",
+      "B": "init",
+      "C": "upstart",
+      "D": "sysv"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje prędkość do 9.6 Gbps?",
+    "options": {
+      "A": "802.11ax",
+      "B": "802.11ac",
+      "C": "802.11n",
+      "D": "802.11g"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe tłumaczy adresy NAT?",
+    "options": {
+      "A": "Router",
+      "B": "Firewall",
+      "C": "Proxy",
+      "D": "Switch"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do wykrywania urządzeń LLDP?",
+    "options": {
+      "A": "LLDP",
+      "B": "CDP",
+      "C": "NDP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza DNS?",
+    "options": {
+      "A": "nslookup",
+      "B": "dig",
+      "C": "host",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w centrach danych?",
+    "options": {
+      "A": "Optyczny",
+      "B": "Miedziany",
+      "C": "Koaksjalny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za sesję?",
+    "options": {
+      "A": "5",
+      "B": "4",
+      "C": "3",
+      "D": "2"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux monitoruje system?",
+    "options": {
+      "A": "htop",
+      "B": "top",
+      "C": "ps",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Bluetooth oferuje prędkość do 24 Mbps?",
+    "options": {
+      "A": "Bluetooth 5.0",
+      "B": "Bluetooth 4.0",
+      "C": "Bluetooth 3.0",
+      "D": "Bluetooth 2.0"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe buforuje żądania?",
+    "options": {
+      "A": "Proxy",
+      "B": "Cache",
+      "C": "Load Balancer",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne VPN?",
+    "options": {
+      "A": "IPsec",
+      "B": "PPTP",
+      "C": "L2TP",
+      "D": "SSTP"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows zarządza usługami?",
+    "options": {
+      "A": "sc",
+      "B": "net start",
+      "C": "services.msc",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest link-local unicast?",
+    "options": {
+      "A": "FE80::/10",
+      "B": "2001::/16",
+      "C": "FC00::/7",
+      "D": "::1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Linux zarządza pakietami APT?",
+    "options": {
+      "A": "apt",
+      "B": "yum",
+      "C": "pacman",
+      "D": "zypper"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje kanały 160 MHz?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11n",
+      "C": "802.11g",
+      "D": "802.11b"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe równoważy obciążenie?",
+    "options": {
+      "A": "Load Balancer",
+      "B": "Router",
+      "C": "Switch",
+      "D": "Firewall"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do multicast IGMP?",
+    "options": {
+      "A": "IGMP",
+      "B": "PIM",
+      "C": "DVMRP",
+      "D": "MOSPF"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza routing?",
+    "options": {
+      "A": "route print",
+      "B": "netstat -r",
+      "C": "ip route",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach SAN?",
+    "options": {
+      "A": "Fibre Channel",
+      "B": "iSCSI",
+      "C": "SAS",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu TCP/IP odpowiada za niezawodność?",
+    "options": {
+      "A": "Transport",
+      "B": "Internet",
+      "C": "Network",
+      "D": "Link"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux sprawdza porty?",
+    "options": {
+      "A": "netstat",
+      "B": "ss",
+      "C": "lsof",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Ethernet oferuje PoE?",
+    "options": {
+      "A": "802.3af",
+      "B": "802.3at",
+      "C": "802.3bt",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe wykrywa intruzów IDS?",
+    "options": {
+      "A": "IDS",
+      "B": "IPS",
+      "C": "Firewall",
+      "D": "Proxy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia QoS RSVP?",
+    "options": {
+      "A": "RSVP",
+      "B": "DiffServ",
+      "C": "IntServ",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza pamięć?",
+    "options": {
+      "A": "wmic memorychip",
+      "B": "systeminfo",
+      "C": "msinfo32",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest unique local?",
+    "options": {
+      "A": "FC00::/7",
+      "B": "FD00::/8",
+      "C": "FE80::/10",
+      "D": "2001::/16"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Linux zarządza firewall iptables?",
+    "options": {
+      "A": "iptables",
+      "B": "firewalld",
+      "C": "ufw",
+      "D": "nftables"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje MU-MIMO?",
+    "options": {
+      "A": "802.11ac",
+      "B": "802.11n",
+      "C": "802.11ax",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe blokuje intruzów IPS?",
+    "options": {
+      "A": "IPS",
+      "B": "IDS",
+      "C": "Firewall",
+      "D": "Proxy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do VoIP SIP?",
+    "options": {
+      "A": "SIP",
+      "B": "H.323",
+      "C": "RTP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza dyski?",
+    "options": {
+      "A": "diskpart",
+      "B": "fsutil",
+      "C": "wmic diskdrive",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach 5G?",
+    "options": {
+      "A": "Optyczny",
+      "B": "Radiowy",
+      "C": "Satelitarny",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za prezentację?",
+    "options": {
+      "A": "6",
+      "B": "5",
+      "C": "4",
+      "D": "3"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux sprawdza logi?",
+    "options": {
+      "A": "journalctl",
+      "B": "dmesg",
+      "C": "tail /var/log",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Windows zarządza aktualizacjami WSUS?",
+    "options": {
+      "A": "WSUS",
+      "B": "SCCM",
+      "C": "Intune",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne połączenia SSL/TLS?",
+    "options": {
+      "A": "HTTPS",
+      "B": "FTPS",
+      "C": "SMTP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux sprawdza obciążenie systemu?",
+    "options": {
+      "A": "uptime",
+      "B": "w",
+      "C": "who",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 40 Gbps?",
+    "options": {
+      "A": "40GBASE-T",
+      "B": "10GBASE-T",
+      "C": "100GBASE-T",
+      "D": "25GBASE-T"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe zarządza VLAN?",
+    "options": {
+      "A": "Managed Switch",
+      "B": "Router",
+      "C": "Bridge",
+      "D": "Hub"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do autokonfiguracji IPv6 SLAAC?",
+    "options": {
+      "A": "SLAAC",
+      "B": "DHCPv6",
+      "C": "RA",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza zdarzenia?",
+    "options": {
+      "A": "eventvwr",
+      "B": "wevtutil",
+      "C": "Get-EventLog",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach PON?",
+    "options": {
+      "A": "Optyczny",
+      "B": "Miedziany",
+      "C": "Koaksjalny",
+      "D": "Radiowy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu TCP/IP odpowiada za fizyczne połączenie?",
+    "options": {
+      "A": "Network Access",
+      "B": "Link",
+      "C": "Physical",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux sprawdza partycje?",
+    "options": {
+      "A": "fdisk",
+      "B": "parted",
+      "C": "lsblk",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Bluetooth oferuje BLE?",
+    "options": {
+      "A": "Bluetooth 4.0",
+      "B": "Bluetooth 5.0",
+      "C": "Bluetooth 5.2",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe tłumaczy protokoły WAP?",
+    "options": {
+      "A": "WAP Gateway",
+      "B": "Proxy",
+      "C": "NAT",
+      "D": "Firewall"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne e-mail S/MIME?",
+    "options": {
+      "A": "S/MIME",
+      "B": "PGP",
+      "C": "TLS",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza użytkowników?",
+    "options": {
+      "A": "net user",
+      "B": "whoami",
+      "C": "quser",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest multicast?",
+    "options": {
+      "A": "FF00::/8",
+      "B": "FE80::/10",
+      "C": "2001::/16",
+      "D": "FC00::/7"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Linux zarządza kontenerami Docker?",
+    "options": {
+      "A": "docker",
+      "B": "podman",
+      "C": "containerd",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje OFDMA?",
+    "options": {
+      "A": "802.11ax",
+      "B": "802.11ac",
+      "C": "802.11n",
+      "D": "802.11g"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe zarządza QoS?",
+    "options": {
+      "A": "Router",
+      "B": "Switch",
+      "C": "Firewall",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do VoIP RTP?",
+    "options": {
+      "A": "RTP",
+      "B": "RTCP",
+      "C": "SIP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza grupy?",
+    "options": {
+      "A": "net localgroup",
+      "B": "gpresult",
+      "C": "whoami /groups",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach FTTH?",
+    "options": {
+      "A": "Optyczny",
+      "B": "Miedziany",
+      "C": "Koaksjalny",
+      "D": "Radiowy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za aplikację?",
+    "options": {
+      "A": "7",
+      "B": "6",
+      "C": "5",
+      "D": "4"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux sprawdza procesy?",
+    "options": {
+      "A": "ps aux",
+      "B": "top",
+      "C": "htop",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Ethernet oferuje prędkość 100 Gbps?",
+    "options": {
+      "A": "100GBASE-T",
+      "B": "40GBASE-T",
+      "C": "25GBASE-T",
+      "D": "10GBASE-T"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe zarządza STP?",
+    "options": {
+      "A": "Switch",
+      "B": "Bridge",
+      "C": "Router",
+      "D": "Hub"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne VPN IKE?",
+    "options": {
+      "A": "IKE",
+      "B": "IPsec",
+      "C": "L2TP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza partycje?",
+    "options": {
+      "A": "diskmgmt.msc",
+      "B": "diskpart",
+      "C": "fsutil",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest anycast?",
+    "options": {
+      "A": "Brak dedykowanego",
+      "B": "FE80::/10",
+      "C": "2001::/16",
+      "D": "FC00::/7"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Linux zarządza wirtualizacją KVM?",
+    "options": {
+      "A": "libvirt",
+      "B": "qemu",
+      "C": "virt-manager",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje WPA3?",
+    "options": {
+      "A": "802.11i",
+      "B": "802.11ac",
+      "C": "802.11ax",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe zarządza MPLS?",
+    "options": {
+      "A": "Router",
+      "B": "Switch",
+      "C": "Firewall",
+      "D": "Proxy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do multicast PIM?",
+    "options": {
+      "A": "PIM",
+      "B": "IGMP",
+      "C": "DVMRP",
+      "D": "MOSPF"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza uprawnienia?",
+    "options": {
+      "A": "icacls",
+      "B": "cacls",
+      "C": "takeown",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach DOCSIS?",
+    "options": {
+      "A": "Koaksjalny",
+      "B": "Optyczny",
+      "C": "Miedziany",
+      "D": "Radiowy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu TCP/IP odpowiada za routing?",
+    "options": {
+      "A": "Internet",
+      "B": "Network",
+      "C": "Transport",
+      "D": "Application"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux sprawdza sieć?",
+    "options": {
+      "A": "ip addr",
+      "B": "ifconfig",
+      "C": "nmcli",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Bluetooth oferuje prędkość do 50 Mbps?",
+    "options": {
+      "A": "Bluetooth 5.2",
+      "B": "Bluetooth 5.0",
+      "C": "Bluetooth 4.0",
+      "D": "Bluetooth 3.0"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe zarządza SDN?",
+    "options": {
+      "A": "SDN Controller",
+      "B": "Switch",
+      "C": "Router",
+      "D": "Firewall"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół umożliwia bezpieczne połączenia DTLS?",
+    "options": {
+      "A": "DTLS",
+      "B": "TLS",
+      "C": "SSL",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza logi?",
+    "options": {
+      "A": "eventvwr",
+      "B": "wevtutil",
+      "C": "Get-WinEvent",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ adresu IPv6 jest global unicast?",
+    "options": {
+      "A": "2000::/3",
+      "B": "FE80::/10",
+      "C": "FC00::/7",
+      "D": "FF00::/8"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która usługa systemu Linux zarządza chmurą Kubernetes?",
+    "options": {
+      "A": "kubelet",
+      "B": "kubectl",
+      "C": "kube-apiserver",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który standard Wi-Fi oferuje 6 GHz?",
+    "options": {
+      "A": "802.11ax",
+      "B": "802.11ac",
+      "C": "802.11n",
+      "D": "802.11g"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które urządzenie sieciowe zarządza NFV?",
+    "options": {
+      "A": "VNF",
+      "B": "Router",
+      "C": "Switch",
+      "D": "Firewall"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który protokół służy do VoIP H.323?",
+    "options": {
+      "A": "H.323",
+      "B": "SIP",
+      "C": "RTP",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Windows sprawdza zasoby?",
+    "options": {
+      "A": "resmon",
+      "B": "perfmon",
+      "C": "taskmgr",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Który typ kabla jest używany w sieciach PLC?",
+    "options": {
+      "A": "Elektryczny",
+      "B": "Optyczny",
+      "C": "Koaksjalny",
+      "D": "Radiowy"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Która warstwa modelu OSI odpowiada za transport?",
+    "options": {
+      "A": "4",
+      "B": "3",
+      "C": "2",
+      "D": "1"
+    },
+    "correct": "A",
+    "image": null,
+    "category": "INF.07"
+  },
+  {
+    "question": "Które polecenie systemu Linux sprawdza dyski?",
+    "options": {
+      "A": "df",
+      "B": "du",
+      "C": "lsblk",
+      "D": "Wszystkie powyższe"
+    },
+    "correct": "D",
+    "image": null,
+    "category": "INF.07"
+  }
+]

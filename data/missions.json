@@ -1,0 +1,398 @@
+{
+    "tests_taken": {
+        "period": "daily",
+        "title": "Rozwiąż testy",
+        "desc": "Ukończ co najmniej {target} dowolne testy dzisiaj.",
+        "base_target": 3,
+        "reward_xp": 50,
+        "icon": "bi-clipboard-check",
+        "color": "primary"
+    },
+    "correct_answers": {
+        "period": "daily",
+        "title": "Sokole oko",
+        "desc": "Udziel {target} poprawnych odpowiedzi.",
+        "base_target": 20,
+        "reward_xp": 30,
+        "icon": "bi-bullseye",
+        "color": "success"
+    },
+    "streak_correct": {
+        "period": "daily",
+        "title": "Seria zwycięstw",
+        "desc": "Zdobądź serię {target} poprawnych odpowiedzi z rzędu.",
+        "base_target": 10,
+        "reward_xp": 40,
+        "icon": "bi-lightning-fill",
+        "color": "warning"
+    },
+    "score_avg": {
+        "period": "daily",
+        "title": "Dobra średnia",
+        "desc": "Utrzymaj średnią powyżej {target}% w dzisiejszych testach.",
+        "base_target": 75,
+        "reward_xp": 60,
+        "icon": "bi-graph-up-arrow",
+        "color": "info"
+    },
+    "review_questions": {
+        "period": "daily",
+        "title": "Powtórka pytań",
+        "desc": "Przejdź ponownie {target} pytania, aby utrwalić wiedzę.",
+        "base_target": 12,
+        "reward_xp": 35,
+        "icon": "bi-arrow-repeat",
+        "color": "secondary"
+    },
+    "streak_daily": {
+        "period": "daily",
+        "title": "Codzienna seria",
+        "desc": "Zrób testy {target} dni z rzędu.",
+        "base_target": 3,
+        "reward_xp": 45,
+        "icon": "bi-calendar-check",
+        "color": "warning"
+    },
+    "daily_warmup": {
+        "period": "daily",
+        "title": "Rozgrzewka",
+        "desc": "Ukończ {target} dowolny test dzisiaj.",
+        "base_target": 1,
+        "reward_xp": 20,
+        "icon": "bi-play-circle",
+        "color": "primary"
+    },
+    "daily_grind": {
+        "period": "daily",
+        "title": "Dzienny grind",
+        "desc": "Ukończ {target} testów dzisiaj.",
+        "base_target": 5,
+        "reward_xp": 80,
+        "icon": "bi-fire",
+        "color": "danger"
+    },
+    "daily_answer_sprint": {
+        "period": "daily",
+        "title": "Sprint odpowiedzi",
+        "desc": "Udziel {target} poprawnych odpowiedzi dzisiaj.",
+        "base_target": 10,
+        "reward_xp": 25,
+        "icon": "bi-send-check",
+        "color": "success"
+    },
+    "daily_answer_storm": {
+        "period": "daily",
+        "title": "Burza odpowiedzi",
+        "desc": "Udziel {target} poprawnych odpowiedzi dzisiaj.",
+        "base_target": 35,
+        "reward_xp": 60,
+        "icon": "bi-cloud-lightning-rain",
+        "color": "info"
+    },
+    "daily_no_mistake": {
+        "period": "daily",
+        "title": "Bez potknięcia",
+        "desc": "Zdobądź serię {target} poprawnych odpowiedzi z rzędu.",
+        "base_target": 5,
+        "reward_xp": 30,
+        "icon": "bi-shield-check",
+        "color": "success"
+    },
+    "daily_perfect_chain": {
+        "period": "daily",
+        "title": "Perfekcyjny łańcuch",
+        "desc": "Zdobądź serię {target} poprawnych odpowiedzi z rzędu.",
+        "base_target": 15,
+        "reward_xp": 70,
+        "icon": "bi-link-45deg",
+        "color": "warning"
+    },
+    "daily_precision_80": {
+        "period": "daily",
+        "title": "Precyzja 80%",
+        "desc": "Utrzymaj średnią minimum {target}% w dzisiejszych testach.",
+        "base_target": 80,
+        "reward_xp": 70,
+        "icon": "bi-speedometer2",
+        "color": "info"
+    },
+    "daily_precision_90": {
+        "period": "daily",
+        "title": "Precyzja 90%",
+        "desc": "Utrzymaj średnią minimum {target}% w dzisiejszych testach.",
+        "base_target": 90,
+        "reward_xp": 110,
+        "icon": "bi-stars",
+        "color": "warning"
+    },
+    "daily_quick_repeat": {
+        "period": "daily",
+        "title": "Szybka powtórka",
+        "desc": "Powtórz {target} poprawnych pytań dzisiaj.",
+        "base_target": 8,
+        "reward_xp": 20,
+        "icon": "bi-arrow-clockwise",
+        "color": "secondary"
+    },
+    "daily_deep_repeat": {
+        "period": "daily",
+        "title": "Mocna powtórka",
+        "desc": "Powtórz {target} poprawnych pytań dzisiaj.",
+        "base_target": 25,
+        "reward_xp": 55,
+        "icon": "bi-journal-check",
+        "color": "primary"
+    },
+    "weekly_mastery": {
+        "period": "weekly",
+        "title": "Tygodniowy wzrost",
+        "desc": "Ukończ {target} ćwiczeń w tym tygodniu.",
+        "base_target": 5,
+        "reward_xp": 70,
+        "icon": "bi-calendar-week",
+        "color": "primary"
+    },
+    "weekly_accuracy": {
+        "period": "weekly",
+        "title": "Stabilna forma",
+        "desc": "Utrzymaj średnią minimum {target}% w tym tygodniu.",
+        "base_target": 70,
+        "reward_xp": 90,
+        "icon": "bi-activity",
+        "color": "success"
+    },
+    "weekly_answers": {
+        "period": "weekly",
+        "title": "Tygodniowy maraton",
+        "desc": "Udziel {target} poprawnych odpowiedzi w tym tygodniu.",
+        "base_target": 120,
+        "reward_xp": 100,
+        "icon": "bi-fast-forward-circle",
+        "color": "warning"
+    },
+    "weekly_test_runner": {
+        "period": "weekly",
+        "title": "Tygodniowy trening",
+        "desc": "Ukończ {target} ćwiczeń w tym tygodniu.",
+        "base_target": 8,
+        "reward_xp": 100,
+        "icon": "bi-calendar2-check",
+        "color": "primary"
+    },
+    "weekly_marathon": {
+        "period": "weekly",
+        "title": "Maraton tygodnia",
+        "desc": "Ukończ {target} ćwiczeń w tym tygodniu.",
+        "base_target": 12,
+        "reward_xp": 140,
+        "icon": "bi-flag",
+        "color": "danger"
+    },
+    "weekly_precision_80": {
+        "period": "weekly",
+        "title": "Tygodniowa precyzja",
+        "desc": "Utrzymaj średnią minimum {target}% w tym tygodniu.",
+        "base_target": 80,
+        "reward_xp": 120,
+        "icon": "bi-crosshair",
+        "color": "success"
+    },
+    "weekly_precision_90": {
+        "period": "weekly",
+        "title": "Elitarna precyzja",
+        "desc": "Utrzymaj średnią minimum {target}% w tym tygodniu.",
+        "base_target": 90,
+        "reward_xp": 170,
+        "icon": "bi-award",
+        "color": "warning"
+    },
+    "weekly_answer_bank": {
+        "period": "weekly",
+        "title": "Bank odpowiedzi",
+        "desc": "Udziel {target} poprawnych odpowiedzi w tym tygodniu.",
+        "base_target": 200,
+        "reward_xp": 150,
+        "icon": "bi-safe",
+        "color": "info"
+    },
+    "weekly_answer_sprint": {
+        "period": "weekly",
+        "title": "Szybki tydzień",
+        "desc": "Udziel {target} poprawnych odpowiedzi w tym tygodniu.",
+        "base_target": 80,
+        "reward_xp": 75,
+        "icon": "bi-stopwatch",
+        "color": "secondary"
+    },
+    "monthly_champion": {
+        "period": "monthly",
+        "title": "Miesięczny mistrz",
+        "desc": "Zrealizuj {target} testów w tym miesiącu.",
+        "base_target": 15,
+        "reward_xp": 120,
+        "icon": "bi-calendar3",
+        "color": "success"
+    },
+    "monthly_accuracy": {
+        "period": "monthly",
+        "title": "Forma miesiąca",
+        "desc": "Utrzymaj średnią minimum {target}% w tym miesiącu.",
+        "base_target": 75,
+        "reward_xp": 150,
+        "icon": "bi-graph-up",
+        "color": "info"
+    },
+    "monthly_answers": {
+        "period": "monthly",
+        "title": "Miesięczny grinder",
+        "desc": "Zbierz {target} poprawnych odpowiedzi w tym miesiącu.",
+        "base_target": 350,
+        "reward_xp": 180,
+        "icon": "bi-infinity",
+        "color": "primary"
+    },
+    "monthly_exam_grind": {
+        "period": "monthly",
+        "title": "Egzaminacyjny grind",
+        "desc": "Zrealizuj {target} testów w tym miesiącu.",
+        "base_target": 25,
+        "reward_xp": 180,
+        "icon": "bi-mortarboard",
+        "color": "primary"
+    },
+    "monthly_consistency": {
+        "period": "monthly",
+        "title": "Miesięczna regularność",
+        "desc": "Zrealizuj {target} testów w tym miesiącu.",
+        "base_target": 35,
+        "reward_xp": 240,
+        "icon": "bi-calendar2-heart",
+        "color": "success"
+    },
+    "monthly_precision_80": {
+        "period": "monthly",
+        "title": "Precyzyjny miesiąc",
+        "desc": "Utrzymaj średnią minimum {target}% w tym miesiącu.",
+        "base_target": 80,
+        "reward_xp": 190,
+        "icon": "bi-graph-up-arrow",
+        "color": "info"
+    },
+    "monthly_precision_90": {
+        "period": "monthly",
+        "title": "Miesiąc ekspertów",
+        "desc": "Utrzymaj średnią minimum {target}% w tym miesiącu.",
+        "base_target": 90,
+        "reward_xp": 260,
+        "icon": "bi-trophy",
+        "color": "warning"
+    },
+    "monthly_answer_bank": {
+        "period": "monthly",
+        "title": "Wielki bank odpowiedzi",
+        "desc": "Zbierz {target} poprawnych odpowiedzi w tym miesiącu.",
+        "base_target": 500,
+        "reward_xp": 230,
+        "icon": "bi-bank",
+        "color": "primary"
+    },
+    "monthly_answer_storm": {
+        "period": "monthly",
+        "title": "Miesięczna burza",
+        "desc": "Zbierz {target} poprawnych odpowiedzi w tym miesiącu.",
+        "base_target": 800,
+        "reward_xp": 320,
+        "icon": "bi-lightning-charge",
+        "color": "danger"
+    },
+    "daily_legendary_streak": {
+        "period": "daily",
+        "title": "Legenda serii",
+        "desc": "Zdobądź serię {target} poprawnych odpowiedzi z rzędu.",
+        "base_target": 25,
+        "reward_xp": 100,
+        "icon": "bi-shield-fire",
+        "color": "danger"
+    },
+    "daily_titan": {
+        "period": "daily",
+        "title": "Dzienny tytan",
+        "desc": "Ukończ co najmniej {target} testów dzisiaj.",
+        "base_target": 8,
+        "reward_xp": 120,
+        "icon": "bi-trophy-fill",
+        "color": "warning"
+    },
+    "daily_perfect_precision": {
+        "period": "daily",
+        "title": "Perfekcyjny dzień",
+        "desc": "Utrzymaj średnią minimum {target}% w dzisiejszych testach.",
+        "base_target": 95,
+        "reward_xp": 150,
+        "icon": "bi-gem",
+        "color": "success"
+    },
+    "weekly_marathon_pro": {
+        "period": "weekly",
+        "title": "Maratończyk Pro",
+        "desc": "Ukończ {target} ćwiczeń w tym tygodniu.",
+        "base_target": 20,
+        "reward_xp": 200,
+        "icon": "bi-speedometer",
+        "color": "danger"
+    },
+    "weekly_accuracy_elite": {
+        "period": "weekly",
+        "title": "Tygodniowa elita",
+        "desc": "Utrzymaj średnią minimum {target}% w tym tygodniu.",
+        "base_target": 95,
+        "reward_xp": 250,
+        "icon": "bi-award-fill",
+        "color": "warning"
+    },
+    "weekly_answer_avalanche": {
+        "period": "weekly",
+        "title": "Lawina odpowiedzi",
+        "desc": "Udziel {target} poprawnych odpowiedzi w tym tygodniu.",
+        "base_target": 300,
+        "reward_xp": 220,
+        "icon": "bi-lightning-charge-fill",
+        "color": "info"
+    },
+    "monthly_grandmaster": {
+        "period": "monthly",
+        "title": "Wielki Mistrz",
+        "desc": "Zrealizuj {target} testów w tym miesiącu.",
+        "base_target": 50,
+        "reward_xp": 350,
+        "icon": "bi-mortarboard-fill",
+        "color": "danger"
+    },
+    "monthly_perfect_accuracy": {
+        "period": "monthly",
+        "title": "Miesięczna perfekcja",
+        "desc": "Utrzymaj średnią minimum {target}% w tym miesiącu.",
+        "base_target": 95,
+        "reward_xp": 400,
+        "icon": "bi-patch-check-fill",
+        "color": "warning"
+    },
+    "monthly_answer_tsunami": {
+        "period": "monthly",
+        "title": "Tsunami odpowiedzi",
+        "desc": "Zbierz {target} poprawnych odpowiedzi w tym miesiącu.",
+        "base_target": 1200,
+        "reward_xp": 450,
+        "icon": "bi-water",
+        "color": "info"
+    },
+    "monthly_super_consistent": {
+        "period": "monthly",
+        "title": "Super konsystencja",
+        "desc": "Zrealizuj {target} testów w tym miesiącu.",
+        "base_target": 60,
+        "reward_xp": 500,
+        "icon": "bi-calendar-check-fill",
+        "color": "success"
+    }
+}
