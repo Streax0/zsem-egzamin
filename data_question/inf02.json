@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "question": "Układy sekwencyjne zbudowane z zespołu przerzutników, najczęściej synchronicznych typu D, służące do\r\nprzechowywania danych, to",
     "options": {
@@ -2987,18 +2987,7 @@
     "image": "https://www.praktycznyegzamin.pl/ee08/249.jpg",
     "category": "EE.08"
   },
-  {
-    "question": "Wydane na filmie polecenia wykonane w systemie Windows spowodują",
-    "options": {
-      "A": "usunięcie pliku tekstowego test.txt z katalogu C:\\egzamin",
-      "B": "zmianę uprawnień konta administrator do katalogu C:\\egzamin na r-x",
-      "C": "utworzenie i ukrycie pliku tekstowego zawierającego listę plików z katalogu C:\\egzamin",
-      "D": "ustawienie atrybutu zabezpieczającego przed przypadkowym usunięciem katalogu C:\\egzamin"
-    },
-    "correct": "C",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "W systemie operacyjnym Ubuntu konto użytkownika student można usunąć za pomocą polecenia",
     "options": {
@@ -3227,18 +3216,7 @@
     "image": "https://www.praktycznyegzamin.pl/ee08/269.jpg",
     "category": "EE.08"
   },
-  {
-    "question": "W filmie przedstawiono adapter",
-    "options": {
-      "A": "DisplayPort – HDMI",
-      "B": "DisplayPort – DVI",
-      "C": "HDMI – FireWire",
-      "D": "HDMI – D-Sub"
-    },
-    "correct": "A",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Aby, za pomocą polecenia ping, było możliwe sprawdzenie poprawności komunikacji z innymi urządzeniami pracującymi w sieci, należy w zaporze Windows skonfigurować reguły dotyczące protokołu",
     "options": {
@@ -4319,18 +4297,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "Podczas konfiguracji rutera, przedstawionej w filmie, wykorzystano funkcję służącą do",
-    "options": {
-      "A": "zablokowania podanego adresu fizycznego urządzenia sieciowego w zakresie sieci LAN.",
-      "B": "klonowania adresu fizycznego rutera z puli testowej i zachowania go pod nazwą Stacja002.",
-      "C": "rezerwacji adresu IP z puli adresów określonych przez serwer DHCP dla komputera o podanym\r\nadresie MAC.",
-      "D": "utworzenia polisy dla komputera o nazwie Stacja002, aby mógł łączyć się do rutera łączem\r\nprzewodowym."
-    },
-    "correct": "A",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Wskaż zakres grupy, który jest ustawiany domyślnie dla nowo utworzonej grupy w kontrolerze domeny \r\nsystemu Windows Serwer?",
     "options": {
@@ -4511,18 +4478,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "Na filmie zostal pokazany montaz",
-    "options": {
-      "A": "karty graficznej.",
-      "B": "pamięci RAM.",
-      "C": "procesora.",
-      "D": "radiatora."
-    },
-    "correct": "C",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Narzędziem blokującym ataki hakerskie z zewnątrz jest",
     "options": {
@@ -5135,18 +5091,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "Na filmie przedstawiono wadliwe działanie drukarki laserowej. Podzespołem, który najprawdopodobniej uległ uszkodzeniu, jest",
-    "options": {
-      "A": "napęd karetki",
-      "B": "filtr dichroiczny",
-      "C": "głowica termiczna",
-      "D": "grzałka utrwalająca"
-    },
-    "correct": "D",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Adresem pętli zwrotnej w protokole IPv6 jest",
     "options": {
@@ -6035,18 +5980,7 @@
     "image": "https://www.praktycznyegzamin.pl/ee08/503.jpg",
     "category": "EE.08"
   },
-  {
-    "question": "W filmie przedstawiono",
-    "options": {
-      "A": "czyszczenie głowicy drukarki atramentowej.",
-      "B": "montaż papieru termicznego w drukarce termicznej.",
-      "C": "wymianę głowicy drukującej w drukarce igłowej.",
-      "D": "wymianę tonera w drukarce laserowej."
-    },
-    "correct": "D",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Które porty należy zablokować w zaporze sieciowej, aby uniemożliwić połączenie z serwerem FTP?",
     "options": {
@@ -6287,18 +6221,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "Do wykonania zdalnego połączenia z serwerem Linux w sposób przedstawiony na filmie wymagana jest wcześniejsza konfiguracja serwera poprzez edycję pliku",
-    "options": {
-      "A": "/etc/samba/smb.conf",
-      "B": "/etc/vsftpd.conf",
-      "C": "/etc/postfix/main.cf",
-      "D": "/etc/ssh/sshd_config"
-    },
-    "correct": "D",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Który standard złącza DVI umożliwia przesyłanie wyłącznie sygnału analogowego?",
     "options": {
@@ -6491,18 +6414,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "Na podstawie filmu określ średnią prędkość pobierania danych przez sieć komputerową",
-    "options": {
-      "A": "20.18 Mbps z opóźnieniem 9 ms.",
-      "B": "20.18 Mbps z opóźnieniem 15 ms.",
-      "C": "34.78 Mbps z opóźnieniem 9 ms.",
-      "D": "34.78 Mbps z opóźnieniem 15 ms"
-    },
-    "correct": "C",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Która usługa Windows Serwer umożliwia zdalną oraz szybką instalację systemów klienckich Windows na komputerach podłączonych bezpośrednio do sieci LAN?",
     "options": {
@@ -6899,18 +6811,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "W ramce przedstawiono wymagania konfiguracyjne przełącznika. Na podstawie filmu określ, jaki błąd popełnił administrator podczas jego konfiguracji?\r\nadres IP: 192.168.0.1/24, brama domyślna: 192.168.0.2VLAN 802.1q o ID=1 z przypisanymi wszystkimi portami w trybie dostępuVLAN 802.1q o ID=2 z przypisanymi portami nr 1 i 3 w trybie trunk oraz portem nr 2 w trybie dostępuVLAN 802.1q o ID=3 z przypisanym port nr 1 w trybie trunk oraz portem nr 4 w trybie dostępu",
-    "options": {
-      "A": "Ustawiono błędną maskę podsieci.",
-      "B": "Nie została włączona obsługa VLAN 802.1Q.",
-      "C": "Niepoprawnie ustawiono port nr 1 dla VLAN o ID=3.",
-      "D": "Przypisano do przełącznika dynamiczną adresację IP."
-    },
-    "correct": "C",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Chorobą zawodową informatyka jest",
     "options": {
@@ -7223,18 +7124,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "Instalacja systemu operacyjnego Linux na wirtualnej maszynie, której ustawienia zostały przedstawione w filmie, jest zakończona niepowodzeniem. Które ustawienie uniemożliwia instalację?",
-    "options": {
-      "A": "Nie utworzono wirtualnego dysku twardego dla tej maszyny wirtualnej.",
-      "B": "Przydzielono zbyt mały rozmiar pamięci RAM.",
-      "C": "Zastosowano niepoprawny znak podkreślenia w nazwie wirtualnej maszyny.",
-      "D": "Została wyłączona wirtualizacja sprzętowa w programie."
-    },
-    "correct": "B",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Kabel typu skrętka, w którym każda para przewodów znajduje się w osobnym ekranie z folii, przy czym wszystkie pary dodatkowo znajdują się w ekranie z folii, jest oznaczony symbolem",
     "options": {
@@ -7511,18 +7401,7 @@
     "image": null,
     "category": "EE.08"
   },
-  {
-    "question": "W filmie przedstawiono konfigurację rutera polegającą na ustawieniu adresacji interfejsów sieciowych, w których",
-    "options": {
-      "A": "interfejs ether1 ma przypisany adres 192.168.1.32/24 i jest on przypisany statycznie.",
-      "B": "adres IP interfejsu ether2 został ustawiony na 192.168.100.100/24, po czym został zmodyfikowany  na 10.10.10.10./8.",
-      "C": "adresy IP interfejsów ether3 oraz ether2 zostały ustawione statycznie.",
-      "D": "wszystkie interfejsy rutera (przewodowe i bezprzewodowe) zostały zaadresowane."
-    },
-    "correct": "C",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "W systemie serwerowym Linux, w celu konfiguracji karty sieciowej o nazwie LAN1 oraz adresacji IP 192.168.100.100/24 wraz z uruchomieniem interfejsu, należy użyć polecenia",
     "options": {
@@ -7907,18 +7786,7 @@
     "image": "https://www.praktycznyegzamin.pl/ee08/659.jpg",
     "category": "EE.08"
   },
-  {
-    "question": "Wskaż przedstawioną w filmie czynność, wykonywaną przez serwisanta.",
-    "options": {
-      "A": "Montaż karty sieciowej USB.",
-      "B": "Wymiana modułu pamięci RAM.",
-      "C": "Wymiana karty graficznej PCI-E.",
-      "D": "Montaż karty sieciowej PCI."
-    },
-    "correct": "D",
-    "image": null,
-    "category": "EE.08"
-  },
+  
   {
     "question": "Na ilustracji przedstawiono konfigurację dostępu do sieci bezprzewodowej, która dotyczy",
     "options": {
