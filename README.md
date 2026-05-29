@@ -1,66 +1,78 @@
 # INF.02 Exam Learning Platform
 
-## 🎯 About
-Platforma do nauki i sprawdzania wiedzy z przedmiotu INF.02 – zastosowania informatyki w działalności użytkownika komputerowego. Projekt skierowany do uczniów szkół zawodowych oraz osób przygotowujących się do egzaminu zawodowego.
+## 🎯 O projekcie
+Platforma edukacyjna wspierająca przygotowanie do egzaminu zawodowego INF.02. System umożliwia rejestrację użytkowników, prowadzenie testów, naukę poprzez pojedyncze pytania oraz rozbudowaną obsługę administratora.
 
 ## 📋 Wymagania
 
 ### Serwer i baza danych
-- **PHP 8.0 lub nowszy** z włączonymi rozszerzeniami: PDO, JSON, Sessions
+- **PHP 8.0 lub nowszy**
+- Włączone rozszerzenia PHP: **PDO**, **JSON**, **session**
 - **MySQL 5.7+** lub **MariaDB 10.3+**
-- **Apache** lub **Nginx** z obsługą mod_rewrite (dla pretty URLs)
+- **Apache** z modułem `mod_rewrite` (zalecane)
 
 ### Narzędzia
-- **Composer** – opcjonalnie, obecnie nie jest używany w projekcie
-- **Dostęp do bazy danych** – użytkownik z uprawnieniami do tworzenia bazy i tabel
+- **Dostęp do serwera MySQL/MariaDB**
+- **Edytor tekstowy** do konfiguracji `.env` lub `config/db.php`
 
 ## 📁 Struktura projektu
 
 ```
-inf02-platform/
-├── index.php                 # Strona główna / router
-├── config/
-│   ├── config.php            # Główne konfiguracje aplikacji
-│   └── db.php                # Połączenie z bazą danych
-├── includes/
-│   ├── functions.php         # Funkcje helperów
-│   ├── auth.php              # Logika autoryzacji
-│   └── database.php          # Klasa do obsługi bazy danych
-├── data/
-│   └── questions.json        # Pytania w formacie JSON
-├── assets/
-│   ├── css/
-│   │   └── style.css         # Główne style
-│   └── js/
-│       └── script.js         # Kod JavaScript
-├── .htaccess                 # Konfiguracja Apache (przekierowania)
-├── schema.sql                # Struktura bazy danych
-└── README.md                 # Ten plik
+public_html/
+├── actions/                # Obsługa żądań POST i zmian stanu
+├── ajax/                   # Endpointy AJAX
+├── admin.php               # Panel administratora
+├── config/                 # Konfiguracja bazy danych
+│   ├── db.php              # Połączenie PDO
+│   └── config.example.php  # Przykładowy plik konfiguracyjny
+├── data_question/          # Pliki pytań i importy
+├── includes/               # Funkcje, autoryzacja, sesje
+├── exam/                   # Obsługa egzaminów
+├── duels/                  # Pojedynki między użytkownikami
+├── full_schema.sql         # Pełny schemat bazy danych
+├── .htaccess               # Reguły bezpieczeństwa i przekierowania Apache
+├── index.php               # Strona główna
+├── login.php               # Logowanie
+├── register.php            # Rejestracja
+├── profile.php             # Profil użytkownika
+└── README.md               # Ten plik
 ```
 
-## 🚀 Instrukcja instalacji
+## 🚀 Instalacja
 
-### 1. Pobranie plików
-Skopiuj wszystkie pliki do katalogu głównego serwera WWW (np. `htdocs` dla XAMPP, `www` dla Laragon) lub folderu wirtualnego hosta.
+### 1. Skopiuj pliki
+Umieść całą zawartość katalogu w katalogu głównym serwera WWW, np. `htdocs`, `www` lub katalogu wirtualnego hosta.
 
-### 2. Utworzenie bazy danych
-Zaloguj się do MySQL/MariaDB i wykonaj:
+### 2. Utwórz bazę danych
+W MySQL/MariaDB wykonaj:
 
 ```sql
 CREATE DATABASE inf02_platform CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Następnie zaimportuj strukturę:
+### 3. Zaimportuj schemat bazy
+Zaimportuj plik `full_schema.sql` do nowo utworzonej bazy:
 
 ```bash
-mysql -u root -p inf02_platform < schema.sql
+mysql -u root -p inf02_platform < full_schema.sql
 ```
 
-lub przez phpMyAdmin wybierz bazę i zaimportuj plik `schema.sql`.
+### 4. Skonfiguruj połączenie z bazą
+Masz dwie opcje:
 
-### 3. Konfiguracja
-- Skopiuj plik `config.example.php` (jeśli istnieje) do `config/config.php` lub utwórz ręcznie.
-- Edytuj ustawienia połączenia z bazą danych:
+#### Opcja A: plik `.env`
+Utwórz plik `.env` w katalogu głównym projektu i dodaj:
+
+```env
+MYSQL_HOST=localhost
+MYSQL_DATABASE=inf02_platform
+MYSQL_USER=root
+MYSQL_PASSWORD=
+APP_ENV=local
+```
+
+#### Opcja B: plik `config/db.php`
+Skopiuj `config.example.php` do `config/db.php` i uzupełnij dane:
 
 ```php
 define('DB_HOST', 'localhost');
@@ -69,111 +81,72 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 ```
 
-- Upewnij się, że katalog `data/` ma ustawione uprawnienia do zapisu, jeśli planujesz modyfikować `questions.json`.
+> `config/db.php` najpierw próbuje odczytać zmienne środowiskowe z `.env`, a następnie używa wartości zdefiniowanych w pliku.
 
-### 4. Bezpieczeństwo
-- Sprawdź, czy plik `.htaccess` jest aktywny (Apache). Należy włączyć moduł `mod_rewrite`.
-- Rozważ przeniesienie katalogów `config/` i `includes/` poza główny katalog serwera WWW lub dodaj odpowiednie reguły w `.htaccess` blokujące bezpośredni dostęp.
-- Ustaw prawa dostępu do plików: 644 dla plików, 755 dla katalogów.
+### 5. Uprawnienia
+- Upewnij się, że dane i pliki konfiguracji mają odpowiednie prawa dostępu.
+- Plik `config/db.php` powinien być chroniony przed publicznym dostępem.
+- `.htaccess` blokuje bezpośredni dostęp do katalogów takich jak `includes`, `config`, `data`, `data_question`, `scratch` i `cron`.
 
-### 5. Uruchomienie aplikacji
-- Otwórz przeglądarkę i przejdź pod adres: `http://localhost/` (lub adres twojego wirtualnego hosta)
-- Zarejestruj pierwszego użytkownika. Konto pierwszo-zarejestrowanego użytkownika może otrzymać uprawnienia admina (może wymagać ręcznego ustawienia w bazie danych – pole `is_admin` w tabeli `users`).
+### 6. Uruchom aplikację
+Otwórz przeglądarkę i przejdź pod adres lokalnego serwera, np. `http://localhost/`.
 
-## 🔧 Obsługa platformy
+## ✅ Główne funkcje
 
-### Funkcje dla użytkownika
-- **Rejestracja i logowanie** – bezpieczny system autoryzacji
-- **Dashboard** – statystyki postępów, liczba rozwiązanych testów
-- **Tryby testów**:
-  - **Egzamin** – 60 minut, 40 losowych pytań
-  - **Practice** – dowolna liczba pytań, wybór kategorii
-  - **Pojedyncze pytanie** – nauka krok po kroku
-- **Śledzenie postępów** – historia rozwiązań, wykresy
-- **Profil i ustawienia** – zmiana hasła, edycja danych
-- **Filtrowanie po kategoriach** – wybór tematów do nauki
+### Dla użytkowników
+- Rejestracja i logowanie
+- Reset hasła
+- Profil użytkownika i edycja danych
+- Powiadomienia i system znajomych
+- Testy praktyczne oraz egzaminy
+- Nauka pytań pojedynczo oraz w seriach
+- Statystyki postępów i historia rozwiązań
 
-### Funkcje dla administratora
-- **Zarządzanie użytkownikami** – przegląd, blokowanie, nadawanie uprawnień admina
-- **Edycja pytań** – dodawanie, modyfikacja, usuwanie (jeśli zaimplementowane w interfejsie)
-- **Statystyki systemowe** – liczba użytkowników, aktywność
+### Dla administratorów
+- Przegląd użytkowników i nadawanie ról
+- Banowanie i obsługa zgłoszeń nadużyć
+- Zarządzanie rankingami i eventami
+- Reset MFA i audyt działań administracyjnych
 
-## 📊 Format pytań (JSON)
+## 📌 Najważniejsze pliki
+- `config/db.php` – konfiguracja połączenia z bazą danych
+- `config/config.example.php` – przykładowy plik konfiguracyjny
+- `full_schema.sql` – pełny schemat bazy danych
+- `admin.php` – panel administratora
+- `actions/` – obsługa formularzy i zmian stanu
+- `ajax/` – endpointy AJAX
+- `includes/` – funkcje pomocnicze, autoryzacja, sesje
+- `data_question/` – pliki pytań i importów
 
-Plik `data/questions.json` zawiera wszystkie pytania w formacie:
+## 🛡️ Bezpieczeństwo
+- Połączenie z bazą przez PDO z `utf8mb4`
+- `.htaccess` blokuje wybrane katalogi i pliki
+- Zalecane zabezpieczenie plików konfiguracyjnych poza publicznym katalogiem
+- Warto używać HTTPS w środowisku produkcyjnym
 
-```json
-[
-  {
-    "id": 1,
-    "category": "system_operacyjny",
-    "question": "Co oznacza skrót BIOS?",
-    "options": [
-      "Basic Input Output System",
-      "Binary Input Output System",
-      "Basic Internal Operating System",
-      "Base Input Output Setup"
-    ],
-    "correct": 0,
-    "explanation": "BIOS to Basic Input Output System – podstawowy system wejścia/wyjścia."
-  }
-]
-```
+## 🛠️ Rozwiązywanie problemów
 
-**Struktura pola:**
-- `id` – unikalny identyfikator (liczba całkowita)
-- `category` – kategoria pytania (np. `system_operacyjny`, `sieci`, `bezpieczeństwo`)
-- `question` – treść pytania
-- `options` – tablica 4 odpowiedzi (A, B, C, D)
-- `correct` – indeks poprawnej odpowiedzi (0–3)
-- `explanation` – opcjonalne wyjaśnienie
+### Biały ekran
+- Włącz `display_errors` w `php.ini` lub sprawdź logi PHP
+- Sprawdź poprawność składni plików PHP
 
-**Dodawanie własnych pytań:**
-1. Otwórz `data/questions.json` w edytorze
-2. Dopisz nowy obiekt z zachowaniem struktury
-3. Zachowaj unikalność `id` i poprawność JSON (możesz walidować przez jsonlint.com)
-
-## 🛡️ Uwagi dotyczące bezpieczeństwa
-
-- **CSRF** – Tokeny w formularzach chronią przed atakami Cross-Site Request Forgery
-- **Prepared statements** – Zapytania SQL z wykorzystaniem PDO chronią przed SQL Injection
-- **Hashowanie haseł** – Przechowywane za pomocą `password_hash()` (algorithm: bcrypt)
-- **Ograniczenie prób logowania** – Po 5 nieudanych próbach blokada na 15 minut (jeśli zaimplementowane)
-- **Bezpieczne sesje** – Regeneracja ID sesji przy logowaniu, ustawienie HttpOnly i Secure flag (jeśli HTTPS)
-- **Walidacja danych** – Sprawdzanie i sanitizacja wejścia użytkownika
-
-## ⚠️ Rozwiązywanie problemów
-
-### Biały ekran (White Screen of Death)
-- Sprawdź logi błędów PHP: `error_log` lub `php_error.log`
-- Włącz wyświetlanie błędów w `php.ini`: `display_errors = On`
-- Sprawdź składnię plików PHP (brakujące `;`, `}` itp.)
-
-### Problem z połączeniem bazy danych
-- Sprawdź, czy serwer MySQL działa (XAMPP → Start MySQL)
-- Sprawdź dane logowania w `config/db.php`
+### Problem z połączeniem bazy
+- Sprawdź prawidłowość danych w `.env` lub `config/db.php`
+- Upewnij się, że serwer MySQL/MariaDB działa
 - Upewnij się, że baza `inf02_platform` istnieje
 
 ### Problem z uprawnieniami
-- Sprawdź czy katalog `data/` ma uprawnienia do zapisu (755 lub 777 tymczasowo)
-- Sprawdź, czy Apache ma uprawnienia do odczytu plików
+- Upewnij się, że katalogi i pliki mają dostęp do odczytu/zapisu dla serwera WWW
+- Sprawdź, czy `.htaccess` nie blokuje potrzebnych plików
 
-### Pretty URLs nie działają (Apache)
+### Problem z regułami Apache
 - Upewnij się, że moduł `mod_rewrite` jest włączony
-- Sprawdź, czy `AllowOverride All` jest ustawione w konfiguracji Apache dla katalogu
-- Przetestuj bezpośredni dostęp: `http://localhost/login.php` (jeśli plik istnieje)
-
-### Brak wyświetlanych pytań
-- Sprawdź format `questions.json` – czy jest poprawnym JSONem
-- Sprawdź uprawnienia do odczytu pliku
-- Sprawdź logi PHP pod kątem błędów parsowania
+- Sprawdź, czy `AllowOverride All` jest ustawione dla katalogu WWW
 
 ## 📝 Licencja
 
-Projekt edukacyjny – do użytku niekomercyjnego. Wolno modyfikować i dystrybuować w celach dydaktycznych.
+Projekt edukacyjny – do użytku prywatnego. Nie zezwala się na używanie zmodyfikowanego kodu do celów innych niż prywatne.
 
 ---
 
-**Wersja:** 1.0.0  
-**Autor:** Autor platformy INF.02  
-**Ostatnia aktualizacja:** 2025
+**Ostatnia aktualizacja:** 2026
