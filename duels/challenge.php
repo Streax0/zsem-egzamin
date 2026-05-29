@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Notify opponent
             $modeLabel = ['classic' => 'klasyczny', 'underdog' => 'Underdog Mode', 'all_in' => 'All-In Duel'][$duelMode];
-            addNotification($pdo, $opponentId, 'duel_challenge', "Użytkownik {$_SESSION['username']} wyzwał Cię na pojedynek ({$modeLabel})!", 'duels/lobby.php?id=' . $duelId);
+            addNotification($pdo, $opponentId, 'duel_challenge', "Użytkownik {$_SESSION['username']} wyzwał Cię na pojedynek ({$modeLabel})!", '/duels/lobby.php?id=' . $duelId);
 
             setSessionMessage('success', 'Wyzwanie zostało wysłane! Oczekuj na akceptację w lobby.');
             redirect('lobby.php?id=' . $duelId);

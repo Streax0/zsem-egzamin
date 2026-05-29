@@ -125,16 +125,40 @@ if (!isset($base_url)) {
     const analytics = document.getElementById('cookieCategoryAnalytics');
     const marketing = document.getElementById('cookieCategoryMarketing');
 
+    const getLocal = (name) => {
+        try {
+            return window.localStorage.getItem(name) || '';
+        } catch (error) {
+            return '';
+        }
+    };
+    const setLocal = (name, value) => {
+        try {
+            window.localStorage.setItem(name, value);
+        } catch (error) {
+            // ignore storage errors in privacy-locked browsers
+        }
+    };
+    const deleteLocal = (name) => {
+        try {
+            window.localStorage.removeItem(name);
+        } catch (error) {
+            // ignore storage errors in privacy-locked browsers
+        }
+    };
     const getCookie = (name) => {
         const prefix = name + '=';
-        return document.cookie.split('; ').find(row => row.startsWith(prefix))?.slice(prefix.length) || '';
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith(prefix))?.slice(prefix.length);
+        return cookieValue || getLocal(name) || '';
     };
     const setCookie = (name, value) => {
         document.cookie = name + '=' + encodeURIComponent(value) + '; Max-Age=' + maxAge + '; Path=/; SameSite=Lax' + secure;
+        setLocal(name, value);
     };
     const deleteOptionalPreferenceCookies = () => {
         ['user_theme', 'user_font_size', 'user_density', 'user_accent', 'reduce_motion', 'dashboard_view', 'default_test_mode', 'external_new_tab', 'hide_help_center'].forEach((name) => {
             document.cookie = name + '=; Max-Age=0; Path=/; SameSite=Lax' + secure;
+            deleteLocal(name);
         });
     };
     const parseConsent = () => {

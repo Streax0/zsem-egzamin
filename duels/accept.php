@@ -42,7 +42,7 @@ try {
         }
         $stmt = $pdo->prepare("UPDATE duels SET status = 'accepted' WHERE id = ?");
         $stmt->execute([$duelId]);
-        addNotification($pdo, $duel['challenger_id'], 'duel_accepted', "Użytkownik {$_SESSION['username']} zaakceptował Twoje wyzwanie!", 'duels/take.php?id=' . $duelId);
+        addNotification($pdo, $duel['challenger_id'], 'duel_accepted', "Użytkownik {$_SESSION['username']} zaakceptował Twoje wyzwanie!", '/duels/take.php?id=' . $duelId);
         setSessionMessage('success', 'Wyzwanie zaakceptowane! Rozpoczynasz pojedynek.');
         redirect('take.php?id=' . $duelId);
     } else {

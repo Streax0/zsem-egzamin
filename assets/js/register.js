@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         usernameFeedback.className = 'small mt-1';
         return;
       }
-      const ok = /^[A-Za-z0-9_.-]{3,50}$/.test(username);
-      usernameFeedback.textContent = ok ? 'Format loginu jest poprawny. Dostępność sprawdzimy po wysłaniu formularza.' : 'Login: 3-50 znaków, litery, cyfry, kropka, myślnik lub podkreślenie.';
+      const ok = /^[A-Za-z0-9_.-]{3,16}$/.test(username);
+      usernameFeedback.textContent = ok ? 'Format loginu jest poprawny. Dostępność sprawdzimy po wysłaniu formularza.' : 'Login: 3-16 znaków, litery, cyfry, kropka, myślnik lub podkreślenie.';
       usernameFeedback.className = ok ? 'small mt-1 feedback-ok' : 'small mt-1 feedback-error';
     });
   }

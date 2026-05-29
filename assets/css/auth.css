@@ -7,7 +7,7 @@ body.auth-page {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 2rem 1rem;
+  padding: 2rem 1rem 8rem;
   position: relative;
   overflow-x: hidden;
 }
@@ -141,6 +141,11 @@ body.auth-page::before {
 
 .auth-form-panel .form-check-input {
   border-color: #94a3b8;
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: #2563eb;
+  background-color: #ffffff;
+  margin-top: .18rem;
 }
 
 .alert-custom {

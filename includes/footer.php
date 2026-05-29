@@ -125,6 +125,64 @@ if (!isset($base_url)) {
     </div>
 </footer>
 
+<?php if (!empty($_SESSION['user_id'])): ?>
+<div id="sessionKeepaliveModal" class="session-keepalive-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="sessionKeepaliveTitle">
+    <div class="session-keepalive-backdrop"></div>
+    <div class="session-keepalive-panel">
+        <h2 id="sessionKeepaliveTitle">Twoja sesja wygasa za chwilę</h2>
+        <p id="sessionKeepaliveMessage">Twoja sesja wygaśnie za mniej niż 10 minut. Czy nadal jesteś aktywny?</p>
+        <div class="session-keepalive-actions">
+            <button id="sessionKeepaliveConfirm" type="button" class="btn btn-primary btn-lg">Tak, przedłuż</button>
+            <button id="sessionKeepaliveClose" type="button" class="btn btn-outline-secondary btn-lg">Nie, dzięki</button>
+        </div>
+        <div id="sessionKeepaliveStatus" class="text-muted small mt-3"></div>
+    </div>
+</div>
+<?php endif; ?>
+
+<style>
+.session-keepalive-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+}
+.session-keepalive-modal.visible {
+    display: flex;
+}
+.session-keepalive-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(2px);
+}
+.session-keepalive-panel {
+    position: relative;
+    max-width: 520px;
+    width: min(100%, 520px);
+    background: #fff;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
+    z-index: 1;
+}
+.session-keepalive-panel h2 {
+    margin-bottom: 0.75rem;
+    font-size: 1.35rem;
+}
+.session-keepalive-panel p {
+    margin-bottom: 1.5rem;
+    color: #475569;
+}
+.session-keepalive-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+</style>
+
 <style>
 .footer-links a {
     transition: all 0.2s ease;
@@ -254,6 +312,125 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(setCta, 7000);
 });
 </script>
+
+<?php if (!empty($_SESSION['user_id'])): ?>
+<script>
+(function() {
+    const base = <?php echo json_encode($base_url); ?>;
+    const keepaliveToken = <?php echo json_encode(generateCsrfToken('session_keepalive')); ?>;
+    const warningThreshold = 600; // 10 minutes
+    const pollIntervalMs = 60000; // 1 minute
+
+    function getElement(id) {
+        return document.getElementById(id);
+    }
+
+    const modal = getElement('sessionKeepaliveModal');
+    const message = getElement('sessionKeepaliveMessage');
+    const statusLabel = getElement('sessionKeepaliveStatus');
+    const confirmButton = getElement('sessionKeepaliveConfirm');
+    const closeButton = getElement('sessionKeepaliveClose');
+
+    if (!modal || !message || !confirmButton || !closeButton) {
+        return;
+    }
+
+    let modalVisible = false;
+    let lastRemaining = null;
+
+    function setModalVisible(visible) {
+        modalVisible = visible;
+        modal.classList.toggle('visible', visible);
+        modal.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        if (!visible) {
+            statusLabel.textContent = '';
+        }
+    }
+
+    function showModal(remainingSeconds) {
+        if (modalVisible) {
+            return;
+        }
+        lastRemaining = remainingSeconds;
+        const minutes = Math.max(1, Math.ceil(remainingSeconds / 60));
+        message.textContent = `Twoja sesja wygasa za około ${minutes} minut. Jesteś nadal aktywny? Kliknij „Tak, przedłuż”.`;
+        statusLabel.textContent = '';
+        setModalVisible(true);
+    }
+
+    function hideModal() {
+        setModalVisible(false);
+    }
+
+    async function fetchSessionStatus() {
+        try {
+            const response = await fetch(base + 'ajax/session_status.php', {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (!data.success) {
+                return;
+            }
+            const remaining = Number(data.remaining_seconds || 0);
+            if (remaining > 0 && remaining <= warningThreshold) {
+                showModal(remaining);
+            }
+            if (remaining <= 0) {
+                statusLabel.textContent = 'Twoja sesja wygasła. Odśwież stronę, aby się ponownie zalogować.';
+            }
+        } catch (error) {
+            console.error('Session status error:', error);
+        }
+    }
+
+    async function extendSession() {
+        confirmButton.disabled = true;
+        statusLabel.textContent = 'Przedłużam sesję...';
+        try {
+            const formData = new URLSearchParams();
+            formData.append('csrf_token', keepaliveToken);
+            const response = await fetch(base + 'ajax/extend_session.php', {
+                method: 'POST',
+                cache: 'no-store',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-Token': keepaliveToken,
+                    'Accept': 'application/json'
+                },
+                body: formData.toString()
+            });
+            const data = await response.json();
+            if (data.success) {
+                statusLabel.textContent = 'Sesja została przedłużona o kolejne 3 godziny.';
+                setTimeout(hideModal, 1200);
+                return;
+            }
+            statusLabel.textContent = data.error ? `Błąd: ${data.error}` : 'Nie udało się przedłużyć sesji.';
+        } catch (error) {
+            statusLabel.textContent = 'Błąd połączenia. Spróbuj ponownie.';
+            console.error('Session extend error:', error);
+        } finally {
+            confirmButton.disabled = false;
+        }
+    }
+
+    closeButton.addEventListener('click', hideModal);
+    confirmButton.addEventListener('click', extendSession);
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modalVisible) {
+            hideModal();
+        }
+    });
+
+    fetchSessionStatus();
+    setInterval(fetchSessionStatus, pollIntervalMs);
+})();
+</script>
+<?php endif; ?>
 
 <script src="<?php echo $base_url; ?>assets/js/app-dialogs.js" defer></script>
 <script src="<?php echo $base_url; ?>assets/js/performance-metrics.js" defer></script>

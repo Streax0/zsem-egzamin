@@ -246,27 +246,36 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 0.85rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
-            border: 1px solid var(--border-color);
-            background: var(--panel-bg);
-            color: var(--text-main);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            border: none;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-color-dark));
+            color: white;
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.18);
+        }
+
+        .action-btn.btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+
+        .action-btn.btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
         }
 
         .action-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-            transform: scale(1.1);
+            transform: scale(1.08);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
         }
 
-        .action-btn.btn-success:hover { background: #22c55e; border-color: #22c55e; }
-        .action-btn.btn-danger:hover { background: #ef4444; border-color: #ef4444; }
+        .action-btn.btn-success:hover { background: linear-gradient(135deg, #16a34a, #15803d); }
+        .action-btn.btn-danger:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); }
 
         .btn-duel-modern {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
@@ -360,6 +369,120 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-weight: 800;
             border: 2px solid var(--panel-bg);
         }
+
+        .pending-request-row {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, rgba(59,130,246,0.16), rgba(255,255,255,0.90));
+            border: 1px solid rgba(59,130,246,0.18);
+            box-shadow: 0 18px 34px rgba(15,23,42,0.09);
+            backdrop-filter: blur(12px);
+        }
+
+        .pending-request-row::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at top right, rgba(59,130,246,0.16), transparent 26%),
+                radial-gradient(circle at bottom left, rgba(59,130,246,0.08), transparent 20%);
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .pending-request-row > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .pending-request-row .action-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.95);
+            color: var(--text-main);
+            box-shadow: 0 10px 22px rgba(15,23,42,0.10);
+        }
+
+        .pending-request-row .action-btn:hover {
+            transform: translateY(-1px) scale(1.05);
+            box-shadow: 0 14px 24px rgba(15,23,42,0.14);
+        }
+
+        .pending-request-row .action-btn.btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border-color: transparent;
+        }
+
+        .pending-request-row .action-btn.btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-color: transparent;
+        }
+
+        .sent-request-row {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, rgba(248,250,252,0.95), rgba(241,245,249,0.96));
+            border: 1px solid rgba(148,163,184,0.18);
+            box-shadow: 0 14px 26px rgba(15,23,42,0.08);
+        }
+
+        .sent-request-row::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at top left, rgba(59,130,246,0.10), transparent 20%),
+                radial-gradient(circle at bottom right, rgba(15,23,42,0.05), transparent 28%);
+            pointer-events: none;
+        }
+
+        .sent-request-row > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sent-request-row .user-avatar-social {
+            box-shadow: 0 10px 20px rgba(15,23,42,0.12);
+        }
+
+        .sent-request-row .text-muted,
+        .sent-request-row .smaller {
+            color: rgba(71,85,105,0.82);
+        }
+
+        .sent-request-row .action-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 1rem;
+            border: 1px solid rgba(148,163,184,0.24);
+            background: rgba(255,255,255,0.92);
+            color: var(--text-main);
+            box-shadow: 0 10px 22px rgba(15,23,42,0.08);
+            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .sent-request-row .action-btn:hover {
+            transform: translateY(-1px) scale(1.05);
+            background: rgba(255,255,255,1);
+            box-shadow: 0 12px 24px rgba(15,23,42,0.12);
+        }
+
+        .sent-request-row .action-btn.text-danger {
+            color: #ef4444;
+            background: rgba(254,242,242,0.85);
+            border-color: rgba(239,68,68,0.18);
+        }
+
+        .sent-request-row .action-btn.text-danger:hover {
+            color: #fff;
+            background: linear-gradient(135deg, rgba(239,68,68,0.95), rgba(220,38,38,0.95));
+            border-color: rgba(239,68,68,0.24);
+        }
+
         .social-hero {
             border-radius: 28px;
             padding: clamp(1.25rem, 3vw, 2.4rem);
@@ -642,7 +765,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             $avatarClass = 'avatar-' . strtolower(substr($req['username'], 0, 1));
                                             $avatarSrc = userAvatarSrc($req['avatar_path'] ?? '');
                                         ?>
-                                            <div class="d-flex align-items-center gap-3 p-3 border rounded-4 bg-light bg-opacity-25">
+                                            <div class="pending-request-row d-flex align-items-center gap-3 p-3 border rounded-4">
                                                 <a href="profile.php?id=<?php echo (int)$req['id']; ?>" class="text-decoration-none flex-shrink-0" aria-label="Profil <?php echo htmlspecialchars($req['username']); ?>">
                                                     <?php if ($avatarSrc): ?>
                                                         <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem;">
@@ -681,11 +804,11 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             $avatarClass = 'avatar-' . strtolower(substr($req['username'], 0, 1));
                                             $avatarSrc = userAvatarSrc($req['avatar_path'] ?? '');
                                         ?>
-                                            <div class="d-flex align-items-center gap-3 p-3 border rounded-4 bg-light bg-opacity-10">
+                                            <div class="sent-request-row d-flex align-items-center gap-3 p-3 border rounded-4">
                                                 <?php if ($avatarSrc): ?>
-                                                    <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem; opacity: 0.8;">
+                                                    <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem; opacity: 0.95;">
                                                 <?php else: ?>
-                                                    <div class="user-avatar-social <?php echo $avatarClass; ?>" style="width: 42px; height: 42px; font-size: 1rem; opacity: 0.8;">
+                                                    <div class="user-avatar-social <?php echo $avatarClass; ?>" style="width: 42px; height: 42px; font-size: 1rem; opacity: 0.95;">
                                                         <?php echo strtoupper(substr($req['username'], 0, 1)); ?>
                                                     </div>
                                                 <?php endif; ?>

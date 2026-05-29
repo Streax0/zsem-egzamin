@@ -76,7 +76,10 @@
 
     function optionalCookiesAllowed() {
         try {
-            const consent = getCookie('cookie_consent_v2');
+            let consent = getCookie('cookie_consent_v2');
+            if (!consent) {
+                consent = window.localStorage.getItem('cookie_consent_v2');
+            }
             if (consent) {
                 const parsed = JSON.parse(decodeURIComponent(consent));
                 return !!(parsed.categories && parsed.categories.preferences);
@@ -84,7 +87,7 @@
         } catch (error) {
             return false;
         }
-        return getCookie('cookie_consent') === 'accepted';
+        return getCookie('cookie_consent') === 'accepted' || window.localStorage.getItem('cookie_consent') === 'accepted';
     }
 
     function applySettings() {

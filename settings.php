@@ -107,7 +107,7 @@ try {
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <label class="form-label">Nazwa użytkownika</label>
-                                            <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($username); ?>" required>
+                                            <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($username); ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_.-]{3,16}" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Adres E-mail</label>
@@ -394,7 +394,7 @@ try {
                                 <div class="small">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Wersja aplikacji:</span>
-                                        <span class="fw-bold">1.1 Beta</span>
+                                        <span class="fw-bold">1.5 Beta</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">ID Użytkownika:</span>

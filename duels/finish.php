@@ -115,12 +115,12 @@ try {
                 $loserId = ((int)$winnerId === (int)$updated['challenger_id']) ? (int)$updated['opponent_id'] : (int)$updated['challenger_id'];
                 awardXp($pdo, $winnerId, $stake, 'duel', $duelId, 'Wygrana All-In Duel');
                 awardXp($pdo, $loserId, -$stake, 'duel', $duelId, 'Przegrana All-In Duel');
-                addNotification($pdo, $winnerId, 'duel_finished', "Wygrałeś All-In Duel i zgarniasz +$stake XP.", 'duels/results.php?id=' . $duelId);
-                addNotification($pdo, $loserId, 'duel_finished', "Przegrałeś All-In Duel i tracisz $stake XP.", 'duels/results.php?id=' . $duelId);
+                addNotification($pdo, $winnerId, 'duel_finished', "Wygrałeś All-In Duel i zgarniasz +$stake XP.", '/duels/results.php?id=' . $duelId);
+                addNotification($pdo, $loserId, 'duel_finished', "Przegrałeś All-In Duel i tracisz $stake XP.", '/duels/results.php?id=' . $duelId);
             }
 
             $opponentId = $isChallenger ? (int)$duel['opponent_id'] : (int)$duel['challenger_id'];
-            addNotification($pdo, $opponentId, 'duel_finished', 'Pojedynek został zakończony. Sprawdź wyniki.', 'duels/results.php?id=' . $duelId);
+            addNotification($pdo, $opponentId, 'duel_finished', 'Pojedynek został zakończony. Sprawdź wyniki.', '/duels/results.php?id=' . $duelId);
         }
     }
 

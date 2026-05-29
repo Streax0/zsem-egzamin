@@ -29,8 +29,8 @@ $errors = [];
 $avatarUploaded = false;
 $avatarPath = null;
 
-if (strlen($username) < 3 || strlen($username) > 50) {
-    $errors[] = 'Nazwa użytkownika musi mieć od 3 do 50 znaków.';
+if (mb_strlen($username, 'UTF-8') < 3 || mb_strlen($username, 'UTF-8') > 16) {
+    $errors[] = 'Nazwa użytkownika musi mieć od 3 do 16 znaków.';
 }
 
 if (!preg_match('/^[a-zA-Z0-9_.-]+$/', $username)) {

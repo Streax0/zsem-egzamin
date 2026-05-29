@@ -94,8 +94,8 @@ function startSecureSession() {
         header("Content-Security-Policy: " . appContentSecurityPolicy($cspNonce));
     }
 
-    // Session lifetime: 0 = until browser closes, 3600 = 1 hour
-    $lifetime = 3600;
+    // Session lifetime: 0 = until browser closes, 10800 = 3 hours
+    $lifetime = 10800;
 
     // If a session is already active, avoid changing cookie parameters or ini settings
     // because PHP will emit warnings when those are modified after session start.
@@ -401,6 +401,10 @@ function secureRandomBytes($length = 32) {
     return $bytes;
 }
 
+function getCsrfTokenMaxAge($action = '') {
+    return $action === 'session_keepalive' ? 10800 : 3600;
+}
+
 function generateCsrfToken($action = '') {
     // Ensure session is started
     if (session_status() === PHP_SESSION_NONE) {
@@ -409,11 +413,12 @@ function generateCsrfToken($action = '') {
     
     // Generate token key
     $tokenKey = $action ? 'csrf_token_' . $action : 'csrf_token';
+    $maxAge = getCsrfTokenMaxAge($action);
     
-    // Generate new token if it doesn't exist or is expired (> 1 hour)
+    // Generate new token if it doesn't exist or is expired
     if (empty($_SESSION[$tokenKey]) || 
         (isset($_SESSION[$tokenKey . '_time']) && 
-         time() - $_SESSION[$tokenKey . '_time'] > 3600)) {
+         time() - $_SESSION[$tokenKey . '_time'] > $maxAge)) {
         
         // Generate cryptographically secure random token
         $_SESSION[$tokenKey] = bin2hex(secureRandomBytes(32));
@@ -441,15 +446,16 @@ function validateCsrfToken($token, $action = '') {
     
     // Get token key
     $tokenKey = $action ? 'csrf_token_' . $action : 'csrf_token';
+    $maxAge = getCsrfTokenMaxAge($action);
     
     // Check if token exists in session
     if (empty($_SESSION[$tokenKey])) {
         return false;
     }
     
-    // Check if token is expired (1 hour limit)
+    // Check if token is expired
     if (isset($_SESSION[$tokenKey . '_time']) && 
-        time() - $_SESSION[$tokenKey . '_time'] > 3600) {
+        time() - $_SESSION[$tokenKey . '_time'] > $maxAge) {
         unset($_SESSION[$tokenKey]);
         unset($_SESSION[$tokenKey . '_time']);
         return false;
@@ -534,10 +540,10 @@ function getSessionAge() {
 /**
  * Checks if session has expired
  * 
- * @param int $maxLifetime Maximum session lifetime in seconds (default: 1 hour)
+ * @param int $maxLifetime Maximum session lifetime in seconds (default: 3 hours)
  * @return bool True if session has expired
  */
-function isSessionExpired($maxLifetime = 3600) {
+function isSessionExpired($maxLifetime = 10800) {
     return getSessionAge() > $maxLifetime;
 }
 

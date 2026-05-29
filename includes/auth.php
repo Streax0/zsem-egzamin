@@ -461,14 +461,15 @@ function login($username, $password, $remember = false) {
  * @param string|null $lastName Optional last name
  * @return int|false User ID on success, false on failure
  */
-function register($username, $email, $password, $firstName = null, $lastName = null, $classYear = null, $classSuffix = null) {
+function register($username, $email, $password, $firstName = null, $lastName = null, $classYear = null, $classSuffix = null, bool $enforceUsernameLength = true) {
     global $pdo;
 
     $username = trim((string)$username);
     $email = trim(mb_strtolower((string)$email, 'UTF-8'));
     $firstName = trim((string)$firstName);
     $lastName = trim((string)$lastName);
-    if (!preg_match('/^[A-Za-z0-9_.-]{3,50}$/', $username) || mb_strlen($email, 'UTF-8') > 100 || mb_strlen($firstName, 'UTF-8') > 50 || mb_strlen($lastName, 'UTF-8') > 50) {
+    $usernamePattern = $enforceUsernameLength ? '/^[A-Za-z0-9_.-]{3,16}$/' : '/^[A-Za-z0-9_.-]{3,50}$/';
+    if (!preg_match($usernamePattern, $username) || mb_strlen($email, 'UTF-8') > 100 || mb_strlen($firstName, 'UTF-8') > 50 || mb_strlen($lastName, 'UTF-8') > 50) {
         return false;
     }
     if (function_exists('containsProfanity') && (containsProfanity($username) || containsProfanity($email) || containsProfanity($firstName) || containsProfanity($lastName))) {

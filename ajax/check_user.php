@@ -17,7 +17,7 @@ if (!consumeRateLimit($pdo, 'check_user', clientIpAddress(), 30, 300)) {
 }
 
 if (!empty($username)) {
-    if (!preg_match('/^[A-Za-z0-9_.-]{3,50}$/', $username)) {
+    if (!preg_match('/^[A-Za-z0-9_.-]{3,16}$/', $username)) {
         echo json_encode(['exists' => false, 'invalid' => true]);
         exit;
     }
