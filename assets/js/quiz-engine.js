@@ -25,18 +25,26 @@ const QuizEngine = {
         // Intercept form submission
         const quizForm = document.getElementById('quizForm');
         if (quizForm) {
-            quizForm.addEventListener('submit', (e) => {
-                const submitter = e.submitter;
-                if (submitter?.name === 'action' && submitter.value !== 'submit_answer') {
-                    return;
-                }
-                e.preventDefault();
-                this.submitAnswer();
-            });
+            quizForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
         }
 
         // Global keydown for shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+    },
+
+    handleFormSubmit(e) {
+        if (e.defaultPrevented || this.state.isBusy) {
+            e.preventDefault();
+            return false;
+        }
+        const submitter = e.submitter;
+        if (submitter?.name === 'action' && submitter.value !== 'submit_answer') {
+            window.allowQuizNavigation?.();
+            return true;
+        }
+        e.preventDefault();
+        this.submitAnswer();
+        return false;
     },
 
     async submitAnswer() {
@@ -57,6 +65,7 @@ const QuizEngine = {
         }
 
         this.setBusy(true);
+        this.lockOptions(true);
         
         const formData = new FormData();
         formData.append('action', 'submit_answer');
@@ -73,6 +82,7 @@ const QuizEngine = {
 
             if (data.success) {
                 if (data.finished) {
+                    window.allowQuizNavigation?.();
                     window.location.href = data.redirect;
                 } else if (data.next_question) {
                     this.renderQuestion(data.question, data.current, data.total);
@@ -82,6 +92,7 @@ const QuizEngine = {
             } else {
                 this.notify('Błąd: ' + (data.error || 'Nieznany błąd'), 'danger');
                 if (data.error === 'No active test' || data.error === 'Invalid CSRF token') {
+                    window.allowQuizNavigation?.();
                     window.location.reload();
                 }
             }
@@ -90,6 +101,7 @@ const QuizEngine = {
             this.notify('Wystąpił błąd połączenia.', 'danger');
         } finally {
             this.setBusy(false);
+            this.lockOptions(false);
         }
     },
 
@@ -110,6 +122,7 @@ const QuizEngine = {
 
             if (data.success) {
                 if (data.finished) {
+                    window.allowQuizNavigation?.();
                     window.location.href = data.redirect;
                 } else {
                     this.renderQuestion(data.question, data.current, data.total);
@@ -183,16 +196,25 @@ const QuizEngine = {
             if (reviewBox) reviewBox.remove();
             
             // Remove next button container if exists
-            const nextContainer = document.querySelector('.d-flex.gap-2.mt-4.flex-wrap');
+            const nextContainer = document.querySelector('.review-next-actions');
             if (nextContainer) {
                 // Show original submit button container if hidden
-                document.querySelector('#quizForm .d-flex.justify-content-between').style.display = 'flex';
+                const submitActions = document.querySelector('#quizForm .quiz-action-bar');
+                if (submitActions) submitActions.style.display = 'flex';
                 nextContainer.remove();
             }
 
             cardBody.classList.remove('fade-out');
             cardBody.classList.add('fade-in');
+            this.scrollToQuestionTop();
         }, 300);
+    },
+
+    scrollToQuestionTop() {
+        const target = document.querySelector('.test-progress-panel') || document.querySelector('.question-card');
+        if (!target) return;
+        const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - 72);
+        window.scrollTo({ top, behavior: 'smooth' });
     },
 
     renderReview(result) {
@@ -214,7 +236,7 @@ const QuizEngine = {
         });
 
         // Hide submit button container
-        const submitContainer = document.querySelector('#quizForm .d-flex.justify-content-between');
+        const submitContainer = document.querySelector('#quizForm .quiz-action-bar');
         if (submitContainer) submitContainer.style.display = 'none';
 
         // Add review feedback and next button
@@ -234,7 +256,7 @@ const QuizEngine = {
                     <p class="mb-0 text-muted">Poprawna odpowiedź: <strong class="text-success">${result.correct_answer}</strong></p>`
                 }
             </div>
-            <div class="d-flex gap-2 mt-4 flex-wrap animate-in">
+            <div class="review-next-actions d-flex gap-2 mt-4 flex-wrap animate-in">
                 <button type="button" class="btn ${result.is_last ? 'btn-success' : 'btn-primary'} btn-lg" onclick="QuizEngine.nextQuestion()">
                     ${result.is_last ? 'Zakończ test' : 'Następne pytanie'} <i class="bi bi-arrow-right ms-2"></i>
                 </button>
@@ -261,7 +283,7 @@ const QuizEngine = {
         }
         if (e.key === 'Enter') {
             const btn = document.getElementById('submitBtn');
-            const nextBtn = document.querySelector('.d-flex.gap-2.mt-4 button');
+            const nextBtn = document.querySelector('.review-next-actions button');
             if (nextBtn && nextBtn.offsetParent !== null) {
                 nextBtn.click();
             } else if (btn && !btn.disabled) {
@@ -281,6 +303,12 @@ const QuizEngine = {
                 btn.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Zatwierdź odpowiedź';
             }
         }
+    },
+
+    lockOptions(locked) {
+        document.querySelectorAll('.quiz-option').forEach(opt => {
+            opt.classList.toggle('disabled', locked);
+        });
     },
 
     notify(message, type = 'warning') {
@@ -304,6 +332,8 @@ const QuizEngine = {
         return div.innerHTML;
     }
 };
+
+window.QuizEngine = QuizEngine;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => QuizEngine.init());

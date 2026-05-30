@@ -23,11 +23,45 @@ if (!$test && $action !== 'start_test') {
     exit;
 }
 
+function emitCurrentQuestion($test) {
+    $current = max(0, (int)($test['current'] ?? 0));
+    $total = count($test['questions'] ?? []);
+    if ($total < 1 || !isset($test['questions'][$current])) {
+        echo json_encode(['success' => false, 'error' => 'No active question']);
+        return;
+    }
+    echo json_encode([
+        'success' => true,
+        'finished' => false,
+        'next_question' => true,
+        'current' => $current,
+        'total' => $total,
+        'question' => formatQuestionForAjax($test['questions'][$current])
+    ]);
+}
+
 switch ($action) {
     case 'submit_answer':
         $questionId = (int)($_POST['question_id'] ?? 0);
         $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
         $currentIdx = $test['current'];
+
+        if (!isset($test['questions'][$currentIdx])) {
+            echo json_encode(['success' => false, 'error' => 'No active question']);
+            break;
+        }
+
+        if ((int)$test['questions'][$currentIdx]['id'] !== $questionId) {
+            $previousIdx = $currentIdx - 1;
+            $previousAnswer = $test['answers'][$previousIdx] ?? null;
+            $previousQuestion = $test['questions'][$previousIdx] ?? null;
+            if ($previousQuestion && (int)$previousQuestion['id'] === $questionId && $previousAnswer) {
+                emitCurrentQuestion($test);
+                break;
+            }
+            echo json_encode(['success' => false, 'error' => 'Invalid question']);
+            break;
+        }
         
         if (isset($test['questions'][$currentIdx]) && (int)$test['questions'][$currentIdx]['id'] === $questionId) {
             $q = $test['questions'][$currentIdx];

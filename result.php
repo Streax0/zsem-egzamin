@@ -159,9 +159,15 @@ $passed = $score_percent >= 50;
             gap: .5rem;
             flex-wrap: wrap;
         }
+        .answer-filter-bar .btn {
+            white-space: nowrap;
+        }
         .answer-filter-bar .btn.active {
             background: var(--primary-color, var(--primary-color));
             color: #fff;
+        }
+        .detailed-answers-panel table {
+            min-width: 680px;
         }
         body.dark-mode .result-insight-card {
             background: #1e293b;
@@ -175,7 +181,39 @@ $passed = $score_percent >= 50;
             .score-circle { width: 140px; height: 140px; }
             .score-value { font-size: 2.5rem; }
             .result-insights { grid-template-columns: 1fr; }
-            .answer-filter-bar .btn { flex: 1; }
+            .detailed-answers-panel {
+                padding: 1rem !important;
+            }
+            .detailed-answers-panel .panel-header > .d-flex {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: .75rem;
+            }
+            .detailed-answers-panel .panel-header .d-flex.align-items-center.gap-2 {
+                min-width: 0;
+            }
+            .detailed-answers-panel .panel-title {
+                font-size: .95rem;
+                line-height: 1.2;
+            }
+            .answer-filter-bar {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                width: 100%;
+                gap: .4rem;
+            }
+            .answer-filter-bar .btn {
+                min-width: 0;
+                padding: .38rem .35rem;
+                font-size: .7rem;
+                line-height: 1.1;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .detailed-answers-panel .table-responsive {
+                margin: 0 -1rem -1rem;
+                padding: 0 1rem 1rem;
+            }
         }
         .result-hero::before {
             content: '';
@@ -379,7 +417,7 @@ $passed = $score_percent >= 50;
 
                     <!-- Detailed Answers -->
                     <?php if (!empty($answers)): ?>
-                    <div class="dashboard-panel animate-in" style="animation-delay: 0.2s;">
+                    <div class="dashboard-panel detailed-answers-panel animate-in" style="animation-delay: 0.2s;">
                         <div class="panel-header mb-0">
                             <div class="d-flex align-items-center justify-content-between w-100">
                                 <div class="d-flex align-items-center gap-2">

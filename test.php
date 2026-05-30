@@ -346,6 +346,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ──────────────────────────────────────────────────────────────────────────────
 
 if ($test) {
+    if (!empty($questions) && (int)($test['current'] ?? 0) >= $totalQuestions) {
+        if (isGuestMode()) {
+            $resultId = finishGuestTest($test);
+            header('Location: result.php?guest=' . urlencode($resultId));
+        } else {
+            $resultId = finishTest($pdo, $_SESSION['user_id'], $test);
+            header('Location: result.php?id=' . $resultId);
+        }
+        exit;
+    }
     $currentIdx      = $test['current'];
     $currentQuestion = $questions[$currentIdx] ?? null;
     $phase           = $test['phase'] ?? 'answering';
@@ -374,13 +384,40 @@ if ($test) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
     <script src="assets/js/theme-handler.js"></script>
-    <script src="assets/js/quiz-engine.js" defer></script>
+    <script src="assets/js/quiz-engine.js?v=<?= filemtime(__DIR__ . '/assets/js/quiz-engine.js') ?>" defer></script>
     <style>
         @media(max-width:576px) { .answer-option{padding:.9rem 2.5rem .9rem 1rem;} }
+        .test-progress-panel .progress-heading {
+            min-width: 0;
+        }
+        .test-progress-panel .progress-actions {
+            min-width: max-content;
+        }
+        .test-progress-panel .timer-display {
+            font-family: "Nunito", "Inter", sans-serif;
+            font-variant-numeric: tabular-nums;
+            min-width: 4.8rem;
+            text-align: right;
+            white-space: nowrap;
+            line-height: 1;
+        }
+        .question-card .question-card-header h5 {
+            font-family: "Nunito", "Inter", sans-serif;
+            font-weight: 800;
+        }
+        .question-card .question-text-main {
+            font-family: "Nunito", "Inter", sans-serif;
+            font-size: 1.28rem;
+            line-height: 1.55 !important;
+            letter-spacing: 0;
+        }
+        .quiz-action-bar .btn {
+            min-height: 48px;
+        }
         
         .form-label {
             color: var(--text-main);
@@ -894,6 +931,92 @@ if ($test) {
             }
         }
         @media (max-width: 576px) {
+            .test-progress-panel {
+                padding: 0.85rem !important;
+            }
+            .test-progress-panel .progress-top {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: flex-start !important;
+                gap: 0.75rem;
+                margin-bottom: 0.75rem !important;
+            }
+            .test-progress-panel .progress-heading {
+                display: contents;
+            }
+            .test-progress-panel .progress-heading .small {
+                font-size: 0.72rem;
+                grid-column: 1;
+                grid-row: 1;
+            }
+            .test-progress-panel .progress-heading strong {
+                font-size: 1rem;
+                line-height: 1.15;
+                grid-column: 1 / -1;
+                grid-row: 2;
+                white-space: nowrap;
+            }
+            .test-progress-panel .progress-actions {
+                gap: 0.5rem !important;
+                flex-wrap: nowrap !important;
+                grid-column: 2;
+                grid-row: 1;
+            }
+            .test-progress-panel .timer-display {
+                font-size: 1.05rem !important;
+                min-width: 4.35rem;
+            }
+            .test-progress-panel .btn {
+                width: 2.4rem;
+                height: 2.4rem;
+                padding: 0 !important;
+                display: inline-grid;
+                place-items: center;
+                border-radius: 999px !important;
+            }
+            .test-progress-panel .btn span {
+                display: none;
+            }
+            .question-card {
+                padding: 1rem !important;
+            }
+            .question-card .question-card-header {
+                margin-bottom: 1rem !important;
+                gap: 0.75rem;
+            }
+            .question-card .question-card-header h5 {
+                font-size: 1rem;
+            }
+            .question-card .badge {
+                font-size: 0.68rem;
+                padding: 0.35rem 0.6rem !important;
+            }
+            .question-card .question-text-main {
+                font-size: 1.06rem;
+                line-height: 1.45 !important;
+                margin-bottom: 1rem !important;
+            }
+            .quiz-action-bar,
+            .quiz-primary-actions {
+                width: 100%;
+            }
+            .quiz-action-bar {
+                align-items: stretch !important;
+            }
+            .quiz-primary-actions {
+                display: grid !important;
+                grid-template-columns: 1fr;
+                gap: 0.6rem !important;
+            }
+            .quiz-primary-actions .btn {
+                width: 100%;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+                font-size: 0.9rem;
+            }
+            .quiz-action-bar > a {
+                width: 100%;
+            }
             .segmented-control {
                 grid-template-columns: 1fr;
                 border-radius: 12px;
@@ -1435,18 +1558,18 @@ if ($test) {
     <?php elseif ($currentQuestion): ?>
 
     <!-- ── Progress bar ───────────────────────────────────────────────────── -->
-    <div class="dashboard-panel mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
+    <div class="dashboard-panel test-progress-panel mb-4">
+        <div class="progress-top d-flex justify-content-between align-items-center mb-3">
+            <div class="progress-heading">
                 <span class="text-muted small d-block mb-1">Postęp testu</span>
                 <strong class="h5 mb-0">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></strong>
             </div>
-            <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
+            <div class="progress-actions d-flex align-items-center gap-3 flex-wrap justify-content-end">
             <?php if (!empty($test['time_limit'])): ?>
                 <div class="timer-display h4 mb-0 fw-bold text-primary" id="timer"><?= formatTime(max(0, (isset($test['time_limit']) ? $test['time_limit'] : 3600) - (time() - $test['start_time']))) ?></div>
             <?php endif; ?>
                 <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="confirmEndTest()">
-                    <i class="bi bi-stop-circle me-1"></i>Zakończ test
+                    <i class="bi bi-stop-circle me-1"></i><span>Zakończ test</span>
                 </button>
             </div>
         </div>
@@ -1460,7 +1583,7 @@ if ($test) {
     <div class="dashboard-panel question-card">
         <div class="panel-header d-flex justify-content-between align-items-center mb-4 question-card-header">
             <div class="d-flex align-items-center gap-3">
-                <h5 class="mb-0 fw-bold">Treść pytania</h5>
+                <h5 class="mb-0 fw-bold">Pytanie</h5>
             </div>
             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2"><?= htmlspecialchars($currentQuestion['category'] ?? 'Ogólne') ?></span>
         </div>
@@ -1476,7 +1599,7 @@ if ($test) {
 
             <?php if ($phase === 'answering'): ?>
             <!-- ── PHASE 1: Answer form ──────────────────────────────────── -->
-            <form method="POST" id="quizForm">
+            <form method="POST" id="quizForm" onsubmit="return window.QuizEngine ? window.QuizEngine.handleFormSubmit(event) : true">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                 <input type="hidden" name="question_id" value="<?= (int)$currentQuestion['id'] ?>">
                 <input type="hidden" name="action"      value="submit_answer">
@@ -1506,13 +1629,13 @@ if ($test) {
                     <?php endif; ?>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mt-4">
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button type="submit" name="action" value="previous_question" class="btn btn-outline-secondary btn-lg px-4" data-question-nav="previous" formnovalidate <?= $currentIdx <= 0 ? 'disabled' : '' ?>>
-                            <i class="bi bi-arrow-left me-2"></i>Poprzednie pytanie
-                        </button>
+                <div class="quiz-action-bar d-flex justify-content-between align-items-center gap-3 flex-wrap mt-4">
+                    <div class="quiz-primary-actions d-flex gap-2 flex-wrap">
                         <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn" <?= $savedAnswer === '' ? 'disabled' : '' ?>>
                             <i class="bi bi-check2-circle me-2"></i>Zatwierdź odpowiedź
+                        </button>
+                        <button type="submit" name="action" value="previous_question" class="btn btn-outline-secondary btn-lg px-4" data-question-nav="previous" formnovalidate <?= $currentIdx <= 0 ? 'disabled' : '' ?>>
+                            <i class="bi bi-arrow-left me-2"></i>Poprzednie pytanie
                         </button>
                     </div>
                     <a href="test.php?setup=1" class="btn btn-outline-secondary">
@@ -1663,10 +1786,14 @@ if ($test) {
 <!-- Test modals and timer -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script>
-let shouldConfirmNavigation = <?= $isTestActive ? 'true' : 'false' ?>;
+let shouldConfirmNavigation = false;
 let pendingFinishForm = null;
 let confirmModal = null;
 let timeExpiredModal = null;
+
+window.allowQuizNavigation = function () {
+    shouldConfirmNavigation = false;
+};
 
 function modalInstance(id) {
     const el = document.getElementById(id);
