@@ -47,7 +47,8 @@ const QuizEngine = {
         return false;
     },
 
-    async submitAnswer() {
+    async submitAnswer(options = {}) {
+        const force = options.force === true;
         if (this.state.isBusy) return;
         
         const selectedInput = document.getElementById('selectedAnswer');
@@ -55,7 +56,7 @@ const QuizEngine = {
         const quizForm = document.getElementById('quizForm');
         const csrfToken = this.getCsrfToken(quizForm || document);
 
-        if (!selectedInput.value) {
+        if (!selectedInput.value && !force) {
             this.notify('Proszę wybrać odpowiedź.', 'warning');
             return;
         }
@@ -66,6 +67,10 @@ const QuizEngine = {
 
         this.setBusy(true);
         this.lockOptions(true);
+
+        if (force && options.reason === 'timeout') {
+            this.notify('Czas na pytanie minął.', 'warning');
+        }
         
         const formData = new FormData();
         formData.append('action', 'submit_answer');
@@ -86,6 +91,9 @@ const QuizEngine = {
                     window.location.href = data.redirect;
                 } else if (data.next_question) {
                     this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
+                    if (typeof window.resetQuestionTimer === 'function') {
+                        window.resetQuestionTimer(data.question_time_limit || data.question_time_left);
+                    }
                 } else if (data.phase === 'review') {
                     this.renderReview(data.result);
                 }
@@ -126,6 +134,9 @@ const QuizEngine = {
                     window.location.href = data.redirect;
                 } else {
                     this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
+                    if (typeof window.resetQuestionTimer === 'function') {
+                        window.resetQuestionTimer(data.question_time_limit || data.question_time_left);
+                    }
                 }
             }
         } catch (error) {

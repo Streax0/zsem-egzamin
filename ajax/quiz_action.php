@@ -28,6 +28,17 @@ if (!$test && $action !== 'start_test') {
     exit;
 }
 
+function questionTimerPayload(array $test): array {
+    $limit = getTestQuestionTimeLimit($test);
+    if ($limit <= 0) {
+        return [];
+    }
+    return [
+        'question_time_limit' => $limit,
+        'question_time_left' => getTestQuestionTimeRemaining($test, $limit),
+    ];
+}
+
 function emitCurrentQuestion($test) {
     $current = max(0, (int)($test['current'] ?? 0));
     $total = count($test['questions'] ?? []);
@@ -35,14 +46,14 @@ function emitCurrentQuestion($test) {
         echo json_encode(['success' => false, 'error' => 'No active question']);
         return;
     }
-    echo json_encode([
+    echo json_encode(array_merge([
         'success' => true,
         'finished' => false,
         'next_question' => true,
         'current' => $current,
         'total' => $total,
         'question' => formatQuestionForAjax($test['questions'][$current])
-    ]);
+    ], questionTimerPayload($test)));
 }
 
 switch ($action) {
@@ -84,6 +95,7 @@ switch ($action) {
             
             if ($test['mode'] === 'exam') {
                 $test['current']++;
+                touchTestQuestionStart($test);
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
                 
                 if ($test['current'] >= count($test['questions'])) {
@@ -97,7 +109,7 @@ switch ($action) {
                 } else {
                     $nextIdx = $test['current'];
                     $savedAnswer = $test['answers'][$nextIdx]['user_answer'] ?? '';
-                    echo json_encode([
+                    echo json_encode(array_merge([
                         'success' => true, 
                         'finished' => false, 
                         'next_question' => true,
@@ -105,7 +117,7 @@ switch ($action) {
                         'total' => count($test['questions']),
                         'question' => formatQuestionForAjax($test['questions'][$test['current']]),
                         'saved_answer' => $savedAnswer
-                    ]);
+                    ], questionTimerPayload($test)));
                 }
             } else {
                 // Practice mode: show review
@@ -144,21 +156,23 @@ switch ($action) {
         $test['current'] = max(0, min(count($test['questions']) - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
+        touchTestQuestionStart($test);
         saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
         $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
-        echo json_encode([
+        echo json_encode(array_merge([
             'success' => true,
             'current' => $test['current'],
             'total' => count($test['questions']),
             'question' => formatQuestionForAjax($test['questions'][$test['current']]),
             'saved_answer' => $savedAnswer
-        ]);
+        ], questionTimerPayload($test)));
         break;
 
     case 'next_question':
         $test['current']++;
         $test['phase'] = 'answering';
         $test['last_result'] = null;
+        touchTestQuestionStart($test);
 
         // If in single-question mode, instead of finishing the test, load a new random question
         if (isset($test['mode']) && $test['mode'] === 'single') {
@@ -188,14 +202,15 @@ switch ($action) {
             $test['current'] = 0;
             $test['phase'] = 'answering';
             $test['last_result'] = null;
+            touchTestQuestionStart($test);
             saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
 
-            echo json_encode([
+            echo json_encode(array_merge([
                 'success' => true,
                 'current' => 0,
                 'total' => 1,
                 'question' => formatQuestionForAjax($newQ)
-            ]);
+            ], questionTimerPayload($test)));
         } else {
             if ($test['current'] >= count($test['questions'])) {
                 if ($isGuest) {
@@ -208,13 +223,13 @@ switch ($action) {
             } else {
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
                 $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
-                echo json_encode([
+                echo json_encode(array_merge([
                     'success' => true,
                     'current' => $test['current'],
                     'total' => count($test['questions']),
                     'question' => formatQuestionForAjax($test['questions'][$test['current']]),
                     'saved_answer' => $savedAnswer
-                ]);
+                ], questionTimerPayload($test)));
             }
         }
         break;

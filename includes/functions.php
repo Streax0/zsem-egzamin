@@ -2670,6 +2670,39 @@ function getActiveTestConfigFromSession(): array {
     return $result;
 }
 
+function getTestQuestionTimeLimit(array $test): int {
+    if (!empty($test['question_time_limit'])) {
+        return max(0, (int)$test['question_time_limit']);
+    }
+    $config = is_array($test['config'] ?? null) ? $test['config'] : [];
+    $opt = (string)($config['time_option'] ?? '');
+    if ($opt === '30s') {
+        return 30;
+    }
+    if ($opt === '60s') {
+        return 60;
+    }
+    if ($opt === 'per_question_custom') {
+        return max(15, (int)($config['time_per_question'] ?? 60));
+    }
+    return 0;
+}
+
+function touchTestQuestionStart(array &$test): void {
+    $test['question_start_time'] = time();
+}
+
+function getTestQuestionTimeRemaining(array $test, int $perQuestionLimit): int {
+    if ($perQuestionLimit <= 0) {
+        return 0;
+    }
+    $started = (int)($test['question_start_time'] ?? 0);
+    if ($started <= 0) {
+        return $perQuestionLimit;
+    }
+    return max(0, $perQuestionLimit - (time() - $started));
+}
+
 /**
  * Finalize a test, calculate score, grant XP and save results
  */

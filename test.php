@@ -228,6 +228,15 @@ if ($needNewTest && !$showSetup && $wantsStart) {
         $timeLimitSeconds = count($selectedQuestions) * $timePerQuestion;
     }
 
+    $questionTimeLimit = 0;
+    if ($timeOption === '30s') {
+        $questionTimeLimit = 30;
+    } elseif ($timeOption === '60s') {
+        $questionTimeLimit = 60;
+    } elseif ($timeOption === 'per_question_custom') {
+        $questionTimeLimit = $timePerQuestion;
+    }
+
     $excludeFromRanking = isset($_GET['unranked']) && $_GET['unranked'] === '1' ? 1 : 0;
     $cleanCategory = is_array($category) ? implode(',', $category) : $category;
     $newTest = [
@@ -236,6 +245,8 @@ if ($needNewTest && !$showSetup && $wantsStart) {
         'current'    => 0,
         'start_time' => time(),
         'time_limit' => $timeLimitSeconds,
+        'question_time_limit' => $questionTimeLimit,
+        'question_start_time' => time(),
         'answers'    => [],
         'phase'      => 'answering',
         'last_result'=> null,
@@ -293,6 +304,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['current'] = max(0, min($totalQuestions - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
+        touchTestQuestionStart($test);
         saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
         header('Location: test.php');
         exit;
@@ -303,6 +315,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['current']++;
         $test['phase']       = 'answering';
         $test['last_result'] = null;
+        touchTestQuestionStart($test);
         
             if ($test['current'] >= $totalQuestions) {
                 if ($mode === 'single') {
@@ -354,6 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // In exam mode, skip review and go to next question (or finish)
                 $test['current']++;
                 $test['phase'] = 'answering';
+                touchTestQuestionStart($test);
                 
                 if ($test['current'] >= $totalQuestions) {
                     if (isGuestMode()) {
@@ -414,6 +428,15 @@ if ($test) {
     $answeredCount   = count($test['answers'] ?? []);
     $isTestActive    = ($phase === 'answering' && !$showSetup);
     $savedAnswer     = strtoupper(trim((string)($test['answers'][$currentIdx]['user_answer'] ?? '')));
+    $perQuestionLimit = getTestQuestionTimeLimit($test);
+    $questionTimeLeft = 0;
+    if ($perQuestionLimit > 0 && $phase === 'answering') {
+        if (empty($test['question_start_time'])) {
+            touchTestQuestionStart($test);
+            saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+        }
+        $questionTimeLeft = getTestQuestionTimeRemaining($test, $perQuestionLimit);
+    }
 } else {
     $currentIdx      = 0;
     $currentQuestion = null;
@@ -422,6 +445,8 @@ if ($test) {
     $answeredCount   = 0;
     $isTestActive    = false;
     $savedAnswer     = '';
+    $perQuestionLimit = 0;
+    $questionTimeLeft = 0;
 }
 ?>
 <!DOCTYPE html>
@@ -455,6 +480,15 @@ if ($test) {
             text-align: right;
             white-space: nowrap;
             line-height: 1;
+        }
+        .test-question-timer {
+            font-weight: 800;
+            min-width: 5.2rem;
+        }
+        .test-total-timer {
+            font-size: 0.82rem;
+            opacity: 0.75;
+            min-width: 4.2rem;
         }
         .question-card .question-card-header h5 {
             font-family: "Nunito", "Inter", sans-serif;
@@ -1369,6 +1403,11 @@ if ($test) {
                                 <span>10 minut</span>
                             </div>
                         </div>
+                        <div class="time-slider-panel <?= in_array($timeOption, ['30s', '60s'], true) ? 'open' : '' ?>" id="perQuestionPresetPanel">
+                            <div class="time-display-bubble">
+                                <i class="bi bi-info-circle"></i> <span id="perQuestionPresetInfo">—</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1724,6 +1763,23 @@ if ($test) {
                     const timePerQuestionPanel = document.getElementById('timePerQuestionPanel');
                     const timePerQuestionInput = document.getElementById('timePerQuestionInput');
                     const timePerQuestionValue = document.getElementById('timePerQuestionValue');
+                    const perQuestionPresetPanel = document.getElementById('perQuestionPresetPanel');
+                    const perQuestionPresetInfo = document.getElementById('perQuestionPresetInfo');
+
+                    function updatePerQuestionPresetInfo() {
+                        const opt = timeOptionInput?.value || '';
+                        const count = Math.max(1, Number(countInput?.value || 0));
+                        if (!perQuestionPresetPanel || !perQuestionPresetInfo) return;
+                        if (opt === '30s' || opt === '60s') {
+                            const sec = opt === '30s' ? 30 : 60;
+                            const totalSec = count * sec;
+                            const mins = Math.ceil(totalSec / 60);
+                            perQuestionPresetInfo.textContent = `${count} pytań × ${sec}s = ok. ${mins} min łącznie`;
+                            perQuestionPresetPanel.classList.add('open');
+                        } else {
+                            perQuestionPresetPanel.classList.remove('open');
+                        }
+                    }
                     
                     timeOptionBtns.forEach(btn => {
                         btn.addEventListener('click', () => {
@@ -1741,6 +1797,7 @@ if ($test) {
                                 timeSliderPanel?.classList.remove('open');
                                 timePerQuestionPanel?.classList.remove('open');
                             }
+                            updatePerQuestionPresetInfo();
                         });
                     });
                     
@@ -1754,6 +1811,8 @@ if ($test) {
                             timePerQuestionValue.textContent = timePerQuestionInput.value;
                         }
                     });
+                    countInput?.addEventListener('input', updatePerQuestionPresetInfo);
+                    updatePerQuestionPresetInfo();
                 });
                 </script>
             </form>
@@ -1769,8 +1828,13 @@ if ($test) {
                 <strong class="h5 mb-0">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></strong>
             </div>
             <div class="progress-actions test-progress-actions-modern d-flex align-items-center gap-2 flex-nowrap justify-content-end">
+                <?php if ($perQuestionLimit > 0 && $phase === 'answering'): ?>
+                <div class="test-timer-modern test-question-timer" id="questionTimer" title="Czas na to pytanie">
+                    <?= formatTime($questionTimeLeft) ?>
+                </div>
+                <?php endif; ?>
                 <?php if (!empty($test['time_limit'])): ?>
-                <div class="test-timer-modern" id="timer">
+                <div class="test-timer-modern<?= $perQuestionLimit > 0 ? ' test-total-timer' : '' ?>" id="timer"<?= $perQuestionLimit > 0 ? ' title="Czas całkowity"' : '' ?>>
                     <?= formatTime(max(0, (isset($test['time_limit']) ? $test['time_limit'] : 3600) - (time() - $test['start_time']))) ?>
                 </div>
                 <?php endif; ?>
@@ -2040,19 +2104,19 @@ window.addEventListener('beforeunload', function (e) {
 });
 
 <?php if (!empty($test['time_limit']) && $phase === 'answering'): ?>
-// Exam countdown timer
+// Exam total countdown timer
 let timeLeft = <?= max(0, (isset($test['time_limit']) ? $test['time_limit'] : 3600) - (time() - $test['start_time'])) ?>;
 const timerEl = document.getElementById('timer');
 let timerExpired = false;
 function updateTimer() {
-    if (timerExpired) return;
+    if (timerExpired || !timerEl) return;
     const m = String(Math.floor(timeLeft / 60)).padStart(2,'0');
     const s = String(timeLeft % 60).padStart(2,'0');
     timerEl.textContent = `${m}:${s}`;
     if (timeLeft <= 300) timerEl.classList.add('timer-warning');
     if (timeLeft <= 0) {
         timerExpired = true;
-        clearInterval(t);
+        clearInterval(totalTimerInterval);
         shouldConfirmNavigation = false;
         timeExpiredModal = timeExpiredModal || modalInstance('testTimeExpiredModal');
         if (timeExpiredModal) timeExpiredModal.show();
@@ -2062,7 +2126,55 @@ function updateTimer() {
     timeLeft--;
 }
 updateTimer();
-const t = setInterval(updateTimer, 1000);
+const totalTimerInterval = setInterval(updateTimer, 1000);
+<?php endif; ?>
+
+<?php if ($perQuestionLimit > 0 && $phase === 'answering'): ?>
+// Per-question countdown timer
+let questionTimeLeft = <?= (int)$questionTimeLeft ?>;
+const questionTimeLimit = <?= (int)$perQuestionLimit ?>;
+const questionTimerEl = document.getElementById('questionTimer');
+let questionTimerExpired = false;
+let questionTimerInterval = null;
+
+function formatTimer(seconds) {
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+function updateQuestionTimer() {
+    if (questionTimerExpired || !questionTimerEl) return;
+    questionTimerEl.textContent = formatTimer(questionTimeLeft);
+    if (questionTimeLeft <= 10) {
+        questionTimerEl.classList.add('timer-warning');
+    } else {
+        questionTimerEl.classList.remove('timer-warning');
+    }
+    if (questionTimeLeft <= 0) {
+        questionTimerExpired = true;
+        if (questionTimerInterval) clearInterval(questionTimerInterval);
+        if (window.QuizEngine && typeof window.QuizEngine.submitAnswer === 'function') {
+            window.QuizEngine.submitAnswer({ force: true, reason: 'timeout' });
+        }
+        return;
+    }
+    questionTimeLeft--;
+}
+
+window.resetQuestionTimer = function (seconds) {
+    questionTimeLeft = Number(seconds) > 0 ? Number(seconds) : questionTimeLimit;
+    questionTimerExpired = false;
+    if (questionTimerEl) {
+        questionTimerEl.textContent = formatTimer(questionTimeLeft);
+        questionTimerEl.classList.remove('timer-warning');
+    }
+    if (questionTimerInterval) clearInterval(questionTimerInterval);
+    questionTimerInterval = setInterval(updateQuestionTimer, 1000);
+};
+
+updateQuestionTimer();
+questionTimerInterval = setInterval(updateQuestionTimer, 1000);
 <?php endif; ?>
 
 function confirmEndTest() {
