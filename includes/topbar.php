@@ -49,69 +49,32 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
     <a href="https://zsem.edu.pl" target="_blank" rel="noopener noreferrer" class="topbar-icon me-2" title="Strona szkoły" aria-label="Strona szkoły">
         <i class="bi bi-mortarboard"></i>
     </a>
-    <div class="dropdown me-2">
+    <div class="dropdown me-2" id="notificationsDropdownRoot"
+         data-feed-url="<?php echo htmlspecialchars($base_url . 'ajax/notifications_feed.php'); ?>"
+         data-respond-url="<?php echo htmlspecialchars($base_url . 'ajax/duel_respond.php'); ?>"
+         data-base-url="<?php echo htmlspecialchars($base_url); ?>"
+         data-csrf="<?php echo htmlspecialchars(generateCsrfToken('notifications')); ?>">
         <button type="button" class="topbar-icon" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Pokaż powiadomienia">
             <i class="bi bi-bell" aria-hidden="true"></i>
-            <?php if ($unreadCount > 0): ?>
-                <span class="notification-badge">
-                    <?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?>
-                </span>
-            <?php endif; ?>
+            <span class="notification-badge<?php echo $unreadCount > 0 ? '' : ' d-none'; ?>" id="notificationBadge" aria-live="polite">
+                <?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?>
+            </span>
         </button>
-        <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-0 notification-dropdown">
+        <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-0 notification-dropdown" id="notificationDropdownMenu">
             <div class="notification-dropdown-header p-3 border-bottom d-flex justify-content-between align-items-center rounded-top-3">
                 <h6 class="mb-0 fw-bold">Powiadomienia</h6>
-                <?php if ($unreadCount > 0): ?>
-                <form action="<?php echo $base_url; ?>actions/mark_read.php" method="POST" class="m-0">
+                <form action="<?php echo $base_url; ?>actions/mark_read.php" method="POST" class="m-0<?php echo $unreadCount > 0 ? '' : ' d-none'; ?>" id="notificationMarkReadForm">
                     <?php echo csrfTokenField('notifications'); ?>
                     <button type="submit" class="btn btn-link text-primary small text-decoration-none p-0">Oznacz jako przeczytane</button>
                 </form>
-                <?php endif; ?>
             </div>
-            <div class="notification-list">
-                <?php if (empty($notifications)): ?>
-                    <div class="p-4 text-center text-muted">
-                        <i class="bi bi-bell-slash fs-2 mb-2 d-block opacity-25"></i>
-                        <p class="small mb-0">Brak nowych powiadomień</p>
-                    </div>
+            <div class="notification-list" id="notificationList" data-poll-interval="2000">
+                <?php if (!$isGuestTopbar && !empty($_SESSION['user_id'])): ?>
+                    <?php echo renderNotificationsDropdownListHtml($pdo, (int)$_SESSION['user_id'], $notifications, $base_url); ?>
                 <?php else: ?>
-                    <?php foreach ($notifications as $notif): ?>
-                        <?php
-                        $icon = 'bi-info-circle';
-                        $tone = 'primary';
-                        $label = 'System';
-                        switch($notif['type']) {
-                            case 'rank_up': $icon = 'bi-graph-up-arrow'; $tone = 'success'; $label = 'Ranga'; break;
-                            case 'rank_down': $icon = 'bi-graph-down-arrow'; $tone = 'danger'; $label = 'Ranga'; break;
-                            case 'friend_request': $icon = 'bi-person-plus'; $tone = 'info'; $label = 'Znajomi'; break;
-                            case 'missions_refresh': $icon = 'bi-arrow-repeat'; $tone = 'warning'; $label = 'Misje'; break;
-                            case 'daily_missions_refresh':
-                            case 'weekly_missions_refresh':
-                            case 'monthly_missions_refresh': $icon = 'bi-arrow-repeat'; $tone = 'warning'; $label = 'Misje'; break;
-                            case 'mission_complete': $icon = 'bi-trophy'; $tone = 'success'; $label = 'Misje'; break;
-                            case 'duel_challenge':
-                            case 'duel_accepted':
-                            case 'duel_finished': $icon = 'bi-lightning-charge'; $tone = 'danger'; $label = 'Pojedynek'; break;
-                        }
-                        $notifUrl = !empty($notif['action_url']) ? normalizeNotificationActionUrl($notif['action_url']) : null;
-                        $notifHref = $notifUrl ? (preg_match('#^https?://#i', $notifUrl) ? $notifUrl : $base_url . ltrim($notifUrl, '/')) : $base_url . 'notifications.php';
-                        ?>
-                        <a href="<?php echo htmlspecialchars($notifHref); ?>" class="notification-menu-item <?php echo $notif['is_read'] ? 'is-read' : 'is-unread'; ?> text-decoration-none text-reset">
-                            <div class="notification-menu-icon text-<?php echo $tone; ?>">
-                                <i class="bi <?php echo $icon; ?>"></i>
-                            </div>
-                            <div class="notification-menu-body flex-grow-1">
-                                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                    <span class="notification-menu-label"><?php echo htmlspecialchars($label); ?></span>
-                                    <?php if (!$notif['is_read']): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php endif; ?>
-                                </div>
-                                <div class="notification-menu-message text-wrap"><?php echo htmlspecialchars($notif['message']); ?></div>
-                                <div class="notification-menu-time">
-                                    <i class="bi bi-clock me-1"></i><?php echo date('d.m, H:i', strtotime($notif['created_at'])); ?>
-                                </div>
-                            </div>
-                        </a>
-                    <?php endforeach; ?>
+                    <div class="p-4 text-center text-muted notification-empty-state">
+                        <p class="small mb-0">Zaloguj się, aby zobaczyć powiadomienia.</p>
+                    </div>
                 <?php endif; ?>
             </div>
             <div class="p-2 text-center border-top">
@@ -487,6 +450,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Sidebar Overlay for Mobile -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+<?php if (!$isGuestTopbar && isset($_SESSION['user_id'])): ?>
+<script src="<?php echo htmlspecialchars($base_url); ?>assets/js/notifications-poll.js?v=<?php echo (int)@filemtime(__DIR__ . '/../assets/js/notifications-poll.js'); ?>"></script>
+<?php endif; ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const sidebarToggle = document.getElementById('sidebarToggle');

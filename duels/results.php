@@ -93,13 +93,7 @@ unset($answerRow);
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
-    <style>
-        .winner-card { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; }
-        .loser-card { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
-        .draw-card { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%); color: white; }
-        .avatar-vs { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.5rem; border: 4px solid rgba(255,255,255,0.3); }
-        .revenge-card { background: linear-gradient(135deg, rgba(239,68,68,.10), rgba(245,158,11,.08)); border: 1px solid rgba(239,68,68,.18); border-radius: 24px; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/duels.css">
 </head>
 <body>
     <div class="dashboard-layout">
@@ -113,7 +107,7 @@ unset($answerRow);
                         <div class="col-lg-10">
                             
                             <!-- Result Header -->
-                            <div class="dashboard-panel mb-4 text-center animate-in">
+                            <div class="dashboard-panel duel-results-panel mb-4 text-center animate-in p-4">
                                 <?php if ($duel['status'] !== 'finished'): ?>
                                     <div class="py-5">
                                         <i class="bi bi-hourglass-split display-3 text-primary d-block mb-3"></i>
@@ -124,33 +118,33 @@ unset($answerRow);
                             </div>
                                 <?php else: ?>
 
-                                <div class="row g-4 align-items-center py-4">
+                                <div class="row g-4 align-items-stretch py-2">
                                     <div class="col-md-5">
-                                        <div class="p-4 rounded-4 <?= ($winner === 'challenger') ? 'winner-card' : (($winner === 'opponent') ? 'loser-card' : 'draw-card') ?>">
-                                            <div class="avatar-vs mx-auto mb-3 bg-white text-dark">
+                                        <div class="duel-player-card <?= ($winner === 'challenger') ? 'is-winner' : (($winner === 'opponent') ? 'is-loser' : 'is-draw') ?>">
+                                            <div class="avatar-vs">
                                                 <?= strtoupper(substr($duel['challenger_name'], 0, 1)) ?>
                                             </div>
-                                            <h4 class="fw-bold"><?= htmlspecialchars($duel['challenger_name']) ?></h4>
-                                            <div class="display-5 fw-800"><?= round($duel['challenger_score_percent']) ?>%</div>
-                                            <?php if ($winner === 'challenger'): ?><span class="badge bg-white text-success rounded-pill px-3 mt-2">WYGRANA</span><?php endif; ?>
+                                            <h4 class="fw-bold mb-1"><?= htmlspecialchars($duel['challenger_name']) ?></h4>
+                                            <div class="display-5 fw-800 mb-2"><?= round($duel['challenger_score_percent']) ?>%</div>
+                                            <?php if ($winner === 'challenger'): ?><span class="badge bg-white text-success rounded-pill px-3">WYGRANA</span><?php elseif ($winner === 'opponent'): ?><span class="badge bg-white text-danger rounded-pill px-3 opacity-75">PRZEGRANA</span><?php endif; ?>
                                         </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        <div class="display-4 fw-800 text-muted">VS</div>
+                                    <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                        <div class="duel-vs-label">VS</div>
                                     </div>
                                     <div class="col-md-5">
-                                        <div class="p-4 rounded-4 <?= ($winner === 'opponent') ? 'winner-card' : (($winner === 'challenger') ? 'loser-card' : 'draw-card') ?>">
-                                            <div class="avatar-vs mx-auto mb-3 bg-white text-dark">
+                                        <div class="duel-player-card <?= ($winner === 'opponent') ? 'is-winner' : (($winner === 'challenger') ? 'is-loser' : 'is-draw') ?>">
+                                            <div class="avatar-vs">
                                                 <?= strtoupper(substr($duel['opponent_name'], 0, 1)) ?>
                                             </div>
-                                            <h4 class="fw-bold"><?= htmlspecialchars($duel['opponent_name']) ?></h4>
-                                            <div class="display-5 fw-800"><?= round($duel['opponent_score_percent']) ?>%</div>
-                                            <?php if ($winner === 'opponent'): ?><span class="badge bg-white text-success rounded-pill px-3 mt-2">WYGRANA</span><?php endif; ?>
+                                            <h4 class="fw-bold mb-1"><?= htmlspecialchars($duel['opponent_name']) ?></h4>
+                                            <div class="display-5 fw-800 mb-2"><?= round($duel['opponent_score_percent']) ?>%</div>
+                                            <?php if ($winner === 'opponent'): ?><span class="badge bg-white text-success rounded-pill px-3">WYGRANA</span><?php elseif ($winner === 'challenger'): ?><span class="badge bg-white text-danger rounded-pill px-3 opacity-75">PRZEGRANA</span><?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">Tryb: <?= htmlspecialchars($modeLabel) ?></span>
+                                <div class="d-flex justify-content-center gap-2 flex-wrap mt-4">
+                                    <span class="duel-mode-pill">Tryb: <?= htmlspecialchars($modeLabel) ?></span>
                                     <?php if (($duel['mode'] ?? '') === 'all_in'): ?>
                                         <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2">Stawka: <?= (int)$duel['stake_xp'] ?> XP</span>
                                     <?php elseif (($duel['mode'] ?? '') === 'underdog'): ?>

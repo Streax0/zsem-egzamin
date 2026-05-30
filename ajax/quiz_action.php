@@ -7,6 +7,11 @@ require_once '../includes/functions.php';
 startSecureSession();
 header('Content-Type: application/json');
 
+$ajaxUserId = (int)($_SESSION['user_id'] ?? 0);
+if ($ajaxUserId > 0) {
+    restoreActiveTestForUser($pdo, $ajaxUserId);
+}
+
 if (!isLoggedIn() && !isGuestMode()) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -79,7 +84,7 @@ switch ($action) {
             
             if ($test['mode'] === 'exam') {
                 $test['current']++;
-                $_SESSION['current_test'] = $test;
+                saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
                 
                 if ($test['current'] >= count($test['questions'])) {
                     if ($isGuest) {
@@ -123,7 +128,7 @@ switch ($action) {
                     $test['last_result']['history_id'] = $historyId;
                 }
 
-                $_SESSION['current_test'] = $test;
+                saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
                 echo json_encode([
                     'success' => true,
                     'phase' => 'review',
@@ -139,7 +144,7 @@ switch ($action) {
         $test['current'] = max(0, min(count($test['questions']) - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
-        $_SESSION['current_test'] = $test;
+        saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
         $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
         echo json_encode([
             'success' => true,
@@ -183,7 +188,7 @@ switch ($action) {
             $test['current'] = 0;
             $test['phase'] = 'answering';
             $test['last_result'] = null;
-            $_SESSION['current_test'] = $test;
+            saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
 
             echo json_encode([
                 'success' => true,
@@ -201,7 +206,7 @@ switch ($action) {
                     echo json_encode(['success' => true, 'finished' => true, 'redirect' => "result.php?id=$resultId"]);
                 }
             } else {
-                $_SESSION['current_test'] = $test;
+                saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
                 $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
                 echo json_encode([
                     'success' => true,

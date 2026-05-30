@@ -1209,27 +1209,9 @@ function resetPasswordWithToken(PDO $pdo, string $token, string $password): bool
     }
 }
 
-// ─── Global Test Abandonment Handler ──────────────────────────────────────────
-// If user has an active test but is navigating to a different page, finish it.
-if (isset($_SESSION['current_test']) && isset($_SESSION['user_id'])) {
-    $current_file = basename($_SERVER['PHP_SELF']);
-    $script_path = str_replace('\\', '/', (string)($_SERVER['PHP_SELF'] ?? ''));
-    // Only abandon if we are NOT on test.php, result.php, or AJAX/process files used by the live quiz engine
-    if (
-        strpos($script_path, '/ajax/') === false
-        && !in_array($current_file, ['test.php', 'result.php', 'login_process.php', 'register_process.php'], true)
-    ) {
-        require_once __DIR__ . '/functions.php';
-        
-        // Robustness check: Ensure current_test has all required data before finishing
-        $test = $_SESSION['current_test'];
-        if (is_array($test) && isset($test['questions']) && isset($test['start_time']) && isset($test['mode'])) {
-            if (!isset($test['answers'])) $test['answers'] = [];
-            finishTest($pdo, $_SESSION['user_id'], $test);
-        } else {
-            // Invalid test data, just clear it to prevent crashes
-            unset($_SESSION['current_test']);
-        }
-    }
+// ─── Restore persisted active test (one test per account) ─────────────────────
+if (isset($_SESSION['user_id'])) {
+    require_once __DIR__ . '/functions.php';
+    restoreActiveTestForUser($pdo, (int)$_SESSION['user_id']);
 }
 // ──────────────────────────────────────────────────────────────────────────────

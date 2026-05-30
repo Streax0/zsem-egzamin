@@ -2507,6 +2507,169 @@ function getUserRank($pdo, $userId) {
     }
 }
 
+function ensureUserActiveTestsTable(PDO $pdo): void {
+    static $ensured = false;
+    if ($ensured) {
+        return;
+    }
+    $pdo->exec("CREATE TABLE IF NOT EXISTS user_active_tests (
+        user_id INT NOT NULL PRIMARY KEY,
+        payload LONGTEXT NOT NULL,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $ensured = true;
+}
+
+function hasActiveTestInSession(): bool {
+    return isset($_SESSION['current_test'])
+        && is_array($_SESSION['current_test'])
+        && !empty($_SESSION['current_test']['questions']);
+}
+
+function getActiveTestSummary(?array $test): array {
+    if (!$test || empty($test['questions'])) {
+        return [];
+    }
+    $modeLabels = [
+        'exam' => 'Egzamin',
+        'practice' => 'Ćwiczenia',
+        'single' => 'Jedno pytanie',
+    ];
+    $mode = (string)($test['mode'] ?? 'exam');
+    $config = is_array($test['config'] ?? null) ? $test['config'] : [];
+    $categories = trim((string)($config['category'] ?? ''));
+    return [
+        'mode' => $mode,
+        'mode_label' => $modeLabels[$mode] ?? 'Test',
+        'total' => count($test['questions']),
+        'answered' => count($test['answers'] ?? []),
+        'current' => min(count($test['questions']), (int)($test['current'] ?? 0) + 1),
+        'categories' => $categories,
+        'categories_label' => $categories !== '' ? $categories : 'wszystkie dostępne',
+    ];
+}
+
+function persistActiveTestToDb(PDO $pdo, int $userId, array $test): void {
+    if ($userId <= 0) {
+        return;
+    }
+    try {
+        ensureUserActiveTestsTable($pdo);
+        $payload = json_encode($test, JSON_UNESCAPED_UNICODE);
+        if ($payload === false) {
+            return;
+        }
+        $stmt = $pdo->prepare(
+            "INSERT INTO user_active_tests (user_id, payload, updated_at)
+             VALUES (?, ?, NOW())
+             ON DUPLICATE KEY UPDATE payload = VALUES(payload), updated_at = NOW()"
+        );
+        $stmt->execute([$userId, $payload]);
+    } catch (PDOException $e) {
+        error_log('persistActiveTestToDb failed: ' . $e->getMessage());
+    }
+}
+
+function clearPersistedActiveTest(?PDO $pdo, ?int $userId): void {
+    if (!$pdo || !$userId || $userId <= 0) {
+        return;
+    }
+    try {
+        ensureUserActiveTestsTable($pdo);
+        $pdo->prepare('DELETE FROM user_active_tests WHERE user_id = ?')->execute([$userId]);
+    } catch (PDOException $e) {
+        error_log('clearPersistedActiveTest failed: ' . $e->getMessage());
+    }
+}
+
+function restoreActiveTestFromDb(PDO $pdo, int $userId): ?array {
+    if ($userId <= 0) {
+        return null;
+    }
+    try {
+        ensureUserActiveTestsTable($pdo);
+        $stmt = $pdo->prepare('SELECT payload FROM user_active_tests WHERE user_id = ? LIMIT 1');
+        $stmt->execute([$userId]);
+        $payload = $stmt->fetchColumn();
+        if (!is_string($payload) || $payload === '') {
+            return null;
+        }
+        $test = json_decode($payload, true);
+        if (!is_array($test) || empty($test['questions']) || !isset($test['start_time'], $test['mode'])) {
+            clearPersistedActiveTest($pdo, $userId);
+            return null;
+        }
+        if (!isset($test['answers']) || !is_array($test['answers'])) {
+            $test['answers'] = [];
+        }
+        return $test;
+    } catch (PDOException $e) {
+        error_log('restoreActiveTestFromDb failed: ' . $e->getMessage());
+        return null;
+    }
+}
+
+function restoreActiveTestForUser(?PDO $pdo, ?int $userId): void {
+    if (hasActiveTestInSession() || !$pdo || !$userId || $userId <= 0) {
+        return;
+    }
+    $restored = restoreActiveTestFromDb($pdo, $userId);
+    if (is_array($restored)) {
+        $_SESSION['current_test'] = $restored;
+    }
+}
+
+function saveCurrentTest(?PDO $pdo, ?int $userId, array $test): void {
+    $_SESSION['current_test'] = $test;
+    if ($pdo && $userId && $userId > 0) {
+        persistActiveTestToDb($pdo, $userId, $test);
+    }
+}
+
+function cancelActiveTest(?PDO $pdo, ?int $userId): void {
+    unset($_SESSION['current_test'], $_SESSION['test_start_time']);
+    clearPersistedActiveTest($pdo, $userId);
+}
+
+function getActiveTestConfigFromSession(): array {
+    if (!hasActiveTestInSession()) {
+        return [];
+    }
+    $test = $_SESSION['current_test'];
+    $config = is_array($test['config'] ?? null) ? $test['config'] : [];
+    $result = [
+        'mode' => (string)($test['mode'] ?? 'exam'),
+    ];
+    if (array_key_exists('category', $config)) {
+        $result['category'] = (string)$config['category'];
+    }
+    if (isset($config['count'])) {
+        $result['count'] = (int)$config['count'];
+    }
+    if (isset($config['time'])) {
+        $result['timeLimit'] = (int)$config['time'];
+    }
+    if (isset($config['time_option'])) {
+        $result['timeOption'] = (string)$config['time_option'];
+    }
+    if (isset($config['time_per_question'])) {
+        $result['timePerQuestion'] = (int)$config['time_per_question'];
+    }
+    if (isset($config['difficulty'])) {
+        $result['difficulty'] = (string)$config['difficulty'];
+    }
+    if (isset($config['scope'])) {
+        $result['scope'] = (string)$config['scope'];
+    }
+    if (isset($config['order'])) {
+        $result['order'] = (string)$config['order'];
+    }
+    if (isset($config['preset'])) {
+        $result['preset'] = (string)$config['preset'];
+    }
+    return $result;
+}
+
 /**
  * Finalize a test, calculate score, grant XP and save results
  */
@@ -2649,7 +2812,7 @@ function finishTest($pdo, $userId, $test) {
 
     completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQ);
     
-    unset($_SESSION['current_test']);
+    cancelActiveTest($pdo, (int)$userId);
     return $resultId;
 }
 
@@ -2702,7 +2865,7 @@ function finishGuestTest(array $test): string {
         $_SESSION['guest_test_results'] = array_slice($_SESSION['guest_test_results'], -5, null, true);
     }
 
-    unset($_SESSION['current_test']);
+    cancelActiveTest(null, null);
     return $resultId;
 }
 
@@ -2875,6 +3038,8 @@ function ensureDuelModeColumns($pdo) {
         'total_time_seconds' => "ALTER TABLE duels ADD COLUMN total_time_seconds INT DEFAULT NULL AFTER time_per_question_seconds",
         'require_answer_confirmation' => "ALTER TABLE duels ADD COLUMN require_answer_confirmation TINYINT(1) NOT NULL DEFAULT 0 AFTER total_time_seconds",
         'allow_early_finish' => "ALTER TABLE duels ADD COLUMN allow_early_finish TINYINT(1) NOT NULL DEFAULT 1 AFTER require_answer_confirmation",
+        'challenger_started_at' => "ALTER TABLE duels ADD COLUMN challenger_started_at DATETIME DEFAULT NULL AFTER opponent_finished_at",
+        'opponent_started_at' => "ALTER TABLE duels ADD COLUMN opponent_started_at DATETIME DEFAULT NULL AFTER challenger_started_at",
     ];
 
     foreach ($columns as $column => $sql) {
@@ -3019,6 +3184,224 @@ function getNotifications($pdo, $userId, $limit = 5) {
     } catch (PDOException $e) {
         return [];
     }
+}
+
+function extractDuelIdFromNotificationUrl(?string $url): int {
+    $url = trim((string)$url);
+    if ($url === '') {
+        return 0;
+    }
+    if (preg_match('#/duels/(?:lobby|take|results|challenge)\.php(?:\?|.*&)?id=(\d+)#i', $url, $matches)) {
+        return (int)$matches[1];
+    }
+    if (preg_match('#[?&]id=(\d+)#', $url, $matches)) {
+        return (int)$matches[1];
+    }
+    return 0;
+}
+
+function resolvePublicBaseUrl(): string {
+    $script = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
+    if (preg_match('#^(.+)/(ajax|actions|duels|teacher|exam)/#', $script, $matches)) {
+        $base = rtrim($matches[1], '/') . '/';
+        return $base === '/' ? '/' : $base;
+    }
+    $dir = rtrim(str_replace('\\', '/', dirname($script)), '/');
+    return ($dir === '' || $dir === '.') ? '/' : $dir . '/';
+}
+
+function publicUrl(string $path): string {
+    $path = ltrim(str_replace('\\', '/', $path), '/');
+    return resolvePublicBaseUrl() . $path;
+}
+
+function getPendingDuelChallengeForUser(PDO $pdo, int $userId, int $duelId): ?array {
+    if ($duelId <= 0 || $userId <= 0) {
+        return null;
+    }
+    try {
+        ensureDuelModeColumns($pdo);
+        $stmt = $pdo->prepare("
+            SELECT id, challenger_id, opponent_id, category, mode, stake_xp, expires_at, status
+            FROM duels
+            WHERE id = ? AND opponent_id = ? AND status = 'pending'
+            LIMIT 1
+        ");
+        $stmt->execute([$duelId, $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return null;
+        }
+        if (!empty($row['expires_at']) && strtotime((string)$row['expires_at']) <= time()) {
+            return null;
+        }
+        return $row;
+    } catch (PDOException $e) {
+        return null;
+    }
+}
+
+function ensureDuelParticipantStarted(PDO $pdo, int $duelId, bool $isChallenger): int {
+    ensureDuelModeColumns($pdo);
+    $column = $isChallenger ? 'challenger_started_at' : 'opponent_started_at';
+    try {
+        $stmt = $pdo->prepare("SELECT {$column} FROM duels WHERE id = ? LIMIT 1");
+        $stmt->execute([$duelId]);
+        $existing = $stmt->fetchColumn();
+        if (!empty($existing)) {
+            return (int)(strtotime((string)$existing) ?: time());
+        }
+        $pdo->prepare("UPDATE duels SET {$column} = NOW() WHERE id = ? AND {$column} IS NULL")
+            ->execute([$duelId]);
+        $stmt->execute([$duelId]);
+        $existing = $stmt->fetchColumn();
+        return (int)(strtotime((string)$existing) ?: time());
+    } catch (PDOException $e) {
+        error_log('ensureDuelParticipantStarted failed: ' . $e->getMessage());
+        return time();
+    }
+}
+
+function getDuelAnsweredCount(PDO $pdo, int $duelId, int $userId): int {
+    try {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM duel_answers WHERE duel_id = ? AND user_id = ?');
+        $stmt->execute([$duelId, $userId]);
+        return (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
+function getNotificationPresentationMeta(array $notif): array {
+    $icon = 'bi-info-circle';
+    $tone = 'primary';
+    $label = 'System';
+    switch ($notif['type'] ?? '') {
+        case 'rank_up':
+            $icon = 'bi-graph-up-arrow';
+            $tone = 'success';
+            $label = 'Ranga';
+            break;
+        case 'rank_down':
+            $icon = 'bi-graph-down-arrow';
+            $tone = 'danger';
+            $label = 'Ranga';
+            break;
+        case 'friend_request':
+            $icon = 'bi-person-plus';
+            $tone = 'info';
+            $label = 'Znajomi';
+            break;
+        case 'missions_refresh':
+        case 'daily_missions_refresh':
+        case 'weekly_missions_refresh':
+        case 'monthly_missions_refresh':
+            $icon = 'bi-arrow-repeat';
+            $tone = 'warning';
+            $label = 'Misje';
+            break;
+        case 'mission_complete':
+            $icon = 'bi-trophy';
+            $tone = 'success';
+            $label = 'Misje';
+            break;
+        case 'duel_challenge':
+        case 'duel_accepted':
+        case 'duel_finished':
+            $icon = 'bi-lightning-charge';
+            $tone = 'danger';
+            $label = 'Pojedynek';
+            break;
+        case 'teacher_application_approved':
+        case 'teacher_application_rejected':
+            $icon = 'bi-mortarboard';
+            $tone = 'primary';
+            $label = 'Rola';
+            break;
+    }
+    return ['icon' => $icon, 'tone' => $tone, 'label' => $label];
+}
+
+function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notifications, string $baseUrl): string {
+    if (empty($notifications)) {
+        return '<div class="p-4 text-center text-muted notification-empty-state">'
+            . '<i class="bi bi-bell-slash fs-2 mb-2 d-block opacity-25"></i>'
+            . '<p class="small mb-0">Brak nowych powiadomień</p>'
+            . '</div>';
+    }
+
+    $csrf = htmlspecialchars(generateCsrfToken('notifications'), ENT_QUOTES, 'UTF-8');
+    $baseUrl = rtrim($baseUrl, '/');
+    if ($baseUrl !== '' && substr($baseUrl, -1) !== '/') {
+        $baseUrl .= '/';
+    }
+
+    ob_start();
+    foreach ($notifications as $notif) {
+        $meta = getNotificationPresentationMeta($notif);
+        $icon = $meta['icon'];
+        $tone = $meta['tone'];
+        $label = $meta['label'];
+        $isRead = !empty($notif['is_read']);
+        $notifUrl = !empty($notif['action_url']) ? normalizeNotificationActionUrl($notif['action_url']) : null;
+        $notifHref = $notifUrl
+            ? (preg_match('#^https?://#i', $notifUrl) ? $notifUrl : $baseUrl . ltrim($notifUrl, '/'))
+            : $baseUrl . 'notifications.php';
+        $duelId = 0;
+        $pendingDuel = null;
+        if (($notif['type'] ?? '') === 'duel_challenge') {
+            $duelId = extractDuelIdFromNotificationUrl((string)($notif['action_url'] ?? ''));
+            if ($duelId <= 0) {
+                $duelId = extractDuelIdFromNotificationUrl($notifUrl);
+            }
+            $pendingDuel = getPendingDuelChallengeForUser($pdo, $userId, $duelId);
+        }
+        $itemClass = 'notification-menu-item ' . ($isRead ? 'is-read' : 'is-unread');
+        if ($pendingDuel) {
+            $itemClass .= ' notification-has-duel-actions';
+        }
+        ?>
+        <div class="<?php echo htmlspecialchars($itemClass); ?>">
+            <a href="<?php echo htmlspecialchars($notifHref); ?>" class="notification-menu-link text-decoration-none text-reset">
+                <div class="notification-menu-icon text-<?php echo htmlspecialchars($tone); ?>">
+                    <i class="bi <?php echo htmlspecialchars($icon); ?>"></i>
+                </div>
+                <div class="notification-menu-body flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                        <span class="notification-menu-label"><?php echo htmlspecialchars($label); ?></span>
+                        <?php if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php endif; ?>
+                    </div>
+                    <div class="notification-menu-message text-wrap"><?php echo htmlspecialchars($notif['message'] ?? ''); ?></div>
+                    <div class="notification-menu-time">
+                        <i class="bi bi-clock me-1"></i><?php echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
+                    </div>
+                </div>
+            </a>
+            <?php if ($pendingDuel): ?>
+            <div class="notification-duel-actions px-3 pb-3 pt-0" data-duel-id="<?php echo (int)$duelId; ?>">
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-3" data-duel-action="accept" data-duel-id="<?php echo (int)$duelId; ?>">
+                    <i class="bi bi-check2-circle me-1"></i>Akceptuj
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-duel-action="decline" data-duel-id="<?php echo (int)$duelId; ?>">
+                    Odrzuć
+                </button>
+                <a href="<?php echo htmlspecialchars($baseUrl . 'duels/lobby.php?id=' . (int)$duelId); ?>" class="btn btn-sm btn-link text-decoration-none">Lobby</a>
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf; ?>">
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+    return (string)ob_get_clean();
+}
+
+function buildNotificationsDropdownPayload(PDO $pdo, int $userId, string $baseUrl, int $limit = 5): array {
+    $notifications = getNotifications($pdo, $userId, $limit);
+    return [
+        'unread_count' => getUnreadNotificationsCount($pdo, $userId),
+        'html' => renderNotificationsDropdownListHtml($pdo, $userId, $notifications, $baseUrl),
+        'has_unread' => getUnreadNotificationsCount($pdo, $userId) > 0,
+    ];
 }
 
 /**

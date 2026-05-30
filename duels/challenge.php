@@ -157,19 +157,7 @@ $flashMsg = getSessionMessage();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
-    <style>
-        .duel-mode-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
-        .duel-mode-card { border: 1px solid rgba(148,163,184,.25); border-radius: 18px; padding: 1rem; cursor: pointer; background: #fff; height: 100%; }
-        .btn-check:checked + .duel-mode-card { border-color: #dc2626; box-shadow: 0 0 0 4px rgba(220,38,38,.10); background: rgba(254,242,242,.95); }
-        .duel-mode-card strong { display: block; }
-        .duel-mode-card span { font-size: .78rem; color: #64748b; }
-        @media (max-width: 767.98px) { .duel-mode-grid { grid-template-columns: 1fr; } }
-        .duel-preset-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:.75rem; }
-        .duel-preset-card { border:1px solid rgba(148,163,184,.25); border-radius:16px; padding:.85rem; cursor:pointer; background:#fff; min-height:98px; }
-        .btn-check:checked + .duel-preset-card { border-color:var(--primary-color); box-shadow:0 0 0 4px rgba(59,130,246,.10); }
-        @media (max-width: 991.98px) { .duel-preset-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-        @media (max-width: 575.98px) { .duel-preset-grid { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="stylesheet" href="../assets/css/duels.css">
 </head>
 <body>
     <div class="dashboard-layout">
@@ -179,13 +167,13 @@ $flashMsg = getSessionMessage();
             <main role="main" class="content-body">
                 <div class="container-fluid py-4">
                     <div class="row justify-content-center">
-                        <div class="col-lg-6">
-                            <div class="dashboard-panel text-center animate-in">
-                                <div class="user-avatar-large mx-auto mb-3" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); width: 80px; height: 80px; font-size: 2rem;">
-                                    VS
-                                </div>
+                        <div class="col-lg-8 col-xl-7">
+                            <div class="duel-page-hero text-center mb-4 animate-in">
+                                <div class="duel-vs-badge mx-auto mb-3">VS</div>
                                 <h2 class="fw-bold mb-1">Pojedynek z <?= htmlspecialchars($opponent['username']) ?></h2>
-                                <p class="text-muted">Skonfiguruj parametry starcia</p>
+                                <p class="mb-0 opacity-75">Skonfiguruj parametry starcia</p>
+                            </div>
+                            <div class="duel-setup-panel dashboard-panel animate-in p-4 p-md-5">
                                 <?php if ($revengeParentId > 0): ?>
                                     <div class="alert alert-warning border-0 rounded-4 text-start">
                                         <i class="bi bi-lightning-charge-fill me-2"></i>Revenge Match: rewanż po poprzednim pojedynku. Możesz podbić stawkę i szybciej wrócić do rywalizacji.
@@ -204,7 +192,7 @@ $flashMsg = getSessionMessage();
                                     
                                     <div class="mb-4">
                                         <label class="form-label fw-bold small text-uppercase text-muted">Kategoria pytań</label>
-                                        <select name="category" class="form-select form-select-lg rounded-4 border-0 shadow-sm bg-light">
+                                        <select name="category" class="form-select form-select-lg duel-form-control">
                                             <?php foreach ($categories as $cat): ?>
                                                 <option value="<?= htmlspecialchars($cat) ?>"><?= htmlspecialchars($cat) ?></option>
                                             <?php endforeach; ?>
@@ -240,7 +228,7 @@ $flashMsg = getSessionMessage();
 
                                     <div class="mb-4" id="stakeWrap">
                                         <label class="form-label fw-bold small text-uppercase text-muted" for="stakeXp">Stawka XP (All-In)</label>
-                                        <input type="number" name="stake_xp" id="stakeXp" class="form-control form-control-lg rounded-4 border-0 shadow-sm bg-light" min="10" max="500" step="10" value="<?= $revengeParentId > 0 ? 100 : 50 ?>">
+                                        <input type="number" name="stake_xp" id="stakeXp" class="form-control form-control-lg duel-form-control" min="10" max="500" step="10" value="<?= $revengeParentId > 0 ? 100 : 50 ?>">
                                         <div class="form-text">Stawka jest aktywna tylko w trybie All-In. Maksymalnie 500 XP.</div>
                                     </div>
 
@@ -267,11 +255,11 @@ $flashMsg = getSessionMessage();
                                     <div class="row g-3 mb-4">
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold small text-uppercase text-muted" for="timePerQuestion">Limit na pytanie (s)</label>
-                                            <input type="number" name="time_per_question_seconds" id="timePerQuestion" class="form-control rounded-4 border-0 shadow-sm bg-light" min="10" max="300" placeholder="bez limitu">
+                                            <input type="number" name="time_per_question_seconds" id="timePerQuestion" class="form-control duel-form-control" min="10" max="300" placeholder="bez limitu">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold small text-uppercase text-muted" for="totalTime">Limit całości (s)</label>
-                                            <input type="number" name="total_time_seconds" id="totalTime" class="form-control rounded-4 border-0 shadow-sm bg-light" min="60" max="3600" placeholder="bez limitu">
+                                            <input type="number" name="total_time_seconds" id="totalTime" class="form-control duel-form-control" min="60" max="3600" placeholder="bez limitu">
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-check form-switch">
@@ -289,7 +277,7 @@ $flashMsg = getSessionMessage();
 
                                     <div class="mb-4">
                                         <label class="form-label fw-bold small text-uppercase text-muted">Liczba pytań</label>
-                                        <div class="d-flex gap-2">
+                                        <div class="d-flex gap-2 duel-count-options">
                                             <?php foreach ([5, 10, 15, 20] as $c): ?>
                                                 <input type="radio" class="btn-check" name="question_count" id="count_<?= $c ?>" value="<?= $c ?>" <?= $c === 10 ? 'checked' : '' ?>>
                                                 <label class="btn btn-outline-primary flex-grow-1 rounded-pill" for="count_<?= $c ?>"><?= $c ?></label>

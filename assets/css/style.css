@@ -519,12 +519,17 @@ body.dark-mode .notification-dropdown-header {
 }
 
 .notification-menu-item {
+  display: block;
+  border-bottom: 1px solid rgba(148, 163, 184, .18);
+  color: #0f172a;
+}
+
+.notification-menu-link {
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
   gap: .8rem;
   padding: .95rem;
-  border-bottom: 1px solid rgba(148, 163, 184, .18);
-  color: #0f172a;
+  color: inherit;
 }
 
 .notification-menu-item.is-unread {

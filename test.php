@@ -11,8 +11,27 @@ if (!isLoggedIn() && !isGuestMode()) {
 requireLogin(true);
 $isGuest = isGuestMode();
 
-if (isset($_GET['new']) && $_GET['new'] === '1') {
+$userId = $isGuest ? 0 : (int)($_SESSION['user_id'] ?? 0);
+if (!$isGuest && $userId > 0) {
+    restoreActiveTestForUser($pdo, $userId);
+}
+
+$showTestConflict = false;
+
+if (isset($_GET['continue_test']) && $_GET['continue_test'] === '1' && hasActiveTestInSession()) {
+    header('Location: test.php');
+    exit;
+}
+
+if (isset($_GET['force_new']) && $_GET['force_new'] === '1' && hasActiveTestInSession()) {
+    cancelActiveTest($pdo, $userId > 0 ? $userId : null);
+}
+
+if (isset($_GET['new']) && $_GET['new'] === '1' && !hasActiveTestInSession()) {
     unset($_SESSION['current_test'], $_SESSION['test_start_time'], $_SESSION['last_result_id']);
+    if ($userId > 0) {
+        clearPersistedActiveTest($pdo, $userId);
+    }
 }
 
 // finishTest logic moved to includes/functions.php
@@ -68,16 +87,37 @@ if ($mode === 'single') {
     $timeOption = 'custom';
 }
 
-// Initialize a new test only if none active or mode changed
-$needNewTest = !isset($_SESSION['current_test'])
-    || $_SESSION['current_test']['mode'] !== $mode
-    || (isset($_GET['new']) && $_GET['new'] === '1')
-    || (isset($_GET['start']) && $_GET['start'] === '1');
+$hasActiveTest = hasActiveTestInSession();
+$wantsStart = isset($_GET['start']) && $_GET['start'] === '1';
+$wantsSetup = isset($_GET['setup']) && $_GET['setup'] === '1';
+$wantsFreshSetup = isset($_GET['new']) && $_GET['new'] === '1';
 
-$showSetup = (isset($_GET['setup']) && $_GET['setup'] === '1') 
-             || ($mode === 'practice' && empty($category) && !isset($_GET['start']));
+if ($hasActiveTest) {
+    $activeConfig = getActiveTestConfigFromSession();
+    $mode = $activeConfig['mode'] ?? $mode;
+    $category = $activeConfig['category'] ?? $category;
+    $count = $activeConfig['count'] ?? $count;
+    $timeLimit = $activeConfig['timeLimit'] ?? $timeLimit;
+    $timeOption = $activeConfig['timeOption'] ?? $timeOption;
+    $timePerQuestion = $activeConfig['timePerQuestion'] ?? $timePerQuestion;
+    $difficulty = $activeConfig['difficulty'] ?? $difficulty;
+    $scope = $activeConfig['scope'] ?? $scope;
+    $order = $activeConfig['order'] ?? $order;
+    $preset = $activeConfig['preset'] ?? $preset;
+}
 
-if ($needNewTest && !$showSetup && isset($_GET['start'])) {
+if ($hasActiveTest && ($wantsStart || $wantsSetup || $wantsFreshSetup)) {
+    $showTestConflict = true;
+}
+
+$showSetup = !$hasActiveTest && (
+    $wantsSetup
+    || ($mode === 'practice' && empty($category) && !$wantsStart)
+);
+
+$needNewTest = $wantsStart && !$showTestConflict && !$hasActiveTest;
+
+if ($needNewTest && !$showSetup && $wantsStart) {
     $allQuestions = loadQuestions($pdo, false);
     if (empty($allQuestions)) {
         $selectedQuestions = [];
@@ -189,7 +229,8 @@ if ($needNewTest && !$showSetup && isset($_GET['start'])) {
     }
 
     $excludeFromRanking = isset($_GET['unranked']) && $_GET['unranked'] === '1' ? 1 : 0;
-    $_SESSION['current_test'] = [
+    $cleanCategory = is_array($category) ? implode(',', $category) : $category;
+    $newTest = [
         'mode'       => $mode,
         'questions'  => $selectedQuestions,
         'current'    => 0,
@@ -199,19 +240,22 @@ if ($needNewTest && !$showSetup && isset($_GET['start'])) {
         'phase'      => 'answering',
         'last_result'=> null,
         'exclude_from_ranking' => $excludeFromRanking,
+        'config'     => [
+            'category' => $cleanCategory,
+            'count' => count($selectedQuestions),
+            'time' => $timeLimit,
+            'time_per_question' => $timePerQuestion,
+            'preset' => $preset,
+            'difficulty' => $difficulty,
+            'scope' => $scope,
+            'time_option' => $timeOption,
+            'order' => $order,
+        ],
     ];
+    saveCurrentTest($pdo, $userId > 0 ? $userId : null, $newTest);
     
     // Redirect to clean URL to prevent re-initialization on refresh or POST
-    $cleanCategory = is_array($category) ? implode(',', $category) : $category;
-    header('Location: test.php?mode=' . urlencode($mode) 
-        . ( !empty($cleanCategory) ? '&category=' . urlencode($cleanCategory) : '' )
-        . '&count=' . count($selectedQuestions)
-        . '&time=' . $timeLimit
-        . '&time_per_question=' . $timePerQuestion
-        . (!empty($preset) ? '&preset=' . urlencode($preset) : '')
-        . '&difficulty=' . urlencode($difficulty)
-        . '&scope=' . urlencode($scope)
-        . '&time_option=' . urlencode($timeOption));
+    header('Location: test.php');
     exit;
 }
 
@@ -249,11 +293,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['current'] = max(0, min($totalQuestions - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
-        $_SESSION['current_test'] = $test;
-        header('Location: test.php?mode=' . urlencode($mode)
-            . '&category=' . urlencode($category)
-            . '&count=' . $count
-            . '&time=' . $timeLimit);
+        saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+        header('Location: test.php');
         exit;
     }
 
@@ -265,8 +306,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
             if ($test['current'] >= $totalQuestions) {
                 if ($mode === 'single') {
-                    unset($_SESSION['current_test']);
-                    header('Location: test.php?mode=single&start=1&new=1');
+                    cancelActiveTest($pdo, $userId > 0 ? $userId : null);
+                    header('Location: test.php?mode=single&setup=1');
                     exit;
                 }
                 if (isGuestMode()) {
@@ -279,12 +320,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         
-        $_SESSION['current_test'] = $test;
+        saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
         // Redirect to avoid form re-submission
-        header('Location: test.php?mode=' . urlencode($mode)
-            . '&category=' . urlencode($category)
-            . '&count=' . $count
-            . '&time=' . $timeLimit);
+        header('Location: test.php');
         exit;
     }
 
@@ -328,8 +366,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     exit;
                 }
                 
-                $_SESSION['current_test'] = $test;
-                header('Location: test.php?mode=exam');
+                saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+                header('Location: test.php');
                 exit;
             } else {
                 // In practice/single mode, show review info
@@ -346,12 +384,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'correct_answer' => $correctAnswer,
                     'is_last'        => ($currentIdx >= $totalQuestions - 1),
                 ];
-                $_SESSION['current_test'] = $test;
+                saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
             }
         }
     }
 }
 // ──────────────────────────────────────────────────────────────────────────────
+
+if ($hasActiveTest && !$showTestConflict && ($wantsSetup || $wantsFreshSetup)) {
+    header('Location: test.php');
+    exit;
+}
 
 if ($test) {
     if (!empty($questions) && (int)($test['current'] ?? 0) >= $totalQuestions) {
@@ -1100,7 +1143,54 @@ if ($test) {
 
             <main role="main" class="content-body">
                 <div class="container-fluid quiz-container p-0">
-    <?php if ($showSetup): ?>
+    <?php if ($showTestConflict):
+        $activeSummary = getActiveTestSummary($_SESSION['current_test'] ?? null);
+        $conflictQuery = $_GET;
+        unset($conflictQuery['continue_test'], $conflictQuery['force_new']);
+        $conflictQuery['force_new'] = '1';
+        $conflictNewUrl = 'test.php?' . http_build_query($conflictQuery);
+    ?>
+    <div class="dashboard-panel animate-in mb-4">
+        <div class="panel-header border-bottom pb-3 mb-4">
+            <h3 class="mb-2 fw-extrabold text-warning d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>Aktywny test w toku
+            </h3>
+            <p class="text-muted mb-0">
+                Na Twoim koncie jest już rozpoczęty test. Możesz go kontynuować albo rozpocząć nowy —
+                poprzedni zostanie anulowany i <strong>nie będzie liczony do rankingu</strong>.
+            </p>
+        </div>
+        <div class="card border-0 bg-light rounded-4 mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="small text-muted">Tryb</div>
+                        <div class="fw-bold"><?= htmlspecialchars($activeSummary['mode_label'] ?? 'Test') ?></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="small text-muted">Postęp</div>
+                        <div class="fw-bold">
+                            Pytanie <?= (int)($activeSummary['current'] ?? 1) ?> z <?= (int)($activeSummary['total'] ?? 0) ?>
+                            (<?= (int)($activeSummary['answered'] ?? 0) ?> odpowiedzi)
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="small text-muted">Kategorie</div>
+                        <div class="fw-bold"><?= htmlspecialchars($activeSummary['categories_label'] ?? '') ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-3">
+            <a href="test.php?continue_test=1" class="btn btn-success btn-lg rounded-pill px-4 fw-bold">
+                <i class="bi bi-play-circle me-2"></i>Kontynuuj test
+            </a>
+            <a href="<?= htmlspecialchars($conflictNewUrl) ?>" class="btn btn-outline-danger btn-lg rounded-pill px-4 fw-bold">
+                <i class="bi bi-arrow-repeat me-2"></i>Rozpocznij nowy
+            </a>
+        </div>
+    </div>
+    <?php elseif ($showSetup): ?>
     <?php
     // Helper to get beautiful metadata for categories
     if (!function_exists('getCategoryMeta')) {
@@ -1151,11 +1241,6 @@ if ($test) {
             <h3 class="mb-0 fw-extrabold text-primary d-flex align-items-center gap-2">
                 <i class="bi bi-sliders2-vertical"></i>Konfiguracja testu
             </h3>
-            <?php if (isset($_SESSION['current_test'])): ?>
-                <a href="test.php" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
-                    <i class="bi bi-play-circle me-1"></i>Kontynuuj aktywny test
-                </a>
-            <?php endif; ?>
         </div>
         <div class="card-body p-0">
             <form method="GET" class="row g-4 exam-setup-compact" id="premiumSetupForm">
@@ -1759,9 +1844,6 @@ if ($test) {
                             <i class="bi bi-arrow-left me-2"></i>Poprzednie pytanie
                         </button>
                     </div>
-                    <a href="test.php?setup=1" class="btn btn-outline-secondary">
-                        <i class="bi bi-gear me-1"></i>Zmień ustawienia
-                    </a>
                 </div>
             </form>
 
@@ -1879,11 +1961,7 @@ if ($test) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
             </div>
             <div class="modal-body pt-0 px-4 pb-4">
-                <p class="test-confirm-desc mb-3">Wynik zostanie zapisany w obecnym stanie.</p>
-                <div class="test-confirm-counter alert alert-warning mb-0 rounded-3 border-0">
-                    <span class="test-confirm-answers"><strong><?= $answeredCount ?> / <?= $totalQuestions ?></strong></span>
-                    <span class="test-confirm-label ms-2">Nieudzielone pytania będą liczone jako błędne.</span>
-                </div>
+                <p class="test-confirm-desc mb-0">Wynik zostanie zapisany w obecnym stanie. Nieudzielone pytania będą liczone jako błędne.</p>
             </div>
             <div class="modal-footer border-0 px-4 pb-4 pt-3 justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Wróć</button>

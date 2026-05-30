@@ -93,6 +93,17 @@ $perQuestionLimit = !empty($duel['time_per_question_seconds']) ? (int)$duel['tim
 $totalTimeLimit = !empty($duel['total_time_seconds']) ? (int)$duel['total_time_seconds'] : 0;
 $requireConfirmation = !empty($duel['require_answer_confirmation']);
 $allowEarlyFinish = !empty($duel['allow_early_finish']);
+
+$duelStartedAt = ensureDuelParticipantStarted($pdo, $duelId, $isChallenger);
+$serverNow = time();
+$elapsedSeconds = max(0, $serverNow - $duelStartedAt);
+
+$answeredCount = getDuelAnsweredCount($pdo, $duelId, $myId);
+if ($answeredCount >= count($questions)) {
+    redirect('results.php?id=' . $duelId);
+}
+$initialStep = min($answeredCount, max(0, count($questions) - 1));
+$initialProgressPct = count($questions) > 0 ? round((($initialStep + 1) / count($questions)) * 100) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -106,70 +117,68 @@ $allowEarlyFinish = !empty($duel['allow_early_finish']);
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
-    <style>
-        body.duel-live { background: #f8fafc; color: #0f172a; }
-        .duel-header { background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 62%, #111827 100%); color: white; border-radius: 0 0 28px 28px; padding: 2rem 1rem 4rem; box-shadow: 0 22px 50px rgba(127,29,29,.24); }
-        .question-card { margin-top: -54px; border: 1px solid rgba(148,163,184,.18); }
-        .option-btn { 
-            padding: 1.1rem 1.25rem; border: 2px solid #dbe4ef; border-radius: 1rem; cursor: pointer; transition: all 0.2s; 
-            background: #ffffff; text-align: left; font-weight: 700; display: block; width: 100%; margin-bottom: 1rem; color: #0f172a;
-        }
-        .option-btn:hover { border-color: var(--primary-color); background: rgba(59,130,246,0.02); }
-        .option-btn.selected { border-color: var(--primary-color); background: var(--primary-color); color: white; }
-        .duel-confirm-panel { border: 1px solid rgba(29,78,216,.18); background: #eff6ff; border-radius: 1rem; padding: 1rem; }
-        .duel-confirm-panel[hidden] { display: none !important; }
-        body.dark-mode.duel-live { background: #0f172a; color: #e5e7eb; }
-        body.dark-mode .option-btn { background: #111827; border-color: #334155; color: #e5e7eb; }
-        body.dark-mode .question-card { background: #1e293b; }
-        body.dark-mode .duel-confirm-panel { background: #172554; border-color: #1d4ed8; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/duels.css">
 </head>
-<body class="duel-live">
-
-    <div class="duel-header text-center">
-        <h2 class="fw-800 mb-1">POJEDYNEK</h2>
-        <div class="d-flex align-items-center justify-content-center gap-3">
-            <span class="fs-5"><?= htmlspecialchars($duel['challenger_name']) ?></span>
-            <span class="badge bg-white text-danger fs-6 fw-bold">VS</span>
-            <span class="fs-5"><?= htmlspecialchars($duel['opponent_name']) ?></span>
-        </div>
-        <div class="mt-2 small opacity-75">Kategoria: <?= htmlspecialchars($duel['category']) ?> • Tryb: <?= htmlspecialchars($modeLabel) ?><?php if (($duel['mode'] ?? '') === 'all_in'): ?> • Stawka: <?= (int)$duel['stake_xp'] ?> XP<?php endif; ?><?php if ($perQuestionLimit): ?> • <?= $perQuestionLimit ?>s/pyt.<?php endif; ?><?php if ($totalTimeLimit): ?> • limit <?= floor($totalTimeLimit / 60) ?> min<?php endif; ?></div>
-    </div>
-
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="dashboard-panel question-card shadow-lg animate-in">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="badge bg-primary bg-opacity-10 text-primary fs-6">
-                            Pytanie <span id="currentIdx">1</span> z <?= count($questions) ?>
-                        </div>
-                        <div class="text-end">
-                            <div id="timer" class="fw-bold text-muted">00:00</div>
-                            <?php if ($perQuestionLimit): ?><div id="questionTimer" class="small text-danger fw-bold"><?= $perQuestionLimit ?>s</div><?php endif; ?>
-                            <?php if ($totalTimeLimit): ?><div id="totalTimer" class="small text-primary fw-bold"></div><?php endif; ?>
-                        </div>
+<body class="duel-live duel-page-shell">
+    <div class="dashboard-layout">
+        <?php include '../includes/sidebar.php'; ?>
+        <div class="main-container">
+            <?php include '../includes/topbar.php'; ?>
+            <main role="main" class="content-body duel-live-main">
+                <div class="duel-arena-header text-center">
+                    <div class="duel-arena-badge mb-2"><i class="bi bi-lightning-charge-fill me-1"></i> Pojedynek na żywo</div>
+                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                        <span class="duel-player-name"><?= htmlspecialchars($duel['challenger_name']) ?></span>
+                        <span class="duel-vs-pill">VS</span>
+                        <span class="duel-player-name"><?= htmlspecialchars($duel['opponent_name']) ?></span>
                     </div>
+                    <div class="duel-arena-meta mt-2">
+                        <?= htmlspecialchars($duel['category']) ?> • <?= htmlspecialchars($modeLabel) ?>
+                        <?php if (($duel['mode'] ?? '') === 'all_in'): ?> • Stawka <?= (int)$duel['stake_xp'] ?> XP<?php endif; ?>
+                    </div>
+                </div>
 
-                    <div id="quizContent">
+                <div class="container-fluid py-3 px-3 px-lg-4">
+                    <div class="row justify-content-center">
+                        <div class="col-xl-9 col-lg-10">
+                            <div class="dashboard-panel duel-question-card shadow-lg animate-in p-4 p-md-5">
+                                <div class="d-flex justify-content-between align-items-start mb-3 gap-3 flex-wrap">
+                                    <div>
+                                        <div class="duel-step-label text-uppercase">Postęp</div>
+                                        <div class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2 mt-1">
+                                            Pytanie <span id="currentIdx"><?= $initialStep + 1 ?></span> z <?= count($questions) ?>
+                                        </div>
+                                    </div>
+                                    <div class="duel-timer-stack text-end">
+                                        <div class="duel-timer-label">Czas gry</div>
+                                        <div id="timer" class="duel-timer-value">00:00</div>
+                                        <?php if ($perQuestionLimit): ?><div id="questionTimer" class="duel-question-timer"><?= $perQuestionLimit ?>s na pytanie</div><?php endif; ?>
+                                        <?php if ($totalTimeLimit): ?><div id="totalTimer" class="duel-total-timer"></div><?php endif; ?>
+                                    </div>
+                                </div>
+                                <div class="duel-progress-track mb-4" aria-hidden="true">
+                                    <span id="duelProgressBar" style="width:<?= (int)$initialProgressPct ?>%"></span>
+                                </div>
+
+                                <div id="quizContent">
                         <?php foreach ($questions as $idx => $q): ?>
-                            <div class="question-step" id="step_<?= $idx ?>" style="display: <?= $idx === 0 ? 'block' : 'none' ?>;">
-                                <h4 class="fw-bold mb-4"><?= htmlspecialchars($q['question_text']) ?></h4>
+                            <div class="question-step" id="step_<?= $idx ?>" style="display: <?= $idx === $initialStep ? 'block' : 'none' ?>;">
+                                <h4 class="duel-question-text mb-4"><?= htmlspecialchars($q['question_text']) ?></h4>
                                 <?php $duelQuestionImage = questionImageSrc($q['image_url'] ?? '', '../'); ?>
                                 <?php if ($duelQuestionImage): ?>
                                     <img src="<?= htmlspecialchars($duelQuestionImage) ?>" class="img-fluid rounded-4 mb-4 border shadow-sm" alt="Ilustracja do pytania: <?= htmlspecialchars(mb_substr($q['question_text'] ?? 'pytanie pojedynku', 0, 90)) ?>" loading="lazy" decoding="async" referrerpolicy="no-referrer">
                                 <?php endif; ?>
                                 <div class="options-list">
-                                    <button class="option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'A')">
+                                    <button type="button" class="duel-option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'A')">
                                         <span class="badge bg-light text-dark me-2">A</span> <?= htmlspecialchars($q['option_a']) ?>
                                     </button>
-                                    <button class="option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'B')">
+                                    <button type="button" class="duel-option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'B')">
                                         <span class="badge bg-light text-dark me-2">B</span> <?= htmlspecialchars($q['option_b']) ?>
                                     </button>
-                                    <button class="option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'C')">
+                                    <button type="button" class="duel-option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'C')">
                                         <span class="badge bg-light text-dark me-2">C</span> <?= htmlspecialchars($q['option_c']) ?>
                                     </button>
-                                    <button class="option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'D')">
+                                    <button type="button" class="duel-option-btn" onclick="saveAnswer(event, <?= $idx ?>, <?= $q['id'] ?>, 'D')">
                                         <span class="badge bg-light text-dark me-2">D</span> <?= htmlspecialchars($q['option_d']) ?>
                                     </button>
                                 </div>
@@ -201,13 +210,18 @@ $allowEarlyFinish = !empty($duel['allow_early_finish']);
                             </button>
                         </div>
                     <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </main>
+            <?php include '../includes/footer.php'; ?>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script>
-        let currentStep = 0;
+        let currentStep = <?= (int)$initialStep ?>;
         const totalSteps = <?= count($questions) ?>;
         const duelId = <?= $duelId ?>;
         const csrfToken = <?= json_encode(generateCsrfToken()) ?>;
@@ -215,20 +229,30 @@ $allowEarlyFinish = !empty($duel['allow_early_finish']);
         const allowEarlyFinish = <?= $allowEarlyFinish ? 'true' : 'false' ?>;
         const perQuestionLimit = <?= (int)$perQuestionLimit ?>;
         const totalTimeLimit = <?= (int)$totalTimeLimit ?>;
+        const serverElapsedSeconds = <?= (int)$elapsedSeconds ?>;
+        const serverNowMs = <?= (int)$serverNow * 1000 ?>;
         const answered = new Set();
-        let startTime = Date.now();
+        const clockOffsetMs = Date.now() - serverNowMs;
+        let startTime = Date.now() - clockOffsetMs - (serverElapsedSeconds * 1000);
         let questionStartTime = Date.now();
         let questionTimerInterval = null;
         let timerInterval = setInterval(updateTimer, 1000);
         if (perQuestionLimit > 0) questionTimerInterval = setInterval(updateQuestionTimer, 500);
+        updateTimer();
+        if (perQuestionLimit > 0) updateQuestionTimer();
+
+        function getElapsedSeconds() {
+            return Math.max(0, Math.floor((Date.now() - clockOffsetMs - startTime) / 1000));
+        }
 
         function updateTimer() {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const elapsed = getElapsedSeconds();
             if (totalTimeLimit > 0) {
+                const totalNode = document.getElementById('totalTimer');
                 const remaining = Math.max(0, totalTimeLimit - elapsed);
                 const tm = Math.floor(remaining / 60).toString().padStart(2, '0');
                 const ts = (remaining % 60).toString().padStart(2, '0');
-                document.getElementById('totalTimer').innerText = `Limit: ${tm}:${ts}`;
+                if (totalNode) totalNode.innerText = `Limit całego testu: ${tm}:${ts}`;
                 if (remaining <= 0) finishDuel(true, true);
             }
             const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
@@ -252,6 +276,10 @@ $allowEarlyFinish = !empty($duel['allow_early_finish']);
                 questionStartTime = Date.now();
                 document.getElementById(`step_${currentStep}`).style.display = 'block';
                 document.getElementById('currentIdx').innerText = currentStep + 1;
+                const progressBar = document.getElementById('duelProgressBar');
+                if (progressBar) {
+                    progressBar.style.width = `${Math.round(((currentStep + 1) / totalSteps) * 100)}%`;
+                }
             } else {
                 finishDuel(true, true);
             }
@@ -295,10 +323,10 @@ $allowEarlyFinish = !empty($duel['allow_early_finish']);
         }
 
         async function submitAnswer(button, idx, qId, ans) {
-            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            const timeTaken = getElapsedSeconds();
             
             // Highlight selection locally
-            const btns = document.querySelectorAll(`#step_${idx} .option-btn`);
+            const btns = document.querySelectorAll(`#step_${idx} .duel-option-btn`);
             btns.forEach(b => b.classList.remove('selected'));
             button.classList.add('selected');
 
@@ -342,7 +370,7 @@ $allowEarlyFinish = !empty($duel['allow_early_finish']);
             try {
                 const formData = new FormData();
                 formData.append('id', duelId);
-                formData.append('time_spent', Math.floor((Date.now() - startTime) / 1000));
+                formData.append('time_spent', getElapsedSeconds());
                 formData.append('early_finish', early ? '1' : '0');
                 formData.append('csrf_token', csrfToken);
 
