@@ -19,8 +19,8 @@ function sanitize($data) {
 
 function validatePasswordPolicy(string $password): array {
     $errors = [];
-    if (mb_strlen($password, '8bit') < 10) {
-        $errors[] = 'Hasło musi mieć minimum 10 znaków.';
+    if (mb_strlen($password, '8bit') < 8) {
+        $errors[] = 'Hasło musi mieć minimum 8 znaków.';
     }
     if (!preg_match('/[a-z]/', $password)) {
         $errors[] = 'Hasło musi zawierać małą literę.';
@@ -1156,6 +1156,9 @@ function loadQuestions($pdo = null, $includeDbQuestions = true) {
     foreach ($jsonFiles as $jsonPath) {
         if (file_exists($jsonPath)) {
             $jsonData = file_get_contents($jsonPath);
+            if (strncmp($jsonData, "\xEF\xBB\xBF", 3) === 0) {
+                $jsonData = substr($jsonData, 3);
+            }
             $data = json_decode($jsonData, true);
 
             if (json_last_error() === JSON_ERROR_NONE) {

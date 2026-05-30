@@ -23,7 +23,15 @@ generateCsrfToken();
 
 $mode     = $_GET['mode']     ?? 'exam';
 $category = $_GET['category'] ?? '';
-$count    = isset($_GET['count']) ? (int)$_GET['count'] : 40;
+$defaultCategoryCookie = trim(urldecode($_COOKIE['default_test_categories'] ?? ''));
+if (!isset($_GET['category']) && $defaultCategoryCookie !== '') {
+    $category = $defaultCategoryCookie;
+}
+$count    = isset($_GET['count']) ? (int)$_GET['count'] : null;
+$defaultCountCookie = isset($_COOKIE['default_test_count']) ? (int)$_COOKIE['default_test_count'] : 0;
+if (!isset($_GET['count'])) {
+    $count = $defaultCountCookie > 0 ? $defaultCountCookie : 40;
+}
 $timeLimit = isset($_GET['time']) ? (int)$_GET['time'] : 60; // in minutes
 $order    = $_GET['order']    ?? 'random';
 $smart    = isset($_GET['smart']) && $_GET['smart'] === '1';
@@ -1180,9 +1188,10 @@ if ($test) {
                                 <div class="accordion-body px-3 pt-3 pb-2">
                                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 border-bottom pb-2">
                                         <span class="text-muted small">Wybierz kategorie do wylosowania pytań:</span>
-                                        <div class="d-flex gap-3">
+                                        <div class="d-flex gap-2 flex-wrap align-items-center">
                                             <button type="button" class="btn btn-sm btn-link text-success text-decoration-none fw-bold p-0 exam-cat-select-all" id="selectAllCats"><i class="bi bi-check2-all me-1"></i>Zaznacz wszystkie</button>
                                             <button type="button" class="btn btn-sm btn-link text-danger text-decoration-none fw-bold p-0 exam-cat-deselect-all" id="deselectAllCats"><i class="bi bi-x-lg me-1"></i>Odznacz wszystkie</button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" id="saveDefaultCategoryBtn"><i class="bi bi-bookmark-star me-1"></i>Zapisz jako domyślną</button>
                                         </div>
                                     </div>
                                     <div class="category-grid">
@@ -1215,7 +1224,10 @@ if ($test) {
                 <!-- Liczba pytań i czas -->
                 <div class="row exam-setup-compact-row">
                     <div class="col-md-6 mt-3 exam-setup-compact-col">
-                        <label class="setup-section-title"><span><i class="bi bi-question-circle"></i>Liczba pytań</span></label>
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <label class="setup-section-title mb-0"><span><i class="bi bi-question-circle"></i>Liczba pytań</span></label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" id="saveDefaultCountBtn"><i class="bi bi-bookmark-star me-1"></i>Domyślna liczba</button>
+                        </div>
                         <div class="d-flex align-items-center gap-3">
                             <input type="number" name="count" id="questionCountInput" class="form-control form-control-lg fw-bold text-center" 
                                    value="<?= $count ?>" min="1" max="100" style="width: 100px; border-radius: 12px; height: 48px;">
@@ -1459,7 +1471,16 @@ if ($test) {
 
                 <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    // Category Selection
+                    function setCookie(name, value, days) {
+                        let expires = '';
+                        if (typeof days === 'number') {
+                            const date = new Date();
+                            date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+                            expires = '; expires=' + date.toUTCString();
+                        }
+                        document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax`;
+                    }
+
                     const categoryCards = document.querySelectorAll('.category-card');
                     const categoryInput = document.getElementById('categoryInput');
                     
@@ -1488,6 +1509,40 @@ if ($test) {
                     document.getElementById('deselectAllCats')?.addEventListener('click', () => {
                         categoryCards.forEach(card => card.classList.remove('selected'));
                         updateCategoryInput();
+                    });
+
+                    document.getElementById('saveDefaultCategoryBtn')?.addEventListener('click', () => {
+                        const selected = [];
+                        categoryCards.forEach(card => {
+                            if (card.classList.contains('selected')) {
+                                selected.push(card.dataset.category);
+                            }
+                        });
+                        if (!selected.length) {
+                            alert('Wybierz przynajmniej jedną kategorię, aby zapisać domyślną.');
+                            return;
+                        }
+                        setCookie('default_test_categories', selected.join(','), 365);
+                        const btn = document.getElementById('saveDefaultCategoryBtn');
+                        if (btn) {
+                            btn.textContent = 'Zapisano';
+                            setTimeout(() => { btn.innerHTML = '<i class="bi bi-bookmark-star me-1"></i>Zapisz jako domyślną'; }, 1600);
+                        }
+                    });
+
+                    document.getElementById('saveDefaultCountBtn')?.addEventListener('click', () => {
+                        if (!countInput) return;
+                        const countValue = Number(countInput.value || 0);
+                        if (countValue < 1) {
+                            alert('Wprowadź poprawną liczbę pytań, aby zapisać domyślną wartość.');
+                            return;
+                        }
+                        setCookie('default_test_count', countValue, 365);
+                        const btn = document.getElementById('saveDefaultCountBtn');
+                        if (btn) {
+                            btn.textContent = 'Zapisano';
+                            setTimeout(() => { btn.innerHTML = '<i class="bi bi-bookmark-star me-1"></i>Domyślna liczba'; }, 1600);
+                        }
                     });
 
                     // Difficulty Segmented Control
@@ -1552,6 +1607,7 @@ if ($test) {
                             }
                         });
                     });
+                    countInput?.dispatchEvent(new Event('input'));
 
                     const presetBtns = document.querySelectorAll('.preset-mode-btn');
                     const presetInput = document.getElementById('presetInput');
