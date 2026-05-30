@@ -90,13 +90,16 @@ switch ($action) {
                         echo json_encode(['success' => true, 'finished' => true, 'redirect' => "result.php?id=$resultId"]);
                     }
                 } else {
+                    $nextIdx = $test['current'];
+                    $savedAnswer = $test['answers'][$nextIdx]['user_answer'] ?? '';
                     echo json_encode([
                         'success' => true, 
                         'finished' => false, 
                         'next_question' => true,
                         'current' => $test['current'],
                         'total' => count($test['questions']),
-                        'question' => formatQuestionForAjax($test['questions'][$test['current']])
+                        'question' => formatQuestionForAjax($test['questions'][$test['current']]),
+                        'saved_answer' => $savedAnswer
                     ]);
                 }
             } else {
@@ -137,11 +140,13 @@ switch ($action) {
         $test['phase'] = 'answering';
         $test['last_result'] = null;
         $_SESSION['current_test'] = $test;
+        $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
         echo json_encode([
             'success' => true,
             'current' => $test['current'],
             'total' => count($test['questions']),
-            'question' => formatQuestionForAjax($test['questions'][$test['current']])
+            'question' => formatQuestionForAjax($test['questions'][$test['current']]),
+            'saved_answer' => $savedAnswer
         ]);
         break;
 
@@ -197,11 +202,13 @@ switch ($action) {
                 }
             } else {
                 $_SESSION['current_test'] = $test;
+                $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
                 echo json_encode([
                     'success' => true,
                     'current' => $test['current'],
                     'total' => count($test['questions']),
-                    'question' => formatQuestionForAjax($test['questions'][$test['current']])
+                    'question' => formatQuestionForAjax($test['questions'][$test['current']]),
+                    'saved_answer' => $savedAnswer
                 ]);
             }
         }

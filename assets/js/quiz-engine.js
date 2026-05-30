@@ -85,7 +85,7 @@ const QuizEngine = {
                     window.allowQuizNavigation?.();
                     window.location.href = data.redirect;
                 } else if (data.next_question) {
-                    this.renderQuestion(data.question, data.current, data.total);
+                    this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
                 } else if (data.phase === 'review') {
                     this.renderReview(data.result);
                 }
@@ -125,7 +125,7 @@ const QuizEngine = {
                     window.allowQuizNavigation?.();
                     window.location.href = data.redirect;
                 } else {
-                    this.renderQuestion(data.question, data.current, data.total);
+                    this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
                 }
             }
         } catch (error) {
@@ -135,7 +135,7 @@ const QuizEngine = {
         }
     },
 
-    renderQuestion(q, current, total) {
+    renderQuestion(q, current, total, savedAnswer = '') {
         // 1. Update progress bar and text
         const progressBar = document.getElementById('progressBar');
         const progressHeader = document.querySelector('strong.h5');
@@ -169,8 +169,8 @@ const QuizEngine = {
             // Reset form
             const form = document.getElementById('quizForm');
             form.querySelector('input[name="question_id"]').value = q.id;
-            document.getElementById('selectedAnswer').value = '';
-            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('selectedAnswer').value = savedAnswer || '';
+            document.getElementById('submitBtn').disabled = !savedAnswer;
             const prevButton = document.querySelector('[data-question-nav="previous"]');
             if (prevButton) prevButton.disabled = current <= 0;
 
@@ -180,7 +180,7 @@ const QuizEngine = {
             for (const [key, text] of Object.entries(q.options)) {
                 if (!text || text.trim() === '') continue;
                 const opt = document.createElement('div');
-                opt.className = 'answer-option quiz-option';
+                opt.className = 'answer-option quiz-option' + (savedAnswer === key ? ' selected' : '');
                 opt.dataset.answer = key;
                 opt.innerHTML = `<div class="answer-letter">${key}</div><div class="answer-text">${this.escapeHtml(text)}</div>`;
                 opt.onclick = () => this.selectOption(opt);

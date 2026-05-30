@@ -510,6 +510,38 @@ if ($test) {
             color: #60a5fa;
         }
         
+        /* Custom styled category accordion */
+        #categoryAccordion {
+            border: 1px solid var(--border-color);
+            border-radius: 16px !important;
+            overflow: hidden;
+            background: var(--panel-bg);
+            margin-bottom: 0.5rem;
+        }
+        #categoryAccordion .accordion-item {
+            background: var(--panel-bg) !important;
+            border: none !important;
+        }
+        #categoryAccordion .accordion-button {
+            background: var(--panel-bg) !important;
+            color: var(--text-main) !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 1.15rem 1.5rem !important;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: background-color 0.2s ease;
+        }
+        #categoryAccordion .accordion-button:not(.collapsed) {
+            background: rgba(59, 130, 246, 0.04) !important;
+            color: var(--primary-color) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+        body.dark-mode #categoryAccordion .accordion-button:not(.collapsed) {
+            background: rgba(96, 165, 250, 0.04) !important;
+            color: #60a5fa !important;
+        }
+        
         /* Grid for categories */
         .category-grid {
             display: grid;
@@ -747,15 +779,22 @@ if ($test) {
         .badge-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-top: 0.5rem;
+            gap: 0.5rem;
+            margin-top: 0;
+            align-items: center;
         }
         .count-badge-btn {
             border: 2px solid var(--border-color);
             background: var(--panel-bg);
-            border-radius: 999px;
-            padding: 0.45rem 1.25rem;
-            font-size: 0.88rem;
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 !important;
+            white-space: nowrap !important;
+            font-size: 0.9rem;
             font-weight: 700;
             color: var(--text-muted);
             cursor: pointer;
@@ -1111,7 +1150,14 @@ if ($test) {
             <?php endif; ?>
         </div>
         <div class="card-body p-0">
-            <form method="GET" class="row g-4" id="premiumSetupForm">
+            <form method="GET" class="row g-4 exam-setup-compact" id="premiumSetupForm">
+                <!-- Start Button on Top -->
+                <div class="col-12 mb-2 d-flex flex-column gap-1 text-center">
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold py-2 px-3 rounded-pill shadow-sm w-100 exam-setup-compact-btn">
+                        <i class="bi bi-play-fill me-1"></i>
+                        <?= ($mode === 'single') ? 'Wyświetl Pytanie' : 'Rozpocznij test' ?>
+                    </button>
+                </div>
                 <input type="hidden" name="mode" value="<?= htmlspecialchars($mode) ?>">
                 <input type="hidden" name="start" value="1">
                 <input type="hidden" name="category" id="categoryInput" value="<?= htmlspecialchars($category) ?>">
@@ -1121,39 +1167,121 @@ if ($test) {
                 <input type="hidden" name="preset" id="presetInput" value="<?= htmlspecialchars($preset) ?>">
                 <input type="hidden" name="order" id="orderInput" value="<?= htmlspecialchars($order) ?>">
                 
-                <!-- Category Select -->
-                <div class="col-12">
-                    <div class="setup-section-title">
-                        <span><i class="bi bi-collection-fill"></i>Kategorie pytań</span>
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="selectAllCats" style="border-radius: 8px 0 0 8px;"><i class="bi bi-check-all me-1"></i>Zaznacz wszystkie</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAllCats" style="border-radius: 0 8px 8px 0;"><i class="bi bi-x me-1"></i>Odznacz wszystkie</button>
-                        </div>
-                    </div>
-                    <div class="category-grid">
-                        <?php 
-                        $cats = getPublicCategories($pdo); 
-                        foreach ($cats as $cat): 
-                            $catMeta = getCategoryMeta($cat);
-                            $isSelected = in_array($cat, $selectedCats);
-                        ?>
-                            <div class="category-card <?= $isSelected ? 'selected' : '' ?>" data-category="<?= htmlspecialchars($cat) ?>">
-                                <div class="card-checkbox">
-                                    <i class="bi bi-check"></i>
-                                </div>
-                                <div class="card-icon-wrapper" style="color: <?= $catMeta['color'] ?>;">
-                                    <i class="bi <?= $catMeta['icon'] ?>"></i>
-                                </div>
-                                <div class="card-info">
-                                    <div class="card-title"><?= htmlspecialchars($cat) ?></div>
-                                    <div class="card-desc"><?= htmlspecialchars($catMeta['desc']) ?></div>
+                <!-- Kategorie -->
+                <div class="col-12 mb-2 exam-setup-compact-cats">
+                    <div class="accordion" id="categoryAccordion">
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header" id="categoryHeading">
+                                <button class="accordion-button collapsed d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#categoryCollapse" aria-expanded="false" aria-controls="categoryCollapse">
+                                    <i class="bi bi-collection-fill me-2"></i>Kategorie pytań
+                                </button>
+                            </h2>
+                            <div id="categoryCollapse" class="accordion-collapse collapse" aria-labelledby="categoryHeading" data-bs-parent="#categoryAccordion">
+                                <div class="accordion-body px-3 pt-3 pb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 border-bottom pb-2">
+                                        <span class="text-muted small">Wybierz kategorie do wylosowania pytań:</span>
+                                        <div class="d-flex gap-3">
+                                            <button type="button" class="btn btn-sm btn-link text-success text-decoration-none fw-bold p-0 exam-cat-select-all" id="selectAllCats"><i class="bi bi-check2-all me-1"></i>Zaznacz wszystkie</button>
+                                            <button type="button" class="btn btn-sm btn-link text-danger text-decoration-none fw-bold p-0 exam-cat-deselect-all" id="deselectAllCats"><i class="bi bi-x-lg me-1"></i>Odznacz wszystkie</button>
+                                        </div>
+                                    </div>
+                                    <div class="category-grid">
+                                        <?php 
+                                        $cats = getPublicCategories($pdo); 
+                                        foreach ($cats as $cat): 
+                                            $catMeta = getCategoryMeta($cat);
+                                            $isSelected = in_array($cat, $selectedCats);
+                                        ?>
+                                            <div class="category-card <?= $isSelected ? 'selected' : '' ?>" data-category="<?= htmlspecialchars($cat) ?>">
+                                                <div class="card-checkbox">
+                                                    <i class="bi bi-check"></i>
+                                                </div>
+                                                <div class="card-icon-wrapper" style="color: <?= $catMeta['color'] ?>;">
+                                                    <i class="bi <?= $catMeta['icon'] ?>"></i>
+                                                </div>
+                                                <div class="card-info">
+                                                    <div class="card-title"><?= htmlspecialchars($cat) ?></div>
+                                                    <div class="card-desc"><?= htmlspecialchars($catMeta['desc']) ?></div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Difficulty & Order -->
+                <!-- Liczba pytań i czas -->
+                <div class="row exam-setup-compact-row">
+                    <div class="col-md-6 mt-3 exam-setup-compact-col">
+                        <label class="setup-section-title"><span><i class="bi bi-question-circle"></i>Liczba pytań</span></label>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="number" name="count" id="questionCountInput" class="form-control form-control-lg fw-bold text-center" 
+                                   value="<?= $count ?>" min="1" max="100" style="width: 100px; border-radius: 12px; height: 48px;">
+                            <div class="badge-group flex-grow-1">
+                                <button type="button" class="count-badge-btn <?= $count === 5 ? 'active' : '' ?>" data-value="5">5</button>
+                                <button type="button" class="count-badge-btn <?= $count === 10 ? 'active' : '' ?>" data-value="10">10</button>
+                                <button type="button" class="count-badge-btn <?= $count === 20 ? 'active' : '' ?>" data-value="20">20</button>
+                                <button type="button" class="count-badge-btn <?= $count === 40 ? 'active' : '' ?>" data-value="40">40</button>
+                                <button type="button" class="count-badge-btn <?= $count === 80 ? 'active' : '' ?>" data-value="80">80</button>
+                                <button type="button" class="count-badge-btn <?= $count === 100 ? 'active' : '' ?>" data-value="100">100</button>
+                            </div>
+                        </div>
+                        <div class="form-text small mt-1">Maksymalnie 100 pytań na jedną próbę</div>
+                    </div>
+                    <div class="col-md-6 mt-3 exam-setup-compact-col">
+                        <label class="setup-section-title"><span><i class="bi bi-clock"></i>Opcje czasu</span></label>
+                        <div class="segmented-control">
+                            <button type="button" class="segmented-btn time-option-btn <?= $timeOption === 'unlimited' ? 'active' : '' ?>" data-value="unlimited">
+                                <i class="bi bi-infinity"></i>Bez limitu
+                            </button>
+                            <button type="button" class="segmented-btn time-option-btn <?= $timeOption === '30s' ? 'active' : '' ?>" data-value="30s">
+                                <i class="bi bi-lightning"></i>30s / pyt.
+                            </button>
+                            <button type="button" class="segmented-btn time-option-btn <?= $timeOption === '60s' ? 'active' : '' ?>" data-value="60s">
+                                <i class="bi bi-stopwatch"></i>60s / pyt.
+                            </button>
+                            <button type="button" class="segmented-btn time-option-btn <?= $timeOption === 'per_question_custom' ? 'active' : '' ?>" data-value="per_question_custom">
+                                <i class="bi bi-hourglass"></i>Własny / pyt.
+                            </button>
+                            <button type="button" class="segmented-btn time-option-btn <?= $timeOption === 'custom' ? 'active' : '' ?>" data-value="custom">
+                                <i class="bi bi-sliders"></i>Własny
+                            </button>
+                        </div>
+                        <!-- Custom Time Sliding Panel -->
+                        <div class="time-slider-panel <?= $timeOption === 'custom' ? 'open' : '' ?>">
+                            <div class="time-display-bubble">
+                                <i class="bi bi-hourglass-split"></i> <span id="timeLimitValue"><?= $timeLimit ?></span> min.
+                            </div>
+                            <input type="range" name="time" id="timeLimitInput" class="custom-range-slider" min="1" max="120" value="<?= $timeLimit ?>">
+                            <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
+                                <span>1 minuta</span>
+                                <span>60 minut</span>
+                                <span>120 minut</span>
+                            </div>
+                        </div>
+                        <div class="time-slider-panel <?= $timeOption === 'per_question_custom' ? 'open' : '' ?>" id="timePerQuestionPanel">
+                            <div class="time-display-bubble">
+                                <i class="bi bi-stopwatch"></i> <span id="timePerQuestionValue"><?= $timePerQuestion ?></span> sek. / pyt.
+                            </div>
+                            <input type="range" name="time_per_question" id="timePerQuestionInput" class="custom-range-slider" min="15" max="600" step="5" value="<?= $timePerQuestion ?>">
+                            <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
+                                <span>15 sek.</span>
+                                <span>5 minut</span>
+                                <span>10 minut</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion: Pozostałe opcje -->
+                <div class="col-12">
+                    <button class="btn btn-outline-secondary w-100 d-md-none mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#examOptionsCollapse" aria-expanded="false" aria-controls="examOptionsCollapse">
+                        <i class="bi bi-sliders2"></i> Więcej opcji
+                    </button>
+                    <div class="collapse d-md-block" id="examOptionsCollapse">
+                <div class="row">
                 <div class="col-md-6">
                     <label class="setup-section-title"><span><i class="bi bi-shield-shaded"></i>Poziom trudności</span></label>
                     <div class="segmented-control">
@@ -1229,69 +1357,6 @@ if ($test) {
                         </button>
                     </div>
                 </div>
-
-                <!-- Question Count & Time Limits -->
-                <div class="col-md-6 mt-4">
-                    <label class="setup-section-title"><span><i class="bi bi-question-circle"></i>Liczba pytań</span></label>
-                    <div class="d-flex align-items-center gap-3">
-                        <input type="number" name="count" id="questionCountInput" class="form-control form-control-lg fw-bold text-center" 
-                               value="<?= $count ?>" min="1" max="100" style="width: 100px; border-radius: 12px; height: 48px;">
-                        <div class="badge-group flex-grow-1">
-                            <button type="button" class="count-badge-btn <?= $count === 5 ? 'active' : '' ?>" data-value="5">5</button>
-                            <button type="button" class="count-badge-btn <?= $count === 10 ? 'active' : '' ?>" data-value="10">10</button>
-                            <button type="button" class="count-badge-btn <?= $count === 20 ? 'active' : '' ?>" data-value="20">20</button>
-                            <button type="button" class="count-badge-btn <?= $count === 40 ? 'active' : '' ?>" data-value="40">40</button>
-                            <button type="button" class="count-badge-btn <?= $count === 80 ? 'active' : '' ?>" data-value="80">80</button>
-                            <button type="button" class="count-badge-btn <?= $count === 100 ? 'active' : '' ?>" data-value="100">100</button>
-                        </div>
-                    </div>
-                    <div class="form-text small mt-1">Maksymalnie 100 pytań na jedną próbę</div>
-                </div>
-
-                <div class="col-md-6 mt-4">
-                    <label class="setup-section-title"><span><i class="bi bi-clock"></i>Opcje czasu</span></label>
-                    <div class="segmented-control">
-                        <button type="button" class="segmented-btn time-option-btn <?= $timeOption === 'unlimited' ? 'active' : '' ?>" data-value="unlimited">
-                            <i class="bi bi-infinity"></i>Bez limitu
-                        </button>
-                        <button type="button" class="segmented-btn time-option-btn <?= $timeOption === '30s' ? 'active' : '' ?>" data-value="30s">
-                            <i class="bi bi-lightning"></i>30s / pyt.
-                        </button>
-                        <button type="button" class="segmented-btn time-option-btn <?= $timeOption === '60s' ? 'active' : '' ?>" data-value="60s">
-                            <i class="bi bi-stopwatch"></i>60s / pyt.
-                        </button>
-                        <button type="button" class="segmented-btn time-option-btn <?= $timeOption === 'per_question_custom' ? 'active' : '' ?>" data-value="per_question_custom">
-                            <i class="bi bi-hourglass"></i>Własny / pyt.
-                        </button>
-                        <button type="button" class="segmented-btn time-option-btn <?= $timeOption === 'custom' ? 'active' : '' ?>" data-value="custom">
-                            <i class="bi bi-sliders"></i>Własny
-                        </button>
-                    </div>
-                    
-                    <!-- Custom Time Sliding Panel -->
-                    <div class="time-slider-panel <?= $timeOption === 'custom' ? 'open' : '' ?>">
-                        <div class="time-display-bubble">
-                            <i class="bi bi-hourglass-split"></i> <span id="timeLimitValue"><?= $timeLimit ?></span> min.
-                        </div>
-                        <input type="range" name="time" id="timeLimitInput" class="custom-range-slider" min="1" max="120" value="<?= $timeLimit ?>">
-                        <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
-                            <span>1 minuta</span>
-                            <span>60 minut</span>
-                            <span>120 minut</span>
-                        </div>
-                    </div>
-                    <div class="time-slider-panel <?= $timeOption === 'per_question_custom' ? 'open' : '' ?>" id="timePerQuestionPanel">
-                        <div class="time-display-bubble">
-                            <i class="bi bi-stopwatch"></i> <span id="timePerQuestionValue"><?= $timePerQuestion ?></span> sek. / pyt.
-                        </div>
-                        <input type="range" name="time_per_question" id="timePerQuestionInput" class="custom-range-slider" min="15" max="600" step="5" value="<?= $timePerQuestion ?>">
-                        <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
-                            <span>15 sek.</span>
-                            <span>5 minut</span>
-                            <span>10 minut</span>
-                        </div>
-                    </div>
-                </div>
                 <?php endif; ?>
 
                 <!-- Switches (Smart Repetition & Unranked Mode) -->
@@ -1342,14 +1407,12 @@ if ($test) {
                     </div>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="col-12 mt-5 d-flex flex-column gap-2 text-center">
-                    <button type="submit" class="btn btn-primary btn-lg fw-extrabold py-3 px-5 rounded-pill shadow-lg" style="font-size: 1.15rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-                        <i class="bi bi-play-fill me-1"></i>
-                        <?php if ($mode === 'single') { echo 'Wyświetl Pytanie'; } else { echo 'Rozpocznij test'; } ?>
-                    </button>
+                <!-- Link powrotu na dół -->
+                <div class="col-12 mt-3 d-flex flex-column gap-2 text-center">
                     <a href="index.php" class="btn btn-link text-muted mt-2 text-decoration-none"><i class="bi bi-arrow-left-short me-1"></i>Wróć do panelu głównego</a>
                 </div>
+                </div> <!-- /collapse/row -->
+            </div> <!-- /accordion -->
 
                 <?php if (!$isGuest && $mode !== 'single'): ?>
                 <script>
@@ -1564,12 +1627,14 @@ if ($test) {
                 <span class="text-muted small d-block mb-1">Postęp testu</span>
                 <strong class="h5 mb-0">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></strong>
             </div>
-            <div class="progress-actions d-flex align-items-center gap-3 flex-wrap justify-content-end">
-            <?php if (!empty($test['time_limit'])): ?>
-                <div class="timer-display h4 mb-0 fw-bold text-primary" id="timer"><?= formatTime(max(0, (isset($test['time_limit']) ? $test['time_limit'] : 3600) - (time() - $test['start_time']))) ?></div>
-            <?php endif; ?>
-                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="confirmEndTest()">
-                    <i class="bi bi-stop-circle me-1"></i><span>Zakończ test</span>
+            <div class="progress-actions test-progress-actions-modern d-flex align-items-center gap-2 flex-nowrap justify-content-end">
+                <?php if (!empty($test['time_limit'])): ?>
+                <div class="test-timer-modern" id="timer">
+                    <?= formatTime(max(0, (isset($test['time_limit']) ? $test['time_limit'] : 3600) - (time() - $test['start_time']))) ?>
+                </div>
+                <?php endif; ?>
+                <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" onclick="confirmEndTest()" title="Zakończ test">
+                    <i class="bi bi-stop-circle"></i>
                 </button>
             </div>
         </div>
@@ -1750,22 +1815,25 @@ if ($test) {
         </div>
     </div>
 
-<div class="modal fade" id="testConfirmModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade test-confirm-modal" id="testConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold"><i class="bi bi-flag-fill text-warning me-2"></i>Zakończyć test?</h5>
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title test-confirm-title fw-bold mb-1"><i class="bi bi-flag-fill text-warning me-2"></i>Zakończyć test?</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
             </div>
-            <div class="modal-body pt-0">
-                <p class="mb-2" id="testConfirmText">Wynik zostanie zapisany w obecnym stanie.</p>
-                <div class="alert alert-warning mb-0">
-                    Odpowiedzi: <strong><?= $answeredCount ?> / <?= $totalQuestions ?></strong>. Nieudzielone pytania będą liczone jako błędne.
+            <div class="modal-body pt-0 px-4 pb-4">
+                <p class="test-confirm-desc mb-3">Wynik zostanie zapisany w obecnym stanie.</p>
+                <div class="test-confirm-counter alert alert-warning mb-0 rounded-3 border-0">
+                    <span class="test-confirm-answers"><strong><?= $answeredCount ?> / <?= $totalQuestions ?></strong></span>
+                    <span class="test-confirm-label ms-2">Nieudzielone pytania będą liczone jako błędne.</span>
                 </div>
             </div>
-            <div class="modal-footer border-0">
+            <div class="modal-footer border-0 px-4 pb-4 pt-3 justify-content-end gap-2">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Wróć</button>
-                <button type="button" class="btn btn-danger rounded-pill px-4" id="testConfirmSubmit">Zakończ i zapisz</button>
+                <button type="button" class="btn btn-danger test-confirm-btn rounded-pill px-4 shadow-sm" id="testConfirmSubmit">
+                    <i class="bi bi-check2-circle me-2"></i>Zakończ i zapisz
+                </button>
             </div>
         </div>
     </div>

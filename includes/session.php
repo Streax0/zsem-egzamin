@@ -43,7 +43,7 @@ function appStartCspNonceBuffer(string $nonce): void {
 }
 
 function appContentSecurityPolicy(string $nonce): string {
-    return "default-src 'self'; "
+    return "default-src 'none'; "
         . "script-src 'self' blob: https://cdn.jsdelivr.net; "
         . "script-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net; "
         . "script-src-attr 'unsafe-inline'; "
@@ -83,7 +83,7 @@ function startSecureSession() {
         appStartCspNonceBuffer($cspNonce);
         header("X-Content-Type-Options: nosniff");
         header("X-XSS-Protection: 0");
-        header("X-Frame-Options: SAMEORIGIN");
+        // X-Frame-Options removed: redundant with CSP frame-ancestors 'self'
         header("Referrer-Policy: strict-origin-when-cross-origin");
         header("Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()");
         header("Cross-Origin-Opener-Policy: same-origin");

@@ -1282,18 +1282,11 @@ function getRandomQuestions($questions, $count = 40) {
 
     $count = max(1, min($count, count($questions)));
 
-    $keys = array_rand($questions, $count);
-    if ($count === 1) {
-        return [$questions[$keys]];
-    }
+    // Shuffle the entire pool using PHP's Mersenne Twister-based shuffle
+    shuffle($questions);
 
-    $subset = array_intersect_key($questions, array_flip($keys));
-    
-    // Shuffle the subset so they are presented in random order
-    $result = array_values($subset);
-    shuffle($result);
-    
-    return $result;
+    // Slice the requested number of questions
+    return array_slice($questions, 0, $count);
 }
 
 /**

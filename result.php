@@ -122,6 +122,7 @@ $passed = $score_percent >= 50;
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
     <style>
+        /* ===== Result Hero ===== */
         .result-hero {
             background: <?php echo $passed ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'; ?>;
             color: white;
@@ -130,90 +131,6 @@ $passed = $score_percent >= 50;
             position: relative;
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        .result-insights {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 1rem;
-        }
-        .result-insight-card {
-            border-radius: 20px;
-            padding: 1.25rem;
-            background: #fff;
-            border: 1px solid rgba(148, 163, 184, .22);
-            box-shadow: 0 12px 32px rgba(15, 23, 42, .06);
-        }
-        .result-insight-card i {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(59, 130, 246, .1);
-            color: var(--primary-color-dark);
-            margin-bottom: .85rem;
-        }
-        .answer-filter-bar {
-            display: flex;
-            gap: .5rem;
-            flex-wrap: wrap;
-        }
-        .answer-filter-bar .btn {
-            white-space: nowrap;
-        }
-        .answer-filter-bar .btn.active {
-            background: var(--primary-color, var(--primary-color));
-            color: #fff;
-        }
-        .detailed-answers-panel table {
-            min-width: 680px;
-        }
-        body.dark-mode .result-insight-card {
-            background: #1e293b;
-            border-color: #334155;
-        }
-        @media (max-width: 991.98px) {
-            .result-hero { padding: 1.5rem; }
-            .result-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (max-width: 575.98px) {
-            .score-circle { width: 140px; height: 140px; }
-            .score-value { font-size: 2.5rem; }
-            .result-insights { grid-template-columns: 1fr; }
-            .detailed-answers-panel {
-                padding: 1rem !important;
-            }
-            .detailed-answers-panel .panel-header > .d-flex {
-                flex-direction: column;
-                align-items: stretch !important;
-                gap: .75rem;
-            }
-            .detailed-answers-panel .panel-header .d-flex.align-items-center.gap-2 {
-                min-width: 0;
-            }
-            .detailed-answers-panel .panel-title {
-                font-size: .95rem;
-                line-height: 1.2;
-            }
-            .answer-filter-bar {
-                display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                width: 100%;
-                gap: .4rem;
-            }
-            .answer-filter-bar .btn {
-                min-width: 0;
-                padding: .38rem .35rem;
-                font-size: .7rem;
-                line-height: 1.1;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .detailed-answers-panel .table-responsive {
-                margin: 0 -1rem -1rem;
-                padding: 0 1rem 1rem;
-            }
         }
         .result-hero::before {
             content: '';
@@ -239,21 +156,9 @@ $passed = $score_percent >= 50;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
         }
-        .score-circle:hover {
-            transform: scale(1.05);
-        }
-        .score-value {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1;
-        }
-        .score-label {
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.9;
-            font-weight: 600;
-        }
+        .score-circle:hover { transform: scale(1.05); }
+        .score-value { font-size: 3.5rem; font-weight: 800; line-height: 1; }
+        .score-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 600; }
         .stat-pill {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -264,36 +169,284 @@ $passed = $score_percent >= 50;
             gap: 12px;
             backdrop-filter: blur(5px);
         }
-        .stat-pill i {
-            font-size: 1.5rem;
-            opacity: 0.9;
+        .stat-pill i { font-size: 1.5rem; opacity: 0.9; }
+
+        /* ===== Action Buttons ===== */
+        .result-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
         }
-        .answer-row {
-            transition: all 0.2s ease;
-            border-left: 4px solid transparent;
+        .result-actions .btn {
+            border-radius: 14px;
+            padding: .65rem 1.5rem;
+            font-weight: 600;
+            font-size: .9rem;
+            transition: all .25s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
         }
-        .answer-row:hover {
-            background-color: rgba(var(--primary-rgb), 0.02) !important;
-            border-left-color: var(--primary-color);
+        .result-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,.12);
         }
-        .answer-status {
-            width: 32px;
-            height: 32px;
+        .result-actions .btn-outline-dark {
+            background: var(--panel-bg, #fff);
+            border-color: rgba(148,163,184,.25);
+            color: var(--text-main, #1e293b);
+        }
+
+        /* ===== Insight Cards ===== */
+        .result-insights {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: .85rem;
+        }
+        .result-insight-card {
+            border-radius: 18px;
+            padding: 1.15rem 1.25rem;
+            background: var(--panel-bg, #fff);
+            border: 1px solid rgba(148, 163, 184, .18);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, .05);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .result-insight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .1);
+        }
+        .result-insight-card .insight-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+        .result-insight-card .insight-icon.icon-success {
+            background: rgba(16,185,129,.12);
+            color: #10b981;
+        }
+        .result-insight-card .insight-icon.icon-danger {
+            background: rgba(239,68,68,.12);
+            color: #ef4444;
+        }
+        .result-insight-card .insight-icon.icon-info {
+            background: rgba(59,130,246,.12);
+            color: #3b82f6;
+        }
+        .result-insight-card .insight-icon.icon-warning {
+            background: rgba(245,158,11,.12);
+            color: #f59e0b;
+        }
+        .result-insight-card .insight-data {
+            min-width: 0;
+        }
+        .result-insight-card .insight-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.2;
+            color: var(--text-main, #1e293b);
+        }
+        .result-insight-card .insight-label {
+            font-size: .78rem;
+            color: var(--text-muted, #94a3b8);
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ===== Filter Bar ===== */
+        .answer-filter-bar {
+            display: flex;
+            gap: 0;
+            background: rgba(148,163,184,.1);
+            border-radius: 12px;
+            padding: 3px;
+        }
+        .answer-filter-bar .btn {
+            white-space: nowrap;
+            border: none;
+            border-radius: 10px;
+            padding: .4rem .85rem;
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--text-muted, #64748b);
+            background: transparent;
+            transition: all .2s ease;
+        }
+        .answer-filter-bar .btn:hover {
+            color: var(--text-main, #1e293b);
+        }
+        .answer-filter-bar .btn.active {
+            background: var(--panel-bg, #fff);
+            color: var(--primary-color, #3b82f6);
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+
+        /* ===== Accordion Answer Cards ===== */
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .answer-card {
+            border-bottom: 1px solid rgba(148,163,184,.12);
+            border-left: 3px solid transparent;
+            transition: background .2s, border-color .2s;
+            cursor: pointer;
+            opacity: 0;
+            animation: cardFadeIn .4s ease forwards;
+        }
+        .answer-card:last-child { border-bottom: none; }
+        .answer-card[data-answer-state="correct"] { border-left-color: #10b981; }
+        .answer-card[data-answer-state="wrong"]   { border-left-color: #ef4444; }
+        .answer-card:hover { background: rgba(59,130,246,.03); }
+        .answer-card.open { background: rgba(59,130,246,.02); }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .answer-card-header {
+            display: flex;
+            align-items: center;
+            padding: .9rem 1.25rem;
+            gap: .75rem;
+            user-select: none;
+        }
+        .answer-card-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .82rem;
+            flex-shrink: 0;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.12);
+        }
+        .answer-card-num.correct { background: linear-gradient(135deg, #34d399, #059669); }
+        .answer-card-num.wrong   { background: linear-gradient(135deg, #f87171, #dc2626); }
+        .answer-card-text {
+            flex: 1;
+            min-width: 0;
+            font-size: .9rem;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+        .answer-card-text .q-label {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .answer-card-badges {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-shrink: 0;
+        }
+        .answer-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: .82rem;
+            line-height: 1;
+        }
+        .answer-badge.user-correct { background: rgba(16,185,129,.12); color: #10b981; }
+        .answer-badge.user-wrong   { background: rgba(239,68,68,.12); color: #ef4444; }
+        .answer-badge.correct-ref  { background: rgba(16,185,129,.12); color: #10b981; }
+
+        .answer-card-chevron {
+            flex-shrink: 0;
+            color: var(--text-muted, #94a3b8);
+            transition: transform .3s cubic-bezier(.4,0,.2,1);
+            font-size: 1rem;
+        }
+        .answer-card.open .answer-card-chevron { transform: rotate(180deg); }
+
+        .answer-card-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .35s cubic-bezier(.4,0,.2,1), padding .35s cubic-bezier(.4,0,.2,1);
+            padding: 0 1.25rem;
+        }
+        .answer-card.open .answer-card-body {
+            max-height: 500px;
+            padding: .25rem 1.25rem 1.25rem;
+        }
+
+        .answer-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .55rem .85rem;
+            border-radius: 12px;
+            margin-bottom: .35rem;
+            font-size: .85rem;
+        }
+        .answer-detail-row.your-answer { background: rgba(239,68,68,.06); }
+        .answer-detail-row.your-answer.is-correct { background: rgba(16,185,129,.06); }
+        .answer-detail-row.correct-answer { background: rgba(16,185,129,.06); }
+
+        .answer-status-icon {
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.875rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            font-size: .8rem;
         }
-        .answer-correct {
-            background: #dcfce7;
-            color: #15803d;
+        .answer-status-icon.correct { background: rgba(16,185,129,.15); color: #10b981; }
+        .answer-status-icon.wrong   { background: rgba(239,68,68,.15); color: #ef4444; }
+
+        .answer-card .qual-badge {
+            display: inline-block;
+            font-size: .7rem;
+            padding: .18rem .5rem;
+            border-radius: 6px;
+            background: rgba(59,130,246,.08);
+            color: var(--primary-color-dark, #3b82f6);
+            margin-top: .3rem;
+            line-height: 1.2;
+            font-weight: 500;
         }
-        .answer-wrong {
-            background: #fee2e2;
-            color: #b91c1c;
+
+        .answer-card-view-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .5rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(59,130,246,.2);
+            background: rgba(59,130,246,.06);
+            color: var(--primary-color-dark, #3b82f6);
+            font-size: .8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .25s ease;
+            margin-top: .5rem;
         }
+        .answer-card-view-btn:hover {
+            background: rgba(59,130,246,.14);
+            border-color: rgba(59,130,246,.35);
+            transform: translateY(-1px);
+        }
+
+        /* ===== Animations ===== */
         .animate-in {
             animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -301,8 +454,150 @@ $passed = $score_percent >= 50;
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* ===== Dark Mode ===== */
+        body.dark-mode .result-insight-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-mode .result-insight-card .insight-value { color: #f1f5f9; }
+        body.dark-mode .result-actions .btn-outline-dark {
+            background: #1e293b;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        body.dark-mode .answer-filter-bar { background: rgba(51,65,85,.4); }
+        body.dark-mode .answer-filter-bar .btn { color: #94a3b8; }
+        body.dark-mode .answer-filter-bar .btn:hover { color: #e2e8f0; }
+        body.dark-mode .answer-filter-bar .btn.active {
+            background: #1e293b;
+            color: #60a5fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,.25);
+        }
+        body.dark-mode .answer-card { border-bottom-color: rgba(51,65,85,.5); }
+        body.dark-mode .answer-card:hover { background: rgba(59,130,246,.06); }
+        body.dark-mode .answer-card.open { background: rgba(59,130,246,.04); }
+        body.dark-mode .answer-card-view-btn {
+            border-color: rgba(96,165,250,.25);
+            background: rgba(96,165,250,.08);
+            color: #60a5fa;
+        }
+        body.dark-mode .question-text { color: #e2e8f0; }
+
+        /* ===== Tablet ===== */
+        @media (max-width: 991.98px) {
+            .result-hero { padding: 1.5rem; }
+            .result-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 575.98px) {
+            .score-circle { width: 130px; height: 130px; }
+            .score-value { font-size: 2.3rem; }
+
+            .result-actions {
+                gap: .5rem;
+            }
+            .result-actions .btn {
+                padding: .5rem 1rem;
+                font-size: .8rem;
+                border-radius: 12px;
+            }
+            .result-actions .btn i {
+                margin-right: .35rem !important;
+            }
+
+            .result-insights {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .6rem;
+            }
+            .result-insight-card {
+                padding: .85rem .9rem;
+                border-radius: 14px;
+                gap: .7rem;
+            }
+            .result-insight-card .insight-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 11px;
+                font-size: 1rem;
+            }
+            .result-insight-card .insight-value {
+                font-size: 1.1rem;
+            }
+            .result-insight-card .insight-label {
+                font-size: .7rem;
+            }
+
+            .detailed-answers-panel {
+                padding: .5rem !important;
+                border-radius: 18px !important;
+            }
+            .detailed-answers-panel .panel-header > .d-flex {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: .6rem;
+            }
+            .detailed-answers-panel .panel-header .d-flex.align-items-center.gap-2 {
+                min-width: 0;
+            }
+            .detailed-answers-panel .panel-title {
+                font-size: .9rem;
+                line-height: 1.2;
+            }
+
+            .answer-filter-bar {
+                width: 100%;
+                border-radius: 10px;
+            }
+            .answer-filter-bar .btn {
+                flex: 1;
+                padding: .4rem .25rem;
+                font-size: .75rem;
+                border-radius: 8px;
+            }
+
+            .answer-card {
+                border-left-width: 3px;
+            }
+            .answer-card-header {
+                padding: .75rem .85rem;
+                gap: .6rem;
+            }
+            .answer-card-num {
+                width: 32px;
+                height: 32px;
+                font-size: .75rem;
+                border-radius: 9px;
+            }
+            .answer-card-text {
+                font-size: .82rem;
+            }
+            .answer-badge {
+                width: 30px;
+                height: 30px;
+                font-size: .72rem;
+                border-radius: 8px;
+            }
+            .answer-card.open .answer-card-body {
+                padding: .25rem .85rem 1rem;
+            }
+            .answer-detail-row {
+                padding: .45rem .65rem;
+                font-size: .8rem;
+                border-radius: 10px;
+            }
+            .answer-card-view-btn {
+                width: 100%;
+                justify-content: center;
+                padding: .55rem;
+                border-radius: 10px;
+            }
+        }
+
+        /* ===== Misc Legacy ===== */
         .question-text {
-            color: #1e293b;
+            color: var(--text-main, #1e293b);
             font-weight: 500;
             line-height: 1.5;
         }
@@ -380,38 +675,46 @@ $passed = $score_percent >= 50;
                     </div>
 
                     <!-- Action buttons -->
-                    <div class="d-flex flex-wrap gap-3 mb-4 animate-in" style="animation-delay: 0.1s;">
-                        <a href="test.php?setup=1" class="btn btn-primary btn-lg rounded-pill px-4">
+                    <div class="result-actions mb-4 animate-in" style="animation-delay: 0.1s;">
+                        <a href="test.php?setup=1" class="btn btn-primary">
                             <i class="bi bi-plus-circle me-2"></i>Nowy test
                         </a>
-                        <a href="index.php" class="btn btn-outline-dark btn-lg rounded-pill px-4">
+                        <a href="index.php" class="btn btn-outline-dark">
                             <i class="bi bi-grid-fill me-2"></i>Dashboard
                         </a>
-                        <a href="progress.php" class="btn btn-outline-dark btn-lg rounded-pill px-4">
+                        <a href="progress.php" class="btn btn-outline-dark">
                             <i class="bi bi-clock-history me-2"></i>Historia
                         </a>
                     </div>
 
                     <div class="result-insights mb-4 animate-in" style="animation-delay: 0.15s;">
                         <div class="result-insight-card">
-                            <i class="bi bi-check2-circle"></i>
-                            <div class="h4 fw-bold mb-0 text-success"><?php echo $correctAnswers; ?></div>
-                            <div class="text-muted small">Poprawne odpowiedzi</div>
+                            <div class="insight-icon icon-success"><i class="bi bi-check2-circle"></i></div>
+                            <div class="insight-data">
+                                <div class="insight-value text-success"><?php echo $correctAnswers; ?></div>
+                                <div class="insight-label">Poprawne</div>
+                            </div>
                         </div>
                         <div class="result-insight-card">
-                            <i class="bi bi-x-circle"></i>
-                            <div class="h4 fw-bold mb-0 text-danger"><?php echo $wrongAnswers; ?></div>
-                            <div class="text-muted small">Błędne odpowiedzi</div>
+                            <div class="insight-icon icon-danger"><i class="bi bi-x-circle"></i></div>
+                            <div class="insight-data">
+                                <div class="insight-value text-danger"><?php echo $wrongAnswers; ?></div>
+                                <div class="insight-label">Błędne</div>
+                            </div>
                         </div>
                         <div class="result-insight-card">
-                            <i class="bi bi-speedometer2"></i>
-                            <div class="h4 fw-bold mb-0"><?php echo formatTime($avgTime); ?></div>
-                            <div class="text-muted small">Średnio na pytanie</div>
+                            <div class="insight-icon icon-info"><i class="bi bi-speedometer2"></i></div>
+                            <div class="insight-data">
+                                <div class="insight-value"><?php echo formatTime($avgTime); ?></div>
+                                <div class="insight-label">Średnio / pytanie</div>
+                            </div>
                         </div>
                         <div class="result-insight-card">
-                            <i class="bi bi-bullseye"></i>
-                            <div class="h4 fw-bold mb-0"><?php echo round($score_percent, 1); ?>%</div>
-                            <div class="text-muted small">Skuteczność</div>
+                            <div class="insight-icon icon-warning"><i class="bi bi-bullseye"></i></div>
+                            <div class="insight-data">
+                                <div class="insight-value"><?php echo round($score_percent, 1); ?>%</div>
+                                <div class="insight-label">Skuteczność</div>
+                            </div>
                         </div>
                     </div>
 
@@ -425,66 +728,67 @@ $passed = $score_percent >= 50;
                                     <h5 class="panel-title mb-0">Szczegółowa analiza odpowiedzi</h5>
                                 </div>
                                 <div class="answer-filter-bar">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill active" data-answer-filter="all">Wszystkie</button>
-                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill" data-answer-filter="correct">Poprawne</button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-answer-filter="wrong">Błędne</button>
+                                    <button type="button" class="btn btn-sm active" data-answer-filter="all">Wszystkie</button>
+                                    <button type="button" class="btn btn-sm" data-answer-filter="correct">Poprawne</button>
+                                    <button type="button" class="btn btn-sm" data-answer-filter="wrong">Błędne</button>
                                 </div>
                             </div>
                         </div>
                         <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="bg-light">
-                                        <tr class="text-muted small uppercase fw-bold">
-                                            <th class="ps-4" style="width: 60px;">#</th>
-                                            <th>Treść pytania</th>
-                                            <th class="text-center" style="width: 140px;">Twoja odp.</th>
-                                            <th class="text-center" style="width: 140px;">Poprawna</th>
-                                            <th class="pe-4 text-end" style="width: 100px;">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($answers as $index => $answer): ?>
-                                            <?php
-                                            $user_answer = strtoupper(trim((string)($answer['user_answer'] ?? '')));
-                                            $user_answer = $user_answer !== '' ? $user_answer : '-';
-                                            $correct_answer = strtoupper(trim((string)($answer['correct_answer'] ?? '')));
-                                            $is_correct = ((int)($answer['is_correct'] ?? 0) === 1) || ($user_answer !== '-' && $correct_answer !== '' && $user_answer === $correct_answer);
-                                            
-                                            $question_text = $answer['question_text'] ?? '';
-                                            if (empty($question_text) && !empty($questions_map[$answer['question_id']])) {
-                                                $question_text = $questions_map[$answer['question_id']]['question_text'] ?? '';
-                                            }
-                                            ?>
-                                            <tr class="answer-row" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" style="cursor: pointer;" onclick="viewQuestion(<?php echo (int)$answer['question_id']; ?>, '<?php echo addslashes($user_answer); ?>', '<?php echo addslashes($correct_answer); ?>')">
-                                                <td class="ps-4 text-muted fw-bold"><?php echo sprintf('%02d', $index + 1); ?></td>
-                                                <td>
-                                                    <div class="question-text"><?php echo htmlspecialchars($question_text); ?></div>
-                                                    <?php if ($showAnswerQualifications && !empty($answer['qualification_label'])): ?>
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary mt-2">
-                                                            Kwalifikacja: <?php echo htmlspecialchars($answer['qualification_label']); ?>
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td class="text-center">
-                                                    <span class="badge-answer fw-800 <?php echo $is_correct ? 'text-success' : 'text-danger'; ?>" style="background: <?php echo $is_correct ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'; ?>;">
-                                                        <?php echo htmlspecialchars($user_answer); ?>
+                            <div class="answers-list">
+                                <?php foreach ($answers as $index => $answer): ?>
+                                    <?php
+                                    $user_answer = strtoupper(trim((string)($answer['user_answer'] ?? '')));
+                                    $user_answer = $user_answer !== '' ? $user_answer : '-';
+                                    $correct_answer = strtoupper(trim((string)($answer['correct_answer'] ?? '')));
+                                    $is_correct = ((int)($answer['is_correct'] ?? 0) === 1) || ($user_answer !== '-' && $correct_answer !== '' && $user_answer === $correct_answer);
+                                    
+                                    $question_text = $answer['question_text'] ?? '';
+                                    if (empty($question_text) && !empty($questions_map[$answer['question_id']])) {
+                                        $question_text = $questions_map[$answer['question_id']]['question_text'] ?? '';
+                                    }
+                                    ?>
+                                    <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo (int)$answer['question_id']; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>" style="animation-delay: <?php echo min($index * 0.04, 1.2); ?>s">
+                                        <div class="answer-card-header" onclick="toggleAnswerCard(this)">
+                                            <div class="answer-card-num <?php echo $is_correct ? 'correct' : 'wrong'; ?>">
+                                                <?php echo sprintf('%02d', $index + 1); ?>
+                                            </div>
+                                            <div class="answer-card-text">
+                                                <div class="q-label"><?php echo htmlspecialchars($question_text); ?></div>
+                                                <?php if ($showAnswerQualifications && !empty($answer['qualification_label'])): ?>
+                                                    <span class="qual-badge">
+                                                        <?php echo htmlspecialchars($answer['qualification_label']); ?>
                                                     </span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <span class="badge-answer fw-800 text-success" style="background: rgba(16, 185, 129, 0.1);">
-                                                        <?php echo htmlspecialchars($correct_answer); ?>
-                                                    </span>
-                                                </td>
-                                                <td class="pe-4 text-end">
-                                                    <span class="answer-status <?php echo $is_correct ? 'answer-correct' : 'answer-wrong'; ?>">
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="answer-card-badges">
+                                                <span class="answer-badge <?php echo $is_correct ? 'user-correct' : 'user-wrong'; ?>"><?php echo htmlspecialchars($user_answer); ?></span>
+                                            </div>
+                                            <i class="bi bi-chevron-down answer-card-chevron"></i>
+                                        </div>
+                                        <div class="answer-card-body">
+                                            <div class="answer-detail-row your-answer <?php echo $is_correct ? 'is-correct' : ''; ?>">
+                                                <span><i class="bi bi-person-fill me-2"></i>Twoja odpowiedź</span>
+                                                <span class="fw-bold <?php echo $is_correct ? 'text-success' : 'text-danger'; ?>"><?php echo htmlspecialchars($user_answer); ?></span>
+                                            </div>
+                                            <div class="answer-detail-row correct-answer">
+                                                <span><i class="bi bi-check-circle-fill me-2 text-success"></i>Poprawna odpowiedź</span>
+                                                <span class="fw-bold text-success"><?php echo htmlspecialchars($correct_answer); ?></span>
+                                            </div>
+                                            <div class="answer-detail-row" style="background:transparent;">
+                                                <span>
+                                                    <span class="answer-status-icon <?php echo $is_correct ? 'correct' : 'wrong'; ?> me-2">
                                                         <i class="bi <?php echo $is_correct ? 'bi-check-lg' : 'bi-x-lg'; ?>"></i>
                                                     </span>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                                                    <?php echo $is_correct ? 'Poprawna' : 'Błędna'; ?>
+                                                </span>
+                                            </div>
+                                            <button type="button" class="answer-card-view-btn" onclick="event.stopPropagation(); viewQuestion(<?php echo (int)$answer['question_id']; ?>, '<?php echo addslashes($user_answer); ?>', '<?php echo addslashes($correct_answer); ?>')">
+                                                <i class="bi bi-eye"></i> Zobacz pytanie
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                     </div>
@@ -525,13 +829,18 @@ $passed = $score_percent >= 50;
         const showAnswerQualifications = <?php echo $showAnswerQualifications ? 'true' : 'false'; ?>;
         const questionModal = new bootstrap.Modal(document.getElementById('questionModal'));
 
+        function toggleAnswerCard(headerEl) {
+            const card = headerEl.closest('.answer-card');
+            card.classList.toggle('open');
+        }
+
         document.querySelectorAll('[data-answer-filter]').forEach(button => {
             button.addEventListener('click', () => {
                 const filter = button.dataset.answerFilter;
                 document.querySelectorAll('[data-answer-filter]').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                document.querySelectorAll('.answer-row').forEach(row => {
-                    row.hidden = filter !== 'all' && row.dataset.answerState !== filter;
+                document.querySelectorAll('.answer-card').forEach(card => {
+                    card.hidden = filter !== 'all' && card.dataset.answerState !== filter;
                 });
             });
         });

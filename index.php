@@ -363,7 +363,7 @@ try {
                                     </div>
                                 <?php else: ?>
                                 <?php foreach ($pendingDuels as $duel): ?>
-                                <div class="d-flex align-items-center justify-content-between p-2 bg-white bg-opacity-50 rounded-3 shadow-sm border small">
+                                <div class="duel-lobby-card d-flex align-items-center justify-content-between p-2 rounded-3 shadow-sm border small">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="user-avatar-small bg-danger text-white fw-bold" style="width:30px; height:30px; font-size:0.7rem;">
                                             <?= strtoupper(substr($duel['challenger_name'], 0, 1)) ?>

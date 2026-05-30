@@ -23,7 +23,7 @@ RewriteRule ^(debug\.log|cookies\.txt|csrf\.txt|response\.json|qid\.txt|full_sch
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-XSS-Protection "0"
-    Header always set X-Frame-Options "SAMEORIGIN"
+    # X-Frame-Options removed: redundant with CSP frame-ancestors 'self'
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
     Header always set Cross-Origin-Opener-Policy "same-origin"

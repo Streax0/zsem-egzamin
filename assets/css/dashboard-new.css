@@ -522,12 +522,18 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
 
 .stat-card-new {
   background: var(--panel-bg);
-  padding: 1.5rem;
+  padding: 1.15rem 1rem;
   border-radius: 1.25rem;
   border: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas: 
+    "icon number"
+    "icon label";
+  column-gap: 0.85rem;
+  row-gap: 0.15rem;
+  align-items: center;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
 }
@@ -538,14 +544,15 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
 }
 
 .stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  grid-area: icon;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 1.25rem;
+  font-size: 1.25rem;
+  margin-bottom: 0 !important;
   transition: all 0.3s ease;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   --bs-bg-opacity: 0.25 !important; /* Made icons more visible */
@@ -560,15 +567,19 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
 }
 
 .stat-number-new {
-  font-size: 1.75rem;
-  font-weight: 700;
+  grid-area: number;
+  font-size: 1.35rem;
+  font-weight: 800;
   color: var(--text-main);
+  line-height: 1.2;
 }
 
 .stat-label-new {
-  font-size: 0.875rem;
+  grid-area: label;
+  font-size: 0.78rem;
   color: var(--text-muted);
   font-weight: 500;
+  line-height: 1.2;
 }
 
 /* Main Grid */
@@ -1733,4 +1744,152 @@ body.dark-mode .help-quick-card {
 
 .hover-primary:hover {
   color: var(--primary-color, var(--primary-color)) !important;
+}
+
+/* ==================== ADDITIONAL RESPONSIVE & MOBILE UPGRADES ==================== */
+
+/* Duel Lobby Card styling */
+.duel-lobby-card {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid var(--border-color) !important;
+  transition: all 0.2s ease;
+}
+body.dark-mode .duel-lobby-card {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border-color: var(--border-color) !important;
+}
+.duel-lobby-card:hover {
+  transform: translateX(4px);
+  border-color: var(--primary-color) !important;
+}
+
+/* Force stats cards into a 2-column grid on mobile instead of wrapping to 1 vertical column */
+@media (max-width: 768px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+  .welcome-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 1.75rem !important;
+  }
+  .xp-summary-card {
+    min-height: auto !important;
+    padding: 1.25rem !important;
+    border-radius: 1.5rem !important;
+    gap: 0.75rem !important;
+  }
+  .xp-summary-value {
+    font-size: 2.25rem !important;
+  }
+  .xp-summary-icon {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 0.85rem !important;
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  .quick-start-buttons {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .quick-start-buttons a:first-child {
+    grid-column: span 2 !important;
+  }
+  .btn-qs {
+    padding: 0.85rem !important;
+    font-size: 0.9rem !important;
+    border-radius: 0.85rem !important;
+  }
+  .mission-mini-card {
+    padding: 0.85rem !important;
+    gap: 0.75rem !important;
+    border-radius: 0.85rem !important;
+  }
+  .mission-icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Recent Tests mobile card transform */
+@media (max-width: 768px) {
+  .dashboard-panel .table-responsive {
+    overflow: visible !important;
+  }
+  .dashboard-panel .table-responsive > table.table {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  .dashboard-panel table.table {
+    background: transparent !important;
+    border: none !important;
+    margin: 0 !important;
+  }
+  .dashboard-panel table.table thead {
+    display: none !important;
+  }
+  .dashboard-panel table.table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+  }
+  .dashboard-panel table.table tbody tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-rows: auto auto auto !important;
+    grid-template-areas:
+      "badge date"
+      "score score"
+      "action action" !important;
+    gap: 0.75rem !important;
+    padding: 1.15rem !important;
+    background: var(--panel-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02) !important;
+    width: 100% !important;
+  }
+  .dashboard-panel table.table tbody tr td {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    width: auto !important;
+  }
+  .dashboard-panel table.table tbody tr td:nth-child(1) {
+    grid-area: badge;
+    display: flex !important;
+    align-items: center !important;
+  }
+  .dashboard-panel table.table tbody tr td:nth-child(2) {
+    grid-area: score;
+    margin-top: 0.25rem !important;
+  }
+  .dashboard-panel table.table tbody tr td:nth-child(3) {
+    grid-area: date;
+    text-align: right !important;
+    align-self: center !important;
+  }
+  .dashboard-panel table.table tbody tr td:nth-child(4) {
+    grid-area: action;
+    margin-top: 0.5rem !important;
+  }
+  .dashboard-panel table.table tbody tr td:nth-child(4) .btn {
+    display: flex !important;
+    width: 100% !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0.6rem !important;
+    border-radius: 0.75rem !important;
+  }
 }
