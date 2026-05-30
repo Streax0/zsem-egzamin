@@ -301,6 +301,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── GO BACK TO PREVIOUS QUESTION ────────────────────────────────────────
     if ($action === 'previous_question') {
+        if (testDisallowsPreviousQuestion($test)) {
+            header('Location: test.php');
+            exit;
+        }
         $test['current'] = max(0, min($totalQuestions - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
@@ -437,6 +441,10 @@ if ($test) {
         }
         $questionTimeLeft = getTestQuestionTimeRemaining($test, $perQuestionLimit);
     }
+    $allowPreviousQuestion = !testDisallowsPreviousQuestion($test);
+    $totalTimeLeft = !empty($test['time_limit'])
+        ? max(0, (int)$test['time_limit'] - (time() - (int)$test['start_time']))
+        : 0;
 } else {
     $currentIdx      = 0;
     $currentQuestion = null;
@@ -447,6 +455,8 @@ if ($test) {
     $savedAnswer     = '';
     $perQuestionLimit = 0;
     $questionTimeLeft = 0;
+    $allowPreviousQuestion = true;
+    $totalTimeLeft = 0;
 }
 ?>
 <!DOCTYPE html>
@@ -473,22 +483,132 @@ if ($test) {
         .test-progress-panel .progress-actions {
             min-width: max-content;
         }
-        .test-progress-panel .timer-display {
-            font-family: "Nunito", "Inter", sans-serif;
-            font-variant-numeric: tabular-nums;
-            min-width: 4.8rem;
-            text-align: right;
-            white-space: nowrap;
+        .test-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .test-progress-meta {
+            min-width: 0;
+        }
+        .test-progress-label {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text-muted, #64748b);
+            margin-bottom: 0.2rem;
+            letter-spacing: 0.02em;
+        }
+        .test-progress-question {
+            display: block;
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--text-main, #0f172a);
+        }
+        .test-progress-sub {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            margin-top: 0.45rem;
+        }
+        .test-progress-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.22rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+        }
+        .test-progress-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-shrink: 0;
+        }
+        .test-timers-cluster {
+            display: flex;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+        .test-timer-chip {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.15rem;
+            padding: 0.45rem 0.75rem;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(248, 250, 252, 0.95);
+            min-width: 5.5rem;
+        }
+        body.dark-mode .test-timer-chip {
+            background: rgba(15, 23, 42, 0.55);
+            border-color: rgba(148, 163, 184, 0.18);
+        }
+        .test-timer-chip-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #64748b;
             line-height: 1;
         }
-        .test-question-timer {
+        .test-timer-chip-value {
+            font-family: "Nunito", "Inter", sans-serif;
+            font-variant-numeric: tabular-nums;
+            font-size: 1.45rem;
             font-weight: 800;
-            min-width: 5.2rem;
+            line-height: 1;
+            color: #2563eb;
         }
-        .test-total-timer {
-            font-size: 0.82rem;
-            opacity: 0.75;
-            min-width: 4.2rem;
+        .test-timer-chip-primary {
+            border-color: rgba(37, 99, 235, 0.22);
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.72));
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+        }
+        body.dark-mode .test-timer-chip-primary {
+            background: linear-gradient(180deg, rgba(30, 58, 138, 0.35), rgba(15, 23, 42, 0.65));
+        }
+        .test-timer-chip-primary .test-timer-chip-value {
+            font-size: 1.65rem;
+        }
+        .test-timer-chip-secondary .test-timer-chip-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #475569;
+        }
+        .test-timer-chip.timer-warning,
+        .test-timer-chip.timer-warning .test-timer-chip-value {
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #dc2626;
+        }
+        .test-timer-chip.timer-warning {
+            background: rgba(254, 242, 242, 0.95);
+            animation: test-timer-pulse 1s ease-in-out infinite;
+        }
+        @keyframes test-timer-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .test-progress-bar-wrap .progress {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.18);
+            overflow: hidden;
+        }
+        .test-progress-bar-wrap .progress-bar {
+            border-radius: 999px;
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            transition: width 0.35s ease;
         }
         .question-card .question-card-header h5 {
             font-family: "Nunito", "Inter", sans-serif;
@@ -1057,6 +1177,28 @@ if ($test) {
         @media (max-width: 576px) {
             .test-progress-panel {
                 padding: 0.85rem !important;
+            }
+            .test-progress-header {
+                flex-direction: column;
+                gap: 0.85rem;
+            }
+            .test-progress-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .test-timers-cluster {
+                flex: 1;
+            }
+            .test-timer-chip {
+                flex: 1;
+                min-width: 0;
+                padding: 0.4rem 0.55rem;
+            }
+            .test-timer-chip-primary .test-timer-chip-value {
+                font-size: 1.35rem;
+            }
+            .test-progress-question {
+                font-size: 1.05rem;
             }
             .test-progress-panel .progress-top {
                 display: grid !important;
@@ -1822,30 +1964,42 @@ if ($test) {
 
     <!-- ── Progress bar ───────────────────────────────────────────────────── -->
     <div class="dashboard-panel test-progress-panel mb-4">
-        <div class="progress-top d-flex justify-content-between align-items-center mb-3">
-            <div class="progress-heading">
-                <span class="text-muted small d-block mb-1">Postęp testu</span>
-                <strong class="h5 mb-0">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></strong>
+        <div class="test-progress-header">
+            <div class="test-progress-meta">
+                <span class="test-progress-label">Postęp testu</span>
+                <strong class="test-progress-question" id="testProgressQuestion">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></strong>
+                <div class="test-progress-sub">
+                    <span class="text-muted small" id="testProgressAnswered"><?= $answeredCount ?> / <?= $totalQuestions ?> udzielonych</span>
+                    <?php if (!$allowPreviousQuestion): ?>
+                    <span class="test-progress-badge"><i class="bi bi-lightning-fill"></i> Tryb na czas</span>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div class="progress-actions test-progress-actions-modern d-flex align-items-center gap-2 flex-nowrap justify-content-end">
-                <?php if ($perQuestionLimit > 0 && $phase === 'answering'): ?>
-                <div class="test-timer-modern test-question-timer" id="questionTimer" title="Czas na to pytanie">
-                    <?= formatTime($questionTimeLeft) ?>
+            <div class="test-progress-controls">
+                <div class="test-timers-cluster">
+                    <?php if ($perQuestionLimit > 0 && $phase === 'answering'): ?>
+                    <div class="test-timer-chip test-timer-chip-primary" id="questionTimerChip">
+                        <span class="test-timer-chip-label"><i class="bi bi-stopwatch"></i> Pytanie</span>
+                        <span class="test-timer-chip-value" id="questionTimer"><?= formatTime($questionTimeLeft) ?></span>
+                    </div>
+                    <?php endif; ?>
+                    <?php if (!empty($test['time_limit'])): ?>
+                    <div class="test-timer-chip<?= $perQuestionLimit > 0 ? ' test-timer-chip-secondary' : ' test-timer-chip-primary' ?>" id="totalTimerChip">
+                        <span class="test-timer-chip-label"><i class="bi bi-clock"></i> <?= $perQuestionLimit > 0 ? 'Łącznie' : 'Czas' ?></span>
+                        <span class="test-timer-chip-value" id="timer"><?= formatTime($totalTimeLeft) ?></span>
+                    </div>
+                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
-                <?php if (!empty($test['time_limit'])): ?>
-                <div class="test-timer-modern<?= $perQuestionLimit > 0 ? ' test-total-timer' : '' ?>" id="timer"<?= $perQuestionLimit > 0 ? ' title="Czas całkowity"' : '' ?>>
-                    <?= formatTime(max(0, (isset($test['time_limit']) ? $test['time_limit'] : 3600) - (time() - $test['start_time']))) ?>
-                </div>
-                <?php endif; ?>
                 <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" onclick="confirmEndTest()" title="Zakończ test">
                     <i class="bi bi-stop-circle"></i>
                 </button>
             </div>
         </div>
-        <div class="progress" style="height: 10px; border-radius: 5px;">
-            <div class="progress-bar" id="progressBar"
-                 style="width:<?= round(($answeredCount / $totalQuestions) * 100) ?>%"></div>
+        <div class="test-progress-bar-wrap">
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"
+                     style="width:<?= round(($answeredCount / max(1, $totalQuestions)) * 100) ?>%"></div>
+            </div>
         </div>
     </div>
 
@@ -1904,9 +2058,11 @@ if ($test) {
                         <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn" <?= $savedAnswer === '' ? 'disabled' : '' ?>>
                             <i class="bi bi-check2-circle me-2"></i>Zatwierdź odpowiedź
                         </button>
+                        <?php if ($allowPreviousQuestion): ?>
                         <button type="submit" name="action" value="previous_question" class="btn btn-outline-secondary btn-lg px-4" data-question-nav="previous" formnovalidate <?= $currentIdx <= 0 ? 'disabled' : '' ?>>
                             <i class="bi bi-arrow-left me-2"></i>Poprzednie pytanie
                         </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </form>
@@ -2113,7 +2269,12 @@ function updateTimer() {
     const m = String(Math.floor(timeLeft / 60)).padStart(2,'0');
     const s = String(timeLeft % 60).padStart(2,'0');
     timerEl.textContent = `${m}:${s}`;
-    if (timeLeft <= 300) timerEl.classList.add('timer-warning');
+    const totalChip = document.getElementById('totalTimerChip');
+    if (timeLeft <= 300) {
+        totalChip?.classList.add('timer-warning');
+    } else {
+        totalChip?.classList.remove('timer-warning');
+    }
     if (timeLeft <= 0) {
         timerExpired = true;
         clearInterval(totalTimerInterval);
@@ -2134,6 +2295,7 @@ const totalTimerInterval = setInterval(updateTimer, 1000);
 let questionTimeLeft = <?= (int)$questionTimeLeft ?>;
 const questionTimeLimit = <?= (int)$perQuestionLimit ?>;
 const questionTimerEl = document.getElementById('questionTimer');
+const questionTimerChip = document.getElementById('questionTimerChip');
 let questionTimerExpired = false;
 let questionTimerInterval = null;
 
@@ -2147,9 +2309,9 @@ function updateQuestionTimer() {
     if (questionTimerExpired || !questionTimerEl) return;
     questionTimerEl.textContent = formatTimer(questionTimeLeft);
     if (questionTimeLeft <= 10) {
-        questionTimerEl.classList.add('timer-warning');
+        questionTimerChip?.classList.add('timer-warning');
     } else {
-        questionTimerEl.classList.remove('timer-warning');
+        questionTimerChip?.classList.remove('timer-warning');
     }
     if (questionTimeLeft <= 0) {
         questionTimerExpired = true;
@@ -2167,8 +2329,8 @@ window.resetQuestionTimer = function (seconds) {
     questionTimerExpired = false;
     if (questionTimerEl) {
         questionTimerEl.textContent = formatTimer(questionTimeLeft);
-        questionTimerEl.classList.remove('timer-warning');
     }
+    questionTimerChip?.classList.remove('timer-warning');
     if (questionTimerInterval) clearInterval(questionTimerInterval);
     questionTimerInterval = setInterval(updateQuestionTimer, 1000);
 };

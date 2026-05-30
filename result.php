@@ -106,6 +106,56 @@ $modeInfo = $modeLabels[$mode] ?? ['name' => ucfirst($mode), 'color' => 'seconda
 
 // Determine pass/fail
 $passed = $score_percent >= 50;
+
+$resultUser = [
+    'nickname' => 'Gość',
+    'firstName' => '—',
+    'lastName' => '—',
+    'fullName' => 'Gość',
+    'className' => '—',
+];
+if (!$guestResultId && isset($_SESSION['user_id'])) {
+    try {
+        $userStmt = $pdo->prepare('SELECT username, first_name, last_name, class FROM users WHERE id = ? LIMIT 1');
+        $userStmt->execute([(int)$_SESSION['user_id']]);
+        $resultUserRow = $userStmt->fetch(PDO::FETCH_ASSOC);
+        if ($resultUserRow) {
+            $resultUser['nickname'] = trim((string)($resultUserRow['username'] ?? '')) ?: '—';
+            $resultUser['firstName'] = trim((string)($resultUserRow['first_name'] ?? '')) ?: '—';
+            $resultUser['lastName'] = trim((string)($resultUserRow['last_name'] ?? '')) ?: '—';
+            $resultUser['fullName'] = userDisplayName($resultUserRow);
+            $classLabel = trim((string)($resultUserRow['class'] ?? ''));
+            $resultUser['className'] = $classLabel !== '' ? strtoupper($classLabel) : '—';
+        }
+    } catch (Exception $e) {
+        // Keep guest fallback labels.
+    }
+}
+
+$resultSubtitle = $passed
+    ? "Świetny wynik! Rozwiązałeś arkusz z sukcesem, zdobywając $correctAnswers na $total_questions punktów."
+    : "Tym razem się nie udało, ale każdy błąd to lekcja. Zdobyłeś $correctAnswers na $total_questions punktów.";
+
+$shareCardData = [
+    'passed' => $passed,
+    'performanceLabel' => $performanceLabel,
+    'subtitle' => $resultSubtitle,
+    'modeName' => $modeInfo['name'],
+    'passLabel' => $passed ? 'Zaliczony' : 'Niezaliczony',
+    'scorePercent' => (int)round($score_percent),
+    'correctAnswers' => $correctAnswers,
+    'totalQuestions' => $total_questions,
+    'timeSpent' => formatTime($time_spent),
+    'testDate' => !empty($test_date) ? date('d.m.Y H:i', strtotime($test_date)) : '-',
+    'nickname' => $resultUser['nickname'],
+    'firstName' => $resultUser['firstName'] ?? '—',
+    'lastName' => $resultUser['lastName'] ?? '—',
+    'fullName' => $resultUser['fullName'],
+    'className' => $resultUser['className'],
+    'brand' => 'ZSEM TECH',
+    'brandSub' => 'Platforma egzaminacyjna',
+    'brandUrl' => 'zsem-egzamin.online',
+];
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -118,7 +168,7 @@ $passed = $score_percent >= 50;
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
     <style>
@@ -595,6 +645,54 @@ $passed = $score_percent >= 50;
             }
         }
 
+        /* ===== Share card preview modal ===== */
+        .result-share-modal .modal-content {
+            border: 0;
+            border-radius: 24px;
+            overflow: hidden;
+            background: var(--panel-bg, #fff);
+        }
+        .result-share-modal .modal-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: #fff;
+            border: 0;
+            padding: 1.25rem 1.5rem;
+        }
+        .result-share-modal .modal-title {
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+        .result-share-modal .modal-body {
+            padding: 1.5rem;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        }
+        body.dark-mode .result-share-modal .modal-body {
+            background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+        }
+        .result-share-preview-wrap {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+            background: #0f172a;
+            line-height: 0;
+        }
+        .result-share-preview-wrap canvas,
+        .result-share-preview-wrap img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .result-share-modal .modal-footer {
+            border: 0;
+            padding: 1rem 1.5rem 1.35rem;
+            gap: 0.65rem;
+        }
+        .result-share-modal .btn-download-share {
+            border-radius: 999px;
+            font-weight: 700;
+            padding: 0.65rem 1.35rem;
+        }
+
         /* ===== Misc Legacy ===== */
         .question-text {
             color: var(--text-main, #1e293b);
@@ -685,6 +783,9 @@ $passed = $score_percent >= 50;
                         <a href="progress.php" class="btn btn-outline-dark">
                             <i class="bi bi-clock-history me-2"></i>Historia
                         </a>
+                        <button type="button" class="btn btn-outline-primary" id="saveResultImageBtn" data-bs-toggle="modal" data-bs-target="#resultShareModal">
+                            <i class="bi bi-image me-2"></i>Udostępnij wynik
+                        </button>
                     </div>
 
                     <div class="result-insights mb-4 animate-in" style="animation-delay: 0.15s;">
@@ -795,6 +896,35 @@ $passed = $score_percent >= 50;
                     <?php endif; ?>
                 </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Share result preview modal -->
+    <div class="modal fade result-share-modal" id="resultShareModal" tabindex="-1" aria-labelledby="resultShareModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-1" id="resultShareModalLabel"><i class="bi bi-mortarboard-fill me-2"></i>Podgląd karty wyniku</h5>
+                        <div class="small opacity-75">ZSEM TECH · sprawdź wygląd przed pobraniem</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="result-share-preview-wrap" id="resultSharePreviewWrap">
+                        <canvas id="resultSharePreviewCanvas" aria-label="Podgląd karty wyniku"></canvas>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between flex-wrap">
+                    <span class="text-muted small align-self-center">PNG w wysokiej rozdzielczości · gotowe do udostępnienia</span>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Anuluj</button>
+                        <button type="button" class="btn btn-primary btn-download-share" id="downloadResultShareBtn">
+                            <i class="bi bi-download me-2"></i>Pobierz zdjęcie
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -927,5 +1057,9 @@ $passed = $score_percent >= 50;
             questionModal.show();
         }
     </script>
+    <script>
+    window.resultShareCardData = <?php echo json_encode($shareCardData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+    </script>
+    <script src="assets/js/result-share-card.js?v=<?php echo (int)@filemtime(__DIR__ . '/assets/js/result-share-card.js'); ?>"></script>
 </body>
 </html>

@@ -2703,6 +2703,12 @@ function getTestQuestionTimeRemaining(array $test, int $perQuestionLimit): int {
     return max(0, $perQuestionLimit - (time() - $started));
 }
 
+function testDisallowsPreviousQuestion(array $test): bool {
+    $config = is_array($test['config'] ?? null) ? $test['config'] : [];
+    $opt = (string)($config['time_option'] ?? '');
+    return in_array($opt, ['30s', '60s'], true);
+}
+
 /**
  * Finalize a test, calculate score, grant XP and save results
  */

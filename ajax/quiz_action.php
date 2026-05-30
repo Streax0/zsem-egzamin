@@ -39,6 +39,14 @@ function questionTimerPayload(array $test): array {
     ];
 }
 
+function testProgressPayload(array $test): array {
+    return [
+        'current' => max(0, (int)($test['current'] ?? 0)),
+        'total' => count($test['questions'] ?? []),
+        'answered_count' => count($test['answers'] ?? []),
+    ];
+}
+
 function emitCurrentQuestion($test) {
     $current = max(0, (int)($test['current'] ?? 0));
     $total = count($test['questions'] ?? []);
@@ -53,7 +61,7 @@ function emitCurrentQuestion($test) {
         'current' => $current,
         'total' => $total,
         'question' => formatQuestionForAjax($test['questions'][$current])
-    ], questionTimerPayload($test)));
+    ], questionTimerPayload($test), testProgressPayload($test)));
 }
 
 switch ($action) {
@@ -117,7 +125,7 @@ switch ($action) {
                         'total' => count($test['questions']),
                         'question' => formatQuestionForAjax($test['questions'][$test['current']]),
                         'saved_answer' => $savedAnswer
-                    ], questionTimerPayload($test)));
+                    ], questionTimerPayload($test), testProgressPayload($test)));
                 }
             } else {
                 // Practice mode: show review
@@ -141,11 +149,11 @@ switch ($action) {
                 }
 
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
-                echo json_encode([
+                echo json_encode(array_merge([
                     'success' => true,
                     'phase' => 'review',
                     'result' => $test['last_result']
-                ]);
+                ], testProgressPayload($test)));
             }
         } else {
             echo json_encode(['success' => false, 'error' => 'Invalid question']);
@@ -153,6 +161,10 @@ switch ($action) {
         break;
 
     case 'previous_question':
+        if (testDisallowsPreviousQuestion($test)) {
+            echo json_encode(['success' => false, 'error' => 'Cofanie pytań jest wyłączone w tym trybie']);
+            break;
+        }
         $test['current'] = max(0, min(count($test['questions']) - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
@@ -165,7 +177,7 @@ switch ($action) {
             'total' => count($test['questions']),
             'question' => formatQuestionForAjax($test['questions'][$test['current']]),
             'saved_answer' => $savedAnswer
-        ], questionTimerPayload($test)));
+        ], questionTimerPayload($test), testProgressPayload($test)));
         break;
 
     case 'next_question':
@@ -210,7 +222,7 @@ switch ($action) {
                 'current' => 0,
                 'total' => 1,
                 'question' => formatQuestionForAjax($newQ)
-            ], questionTimerPayload($test)));
+            ], questionTimerPayload($test), testProgressPayload($test)));
         } else {
             if ($test['current'] >= count($test['questions'])) {
                 if ($isGuest) {
@@ -229,7 +241,7 @@ switch ($action) {
                     'total' => count($test['questions']),
                     'question' => formatQuestionForAjax($test['questions'][$test['current']]),
                     'saved_answer' => $savedAnswer
-                ], questionTimerPayload($test)));
+                ], questionTimerPayload($test), testProgressPayload($test)));
             }
         }
         break;

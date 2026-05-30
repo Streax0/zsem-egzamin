@@ -46,10 +46,11 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
         }
     }
     ?>
-    <a href="https://zsem.edu.pl" target="_blank" rel="noopener noreferrer" class="topbar-icon me-2" title="Strona szkoły" aria-label="Strona szkoły">
+    <div class="topbar-actions ms-auto d-flex align-items-center">
+    <a href="https://zsem.edu.pl" target="_blank" rel="noopener noreferrer" class="topbar-icon" title="Strona szkoły" aria-label="Strona szkoły">
         <i class="bi bi-mortarboard"></i>
     </a>
-    <div class="dropdown me-2" id="notificationsDropdownRoot"
+    <div class="dropdown" id="notificationsDropdownRoot"
          data-feed-url="<?php echo htmlspecialchars($base_url . 'ajax/notifications_feed.php'); ?>"
          data-respond-url="<?php echo htmlspecialchars($base_url . 'ajax/duel_respond.php'); ?>"
          data-base-url="<?php echo htmlspecialchars($base_url); ?>"
@@ -60,12 +61,15 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
                 <?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?>
             </span>
         </button>
-        <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-0 notification-dropdown" id="notificationDropdownMenu">
-            <div class="notification-dropdown-header p-3 border-bottom d-flex justify-content-between align-items-center rounded-top-3">
-                <h6 class="mb-0 fw-bold">Powiadomienia</h6>
+        <div class="dropdown-menu dropdown-menu-end topbar-dropdown notification-dropdown" id="notificationDropdownMenu">
+            <div class="notification-dropdown-header">
+                <div>
+                    <h6 class="mb-0 fw-bold">Powiadomienia</h6>
+                    <span class="notification-dropdown-sub">Ostatnie aktywności</span>
+                </div>
                 <form action="<?php echo $base_url; ?>actions/mark_read.php" method="POST" class="m-0<?php echo $unreadCount > 0 ? '' : ' d-none'; ?>" id="notificationMarkReadForm">
                     <?php echo csrfTokenField('notifications'); ?>
-                    <button type="submit" class="btn btn-link text-primary small text-decoration-none p-0">Oznacz jako przeczytane</button>
+                    <button type="submit" class="btn btn-link notification-mark-read-btn">Oznacz jako przeczytane</button>
                 </form>
             </div>
             <div class="notification-list" id="notificationList" data-poll-interval="2000">
@@ -77,17 +81,17 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
                     </div>
                 <?php endif; ?>
             </div>
-            <div class="p-2 text-center border-top">
-                <a href="<?php echo $base_url; ?>notifications.php" class="text-muted small text-decoration-none">Zobacz wszystkie</a>
+            <div class="notification-dropdown-footer">
+                <a href="<?php echo $base_url; ?>notifications.php" class="notification-see-all">Zobacz wszystkie <i class="bi bi-arrow-right-short"></i></a>
             </div>
         </div>
     </div>
     
     <div class="dropdown">
         <button type="button" class="user-profile-info dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menu użytkownika">
-            <span class="text-end d-none d-sm-block me-2">
-                <span class="fw-bold small d-block"><?php echo htmlspecialchars(function_exists('userDisplayName') ? userDisplayName($topbarUser) : ($_SESSION['username'] ?? 'admin')); ?><?php echo function_exists('getUserBadgeHtml') ? getUserBadgeHtml($topbarUser['role'] ?? ($_SESSION['role'] ?? 'user'), (int)($topbarUser['is_verified'] ?? 0)) : ''; ?></span>
-                <span class="text-muted d-block" style="font-size: 0.75rem;">
+            <span class="user-profile-text d-none d-sm-block">
+                <span class="user-profile-name"><?php echo htmlspecialchars(function_exists('userDisplayName') ? userDisplayName($topbarUser) : ($_SESSION['username'] ?? 'admin')); ?><?php echo function_exists('getUserBadgeHtml') ? getUserBadgeHtml($topbarUser['role'] ?? ($_SESSION['role'] ?? 'user'), (int)($topbarUser['is_verified'] ?? 0)) : ''; ?></span>
+                <span class="user-profile-role">
                     <?php 
                     $role = $topbarUser['role'] ?? ($_SESSION['role'] ?? 'user');
                     switch($role) {
@@ -121,27 +125,29 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
                     <?php echo strtoupper(substr(function_exists('userDisplayName') ? userDisplayName($topbarUser) : ($_SESSION['username'] ?? 'A'), 0, 1)); ?>
                 <?php endif; ?>
             </span>
+            <i class="bi bi-chevron-down user-profile-chevron d-none d-sm-inline" aria-hidden="true"></i>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-2" aria-labelledby="userDropdown">
+        <ul class="dropdown-menu dropdown-menu-end topbar-dropdown user-profile-dropdown" aria-labelledby="userDropdown">
             <?php if ($isGuestTopbar): ?>
-            <li><a class="dropdown-item py-2" href="<?php echo $base_url; ?>test.php?setup=1&new=1"><i class="bi bi-journal-text me-2 text-primary"></i>Test jako gość</a></li>
-            <li><a class="dropdown-item py-2" href="<?php echo $base_url; ?>login.php"><i class="bi bi-box-arrow-in-right me-2 text-success"></i>Zaloguj</a></li>
-            <li><a class="dropdown-item py-2" href="<?php echo $base_url; ?>register.php"><i class="bi bi-person-plus me-2 text-info"></i>Załóż konto</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>test.php?setup=1&new=1"><i class="bi bi-journal-text"></i>Test jako gość</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>login.php"><i class="bi bi-box-arrow-in-right"></i>Zaloguj</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>register.php"><i class="bi bi-person-plus"></i>Załóż konto</a></li>
             <?php else: ?>
-            <li><a class="dropdown-item py-2" href="<?php echo $base_url; ?>profile.php"><i class="bi bi-person me-2 text-primary"></i>Mój profil</a></li>
-            <li><a class="dropdown-item py-2" href="<?php echo $base_url; ?>settings.php"><i class="bi bi-gear me-2 text-info"></i>Ustawienia</a></li>
-            <li><a class="dropdown-item py-2" href="<?php echo $base_url; ?>progress.php"><i class="bi bi-graph-up me-2 text-success"></i>Statystyki</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>profile.php"><i class="bi bi-person"></i>Mój profil</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>settings.php"><i class="bi bi-gear"></i>Ustawienia</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>progress.php"><i class="bi bi-graph-up"></i>Statystyki</a></li>
             <?php endif; ?>
             <li><hr class="dropdown-divider"></li>
             <li>
                 <form action="<?php echo $base_url; ?>actions/logout.php" method="POST" class="m-0">
                     <?php echo csrfTokenField('logout'); ?>
-                    <button type="submit" class="dropdown-item py-2 text-danger">
-                        <i class="bi <?php echo $isGuestTopbar ? 'bi-door-open' : 'bi-box-arrow-right'; ?> me-2"></i><?php echo $isGuestTopbar ? 'Wyjdź' : 'Wyloguj się'; ?>
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="bi <?php echo $isGuestTopbar ? 'bi-door-open' : 'bi-box-arrow-right'; ?>"></i><?php echo $isGuestTopbar ? 'Wyjdź' : 'Wyloguj się'; ?>
                     </button>
                 </form>
             </li>
         </ul>
+    </div>
     </div>
 </header>
 

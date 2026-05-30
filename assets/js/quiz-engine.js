@@ -90,11 +90,13 @@ const QuizEngine = {
                     window.allowQuizNavigation?.();
                     window.location.href = data.redirect;
                 } else if (data.next_question) {
+                    this.updateProgressPanel(data);
                     this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
                     if (typeof window.resetQuestionTimer === 'function') {
                         window.resetQuestionTimer(data.question_time_limit || data.question_time_left);
                     }
                 } else if (data.phase === 'review') {
+                    this.updateProgressPanel(data);
                     this.renderReview(data.result);
                 }
             } else {
@@ -133,6 +135,7 @@ const QuizEngine = {
                     window.allowQuizNavigation?.();
                     window.location.href = data.redirect;
                 } else {
+                    this.updateProgressPanel(data);
                     this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
                     if (typeof window.resetQuestionTimer === 'function') {
                         window.resetQuestionTimer(data.question_time_limit || data.question_time_left);
@@ -146,16 +149,33 @@ const QuizEngine = {
         }
     },
 
-    renderQuestion(q, current, total, savedAnswer = '') {
-        // 1. Update progress bar and text
-        const progressBar = document.getElementById('progressBar');
-        const progressHeader = document.querySelector('strong.h5');
-        
-        if (progressBar) progressBar.style.width = ((current / total) * 100) + '%';
-        if (progressHeader) progressHeader.textContent = `Pytanie ${current + 1} z ${total}`;
+    updateProgressPanel(data = {}) {
+        const total = Number(data.total) || 0;
+        const current = Number(data.current);
+        const answeredCount = data.answered_count !== undefined
+            ? Number(data.answered_count)
+            : (Number.isFinite(current) ? current : 0);
 
-        // 2. Update question content with fade effect
+        const questionEl = document.getElementById('testProgressQuestion');
+        const answeredEl = document.getElementById('testProgressAnswered');
+        const progressBar = document.getElementById('progressBar');
+
+        if (total <= 0) return;
+
+        if (questionEl && Number.isFinite(current)) {
+            questionEl.textContent = `Pytanie ${current + 1} z ${total}`;
+        }
+        if (answeredEl) {
+            answeredEl.textContent = `${answeredCount} / ${total} udzielonych`;
+        }
+        if (progressBar) {
+            progressBar.style.width = `${Math.min(100, Math.round((answeredCount / total) * 100))}%`;
+        }
+    },
+
+    renderQuestion(q, current, total, savedAnswer = '') {
         const cardBody = document.querySelector('.question-card .card-body');
+        if (!cardBody) return;
         cardBody.classList.add('fade-out');
 
         setTimeout(() => {
