@@ -257,7 +257,7 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
         <form action="actions/start_guest.php" method="POST" class="mt-3">
             <?php echo csrfTokenField('guest_start'); ?>
             <input type="hidden" name="target" value="test">
-            <button type="submit" class="btn btn-outline-light w-100">
+            <button type="submit" class="btn btn-outline-light guest-mode-btn w-100">
                 <i class="bi bi-person-walking me-1"></i>Tryb gościa
             </button>
         </form>

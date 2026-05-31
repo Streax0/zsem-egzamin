@@ -8,10 +8,16 @@ startSecureSession();
 requireLogin();
 
 $userId = $_SESSION['user_id'];
-$results = getUnifiedUserHistory($pdo, (int)$userId, 200);
+$results = getUnifiedUserHistory($pdo, (int)$userId, 50);
 
 $stats = getUserStats($pdo, $userId);
 $flashMessage = getSessionMessage();
+$flashTypeMap = [
+    'success' => 'success',
+    'error' => 'danger',
+    'warning' => 'warning',
+    'info' => 'info',
+];
 $modeBadgeMap = [
     'exam' => 'history-badge-exam',
     'practice' => 'history-badge-practice',
@@ -78,6 +84,11 @@ $modeBadgeMap = [
                         <i class="bi bi-plus-lg me-2"></i>Nowy test
                     </a>
                 </div>
+                <?php if ($flashMessage): ?>
+                    <div class="alert alert-<?php echo $flashTypeMap[$flashMessage['type'] ?? 'info'] ?? 'info'; ?> border-0 rounded-3">
+                        <?php echo htmlspecialchars($flashMessage['message'] ?? ''); ?>
+                    </div>
+                <?php endif; ?>
                 <div class="history-summary-grid">
                     <div class="history-summary-card">
                         <div class="text-muted small fw-bold">Pełne testy</div>
@@ -177,9 +188,19 @@ $modeBadgeMap = [
                                             </td>
                                             <td class="text-muted"><?php echo formatTime($test['time_spent']); ?></td>
                                             <td>
-                                                <a href="<?php echo htmlspecialchars($test['url']); ?>" class="btn btn-sm btn-light border-0 px-3" style="border-radius: 8px;">
-                                                    Szczegóły
-                                                </a>
+                                                <div class="d-flex gap-2 flex-wrap">
+                                                    <a href="<?php echo htmlspecialchars($test['url']); ?>" class="btn btn-sm btn-light border-0 px-3" style="border-radius: 8px;">
+                                                        Szczegóły
+                                                    </a>
+                                                    <?php if (($test['kind'] ?? 'test') === 'test'): ?>
+                                                        <form method="POST" action="actions/delete_test_result.php" onsubmit="return confirm('Usunąć ten wynik z historii?');">
+                                                            <?php echo csrfTokenField('delete_test_result'); ?>
+                                                            <input type="hidden" name="result_id" value="<?php echo (int)$test['id']; ?>">
+                                                            <input type="hidden" name="return_to" value="../history.php">
+                                                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń wynik" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

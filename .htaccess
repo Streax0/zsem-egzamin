@@ -11,6 +11,7 @@ RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # Block internal application directories from direct HTTP access.
 RewriteRule ^(includes|config|data|data_question|scratch|cron)(/|$) - [F,L,NC]
+RewriteRule ^pdf/lesson_[0-9]+(?:_[A-Za-z0-9]+)?\.(?:pdf|json)$ - [F,L,NC]
 
 # Block local diagnostics, logs, migrations, raw data and helper scripts.
 RewriteRule ^(phpinfo|db_check|tmp_db_update|migrate_.*|fix_violations_db|seed_questions)\.php$ - [F,L,NC]
@@ -34,7 +35,7 @@ RewriteRule ^(debug\.log|cookies\.txt|csrf\.txt|response\.json|qid\.txt|full_sch
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" "expr=%{HTTPS} == 'on'"
     # Content-Security-Policy is emitted dynamically by includes/session.php with per-request script nonces.
     # Dynamic CSP keeps img-src https://api.qrserver.com for QR fallback.
-    <FilesMatch "\.css$">
+    <FilesMatch "\.(css|js)$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
         Header always set Pragma "no-cache"
         Header always set Expires "0"
@@ -44,7 +45,8 @@ RewriteRule ^(debug\.log|cookies\.txt|csrf\.txt|response\.json|qid\.txt|full_sch
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType text/css "access plus 0 seconds"
-    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 0 seconds"
+    ExpiresByType application/javascript "access plus 0 seconds"
     ExpiresByType image/png "access plus 1 month"
     ExpiresByType image/jpeg "access plus 1 month"
     ExpiresByType image/gif "access plus 1 month"

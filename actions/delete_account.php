@@ -20,9 +20,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_SESSION['user_id'];
 
     try {
+        $stmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $avatarPath = (string)($stmt->fetchColumn() ?: '');
+
         // Delete user (cascades to results, progress, friends, notifications etc. based on schema)
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$userId]);
+
+        if ($avatarPath !== '' && preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $avatarPath)) {
+            $absoluteAvatarPath = dirname(__DIR__) . '/' . $avatarPath;
+            if (is_file($absoluteAvatarPath)) {
+                @unlink($absoluteAvatarPath);
+            }
+        }
 
         // Destroy session
         $_SESSION = [];

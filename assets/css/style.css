@@ -600,6 +600,10 @@ body.dark-mode .notification-see-all:hover {
   text-decoration: none;
 }
 
+.notification-status-link {
+  cursor: default;
+}
+
 .notification-menu-link:hover {
   background: rgba(37, 99, 235, 0.04);
 }
@@ -660,6 +664,35 @@ body.dark-mode .notification-see-all:hover {
   margin-top: .35rem;
   color: #64748b;
   font-size: .75rem;
+}
+
+.notification-status-more {
+  width: fit-content;
+  font-weight: 800;
+  padding: .25rem .8rem;
+}
+
+.app-status-modal .modal-content {
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .22);
+}
+
+.app-status-modal-body {
+  color: #0f172a;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+body.dark-mode .app-status-modal .modal-content {
+  background: #0f172a;
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, .28);
+}
+
+body.dark-mode .app-status-modal-body {
+  color: #f8fafc;
 }
 
 body.dark-mode .notification-dropdown {

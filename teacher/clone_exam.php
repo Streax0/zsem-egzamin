@@ -15,8 +15,11 @@ if (!in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'], true)) 
 $examId = (int)(($_POST['id'] ?? null) ?: ($_GET['id'] ?? 0));
 $userId = (int)$_SESSION['user_id'];
 
-$stmt = $pdo->prepare("SELECT * FROM exams WHERE id = ?");
-$stmt->execute([$examId]);
+$isAdmin = roleHasAdminAccess($_SESSION['role'] ?? '');
+$stmt = $isAdmin
+    ? $pdo->prepare("SELECT * FROM exams WHERE id = ?")
+    : $pdo->prepare("SELECT * FROM exams WHERE id = ? AND teacher_id = ?");
+$stmt->execute($isAdmin ? [$examId] : [$examId, $userId]);
 $source = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$source) {

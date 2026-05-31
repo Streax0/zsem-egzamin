@@ -57,6 +57,18 @@ function privilegedStaffRoles(): array {
     return ['admin', 'dyrektor', 'teacher'];
 }
 
+function assignableRoleValues(): array {
+    return ['user', 'teacher', 'admin', 'dyrektor', 'wujek_luki'];
+}
+
+function rankingEligibleRoles(): array {
+    return ['user', 'wujek_luki'];
+}
+
+function roleParticipatesInRanking($role): bool {
+    return in_array((string)$role, rankingEligibleRoles(), true);
+}
+
 function roleHasAdminAccess($role): bool {
     return in_array((string)$role, adminRoleValues(), true);
 }
@@ -425,7 +437,25 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('App settings enhancements failed: ' . $e->getMessage());
     }
 
-    // 10. Rate limit events table
+    // 10. Application statuses table
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS app_statuses (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(160) NOT NULL,
+            body TEXT NOT NULL,
+            level VARCHAR(20) NOT NULL DEFAULT 'info',
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_by INT DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_active_created (is_active, created_at),
+            INDEX idx_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('Application statuses table creation failed: ' . $e->getMessage());
+    }
+
+    // 11. Rate limit events table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS rate_limit_events (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -440,7 +470,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Rate limit events table creation failed: ' . $e->getMessage());
     }
 
-    // 11. Password resets table
+    // 12. Password resets table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS password_resets (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -457,7 +487,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Password resets table creation failed: ' . $e->getMessage());
     }
 
-    // 12. Active user sessions table
+    // 13. Active user sessions table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS active_user_sessions (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -475,7 +505,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Active user sessions table creation failed: ' . $e->getMessage());
     }
 
-    // 13. User MFA table
+    // 14. User MFA table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS user_mfa (
             user_id INT NOT NULL PRIMARY KEY,
@@ -490,7 +520,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('User MFA table creation failed: ' . $e->getMessage());
     }
 
-    // 14. All in duel usage table
+    // 15. All in duel usage table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS all_in_duel_usage (
             user_id INT NOT NULL,
@@ -504,7 +534,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('All in duel usage table creation failed: ' . $e->getMessage());
     }
 
-    // 15. Ranking event templates table
+    // 16. Ranking event templates table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS ranking_event_templates (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -522,7 +552,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Ranking event templates table creation failed: ' . $e->getMessage());
     }
 
-    // 16. Ranking events table
+    // 17. Ranking events table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS ranking_events (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -541,7 +571,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Ranking events table creation failed: ' . $e->getMessage());
     }
 
-    // 17. Admin request replies table
+    // 18. Admin request replies table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_request_replies (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -556,7 +586,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Admin request replies table creation failed: ' . $e->getMessage());
     }
 
-    // 18. Abuse reports table
+    // 19. Abuse reports table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS abuse_reports (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -585,7 +615,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Abuse reports table enhancements failed: ' . $e->getMessage());
     }
 
-    // 19. Lessons table
+    // 20. Lessons table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS lessons (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -615,7 +645,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Lessons table enhancements failed: ' . $e->getMessage());
     }
 
-    // 20. Admin audit log table
+    // 21. Admin audit log table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_audit_log (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -633,7 +663,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         error_log('Admin audit log table creation failed: ' . $e->getMessage());
     }
 
-    // 21. Seed templates
+    // 22. Seed templates
     try {
         seedRankingEventTemplates($pdo);
     } catch (Throwable $e) {
@@ -663,6 +693,209 @@ function setAppSetting(PDO $pdo, string $key, $value): bool {
     } catch (PDOException $e) {
         error_log('App setting save failed: ' . $e->getMessage());
         return false;
+    }
+}
+
+function pruneAppStatuses(PDO $pdo, int $limit = 10): void {
+    try {
+        $limit = max(1, $limit);
+        $pdo->exec("DELETE FROM app_statuses WHERE id NOT IN (SELECT id FROM (SELECT id FROM app_statuses ORDER BY created_at DESC, id DESC LIMIT {$limit}) keep_rows)");
+    } catch (PDOException $e) {
+        error_log('Prune app statuses failed: ' . $e->getMessage());
+    }
+}
+
+function getAppStatuses(PDO $pdo, bool $activeOnly = false, int $limit = 10): array {
+    try {
+        ensurePlatformEnhancements($pdo);
+        $sql = "
+            SELECT s.*, u.first_name, u.last_name, u.username, u.role
+            FROM app_statuses s
+            LEFT JOIN users u ON u.id = s.created_by
+        ";
+        if ($activeOnly) {
+            $sql .= " WHERE s.is_active = 1";
+        }
+        $sql .= " ORDER BY s.created_at DESC, s.id DESC LIMIT ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(1, max(1, min(50, $limit)), PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log('Get app statuses failed: ' . $e->getMessage());
+        return [];
+    }
+}
+
+function getAppStatusById(PDO $pdo, int $statusId): ?array {
+    if ($statusId <= 0) return null;
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("
+            SELECT s.*, u.first_name, u.last_name, u.username, u.role
+            FROM app_statuses s
+            LEFT JOIN users u ON u.id = s.created_by
+            WHERE s.id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$statusId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    } catch (PDOException $e) {
+        error_log('Get app status failed: ' . $e->getMessage());
+        return null;
+    }
+}
+
+function appStatusModeratorLabel(array $status): string {
+    $roleBadge = getUserRoleBadge($status['role'] ?? 'admin');
+    $label = trim(userDisplayName($status) . ' ' . userHandle($status));
+    if ($label === '') {
+        $label = 'Administrator';
+    }
+    return trim($label . ' (' . $roleBadge['label'] . ')');
+}
+
+function extractAppStatusIdFromNotification(array $notification): int {
+    $actionUrl = (string)($notification['action_url'] ?? '');
+    if (preg_match('/app-status-(\d+)/', $actionUrl, $matches)) {
+        return (int)$matches[1];
+    }
+    if (preg_match('/#(\d+)/', (string)($notification['message'] ?? ''), $matches)) {
+        return (int)$matches[1];
+    }
+    return 0;
+}
+
+function resolveAppStatusNotification(PDO $pdo, array $notification): ?array {
+    if (($notification['type'] ?? '') !== 'app_status') return null;
+    $statusId = extractAppStatusIdFromNotification($notification);
+    $status = $statusId > 0 ? getAppStatusById($pdo, $statusId) : null;
+    if (!$status) {
+        $message = preg_replace('/^Nowy status\s*#\d+:\s*/u', '', (string)($notification['message'] ?? ''));
+        return [
+            'id' => $statusId,
+            'title' => trim((string)$message) ?: 'Status',
+            'body' => 'Ten status nie jest już dostępny.',
+            'level' => 'info',
+            'date' => !empty($notification['created_at']) ? date('d.m.Y H:i', strtotime((string)$notification['created_at'])) : date('d.m.Y H:i'),
+            'moderator' => 'System',
+        ];
+    }
+    return [
+        'id' => (int)$status['id'],
+        'title' => (string)$status['title'],
+        'body' => (string)$status['body'],
+        'level' => (string)($status['level'] ?? 'info'),
+        'date' => !empty($status['created_at']) ? date('d.m.Y H:i', strtotime((string)$status['created_at'])) : date('d.m.Y H:i'),
+        'moderator' => appStatusModeratorLabel($status),
+    ];
+}
+
+function createAppStatus(PDO $pdo, string $title, string $body, string $level, int $adminId): int {
+    try {
+        ensurePlatformEnhancements($pdo);
+        $activeCount = (int)$pdo->query("SELECT COUNT(*) FROM app_statuses WHERE is_active = 1")->fetchColumn();
+        if ($activeCount >= 2) {
+            return 0;
+        }
+        $allowedLevels = ['info', 'success', 'warning', 'danger'];
+        if (!in_array($level, $allowedLevels, true)) $level = 'info';
+        $stmt = $pdo->prepare("INSERT INTO app_statuses (title, body, level, created_by) VALUES (?, ?, ?, ?)");
+        $stmt->execute([
+            mb_substr(trim($title), 0, 160),
+            mb_substr(trim($body), 0, 1200),
+            $level,
+            $adminId > 0 ? $adminId : null,
+        ]);
+        $statusId = (int)$pdo->lastInsertId();
+        pruneAppStatuses($pdo, 10);
+        return $statusId;
+    } catch (PDOException $e) {
+        error_log('Create app status failed: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+function deleteAppStatus(PDO $pdo, int $statusId, int $adminId): bool {
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("UPDATE app_statuses SET is_active = 0, updated_at = NOW() WHERE id = ?");
+        $ok = $stmt->execute([$statusId]);
+        if ($ok) {
+            logAdminAction($pdo, $adminId, 'delete_app_status', 'app_status', $statusId);
+            pruneAppStatuses($pdo, 10);
+        }
+        return $ok;
+    } catch (PDOException $e) {
+        error_log('Delete app status failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function addAppStatusNotification(PDO $pdo, int $userId, array $status): bool {
+    $statusId = (int)($status['id'] ?? 0);
+    $title = trim((string)($status['title'] ?? ''));
+    if ($userId <= 0 || $statusId <= 0 || $title === '') return false;
+
+    try {
+        ensurePlatformEnhancements($pdo);
+        $actionUrl = 'settings.php#app-status-' . $statusId;
+        if (dbColumnExists($pdo, 'notifications', 'dedupe_key')) {
+            $dedupeKey = hash('sha256', $userId . '|app_status|' . $statusId);
+            $hasActionUrl = dbColumnExists($pdo, 'notifications', 'action_url');
+            $sql = "SELECT id FROM notifications WHERE user_id = ? AND type = 'app_status' AND (dedupe_key = ? OR message LIKE ?";
+            $params = [$userId, $dedupeKey, '%#' . $statusId . ':%'];
+            if ($hasActionUrl) {
+                $sql .= " OR action_url = ?";
+                $params[] = $actionUrl;
+            }
+            $sql .= ") LIMIT 1";
+            $check = $pdo->prepare($sql);
+            $check->execute($params);
+            if ($check->fetchColumn()) return false;
+            return addNotification($pdo, $userId, 'app_status', $title, $actionUrl, $dedupeKey);
+        }
+
+        if (dbColumnExists($pdo, 'notifications', 'action_url')) {
+            $check = $pdo->prepare("SELECT id FROM notifications WHERE user_id = ? AND type = 'app_status' AND action_url = ? LIMIT 1");
+            $check->execute([$userId, $actionUrl]);
+            if ($check->fetchColumn()) return false;
+        }
+        return addNotification($pdo, $userId, 'app_status', $title, $actionUrl);
+    } catch (PDOException $e) {
+        error_log('Add app status notification failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function syncAppStatusNotificationsForUser(PDO $pdo, int $userId): int {
+    if ($userId <= 0) return 0;
+    $created = 0;
+    foreach (getAppStatuses($pdo, true, 2) as $status) {
+        if (addAppStatusNotification($pdo, $userId, $status)) {
+            $created++;
+        }
+    }
+    return $created;
+}
+
+function notifyUsersAboutAppStatus(PDO $pdo, int $statusId, string $title): int {
+    if ($statusId <= 0) return 0;
+    try {
+        $status = getAppStatusById($pdo, $statusId);
+        if (!$status) return 0;
+        $stmt = $pdo->query("SELECT id FROM users WHERE COALESCE(is_banned, 0) = 0");
+        $sent = 0;
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $targetUserId) {
+            if (addAppStatusNotification($pdo, (int)$targetUserId, $status)) {
+                $sent++;
+            }
+        }
+        return $sent;
+    } catch (PDOException $e) {
+        error_log('Notify app status failed: ' . $e->getMessage());
+        return 0;
     }
 }
 
@@ -1943,7 +2176,7 @@ function isAdmin($pdo, $userId) {
 function getUsers($pdo, $limit = 50, $offset = 0) {
     try {
         ensurePlatformEnhancements($pdo);
-        $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users ORDER BY CASE WHEN role = 'teacher' THEN 'Nauczyciele' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
+        $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users ORDER BY CASE role WHEN 'admin' THEN 'Administratorzy' WHEN 'dyrektor' THEN 'Dyrekcja' WHEN 'teacher' THEN 'Nauczyciele' WHEN 'wujek_luki' THEN 'Wujek Luki' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -2004,18 +2237,29 @@ function deleteUser($pdo, $userId) {
     }
 }
 
+function adminPanelUserGroupLabel(array $user): string {
+    $role = (string)($user['role'] ?? 'user');
+    return match ($role) {
+        'admin' => 'Administratorzy',
+        'dyrektor' => 'Dyrekcja',
+        'teacher' => 'Nauczyciele',
+        'wujek_luki' => 'Wujek Luki',
+        default => trim((string)($user['class'] ?? '')) !== '' ? trim((string)$user['class']) : 'Bez klasy',
+    };
+}
+
 /**
  * Set a user's role
  * @param PDO $pdo
  * @param int $userId
- * @param string $role ('user'|'teacher'|'admin'|'dyrektor')
+ * @param string $role ('user'|'teacher'|'admin'|'dyrektor'|'wujek_luki')
  * @return bool
  */
 function setUserRole($pdo, $userId, $role) {
-    if (!in_array($role, ['user', 'teacher', 'admin', 'dyrektor'])) return false;
+    if (!in_array($role, assignableRoleValues(), true)) return false;
     try {
         ensurePlatformEnhancements($pdo);
-        $rankingVisible = $role === 'teacher' ? 0 : 1;
+        $rankingVisible = roleParticipatesInRanking($role) ? 1 : 0;
         $verified = in_array($role, privilegedStaffRoles(), true) ? 1 : 0;
         if (dbColumnExists($pdo, 'users', 'verified_at')) {
             $stmt = $pdo->prepare("
@@ -2494,14 +2738,16 @@ function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuest
 function getUserRank($pdo, $userId) {
     try {
         ensurePlatformEnhancements($pdo);
+        $roleStmt = $pdo->prepare("SELECT role FROM users WHERE id = ? LIMIT 1");
+        $roleStmt->execute([$userId]);
+        if (!roleParticipatesInRanking((string)$roleStmt->fetchColumn())) {
+            return 0;
+        }
         $stmt = $pdo->prepare("
             SELECT COUNT(*) + 1
             FROM users ranked
             WHERE ranked.xp > (SELECT xp FROM users WHERE id = ?)
-              AND (
-                    ranked.role = 'user'
-                    OR (ranked.role = 'teacher' AND COALESCE(ranked.ranking_visible, 0) = 1)
-                  )
+              AND ranked.role IN ('user','wujek_luki')
         ");
         $stmt->execute([$userId]);
         return (int)$stmt->fetchColumn();
@@ -2853,6 +3099,7 @@ function finishTest($pdo, $userId, $test) {
     }
 
     completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQ);
+    pruneUserTestHistory($pdo, (int)$userId, 50);
     
     cancelActiveTest($pdo, (int)$userId);
     return $resultId;
@@ -2982,10 +3229,53 @@ function saveSingleQuestionResult($pdo, $userId, $question, $userAnswer, $isCorr
         ]);
 
         $_SESSION[$sessionKey] = ['id' => $resultId, 'time' => time()];
+        pruneUserTestHistory($pdo, (int)$userId, 50);
         return $resultId;
     } catch (PDOException $e) {
         error_log("Error saving single question result: " . $e->getMessage());
         return 0;
+    }
+}
+
+function pruneUserTestHistory(PDO $pdo, int $userId, int $limit = 50): void {
+    if ($userId <= 0) return;
+    try {
+        $limit = max(1, $limit);
+        $stmt = $pdo->prepare("
+            SELECT id FROM test_results
+            WHERE user_id = ?
+            ORDER BY test_date DESC, id DESC
+            LIMIT 1000 OFFSET {$limit}
+        ");
+        $stmt->execute([$userId]);
+        $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        if (!$ids) return;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $pdo->beginTransaction();
+        $pdo->prepare("DELETE FROM test_answers WHERE result_id IN ($placeholders)")->execute($ids);
+        $pdo->prepare("DELETE FROM test_results WHERE user_id = ? AND id IN ($placeholders)")->execute(array_merge([$userId], $ids));
+        $pdo->commit();
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log('Prune test history failed: ' . $e->getMessage());
+    }
+}
+
+function deleteUserTestResult(PDO $pdo, int $userId, int $resultId): bool {
+    if ($userId <= 0 || $resultId <= 0) return false;
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM test_results WHERE id = ? AND user_id = ? LIMIT 1");
+        $stmt->execute([$resultId, $userId]);
+        if (!$stmt->fetchColumn()) return false;
+        $pdo->beginTransaction();
+        $pdo->prepare("DELETE FROM test_answers WHERE result_id = ?")->execute([$resultId]);
+        $ok = $pdo->prepare("DELETE FROM test_results WHERE id = ? AND user_id = ?")->execute([$resultId, $userId]);
+        $pdo->commit();
+        return $ok;
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log('Delete user test result failed: ' . $e->getMessage());
+        return false;
     }
 }
 
@@ -2998,7 +3288,7 @@ function getTopRankings($pdo, $limit = 10) {
     $stmt = $pdo->prepare("SELECT id, username, role, xp, is_verified, ranking_visible, avatar_path,
         (SELECT COUNT(*) FROM test_results tr_count WHERE tr_count.user_id = users.id AND {$completedSql} AND COALESCE(tr_count.exclude_from_ranking, 0) = 0) as tests_count
         FROM users
-        WHERE role = 'user' OR (role = 'teacher' AND COALESCE(ranking_visible, 0) = 1)
+        WHERE role IN ('user','wujek_luki')
         ORDER BY xp DESC, tests_count DESC, last_activity DESC
         LIMIT ?");
     $stmt->execute([$limit]);
@@ -3054,7 +3344,7 @@ function getUserOfDay($pdo) {
             JOIN users u ON u.id = x.user_id
             WHERE DATE(x.created_at) = CURDATE()
               AND x.amount > 0
-              AND (u.role = 'user' OR (u.role = 'teacher' AND COALESCE(u.ranking_visible, 0) = 1))
+              AND u.role IN ('user','wujek_luki')
             GROUP BY u.id, u.username, u.role, u.xp, u.is_verified
             HAVING today_xp > 0
             ORDER BY today_xp DESC, u.xp DESC
@@ -3155,10 +3445,10 @@ function consumeAllInDuelUse(PDO $pdo, int $userId, ?string $date = null): bool 
 /**
  * Add a notification for a user
  */
-function addNotification($pdo, $userId, $type, $message, $actionUrl = null) {
+function addNotification($pdo, $userId, $type, $message, $actionUrl = null, ?string $dedupeKeyOverride = null) {
     try {
         ensurePlatformEnhancements($pdo);
-        $dedupeKey = hash('sha256', (int)$userId . '|' . (string)$type . '|' . trim((string)$message));
+        $dedupeKey = $dedupeKeyOverride ?: hash('sha256', (int)$userId . '|' . (string)$type . '|' . trim((string)$message));
         $actionUrl = normalizeNotificationActionUrl($actionUrl);
         if (dbColumnExists($pdo, 'notifications', 'dedupe_key')) {
             $check = $pdo->prepare("
@@ -3360,6 +3650,11 @@ function getNotificationPresentationMeta(array $notif): array {
             $tone = 'primary';
             $label = 'Rola';
             break;
+        case 'app_status':
+            $icon = 'bi-broadcast';
+            $tone = 'info';
+            $label = 'Status';
+            break;
     }
     return ['icon' => $icon, 'tone' => $tone, 'label' => $label];
 }
@@ -3385,6 +3680,10 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
         $tone = $meta['tone'];
         $label = $meta['label'];
         $isRead = !empty($notif['is_read']);
+        $appStatusPayload = resolveAppStatusNotification($pdo, $notif);
+        if ($appStatusPayload) {
+            $notif['message'] = $appStatusPayload['title'];
+        }
         $notifUrl = !empty($notif['action_url']) ? normalizeNotificationActionUrl($notif['action_url']) : null;
         $notifHref = $notifUrl
             ? (preg_match('#^https?://#i', $notifUrl) ? $notifUrl : $baseUrl . ltrim($notifUrl, '/'))
@@ -3404,6 +3703,33 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
         }
         ?>
         <div class="<?php echo htmlspecialchars($itemClass); ?>">
+            <?php if ($appStatusPayload): ?>
+            <div class="notification-menu-link notification-status-link text-reset">
+                <div class="notification-menu-icon text-<?php echo htmlspecialchars($tone); ?>">
+                    <i class="bi <?php echo htmlspecialchars($icon); ?>"></i>
+                </div>
+                <div class="notification-menu-body flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                        <span class="notification-menu-label"><?php echo htmlspecialchars($label); ?></span>
+                        <?php if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php endif; ?>
+                    </div>
+                    <div class="notification-menu-message text-wrap"><?php echo htmlspecialchars($notif['message'] ?? ''); ?></div>
+                    <div class="notification-menu-time">
+                        <i class="bi bi-clock me-1"></i><?php echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
+                    </div>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary rounded-pill notification-status-more mt-2"
+                            data-app-status-open
+                            data-status-title="<?php echo htmlspecialchars($appStatusPayload['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-body="<?php echo htmlspecialchars($appStatusPayload['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-level="<?php echo htmlspecialchars($appStatusPayload['level'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-date="<?php echo htmlspecialchars($appStatusPayload['date'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-moderator="<?php echo htmlspecialchars($appStatusPayload['moderator'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                        Więcej
+                    </button>
+                </div>
+            </div>
+            <?php else: ?>
             <a href="<?php echo htmlspecialchars($notifHref); ?>" class="notification-menu-link text-decoration-none text-reset">
                 <div class="notification-menu-icon text-<?php echo htmlspecialchars($tone); ?>">
                     <i class="bi <?php echo htmlspecialchars($icon); ?>"></i>
@@ -3419,6 +3745,7 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
                     </div>
                 </div>
             </a>
+            <?php endif; ?>
             <?php if ($pendingDuel): ?>
             <div class="notification-duel-actions px-3 pb-3 pt-0" data-duel-id="<?php echo (int)$duelId; ?>">
                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3" data-duel-action="accept" data-duel-id="<?php echo (int)$duelId; ?>">
@@ -3438,6 +3765,7 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
 }
 
 function buildNotificationsDropdownPayload(PDO $pdo, int $userId, string $baseUrl, int $limit = 5): array {
+    syncAppStatusNotificationsForUser($pdo, $userId);
     $notifications = getNotifications($pdo, $userId, $limit);
     return [
         'unread_count' => getUnreadNotificationsCount($pdo, $userId),
@@ -3969,6 +4297,8 @@ function scanAvatarImageSafety($image, int $width, int $height): array {
     $skin = 0;
     $red = 0;
     $dark = 0;
+    $symbolDark = 0;
+    $symbolAxis = 0;
     for ($y = 0; $y < $sampleH; $y++) {
         for ($x = 0; $x < $sampleW; $x++) {
             $srcX = (int)floor($x * $width / $sampleW);
@@ -3986,16 +4316,29 @@ function scanAvatarImageSafety($image, int $width, int $height): array {
             if ($r > 130 && $g < 90 && $b < 90 && $r > ($g * 1.45) && $r > ($b * 1.45)) {
                 $red++;
             }
+            if ($max < 80 && ($max - $min) < 32) {
+                $symbolDark++;
+                $nearVertical = abs($x - ($sampleW / 2)) <= max(2, $sampleW * 0.08);
+                $nearHorizontal = abs($y - ($sampleH / 2)) <= max(2, $sampleH * 0.08);
+                if ($nearVertical || $nearHorizontal) {
+                    $symbolAxis++;
+                }
+            }
         }
     }
     $skinRatio = $skin / max(1, $total);
     $redRatio = $red / max(1, $total);
     $darkRatio = $dark / max(1, $total);
-    if ($skinRatio > 0.48) {
+    $symbolDarkRatio = $symbolDark / max(1, $total);
+    $symbolAxisRatio = $symbolAxis / max(1, $symbolDark);
+    if ($skinRatio > 0.48 || ($skinRatio > 0.38 && $redRatio > 0.035)) {
         return ['ok' => false, 'message' => 'Zdjęcie wygląda jak niedozwolona nagość albo zbyt odsłonięty kadr. Wybierz neutralny avatar.'];
     }
-    if ($redRatio > 0.14 || ($redRatio > 0.07 && $darkRatio > 0.25)) {
+    if ($redRatio > 0.10 || ($redRatio > 0.055 && $darkRatio > 0.20)) {
         return ['ok' => false, 'message' => 'Zdjęcie może zawierać przemoc lub drastyczne treści. Wybierz neutralny avatar.'];
+    }
+    if ($symbolDarkRatio > 0.045 && $symbolDarkRatio < 0.32 && $symbolAxisRatio > 0.26) {
+        return ['ok' => false, 'message' => 'Zdjęcie może zawierać zakazany symbol. Wybierz neutralny avatar.'];
     }
     return ['ok' => true, 'message' => ''];
 }

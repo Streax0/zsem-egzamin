@@ -25,6 +25,9 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
         'avatar_path' => '',
     ];
     if (!$isGuestTopbar && isset($pdo) && isset($_SESSION['user_id']) && function_exists('getUnreadNotificationsCount') && function_exists('getNotifications')) {
+        if (function_exists('syncAppStatusNotificationsForUser')) {
+            syncAppStatusNotificationsForUser($pdo, (int)$_SESSION['user_id']);
+        }
         $unreadCount = getUnreadNotificationsCount($pdo, $_SESSION['user_id']);
         $notifications = getNotifications($pdo, $_SESSION['user_id'], 5);
         try {
@@ -150,6 +153,24 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
     </div>
     </div>
 </header>
+
+<div class="modal fade app-status-modal" id="appStatusModal" tabindex="-1" aria-labelledby="appStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <span class="badge rounded-pill text-bg-info mb-2" id="appStatusModalLevel">Status</span>
+                    <h5 class="modal-title fw-900" id="appStatusModalLabel">Status</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="app-status-modal-body mb-3" id="appStatusModalBody"></p>
+                <div class="app-status-modal-meta small text-muted" id="appStatusModalMeta"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php if ($decisionNotification): ?>
 <?php

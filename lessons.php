@@ -1178,7 +1178,12 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
                 </section>
 
                 <?php if ($canCreateLesson): ?>
-                <section class="dashboard-panel mb-4">
+                <div class="mb-3 text-end">
+                    <button class="btn btn-primary rounded-pill px-4" type="button" data-lesson-create-toggle aria-expanded="false" aria-controls="lessonCreatePanel">
+                        <i class="bi bi-plus-lg me-1"></i>Dodaj lekcję
+                    </button>
+                </div>
+                <section class="dashboard-panel mb-4 d-none" id="lessonCreatePanel">
                     <form method="POST" enctype="multipart/form-data" class="row g-3">
                         <?php echo csrfTokenField('lessons'); ?>
                         <input type="hidden" name="action" value="create">
@@ -1400,6 +1405,16 @@ document.getElementById('loadMoreLessons')?.addEventListener('click', function (
     if (next >= rows.length) {
         this.remove();
     }
+});
+
+document.querySelector('[data-lesson-create-toggle]')?.addEventListener('click', function () {
+    const panel = document.getElementById('lessonCreatePanel');
+    if (!panel) return;
+    const expanded = panel.classList.toggle('d-none') === false;
+    this.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    this.innerHTML = expanded
+        ? '<i class="bi bi-dash-lg me-1"></i>Ukryj formularz'
+        : '<i class="bi bi-plus-lg me-1"></i>Dodaj lekcję';
 });
 
 document.querySelectorAll('[data-expand-lesson]').forEach((button) => {

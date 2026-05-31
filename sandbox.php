@@ -132,6 +132,15 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                     </section>
                 <?php elseif ($tool === 'subnet'): ?>
                     <section class="sandbox-workbench subnet-workbench" data-tool="subnet">
+                        <div class="sandbox-panel subnet-explain-panel">
+                            <h5 class="fw-800 mb-3"><i class="bi bi-question-circle me-2 text-primary"></i>Jak to liczyć</h5>
+                            <ol class="small text-muted mb-0">
+                                <li>Wpisz adres i prefiks CIDR, np. <strong>/24</strong>.</li>
+                                <li>Prefiks zamienia się na maskę, która odcina część sieciową od hostów.</li>
+                                <li>Adres sieci to IP po operacji AND z maską; broadcast to ostatni adres podsieci.</li>
+                                <li>Zakres hostów jest między adresem sieci i broadcastem; dla IPv6 pokazujemy prefiks i wielkość puli.</li>
+                            </ol>
+                        </div>
                         <div class="sandbox-panel">
                             <h5 class="fw-800 mb-3">IPv4</h5>
                             <div class="row g-3">

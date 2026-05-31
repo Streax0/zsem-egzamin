@@ -23,6 +23,7 @@ $dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
 $defaultTestMode = $_COOKIE['default_test_mode'] ?? 'exam';
 $openExternalNewTab = ($_COOKIE['external_new_tab'] ?? '1') === '1';
 $hideHelpCenter = ($_COOKIE['hide_help_center'] ?? '0') === '1';
+$activeAppStatuses = getAppStatuses($pdo, true, 2);
 
 $flashMsg = getSessionMessage();
 
@@ -67,6 +68,48 @@ try {
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
     <script src="assets/js/theme-handler.js"></script>
+    <style>
+        .settings-status-list {
+            display: grid;
+            gap: .85rem;
+        }
+        .settings-status-card {
+            border: 1px solid rgba(37, 99, 235, .14);
+            border-radius: 12px;
+            padding: 1rem;
+            background: linear-gradient(135deg, #ffffff, #f8fbff);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
+        }
+        .settings-status-card.status-danger {
+            border-color: rgba(239, 68, 68, .22);
+            background: linear-gradient(135deg, #fff7f7, #ffffff);
+        }
+        .settings-status-card.status-warning {
+            border-color: rgba(245, 158, 11, .28);
+            background: linear-gradient(135deg, #fffbeb, #ffffff);
+        }
+        .settings-status-card.status-success {
+            border-color: rgba(16, 185, 129, .24);
+            background: linear-gradient(135deg, #ecfdf5, #ffffff);
+        }
+        .settings-status-body {
+            color: #1e293b;
+            line-height: 1.55;
+            margin-bottom: .75rem;
+            overflow-wrap: anywhere;
+        }
+        .settings-status-meta {
+            color: #64748b;
+        }
+        body.dark-mode .settings-status-card {
+            background: #111827;
+            border-color: rgba(148, 163, 184, .24);
+            box-shadow: none;
+        }
+        body.dark-mode .settings-status-body {
+            color: #f8fafc;
+        }
+    </style>
 </head>
 <body>
 
@@ -405,7 +448,7 @@ try {
                                 <div class="small">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Wersja aplikacji:</span>
-                                        <span class="fw-bold">1.5 Beta</span>
+                                        <span class="fw-bold">1.6 BETA BUGFIX</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">ID Użytkownika:</span>
@@ -416,6 +459,53 @@ try {
                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div class="dashboard-panel animate-in" id="app-status" style="animation-delay: 0.34s;">
+                                <div class="panel-header mb-3">
+                                    <h5 class="panel-title mb-0"><i class="bi bi-broadcast me-2 text-primary"></i>Status</h5>
+                                </div>
+                                <?php if (empty($activeAppStatuses)): ?>
+                                    <p class="text-muted mb-0 small">Brak aktywnych komunikatów systemowych.</p>
+                                <?php else: ?>
+                                    <div class="settings-status-list">
+                                        <?php foreach ($activeAppStatuses as $status): ?>
+                                            <?php
+                                                $moderator = appStatusModeratorLabel($status);
+                                                $levelClass = match ($status['level'] ?? 'info') {
+                                                    'success' => 'success',
+                                                    'warning' => 'warning text-dark',
+                                                    'danger' => 'danger',
+                                                    default => 'info',
+                                                };
+                                                $statusLevel = (string)($status['level'] ?? 'info');
+                                                $statusDate = !empty($status['created_at']) ? date('d.m.Y H:i', strtotime($status['created_at'])) : date('d.m.Y H:i');
+                                            ?>
+                                            <article class="settings-status-card status-<?php echo htmlspecialchars($statusLevel); ?>" id="app-status-<?php echo (int)$status['id']; ?>">
+                                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                    <strong><?php echo htmlspecialchars($status['title']); ?></strong>
+                                                    <span class="badge rounded-pill bg-<?php echo htmlspecialchars($levelClass); ?>"><?php echo htmlspecialchars($statusLevel); ?></span>
+                                                </div>
+                                                <p class="settings-status-body small"><?php echo nl2br(htmlspecialchars($status['body'])); ?></p>
+                                                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                                    <div class="settings-status-meta small">
+                                                        <?php echo htmlspecialchars($statusDate); ?> · <?php echo htmlspecialchars(trim($moderator)); ?>
+                                                    </div>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary rounded-pill"
+                                                            data-app-status-open
+                                                            data-status-title="<?php echo htmlspecialchars($status['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-body="<?php echo htmlspecialchars($status['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-level="<?php echo htmlspecialchars($statusLevel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-date="<?php echo htmlspecialchars($statusDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-moderator="<?php echo htmlspecialchars($moderator, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                        Otwórz
+                                                    </button>
+                                                </div>
+                                            </article>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

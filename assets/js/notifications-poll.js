@@ -86,6 +86,41 @@
             });
         }
 
+        function bindAppStatusActions(scope) {
+            const rootScope = scope || document;
+            rootScope.querySelectorAll('[data-app-status-open]').forEach((button) => {
+                if (button.dataset.boundStatus === '1') return;
+                button.dataset.boundStatus = '1';
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const modalEl = document.getElementById('appStatusModal');
+                    if (!modalEl || !window.bootstrap?.Modal) return;
+
+                    const titleEl = document.getElementById('appStatusModalLabel');
+                    const bodyEl = document.getElementById('appStatusModalBody');
+                    const metaEl = document.getElementById('appStatusModalMeta');
+                    const levelEl = document.getElementById('appStatusModalLevel');
+                    const level = button.dataset.statusLevel || 'info';
+
+                    if (titleEl) titleEl.textContent = button.dataset.statusTitle || 'Status';
+                    if (bodyEl) bodyEl.textContent = button.dataset.statusBody || '';
+                    if (metaEl) {
+                        const date = button.dataset.statusDate || '';
+                        const moderator = button.dataset.statusModerator || '';
+                        metaEl.textContent = [date, moderator].filter(Boolean).join(' · ');
+                    }
+                    if (levelEl) {
+                        levelEl.textContent = level;
+                        levelEl.className = 'badge rounded-pill mb-2 text-bg-' + (['success', 'warning', 'danger', 'info'].includes(level) ? level : 'info');
+                    }
+
+                    window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                });
+            });
+        }
+
         async function refreshNotifications() {
             if (!feedUrl || inFlight) return;
             inFlight = true;
@@ -109,6 +144,7 @@
                 list.innerHTML = data.html || '';
                 updateBadge(Number(data.unread_count || 0));
                 bindDuelActions();
+                bindAppStatusActions(list);
             } catch (error) {
                 // ignore background polling errors
             } finally {
@@ -122,6 +158,7 @@
         }
 
         bindDuelActions();
+        bindAppStatusActions(document);
         refreshNotifications();
         startPolling();
 

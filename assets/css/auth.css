@@ -158,30 +158,53 @@ body.auth-page::before {
 }
 
 .password-policy-checks {
-  display: grid;
-  gap: .35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem .8rem;
   color: #64748b;
 }
 
-.password-policy-checks label {
+.password-policy-checks span {
   display: inline-flex;
   align-items: center;
   gap: .45rem;
   margin: 0;
 }
 
-.password-policy-checks input {
-  width: 1rem;
-  height: 1rem;
-  margin: 0;
-  opacity: 1;
-  pointer-events: none;
-  accent-color: #2563eb;
+.password-policy-checks span::before {
+  content: "";
+  width: .72rem;
+  height: .72rem;
+  border-radius: 999px;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  flex: 0 0 auto;
 }
 
-.password-policy-checks label.is-met {
+.password-policy-checks span.is-met {
   color: #15803d;
   font-weight: 700;
+}
+
+.password-policy-checks span.is-met::before {
+  border-color: #16a34a;
+  background: #16a34a;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.guest-mode-btn {
+  border-color: #2563eb;
+  color: #1d4ed8;
+  background: #eff6ff;
+  font-weight: 800;
+  min-height: 46px;
+}
+
+.guest-mode-btn:hover,
+.guest-mode-btn:focus-visible {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
 }
 
 .alert-custom {

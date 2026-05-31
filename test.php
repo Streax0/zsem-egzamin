@@ -51,18 +51,27 @@ $defaultCountCookie = isset($_COOKIE['default_test_count']) ? (int)$_COOKIE['def
 if (!isset($_GET['count'])) {
     $count = $defaultCountCookie > 0 ? $defaultCountCookie : 40;
 }
-$timeLimit = isset($_GET['time']) ? (int)$_GET['time'] : 60; // in minutes
+$defaultTimeCookie = isset($_COOKIE['default_test_time']) ? (int)$_COOKIE['default_test_time'] : 0;
+$timeLimit = isset($_GET['time']) ? (int)$_GET['time'] : ($defaultTimeCookie > 0 ? $defaultTimeCookie : 60); // in minutes
 $order    = $_GET['order']    ?? 'random';
 $smart    = isset($_GET['smart']) && $_GET['smart'] === '1';
 if ($isGuest) {
     $smart = false;
 }
 
-$difficulty = $_GET['difficulty'] ?? 'all';
-$scope      = $_GET['scope']      ?? 'all';
-$timeOption = $_GET['time_option'] ?? 'custom';
-$timePerQuestion = isset($_GET['time_per_question']) ? (int)$_GET['time_per_question'] : 60;
+$allowedDifficulties = ['all', 'easy', 'medium', 'hard'];
+$allowedScopes = ['all', 'unseen', 'incorrect', 'exclude_correct'];
+$allowedTimeOptions = ['custom', 'unlimited', '30s', '60s', 'per_question_custom'];
+$difficulty = $_GET['difficulty'] ?? ($_COOKIE['default_test_difficulty'] ?? 'all');
+$scope      = $_GET['scope']      ?? ($_COOKIE['default_test_scope'] ?? 'all');
+$timeOption = $_GET['time_option'] ?? ($_COOKIE['default_test_time_option'] ?? 'custom');
+$timePerQuestionCookie = isset($_COOKIE['default_test_time_per_question']) ? (int)$_COOKIE['default_test_time_per_question'] : 0;
+$timePerQuestion = isset($_GET['time_per_question']) ? (int)$_GET['time_per_question'] : ($timePerQuestionCookie > 0 ? $timePerQuestionCookie : 60);
 $preset = $_GET['preset'] ?? '';
+
+if (!in_array($difficulty, $allowedDifficulties, true)) $difficulty = 'all';
+if (!in_array($scope, $allowedScopes, true)) $scope = 'all';
+if (!in_array($timeOption, $allowedTimeOptions, true)) $timeOption = 'custom';
 
 $presets = [
     'harvest' => ['count' => 40, 'time' => 40, 'label' => 'Harvest'],
@@ -1504,7 +1513,10 @@ if ($test) {
                         <div class="form-text small mt-1">Maksymalnie 100 pytań na jedną próbę</div>
                     </div>
                     <div class="col-md-6 mt-3 exam-setup-compact-col">
-                        <label class="setup-section-title"><span><i class="bi bi-clock"></i>Opcje czasu</span></label>
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <label class="setup-section-title mb-0"><span><i class="bi bi-clock"></i>Opcje czasu</span></label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" id="saveDefaultTimeBtn"><i class="bi bi-bookmark-star me-1"></i>Domyślny czas</button>
+                        </div>
                         <div class="segmented-control">
                             <button type="button" class="segmented-btn time-option-btn <?= $timeOption === 'unlimited' ? 'active' : '' ?>" data-value="unlimited">
                                 <i class="bi bi-infinity"></i>Bez limitu
@@ -1561,7 +1573,10 @@ if ($test) {
                     <div class="collapse d-md-block" id="examOptionsCollapse">
                 <div class="row">
                 <div class="col-md-6">
-                    <label class="setup-section-title"><span><i class="bi bi-shield-shaded"></i>Poziom trudności</span></label>
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <label class="setup-section-title mb-0"><span><i class="bi bi-shield-shaded"></i>Poziom trudności</span></label>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" id="saveDefaultDifficultyBtn"><i class="bi bi-bookmark-star me-1"></i>Domyślna trudność</button>
+                    </div>
                     <div class="segmented-control">
                         <button type="button" class="segmented-btn difficulty-btn <?= $difficulty === 'all' ? 'active' : '' ?>" data-value="all">
                             <i class="bi bi-border-all"></i>Wszystkie
@@ -1592,7 +1607,10 @@ if ($test) {
 
                 <!-- Scope of Questions -->
                 <div class="col-12 mt-4">
-                    <label class="setup-section-title"><span><i class="bi bi-bullseye"></i>Zakres pytań</span></label>
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <label class="setup-section-title mb-0"><span><i class="bi bi-bullseye"></i>Zakres pytań</span></label>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" id="saveDefaultScopeBtn"><i class="bi bi-bookmark-star me-1"></i>Domyślny zakres</button>
+                    </div>
                     <div class="scope-grid">
                         <div class="scope-card <?= $scope === 'all' ? 'selected' : '' ?>" data-value="all">
                             <div class="scope-icon-wrapper"><i class="bi bi-collection"></i></div>
@@ -1747,6 +1765,12 @@ if ($test) {
                         document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=/; SameSite=Lax`;
                     }
 
+                    function markSaved(button, html) {
+                        if (!button) return;
+                        button.textContent = 'Zapisano';
+                        setTimeout(() => { button.innerHTML = html; }, 1600);
+                    }
+
                     const categoryCards = document.querySelectorAll('.category-card');
                     const categoryInput = document.getElementById('categoryInput');
                     
@@ -1822,6 +1846,10 @@ if ($test) {
                             difficultyInput.value = btn.dataset.value;
                         });
                     });
+                    document.getElementById('saveDefaultDifficultyBtn')?.addEventListener('click', () => {
+                        setCookie('default_test_difficulty', difficultyInput?.value || 'all', 365);
+                        markSaved(document.getElementById('saveDefaultDifficultyBtn'), '<i class="bi bi-bookmark-star me-1"></i>Domyślna trudność');
+                    });
 
                     // Order Segmented Control
                     const orderBtns = document.querySelectorAll('.order-btn');
@@ -1845,6 +1873,10 @@ if ($test) {
                             card.classList.add('selected');
                             scopeInput.value = card.dataset.value;
                         });
+                    });
+                    document.getElementById('saveDefaultScopeBtn')?.addEventListener('click', () => {
+                        setCookie('default_test_scope', scopeInput?.value || 'all', 365);
+                        markSaved(document.getElementById('saveDefaultScopeBtn'), '<i class="bi bi-bookmark-star me-1"></i>Domyślny zakres');
                     });
 
                     // Count Badges
@@ -1952,6 +1984,12 @@ if ($test) {
                         if (timePerQuestionValue) {
                             timePerQuestionValue.textContent = timePerQuestionInput.value;
                         }
+                    });
+                    document.getElementById('saveDefaultTimeBtn')?.addEventListener('click', () => {
+                        setCookie('default_test_time_option', timeOptionInput?.value || 'custom', 365);
+                        setCookie('default_test_time', timeLimitInput?.value || '60', 365);
+                        setCookie('default_test_time_per_question', timePerQuestionInput?.value || '60', 365);
+                        markSaved(document.getElementById('saveDefaultTimeBtn'), '<i class="bi bi-bookmark-star me-1"></i>Domyślny czas');
                     });
                     countInput?.addEventListener('input', updatePerQuestionPresetInfo);
                     updatePerQuestionPresetInfo();

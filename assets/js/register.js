@@ -31,10 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
       let score = 0;
       Object.entries(checks).forEach(([key, met]) => {
         if (met) score++;
-        const input = passwordRules[key];
-        if (!input) return;
-        input.checked = met;
-        input.closest('label')?.classList.toggle('is-met', met);
+        const rule = passwordRules[key];
+        if (!rule) return;
+        rule.classList.toggle('is-met', met);
+        rule.setAttribute('aria-checked', met ? 'true' : 'false');
       });
       const colors = ['#ef4444', '#ef4444', '#f59e0b', '#2563eb', '#10b981'];
       bar.style.width = `${Math.min(score, 5) * 20}%`;

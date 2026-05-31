@@ -646,9 +646,6 @@ function sendVerificationEmail($email, $token) {
     $subject = "Zweryfikuj swoje konto - ZSEM Tech";
     $message = "Witaj! Dziękujemy za rejestrację. Kliknij w poniższy link, aby aktywować swoje konto:\n\n$verifyUrl\n\nLink jest ważny przez 24 godziny.";
     
-    // For now, log it since we might not have a configured mailer
-    error_log("Verification email to $email: $verifyUrl");
-    
     // Attempt PHP mail()
     $headers = "From: no-reply@zsem-egzamin.online\r\n";
     @mail($email, $subject, $message, $headers);
@@ -1170,7 +1167,6 @@ function sendPasswordResetEmail(string $email, string $token): bool {
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $base = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/forgot_password.php'), '/\\');
     $url = $scheme . '://' . $host . ($base === '/' ? '' : $base) . '/forgot_password.php?token=' . urlencode($token);
-    error_log("Password reset for {$email}: {$url}");
     $subject = 'Reset hasła - ZSEM Tech';
     $message = "Aby zresetować hasło, otwórz link ważny 30 minut:\n\n{$url}\n\nJeśli to nie Ty, zignoruj wiadomość.";
     return @mail($email, $subject, $message, "From: no-reply@zsemtech.local\r\n") || true;

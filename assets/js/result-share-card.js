@@ -94,8 +94,8 @@
         ctx.fillText(label.toUpperCase(), x + 28, y + 32);
 
         ctx.fillStyle = '#f8fafc';
-        ctx.font = '800 24px Inter, "Segoe UI", sans-serif';
-        ctx.fillText(truncate(ctx, value, w - 36), x + 28, y + 62);
+        fitFont(ctx, value, '800', 23, 'Inter, "Segoe UI", sans-serif', w - 48, 15);
+        ctx.fillText(truncate(ctx, value, w - 48), x + 28, y + 62);
     }
 
     function drawScoreRing(ctx, cx, cy, radius, percent, accent) {
@@ -230,7 +230,7 @@
         ctx.font = '500 17px Inter, "Segoe UI", sans-serif';
         wrapText(ctx, data.subtitle || '', 56, 342, 620, 24, 2);
 
-        const tileW = 210;
+        const tileW = 250;
         const tileH = 84;
         const gap = 14;
         const startX = 56;

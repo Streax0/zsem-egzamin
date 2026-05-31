@@ -146,6 +146,10 @@
   padding: 1rem;
 }
 
+.subnet-explain-panel {
+  grid-column: 1 / -1;
+}
+
 .toolbox-group {
   display: grid;
   gap: .45rem;
@@ -282,7 +286,16 @@
 
 .logic-node-dynamic {
   min-width: 126px;
+  width: max-content;
+  max-width: 180px;
   padding: .65rem;
+  right: auto;
+  bottom: auto;
+}
+
+.logic-node-dynamic.output-node {
+  width: 132px;
+  max-width: 132px;
 }
 
 .logic-node-header {

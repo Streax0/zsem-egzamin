@@ -156,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         case 'set_role':
             $role = trim($_POST['role'] ?? 'user');
-            if ($userId <= 0 || !in_array($role, ['user', 'teacher', 'admin', 'dyrektor'])) {
+            if ($userId <= 0 || !in_array($role, assignableRoleValues(), true)) {
                 setSessionMessage('error', 'Nieprawidłowe dane.');
             } elseif ($userId === (int)$_SESSION['user_id'] && !in_array($role, ['admin', 'dyrektor'], true)) {
                 setSessionMessage('error', 'Nie możesz odebrać sobie dostępu administracyjnego.');
@@ -169,6 +169,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             redirect('admin.php');
+            break;
+
+        case 'create_app_status':
+            $title = trim((string)($_POST['status_title'] ?? ''));
+            $body = trim((string)($_POST['status_body'] ?? ''));
+            $level = trim((string)($_POST['status_level'] ?? 'info'));
+            if ($title === '' || $body === '') {
+                setSessionMessage('error', 'Podaj tytuł i treść statusu.');
+            } else {
+                $statusId = createAppStatus($pdo, $title, $body, $level, (int)$_SESSION['user_id']);
+                if ($statusId > 0) {
+                    $sent = notifyUsersAboutAppStatus($pdo, $statusId, $title);
+                    logAdminAction($pdo, $_SESSION['user_id'], 'create_app_status', 'app_status', $statusId, 'notifications=' . $sent);
+                    setSessionMessage('success', 'Status dodany. Powiadomiono ' . $sent . ' kont.');
+                } else {
+                    setSessionMessage('error', 'Nie można dodać statusu. Aktywne mogą być maksymalnie 2 statusy.');
+                }
+            }
+            redirect('admin.php#admin-statuses');
+            break;
+
+        case 'delete_app_status':
+            $statusId = (int)($_POST['status_id'] ?? 0);
+            if (deleteAppStatus($pdo, $statusId, (int)$_SESSION['user_id'])) {
+                setSessionMessage('success', 'Status usunięty.');
+            } else {
+                setSessionMessage('error', 'Nie udało się usunąć statusu.');
+            }
+            redirect('admin.php#admin-statuses');
             break;
 
         case 'delete_avatar':
@@ -502,7 +531,7 @@ $offset = ($page - 1) * $limit;
 
 if ($search !== '') {
     $like = '%' . $search . '%';
-    $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users WHERE username LIKE :q OR email LIKE :q OR first_name LIKE :q OR last_name LIKE :q OR class LIKE :q ORDER BY CASE WHEN role = 'teacher' THEN 'Nauczyciele' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
+    $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users WHERE username LIKE :q OR email LIKE :q OR first_name LIKE :q OR last_name LIKE :q OR class LIKE :q ORDER BY CASE role WHEN 'admin' THEN 'Administratorzy' WHEN 'dyrektor' THEN 'Dyrekcja' WHEN 'teacher' THEN 'Nauczyciele' WHEN 'wujek_luki' THEN 'Wujek Luki' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
     $stmt->bindValue(':q', $like, PDO::PARAM_STR);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -572,6 +601,7 @@ $auditLog = getAdminAuditLog($pdo, 50);
 $allAdminRequests = getAllAdminRequests($pdo);
 $adminRequests = array_slice($allAdminRequests, 0, 8);
 $rankingEvents = getRankingEvents($pdo, 8);
+$appStatuses = getAppStatuses($pdo, false, 10);
 $rankingTemplates = [];
 try {
     ensurePlatformEnhancements($pdo);
@@ -807,6 +837,51 @@ if (is_array($rawFlash)) {
             border: 1px solid rgba(148, 163, 184, .12);
             background: #ffffff;
             box-shadow: 0 8px 24px rgba(15, 23, 42, .04);
+        }
+        .admin-status-tool {
+            background: linear-gradient(180deg, #ffffff, #f8fafc);
+        }
+        .admin-status-form-grid {
+            display: grid;
+            gap: .75rem;
+        }
+        .admin-status-preview {
+            border: 1px dashed rgba(37, 99, 235, .28);
+            border-radius: 12px;
+            padding: .9rem;
+            background: rgba(37, 99, 235, .04);
+        }
+        .admin-status-preview-title {
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: .35rem;
+        }
+        .admin-status-preview-body {
+            color: #475569;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            margin: 0;
+        }
+        .admin-status-card {
+            border: 1px solid rgba(148, 163, 184, .16);
+            border-radius: 12px;
+            padding: .9rem;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .admin-status-card .status-title {
+            font-weight: 900;
+            overflow-wrap: anywhere;
+        }
+        .admin-status-card .status-date {
+            color: #93a4bd;
+            font-size: .82rem;
+        }
+        .admin-status-card .status-actions {
+            display: flex;
+            gap: .45rem;
+            flex-wrap: wrap;
+            margin-top: .85rem;
         }
         .admin-request-card {
             border-radius: 8px;
@@ -1372,7 +1447,7 @@ if (is_array($rawFlash)) {
                                     <?php $currentAdminClass = null; ?>
                                     <?php foreach ($users as $u): ?>
                                     <?php
-                                        $adminClassLabel = ($u['role'] ?? '') === 'teacher' ? 'Nauczyciele' : (trim((string)($u['class'] ?? '')) !== '' ? trim((string)$u['class']) : 'Bez klasy');
+                                        $adminClassLabel = adminPanelUserGroupLabel($u);
                                         $adminAvatar = (string)($u['avatar_path'] ?? '');
                                         $adminAvatarSrc = (preg_match('#^uploads/avatars/[a-zA-Z0-9_.-]+\.webp$#', $adminAvatar) && is_file(__DIR__ . '/' . $adminAvatar)) ? $adminAvatar : '';
                                         $adminDisplayName = userDisplayName($u);
@@ -1458,6 +1533,7 @@ if (is_array($rawFlash)) {
                                                         <option value="teacher" <?php echo ($u['role'] === 'teacher') ? 'selected' : ''; ?>>NAUCZYCIEL</option>
                                                         <option value="admin" <?php echo ($u['role'] === 'admin') ? 'selected' : ''; ?>>ADMIN</option>
                                                         <option value="dyrektor" <?php echo ($u['role'] === 'dyrektor') ? 'selected' : ''; ?>>DYREKTOR</option>
+                                                        <option value="wujek_luki" <?php echo ($u['role'] === 'wujek_luki') ? 'selected' : ''; ?>>WUJEK LUKI</option>
                                                     </select>
                                                     <button type="submit" class="btn btn-primary btn-sm admin-icon-btn" title="Zapisz rolę"><i class="bi bi-check2"></i></button>
                                                 </form>
@@ -1800,6 +1876,84 @@ if (is_array($rawFlash)) {
                                 </div>
                             </div>
 
+                            <div class="col-lg-4" id="admin-statuses">
+                                <div class="admin-tool-card admin-status-tool p-3 h-100">
+                                    <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1"><i class="bi bi-info-circle me-2 text-info"></i>Status</h6>
+                                            <div class="small text-muted">Maks. 2 aktywne, baza trzyma 10 ostatnich.</div>
+                                        </div>
+                                        <span class="badge rounded-pill text-bg-light"><?php echo count(array_filter($appStatuses, static fn($s) => !empty($s['is_active']))); ?>/2 aktywne</span>
+                                    </div>
+                                    <form method="POST" class="admin-status-form-grid mb-3">
+                                        <?php echo csrfTokenField('admin'); ?>
+                                        <input type="hidden" name="action" value="create_app_status">
+                                        <div class="row g-2">
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Tytuł</label>
+                                                <input name="status_title" id="adminStatusTitle" class="form-control" maxlength="160" placeholder="Tytuł statusu" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Typ</label>
+                                                <select name="status_level" id="adminStatusLevel" class="form-select">
+                                                    <option value="info">Informacja</option>
+                                                    <option value="success">Sukces</option>
+                                                    <option value="warning">Ostrzeżenie</option>
+                                                    <option value="danger">Pilne</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold">Treść</label>
+                                                <textarea name="status_body" id="adminStatusBody" class="form-control" rows="4" maxlength="1200" style="resize:vertical;" placeholder="Treść statusu..." required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="admin-status-preview">
+                                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                                <div class="admin-status-preview-title" id="adminStatusPreviewTitle">Podgląd statusu</div>
+                                                <span class="badge rounded-pill text-bg-info" id="adminStatusPreviewLevel">info</span>
+                                            </div>
+                                            <p class="admin-status-preview-body small" id="adminStatusPreviewBody">Treść statusu pojawi się tutaj przed publikacją.</p>
+                                        </div>
+                                        <button class="btn btn-primary rounded-pill fw-bold"><i class="bi bi-send me-1"></i>Dodaj status</button>
+                                    </form>
+                                    <div class="vstack gap-2">
+                                        <?php foreach ($appStatuses as $status): ?>
+                                            <?php
+                                                $adminStatusLevel = (string)($status['level'] ?? 'info');
+                                                $adminStatusDate = !empty($status['created_at']) ? date('d.m.Y H:i', strtotime($status['created_at'])) : date('d.m.Y H:i');
+                                                $adminStatusModerator = appStatusModeratorLabel($status);
+                                            ?>
+                                            <div class="admin-status-card">
+                                                <div class="d-flex justify-content-between gap-2">
+                                                    <div class="status-title"><?php echo htmlspecialchars($status['title']); ?></div>
+                                                    <span class="badge rounded-pill bg-<?php echo htmlspecialchars($adminStatusLevel === 'danger' ? 'danger' : ($adminStatusLevel === 'warning' ? 'warning text-dark' : ($adminStatusLevel === 'success' ? 'success' : 'info'))); ?>"><?php echo !empty($status['is_active']) ? 'aktywny' : 'archiwum'; ?></span>
+                                                </div>
+                                                <div class="status-date mt-1"><?php echo htmlspecialchars($adminStatusDate); ?></div>
+                                                <div class="status-actions">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-light rounded-pill"
+                                                            data-app-status-open
+                                                            data-status-title="<?php echo htmlspecialchars($status['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-body="<?php echo htmlspecialchars($status['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-level="<?php echo htmlspecialchars($adminStatusLevel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-date="<?php echo htmlspecialchars($adminStatusDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                            data-status-moderator="<?php echo htmlspecialchars($adminStatusModerator, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                        <i class="bi bi-eye me-1"></i>Podgląd
+                                                    </button>
+                                                    <form method="POST" class="m-0" data-admin-confirm="Usunąć status?">
+                                                        <?php echo csrfTokenField('admin'); ?>
+                                                        <input type="hidden" name="action" value="delete_app_status">
+                                                        <input type="hidden" name="status_id" value="<?php echo (int)$status['id']; ?>">
+                                                        <button class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-trash me-1"></i>Usuń</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($appStatuses)): ?><p class="small text-muted mb-0">Brak statusów.</p><?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="col-lg-4">
                                 <div class="admin-tool-card p-3 h-100">
                                     <h6 class="fw-bold"><i class="bi bi-sliders me-2 text-warning"></i>Limity</h6>
@@ -2115,6 +2269,27 @@ if (is_array($rawFlash)) {
                 panel.classList.toggle('active', panel.dataset.rankPanel === rankEditorSelect.value);
             });
         });
+
+        const statusTitleInput = document.getElementById('adminStatusTitle');
+        const statusBodyInput = document.getElementById('adminStatusBody');
+        const statusLevelInput = document.getElementById('adminStatusLevel');
+        const statusPreviewTitle = document.getElementById('adminStatusPreviewTitle');
+        const statusPreviewBody = document.getElementById('adminStatusPreviewBody');
+        const statusPreviewLevel = document.getElementById('adminStatusPreviewLevel');
+        function syncAdminStatusPreview() {
+            const title = (statusTitleInput?.value || '').trim();
+            const body = (statusBodyInput?.value || '').trim();
+            const level = statusLevelInput?.value || 'info';
+            if (statusPreviewTitle) statusPreviewTitle.textContent = title || 'Podgląd statusu';
+            if (statusPreviewBody) statusPreviewBody.textContent = body || 'Treść statusu pojawi się tutaj przed publikacją.';
+            if (statusPreviewLevel) {
+                statusPreviewLevel.textContent = level;
+                statusPreviewLevel.className = 'badge rounded-pill text-bg-' + (['success', 'warning', 'danger', 'info'].includes(level) ? level : 'info');
+            }
+        }
+        [statusTitleInput, statusBodyInput, statusLevelInput].forEach(el => el?.addEventListener('input', syncAdminStatusPreview));
+        statusLevelInput?.addEventListener('change', syncAdminStatusPreview);
+        syncAdminStatusPreview();
 
     </script>
 </body>

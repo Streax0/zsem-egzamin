@@ -175,13 +175,13 @@ $shareCardData = [
     <style>
         /* ===== Result Hero ===== */
         .result-hero {
-            background: <?php echo $passed ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'; ?>;
+            background: <?php echo $passed ? 'linear-gradient(135deg, #0f9f75 0%, #047857 100%)' : 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)'; ?>;
             color: white;
-            border-radius: 24px;
-            padding: 3rem;
+            border-radius: 18px;
+            padding: 2.2rem;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 16px 34px rgba(15,23,42,0.10);
         }
         .result-hero::before {
             content: '';
@@ -190,16 +190,16 @@ $shareCardData = [
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 66%);
             transform: rotate(30deg);
         }
         .score-circle {
-            width: 180px;
-            height: 180px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.36);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -208,19 +208,19 @@ $shareCardData = [
             transition: transform 0.3s ease;
         }
         .score-circle:hover { transform: scale(1.05); }
-        .score-value { font-size: 3.5rem; font-weight: 800; line-height: 1; }
+        .score-value { font-size: 3rem; font-weight: 800; line-height: 1; }
         .score-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 600; }
         .stat-pill {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0.75rem 1.25rem;
-            border-radius: 16px;
+            padding: 0.65rem 1rem;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             gap: 12px;
             backdrop-filter: blur(5px);
         }
-        .stat-pill i { font-size: 1.5rem; opacity: 0.9; }
+        .stat-pill i { font-size: 1.25rem; opacity: 0.9; }
 
         /* ===== Action Buttons ===== */
         .result-actions {

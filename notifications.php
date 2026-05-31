@@ -9,6 +9,7 @@ requireLogin();
 
 $userId = $_SESSION['user_id'];
 $flashMsg = getSessionMessage();
+syncAppStatusNotificationsForUser($pdo, (int)$userId);
 $notifications = getNotifications($pdo, $userId, 50);
 $notificationCounts = [
     'all' => count($notifications),
@@ -206,7 +207,9 @@ $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?")->execute
                                         case 'weekly_missions_refresh':
                                         case 'monthly_missions_refresh': $icon = 'bi-arrow-repeat'; $tone = 'warning'; $group = 'missions'; $label = 'Misje'; break;
                                         case 'mission_complete': $icon = 'bi-trophy'; $tone = 'success'; $group = 'missions'; $label = 'Misje'; break;
+                                        case 'app_status': $icon = 'bi-broadcast'; $tone = 'info'; $group = 'system'; $label = 'Status'; break;
                                     }
+                                    $appStatusPayload = resolveAppStatusNotification($pdo, $notif);
                                     $actionUrl = !empty($notif['action_url']) ? normalizeNotificationActionUrl($notif['action_url']) : null;
                                     ?>
                                     <div class="notification-card" data-group="<?php echo htmlspecialchars($group); ?>">
@@ -218,7 +221,18 @@ $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?")->execute
                                                 <span class="badge rounded-pill text-bg-<?php echo $tone === 'warning' ? 'warning' : $tone; ?>"><?php echo htmlspecialchars($label); ?></span>
                                                 <div class="notification-actions">
                                                     <span class="text-muted small"><i class="bi bi-clock me-1"></i><?php echo date('d.m.Y H:i', strtotime($notif['created_at'])); ?></span>
-                                                    <?php if ($actionUrl): ?>
+                                                    <?php if ($appStatusPayload): ?>
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-primary rounded-pill"
+                                                                data-app-status-open
+                                                                data-status-title="<?php echo htmlspecialchars($appStatusPayload['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                data-status-body="<?php echo htmlspecialchars($appStatusPayload['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                data-status-level="<?php echo htmlspecialchars($appStatusPayload['level'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                data-status-date="<?php echo htmlspecialchars($appStatusPayload['date'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                data-status-moderator="<?php echo htmlspecialchars($appStatusPayload['moderator'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                            Więcej
+                                                        </button>
+                                                    <?php elseif ($actionUrl): ?>
                                                         <a href="<?php echo htmlspecialchars($actionUrl); ?>" class="btn btn-sm btn-outline-primary rounded-pill">
                                                             <i class="bi bi-box-arrow-up-right me-1"></i>Otwórz
                                                         </a>
@@ -236,6 +250,9 @@ $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?")->execute
                                                 $notificationMessage = (string)($notif['message'] ?? '');
                                                 if (in_array($notif['type'] ?? '', ['teacher_application_approved', 'teacher_application_rejected'], true)) {
                                                     $notificationMessage = hydrateTeacherDecisionNotificationMessage($pdo, $notificationMessage);
+                                                }
+                                                if ($appStatusPayload) {
+                                                    $notificationMessage = $appStatusPayload['title'];
                                                 }
                                             ?>
                                             <div class="notification-message"><?php echo nl2br(htmlspecialchars($notificationMessage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')); ?></div>

@@ -66,8 +66,8 @@ $missionPool = $missionData['pool'];
 
 // Fetch all required data
 $stats = getUserStats($pdo, $userId);
-$testResults = getTestResults($pdo, $userId, 100);
-$profileHistoryResults = getUnifiedUserHistory($pdo, $userId, 100);
+$testResults = getTestResults($pdo, $userId, 50);
+$profileHistoryResults = getUnifiedUserHistory($pdo, $userId, 50);
 $chartTestResults = getQualifiedTestResults($pdo, $userId, 100, 40);
 $totalQuestions = count(loadQuestions($pdo, false));
 
@@ -1267,6 +1267,14 @@ $socialPlatforms = [
                                         <i class="bi bi-eye-fill"></i>
                                         <span class="fw-bold">Szczegóły</span>
                                     </button>
+                                    <?php if ($isOwnProfile): ?>
+                                        <form method="POST" action="actions/delete_test_result.php" class="d-inline-block ms-1" onsubmit="return confirm('Usunąć ten wynik z historii?');">
+                                            <?php echo csrfTokenField('delete_test_result'); ?>
+                                            <input type="hidden" name="result_id" value="<?php echo (int)$result['id']; ?>">
+                                            <input type="hidden" name="return_to" value="../profile.php?id=<?php echo (int)$userId; ?>">
+                                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń wynik" style="border-radius: 12px;"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    <?php endif; ?>
                                 <?php else: ?>
                                     <a class="btn btn-sm view-details-btn d-inline-flex align-items-center gap-2 px-3 py-2"
                                        style="border-radius: 12px; border: 1px solid #6366f1; background: #6366f110; color: #6366f1; transition: all 0.2s;"

@@ -14,16 +14,17 @@ $rankDefinitions = getRankDefinitions($pdo);
 $rankingEvents = getRankingEvents($pdo, 6);
 
 // Get current user's rank and data
-$stmt = $pdo->prepare("SELECT xp, (SELECT COUNT(*) FROM test_results WHERE user_id = ?) as tests_count FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT xp, role, (SELECT COUNT(*) FROM test_results WHERE user_id = ?) as tests_count FROM users WHERE id = ?");
 $stmt->execute([$userId, $userId]);
 $userData = $stmt->fetch();
 $currentXp = $userData['xp'] ?? 0;
 $currentTests = $userData['tests_count'] ?? 0;
+$userRankingApplies = roleParticipatesInRanking($userData['role'] ?? 'user');
 
 $userRank = getUserRank($pdo, $userId);
 
 // Find next user's XP
-$stmt = $pdo->prepare("SELECT xp FROM users WHERE xp > ? AND (role = 'user' OR (role = 'teacher' AND COALESCE(ranking_visible, 0) = 1)) ORDER BY xp ASC LIMIT 1");
+$stmt = $pdo->prepare("SELECT xp FROM users WHERE xp > ? AND role IN ('user','wujek_luki') ORDER BY xp ASC LIMIT 1");
 $stmt->execute([$currentXp]);
 $nextXp = $stmt->fetchColumn();
 $xpToNext = $nextXp ? ($nextXp - $currentXp) : 0;
@@ -283,7 +284,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                         <div class="ranking-stats-strip">
                             <div class="ranking-stat">
                                 <div class="small text-muted">Twoje miejsce</div>
-                                <strong class="h4 mb-0">#<?php echo $userRank; ?></strong>
+                                <strong class="h4 mb-0"><?php echo $userRankingApplies ? '#' . (int)$userRank : 'Nie dotyczy'; ?></strong>
                             </div>
                             <div class="ranking-stat">
                                 <div class="small text-muted">Twoje XP</div>
@@ -406,22 +407,26 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                 <div class="panel-header mb-3">
                                     <h5 class="panel-title mb-0"><i class="bi bi-trophy me-2 text-primary"></i>Próg Rang</h5>
                                 </div>
-                                <div class="vstack gap-3 rank-threshold-list" style="background: rgba(248, 250, 252, 0.96);">
+                                <div class="accordion rank-threshold-list" id="rankThresholdAccordion" style="background: rgba(248, 250, 252, 0.96);">
                                     <?php 
                                     $prevTier = '';
-                                    foreach ($rankDefinitions as $rankDef): 
+                                    foreach ($rankDefinitions as $rankIdx => $rankDef): 
                                         $tierName = explode(' ', $rankDef['name'])[0];
-                                        if ($tierName !== $prevTier && $prevTier !== ''):
-                                            echo '<hr class="my-1 opacity-5">';
-                                        endif;
                                         $prevTier = $tierName;
                                     ?>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="small d-flex align-items-center">
-                                                <i class="bi <?php echo htmlspecialchars($rankDef['icon']); ?> me-2" style="color: <?php echo htmlspecialchars($rankDef['color']); ?>; font-size: 1.1rem;"></i>
-                                                <span class="fw-500"><?php echo htmlspecialchars($rankDef['name']); ?></span>
-                                            </span>
-                                            <span class="badge bg-light text-muted fw-bold"><?php echo number_format((int)$rankDef['min_xp']); ?></span>
+                                        <div class="accordion-item border-0 mb-2 rounded-3 overflow-hidden">
+                                            <h2 class="accordion-header" id="rankHead<?php echo (int)$rankIdx; ?>">
+                                                <button class="accordion-button <?php echo $rankIdx === 0 ? '' : 'collapsed'; ?> py-2" type="button" data-bs-toggle="collapse" data-bs-target="#rankCollapse<?php echo (int)$rankIdx; ?>" aria-expanded="<?php echo $rankIdx === 0 ? 'true' : 'false'; ?>" aria-controls="rankCollapse<?php echo (int)$rankIdx; ?>">
+                                                    <i class="bi <?php echo htmlspecialchars($rankDef['icon']); ?> me-2" style="color: <?php echo htmlspecialchars($rankDef['color']); ?>;"></i>
+                                                    <span class="fw-700"><?php echo htmlspecialchars($rankDef['name']); ?></span>
+                                                </button>
+                                            </h2>
+                                            <div id="rankCollapse<?php echo (int)$rankIdx; ?>" class="accordion-collapse collapse <?php echo $rankIdx === 0 ? 'show' : ''; ?>" aria-labelledby="rankHead<?php echo (int)$rankIdx; ?>" data-bs-parent="#rankThresholdAccordion">
+                                                <div class="accordion-body py-2 d-flex justify-content-between align-items-center">
+                                                    <span class="small text-muted">Próg wejścia</span>
+                                                    <span class="badge bg-light text-muted fw-bold"><?php echo number_format((int)$rankDef['min_xp']); ?> XP</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -429,7 +434,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                             <!-- User Stats Widget -->
                             <div class="dashboard-panel mb-4 animate-in user-rank-widget" style="border-top: 4px solid var(--primary-color);">
                                 <div class="text-center py-2">
-                                    <div class="display-5 fw-900 text-primary mb-0">#<?php echo $userRank; ?></div>
+                                    <div class="display-5 fw-900 text-primary mb-0"><?php echo $userRankingApplies ? '#' . (int)$userRank : 'Nie dotyczy'; ?></div>
                                     <p class="text-muted fw-bold small text-uppercase letter-spacing-1">Twoja Pozycja</p>
                                     
                                     <div class="row g-2 mt-3">
@@ -447,7 +452,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                         </div>
                                     </div>
                                     
-                                    <?php if ($nextXp): ?>
+                                    <?php if ($userRankingApplies && $nextXp): ?>
                                     <div class="mt-4 text-start">
                                         <div class="d-flex justify-content-between mb-2">
                                             <span class="small text-muted">Do następnej pozycji</span>
