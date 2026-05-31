@@ -100,7 +100,8 @@ $showAnswerQualifications = count($answerQualifications) > 1;
 $modeLabels = [
     'exam' => ['name' => 'Egzaminacyjny', 'color' => 'primary', 'icon' => 'bi-journal-check'],
     'practice' => ['name' => 'Ćwiczenia', 'color' => 'success', 'icon' => 'bi-pencil'],
-    'single' => ['name' => 'Pojedyncze', 'color' => 'info', 'icon' => 'bi-question-circle']
+    'single' => ['name' => 'Pojedyncze', 'color' => 'info', 'icon' => 'bi-question-circle'],
+    'exam_simulator' => ['name' => 'Symulator egzaminu', 'color' => 'dark', 'icon' => 'bi-pc-display-horizontal']
 ];
 $modeInfo = $modeLabels[$mode] ?? ['name' => ucfirst($mode), 'color' => 'secondary', 'icon' => 'bi-file-text'];
 

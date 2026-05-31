@@ -484,8 +484,8 @@ a, button, .btn, .card, .form-control, .navbar, .progress-bar {
 }
 
 .notification-dropdown {
-  width: min(380px, calc(100vw - 1rem));
-  max-height: min(520px, calc(100vh - 5rem));
+  width: min(340px, calc(100vw - 1rem));
+  max-height: min(460px, calc(100vh - 5rem));
   overflow: hidden;
   padding: 0 !important;
   background-color: rgba(255, 255, 255, 0.98) !important;
@@ -531,7 +531,7 @@ a, button, .btn, .card, .form-control, .navbar, .progress-bar {
 
 .notification-list {
   overflow-y: auto;
-  max-height: min(380px, calc(100vh - 10rem));
+  max-height: min(320px, calc(100vh - 10rem));
 }
 
 .notification-dropdown-footer {
@@ -667,6 +667,8 @@ body.dark-mode .notification-see-all:hover {
 }
 
 .notification-status-more {
+  display: flex;
+  margin-left: auto;
   width: fit-content;
   font-weight: 800;
   padding: .25rem .8rem;
@@ -676,6 +678,10 @@ body.dark-mode .notification-see-all:hover {
   border: 1px solid rgba(148, 163, 184, .22);
   border-radius: 18px;
   box-shadow: 0 24px 70px rgba(15, 23, 42, .22);
+}
+
+.app-status-modal {
+  z-index: 1085;
 }
 
 .app-status-modal-body {
@@ -3290,6 +3296,99 @@ body.dark-mode .question-card .question-text-main {
 body.dark-mode .question-card .answer-option {
   background: #f8fafc !important;
   color: #0f172a !important;
+}
+
+/* Cross-module dark mode hardening: teacher/admin/generators/lessons/dictionary */
+body.dark-mode .main-footer,
+body.dark-mode .footer-brand-card,
+body.dark-mode .footer-link-card,
+body.dark-mode .footer-support-card,
+body.dark-mode .footer-bottom-card,
+body.dark-mode .lesson-row,
+body.dark-mode .lesson-filters,
+body.dark-mode .admin-panel,
+body.dark-mode .admin-search-card,
+body.dark-mode .admin-users-table-panel,
+body.dark-mode .admin-rank-manager,
+body.dark-mode .admin-request-card,
+body.dark-mode .admin-tool-card,
+body.dark-mode .teacher-action-card,
+body.dark-mode .teacher-stat-card,
+body.dark-mode .teacher-history-card,
+body.dark-mode .exam-card,
+body.dark-mode .create-exam-card,
+body.dark-mode .host-card,
+body.dark-mode .generator-card,
+body.dark-mode .question-selector,
+body.dark-mode .manual-q-item,
+body.dark-mode .request-card,
+body.dark-mode .role-card,
+body.dark-mode .dictionary-card,
+body.dark-mode .concept-card,
+body.dark-mode .search-panel,
+body.dark-mode .filter-panel,
+body.dark-mode .sticky-bottom-bar {
+  background: #1e293b !important;
+  background-color: #1e293b !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, .28) !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .22) !important;
+}
+
+body.dark-mode .main-footer,
+body.dark-mode .main-footer p,
+body.dark-mode .main-footer li,
+body.dark-mode .main-footer a,
+body.dark-mode .footer-heading,
+body.dark-mode .lesson-row h1,
+body.dark-mode .lesson-row h2,
+body.dark-mode .lesson-row h3,
+body.dark-mode .lesson-row h4,
+body.dark-mode .teacher-action-card,
+body.dark-mode .teacher-stat-card,
+body.dark-mode .admin-panel,
+body.dark-mode .admin-users-table,
+body.dark-mode .dictionary-card,
+body.dark-mode .concept-card {
+  color: #e5e7eb !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: .9;
+}
+
+body.dark-mode .table-light,
+body.dark-mode thead,
+body.dark-mode .table thead th,
+body.dark-mode .table tbody td {
+  background: #172033 !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, .24) !important;
+}
+
+body.dark-mode .btn-light,
+body.dark-mode .btn-outline-secondary {
+  background-color: #172033 !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, .35) !important;
+}
+
+body.dark-mode .btn-light:hover,
+body.dark-mode .btn-outline-secondary:hover {
+  background-color: #24344d !important;
+  color: #fff !important;
+}
+
+body.dark-mode .empty-state {
+  background: #172033 !important;
+  color: #94a3b8 !important;
+  border-color: rgba(148, 163, 184, .28) !important;
+}
+
+body.dark-mode .empty-state i {
+  color: #93c5fd !important;
 }
 
 @media (max-width: 991.98px) {

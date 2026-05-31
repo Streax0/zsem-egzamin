@@ -7,6 +7,7 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
 $base_url = file_exists('config/db.php') ? '' : '../';
 $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
 ?>
+<script src="<?php echo htmlspecialchars($base_url); ?>assets/js/theme-handler.js?v=<?php echo (int)@filemtime(__DIR__ . '/../assets/js/theme-handler.js'); ?>"></script>
 <header class="top-header" role="banner">
     <button type="button" class="topbar-icon me-auto d-md-none" id="sidebarToggle" aria-label="Otwórz menu boczne">
         <i class="bi bi-list fs-3" aria-hidden="true"></i>

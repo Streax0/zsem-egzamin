@@ -602,6 +602,8 @@ $allAdminRequests = getAllAdminRequests($pdo);
 $adminRequests = array_slice($allAdminRequests, 0, 8);
 $rankingEvents = getRankingEvents($pdo, 8);
 $appStatuses = getAppStatuses($pdo, false, 10);
+$activeAppStatuses = array_values(array_filter($appStatuses, static fn($s) => !empty($s['is_active'])));
+$archivedAppStatuses = array_values(array_filter($appStatuses, static fn($s) => empty($s['is_active'])));
 $rankingTemplates = [];
 try {
     ensurePlatformEnhancements($pdo);
@@ -868,6 +870,24 @@ if (is_array($rawFlash)) {
             padding: .9rem;
             background: #0f172a;
             color: #f8fafc;
+        }
+        .admin-status-accordion .admin-status-card {
+            padding: 0;
+            overflow: hidden;
+        }
+        .admin-status-card .accordion-button {
+            background: #0f172a;
+            color: #f8fafc;
+            box-shadow: none;
+            gap: .5rem;
+        }
+        .admin-status-card .accordion-button::after {
+            filter: invert(1);
+        }
+        .admin-status-card .accordion-body {
+            background: #0f172a;
+            color: #f8fafc;
+            border-top: 1px solid rgba(255,255,255,.08);
         }
         .admin-status-card .status-title {
             font-weight: 900;
@@ -1144,6 +1164,9 @@ if (is_array($rawFlash)) {
             box-shadow: 0 10px 22px rgba(15, 23, 42, .16);
         }
         body.dark-mode .admin-users-table tbody tr,
+        body.dark-mode .admin-hero,
+        body.dark-mode .admin-hero .admin-nav-pills a,
+        body.dark-mode .admin-stat-card,
         body.dark-mode .admin-rank-manager,
         body.dark-mode .admin-search-card,
         body.dark-mode .admin-table-title,
@@ -1151,6 +1174,38 @@ if (is_array($rawFlash)) {
         body.dark-mode .admin-reply-preview,
         body.dark-mode .admin-tool-card {
             background: #111827;
+        }
+        body.dark-mode .admin-hero {
+            color: #f8fafc;
+            background: linear-gradient(135deg, #111827 0%, #172033 100%);
+            border-color: rgba(148, 163, 184, .28);
+        }
+        body.dark-mode .admin-hero h2,
+        body.dark-mode .admin-table-title h4 {
+            color: #f8fafc !important;
+        }
+        body.dark-mode .admin-hero p,
+        body.dark-mode .admin-table-title .text-muted {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode .admin-hero .admin-nav-pills a {
+            color: #e5e7eb;
+            border-color: rgba(148, 163, 184, .26);
+        }
+        body.dark-mode .admin-hero .admin-nav-pills a:hover {
+            background: #1e293b;
+            color: #93c5fd;
+            border-color: rgba(96, 165, 250, .4);
+        }
+        body.dark-mode .admin-stat-card {
+            border-color: rgba(148, 163, 184, .24);
+            color: #f8fafc;
+        }
+        body.dark-mode .admin-search-card {
+            background: #111827 !important;
+        }
+        body.dark-mode .admin-table-title {
+            background: linear-gradient(90deg, #111827, #172033);
         }
         /* Role Badge Styling */
         .badge {
@@ -1883,7 +1938,7 @@ if (is_array($rawFlash)) {
                                             <h6 class="fw-bold mb-1"><i class="bi bi-info-circle me-2 text-info"></i>Status</h6>
                                             <div class="small text-muted">Maks. 2 aktywne, baza trzyma 10 ostatnich.</div>
                                         </div>
-                                        <span class="badge rounded-pill text-bg-light"><?php echo count(array_filter($appStatuses, static fn($s) => !empty($s['is_active']))); ?>/2 aktywne</span>
+                                        <span class="badge rounded-pill text-bg-light"><?php echo count($activeAppStatuses); ?>/2 aktywne</span>
                                     </div>
                                     <form method="POST" class="admin-status-form-grid mb-3">
                                         <?php echo csrfTokenField('admin'); ?>
@@ -1916,40 +1971,96 @@ if (is_array($rawFlash)) {
                                         </div>
                                         <button class="btn btn-primary rounded-pill fw-bold"><i class="bi bi-send me-1"></i>Dodaj status</button>
                                     </form>
-                                    <div class="vstack gap-2">
-                                        <?php foreach ($appStatuses as $status): ?>
+                                    <div class="accordion admin-status-accordion" id="adminStatusAccordion">
+                                        <?php foreach ($activeAppStatuses as $statusIndex => $status): ?>
                                             <?php
                                                 $adminStatusLevel = (string)($status['level'] ?? 'info');
                                                 $adminStatusDate = !empty($status['created_at']) ? date('d.m.Y H:i', strtotime($status['created_at'])) : date('d.m.Y H:i');
                                                 $adminStatusModerator = appStatusModeratorLabel($status);
                                             ?>
-                                            <div class="admin-status-card">
-                                                <div class="d-flex justify-content-between gap-2">
-                                                    <div class="status-title"><?php echo htmlspecialchars($status['title']); ?></div>
-                                                    <span class="badge rounded-pill bg-<?php echo htmlspecialchars($adminStatusLevel === 'danger' ? 'danger' : ($adminStatusLevel === 'warning' ? 'warning text-dark' : ($adminStatusLevel === 'success' ? 'success' : 'info'))); ?>"><?php echo !empty($status['is_active']) ? 'aktywny' : 'archiwum'; ?></span>
-                                                </div>
-                                                <div class="status-date mt-1"><?php echo htmlspecialchars($adminStatusDate); ?></div>
-                                                <div class="status-actions">
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-light rounded-pill"
-                                                            data-app-status-open
-                                                            data-status-title="<?php echo htmlspecialchars($status['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                                                            data-status-body="<?php echo htmlspecialchars($status['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                                                            data-status-level="<?php echo htmlspecialchars($adminStatusLevel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                                                            data-status-date="<?php echo htmlspecialchars($adminStatusDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                                                            data-status-moderator="<?php echo htmlspecialchars($adminStatusModerator, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
-                                                        <i class="bi bi-eye me-1"></i>Podgląd
+                                            <div class="accordion-item admin-status-card mb-2">
+                                                <h2 class="accordion-header" id="statusHead<?php echo (int)$status['id']; ?>">
+                                                    <button class="accordion-button <?php echo $statusIndex === 0 ? '' : 'collapsed'; ?>" type="button" data-bs-toggle="collapse" data-bs-target="#statusCollapse<?php echo (int)$status['id']; ?>" aria-expanded="<?php echo $statusIndex === 0 ? 'true' : 'false'; ?>" aria-controls="statusCollapse<?php echo (int)$status['id']; ?>">
+                                                        <span class="status-title me-2"><?php echo htmlspecialchars($status['title']); ?></span>
+                                                        <span class="badge rounded-pill bg-<?php echo htmlspecialchars($adminStatusLevel === 'danger' ? 'danger' : ($adminStatusLevel === 'warning' ? 'warning text-dark' : ($adminStatusLevel === 'success' ? 'success' : 'info'))); ?>">aktywny</span>
                                                     </button>
-                                                    <form method="POST" class="m-0" data-admin-confirm="Usunąć status?">
-                                                        <?php echo csrfTokenField('admin'); ?>
-                                                        <input type="hidden" name="action" value="delete_app_status">
-                                                        <input type="hidden" name="status_id" value="<?php echo (int)$status['id']; ?>">
-                                                        <button class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-trash me-1"></i>Usuń</button>
-                                                    </form>
+                                                </h2>
+                                                <div id="statusCollapse<?php echo (int)$status['id']; ?>" class="accordion-collapse collapse <?php echo $statusIndex === 0 ? 'show' : ''; ?>" aria-labelledby="statusHead<?php echo (int)$status['id']; ?>" data-bs-parent="#adminStatusAccordion">
+                                                    <div class="accordion-body">
+                                                        <div class="status-date mb-2"><?php echo htmlspecialchars($adminStatusDate); ?> · <?php echo htmlspecialchars($adminStatusModerator); ?></div>
+                                                        <p class="small mb-3"><?php echo nl2br(htmlspecialchars(mb_substr((string)$status['body'], 0, 180))); ?><?php echo mb_strlen((string)$status['body']) > 180 ? '…' : ''; ?></p>
+                                                        <div class="status-actions">
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-light rounded-pill"
+                                                                    data-app-status-open
+                                                                    data-status-title="<?php echo htmlspecialchars($status['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                    data-status-body="<?php echo htmlspecialchars($status['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                    data-status-level="<?php echo htmlspecialchars($adminStatusLevel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                    data-status-date="<?php echo htmlspecialchars($adminStatusDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                    data-status-moderator="<?php echo htmlspecialchars($adminStatusModerator, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                                <i class="bi bi-eye me-1"></i>Podgląd
+                                                            </button>
+                                                            <form method="POST" class="m-0" data-admin-confirm="Usunąć status?">
+                                                                <?php echo csrfTokenField('admin'); ?>
+                                                                <input type="hidden" name="action" value="delete_app_status">
+                                                                <input type="hidden" name="status_id" value="<?php echo (int)$status['id']; ?>">
+                                                                <button class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-trash me-1"></i>Usuń</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
-                                        <?php if (empty($appStatuses)): ?><p class="small text-muted mb-0">Brak statusów.</p><?php endif; ?>
+                                        <?php if (empty($activeAppStatuses)): ?><p class="small text-muted mb-0">Brak aktywnych statusów.</p><?php endif; ?>
+                                    </div>
+                                    <?php if (!empty($archivedAppStatuses)): ?>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mt-3" data-bs-toggle="modal" data-bs-target="#appStatusArchiveModal">
+                                            <i class="bi bi-archive me-1"></i>Archiwum statusów (<?php echo count($archivedAppStatuses); ?>)
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="appStatusArchiveModal" tabindex="-1" aria-labelledby="appStatusArchiveModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title fw-bold" id="appStatusArchiveModalLabel"><i class="bi bi-archive me-2"></i>Archiwum statusów</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <?php if (empty($archivedAppStatuses)): ?>
+                                                <p class="text-muted mb-0">Brak archiwalnych statusów.</p>
+                                            <?php else: ?>
+                                                <div class="vstack gap-2">
+                                                    <?php foreach ($archivedAppStatuses as $status): ?>
+                                                        <?php
+                                                            $archiveLevel = (string)($status['level'] ?? 'info');
+                                                            $archiveDate = !empty($status['created_at']) ? date('d.m.Y H:i', strtotime($status['created_at'])) : date('d.m.Y H:i');
+                                                            $archiveModerator = appStatusModeratorLabel($status);
+                                                        ?>
+                                                        <div class="border rounded-3 p-3">
+                                                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                                                <div>
+                                                                    <strong><?php echo htmlspecialchars($status['title']); ?></strong>
+                                                                    <div class="small text-muted"><?php echo htmlspecialchars($archiveDate); ?> · <?php echo htmlspecialchars($archiveModerator); ?></div>
+                                                                </div>
+                                                                <button type="button"
+                                                                        class="btn btn-sm btn-outline-primary rounded-pill"
+                                                                        data-app-status-open
+                                                                        data-status-title="<?php echo htmlspecialchars($status['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                        data-status-body="<?php echo htmlspecialchars($status['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                        data-status-level="<?php echo htmlspecialchars($archiveLevel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                        data-status-date="<?php echo htmlspecialchars($archiveDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                                                                        data-status-moderator="<?php echo htmlspecialchars($archiveModerator, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                                                                    Podgląd
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

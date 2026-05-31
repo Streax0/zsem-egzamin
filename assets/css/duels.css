@@ -389,6 +389,28 @@ body.dark-mode .duel-question-text {
     color: #f8fafc;
 }
 
+body.dark-mode .duel-option-btn:hover {
+    background: #172033 !important;
+    border-color: #60a5fa !important;
+}
+
+body.dark-mode .duel-confirm-panel {
+    background: #172033;
+    border-color: rgba(96, 165, 250, 0.28);
+    color: #e5e7eb;
+}
+
+body.dark-mode .duel-progress-track {
+    background: #0f172a;
+}
+
+body.dark-mode .duel-mode-pill,
+body.dark-mode .revenge-card {
+    background: #172033;
+    border-color: rgba(96, 165, 250, 0.24);
+    color: #dbeafe;
+}
+
 body.dark-mode .duel-timer-label,
 body.dark-mode .duel-step-label {
     color: #94a3b8;

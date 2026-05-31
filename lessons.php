@@ -262,6 +262,16 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
             --pdf-border: rgba(148, 163, 184, .24);
         }
 
+        body.dark-mode {
+            --lesson-panel: #1e293b;
+            --lesson-muted: #94a3b8;
+            --lesson-border: rgba(148, 163, 184, .28);
+            --lesson-shadow: 0 18px 55px rgba(0, 0, 0, .28);
+            --pdf-bg: #0f172a;
+            --pdf-panel: #1e293b;
+            --pdf-border: rgba(148, 163, 184, .28);
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -294,7 +304,7 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
         .lesson-row {
             border: 1px solid var(--lesson-border);
             border-radius: 18px;
-            background: #fff;
+            background: var(--lesson-panel);
             padding: 1rem;
             min-height: 168px;
             box-shadow: 0 10px 30px rgba(15, 23, 42, .04);
@@ -302,7 +312,7 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
         }
 
         .lesson-body {
-            color: #475569;
+            color: var(--lesson-muted);
             white-space: pre-wrap;
             overflow-wrap: anywhere;
             display: -webkit-box;

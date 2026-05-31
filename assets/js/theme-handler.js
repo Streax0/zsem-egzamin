@@ -3,6 +3,10 @@
  */
 
 (function() {
+    if (window.__zsemThemeHandlerLoaded) {
+        return;
+    }
+    window.__zsemThemeHandlerLoaded = true;
     function setCookie(name, value, days) {
         let expires = "";
         if (days) {

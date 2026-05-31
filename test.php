@@ -41,6 +41,10 @@ if (isset($_GET['new']) && $_GET['new'] === '1' && !hasActiveTestInSession()) {
 generateCsrfToken();
 
 $mode     = $_GET['mode']     ?? 'exam';
+$allowedTestModes = ['exam', 'practice', 'single', 'exam_simulator'];
+if (!in_array($mode, $allowedTestModes, true)) {
+    $mode = 'exam';
+}
 $category = $_GET['category'] ?? '';
 $defaultCategoryCookie = trim(urldecode($_COOKIE['default_test_categories'] ?? ''));
 if (!isset($_GET['category']) && $defaultCategoryCookie !== '') {
@@ -94,6 +98,18 @@ if ($mode === 'single') {
     $count = 1;
     $timeLimit = 2;
     $timeOption = 'custom';
+} elseif ($mode === 'exam_simulator') {
+    $count = 40;
+    $timeLimit = 60;
+    $timeOption = 'custom';
+    $timePerQuestion = 60;
+    $difficulty = 'all';
+    $scope = 'all';
+    $order = 'random';
+    $smart = false;
+    $preset = '';
+    $simCategories = array_values(array_filter(array_map('trim', explode(',', (string)$category))));
+    $category = $simCategories[0] ?? '';
 }
 
 $hasActiveTest = hasActiveTestInSession();
@@ -122,6 +138,7 @@ if ($hasActiveTest && ($wantsStart || $wantsSetup || $wantsFreshSetup)) {
 $showSetup = !$hasActiveTest && (
     $wantsSetup
     || ($mode === 'practice' && empty($category) && !$wantsStart)
+    || ($mode === 'exam_simulator' && (!$wantsStart || empty($category)))
 );
 
 $needNewTest = $wantsStart && !$showTestConflict && !$hasActiveTest;
@@ -191,6 +208,9 @@ if ($needNewTest && !$showSetup && $wantsStart) {
             $selectedQuestions = [];
         } else {
             switch ($mode) {
+                case 'exam_simulator':
+                    $selectedQuestions = getRandomQuestions($pool, min(40, count($pool)));
+                    break;
                 case 'single':
                     if ($smart && isset($_SESSION['user_id'])) {
                         $selectedQuestions = getWeightedRandomQuestions($pdo, $pool, 1, $_SESSION['user_id']);
@@ -225,7 +245,9 @@ if ($needNewTest && !$showSetup && $wantsStart) {
     
     // Calculate final time limit in seconds
     $timeLimitSeconds = $timeLimit * 60;
-    if ($mode === 'single') {
+    if ($mode === 'exam_simulator') {
+        $timeLimitSeconds = 3600;
+    } elseif ($mode === 'single') {
         $timeLimitSeconds = 120;
     } elseif ($timeOption === 'unlimited') {
         $timeLimitSeconds = 0;
@@ -247,6 +269,9 @@ if ($needNewTest && !$showSetup && $wantsStart) {
     }
 
     $excludeFromRanking = isset($_GET['unranked']) && $_GET['unranked'] === '1' ? 1 : 0;
+    if ($mode === 'exam_simulator') {
+        $excludeFromRanking = 0;
+    }
     $cleanCategory = is_array($category) ? implode(',', $category) : $category;
     $newTest = [
         'mode'       => $mode,
@@ -319,7 +344,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['last_result'] = null;
         touchTestQuestionStart($test);
         saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
-        header('Location: test.php');
+        header('Location: ' . (($test['mode'] ?? '') === 'exam_simulator' ? 'test.php?view=question#sim-question' : 'test.php'));
+        exit;
+    }
+
+    if ($action === 'goto_question') {
+        $targetIdx = (int)($_POST['target'] ?? 0);
+        $test['current'] = max(0, min($totalQuestions - 1, $targetIdx));
+        $test['phase'] = 'answering';
+        $test['last_result'] = null;
+        touchTestQuestionStart($test);
+        saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+        header('Location: test.php?view=question#sim-question');
         exit;
     }
 
@@ -348,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
         // Redirect to avoid form re-submission
-        header('Location: test.php');
+        header('Location: ' . (($test['mode'] ?? '') === 'exam_simulator' ? 'test.php?view=question#sim-question' : 'test.php'));
         exit;
     }
 
@@ -374,6 +410,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update per-question progress stats
             if (!isGuestMode() && isset($_SESSION['user_id'])) {
                 updateQuestionProgress($pdo, $_SESSION['user_id'], $questionId, $isCorrect);
+            }
+
+            if ($mode === 'exam_simulator') {
+                $test['phase'] = 'answering';
+                $test['last_result'] = null;
+                saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+                header('Location: test.php');
+                exit;
             }
 
             if ($mode === 'exam') {
@@ -1078,6 +1122,257 @@ if ($test) {
             margin: 0;
         }
 
+        .exam-sim-launch-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
+            border: 1px solid #2563eb;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            padding: 1rem 1.1rem;
+            text-decoration: none;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.2);
+        }
+        .exam-sim-launch-card:hover {
+            color: #fff;
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-1px);
+        }
+        .exam-sim-action-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            flex: 0 0 auto;
+            font-size: 1.15rem;
+        }
+        .exam-sim-launch-card .text-muted {
+            color: rgba(255, 255, 255, 0.78) !important;
+        }
+        .exam-sim-setup-card {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            background: var(--panel-bg);
+        }
+        .exam-sim-rule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .exam-sim-rule {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.85rem;
+            background: rgba(59, 130, 246, 0.04);
+        }
+        .exam-sim-rule strong {
+            display: block;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+        .sim-exam-shell {
+            max-width: 1084px;
+            margin: 0 auto;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111827;
+            background: #f5f5f5;
+            padding: 0 16px 16px;
+        }
+        .sim-exam-topbar {
+            border-top: 2px solid #0f9ba8;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.14);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+        }
+        .sim-exam-brand {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .sim-exam-links {
+            display: flex;
+            gap: 22px;
+            font-size: 12px;
+            color: #111;
+        }
+        .sim-exam-title {
+            color: #8b1744;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 18px 18px;
+        }
+        .sim-exam-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 286px;
+            gap: 16px;
+        }
+        .sim-exam-list,
+        .sim-exam-side,
+        .sim-exam-question {
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #111827;
+        }
+        .sim-exam-list {
+            padding: 18px;
+            min-height: 620px;
+        }
+        .sim-task-row {
+            display: grid;
+            grid-template-columns: 98px minmax(0, 1fr);
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .sim-task-btn {
+            width: 98px;
+            border: 0;
+            border-radius: 2px;
+            background: #006560;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 8px;
+        }
+        .sim-task-btn.active {
+            background: #003f3d;
+            outline: 2px solid #9cc9c5;
+        }
+        .sim-task-status {
+            color: #ff0000;
+            font-size: 13px;
+        }
+        .sim-task-status.answered {
+            color: #008000;
+        }
+        .sim-exam-side {
+            padding: 16px;
+        }
+        .sim-side-label {
+            font-size: 13px;
+            font-weight: 700;
+            margin: 0 0 6px;
+        }
+        .sim-side-field {
+            border: 1px solid #ddd;
+            background: #f5f5f5;
+            border-radius: 3px;
+            padding: 7px 8px;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+        .sim-side-field.danger {
+            border-color: #ff0000;
+        }
+        .sim-timer-label {
+            text-align: right;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+        .sim-timer {
+            text-align: right;
+            font-size: 38px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .sim-finish-btn {
+            width: 100%;
+            border: 1px solid #9b174c;
+            background: #fff;
+            color: #9b174c;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 7px 10px;
+        }
+        .sim-exam-question {
+            grid-column: 1 / -1;
+            padding: 18px;
+            margin-top: 16px;
+        }
+        .sim-exam-shell.sim-main-view .sim-exam-question {
+            display: none;
+        }
+        .sim-exam-shell.sim-question-view .sim-exam-list,
+        .sim-exam-shell.sim-question-view .sim-exam-side {
+            display: none;
+        }
+        .sim-exam-shell.sim-question-view .sim-exam-layout {
+            grid-template-columns: 1fr;
+        }
+        .sim-question-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .sim-back-btn {
+            border: 1px solid #006560;
+            background: #fff;
+            color: #006560;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 7px 12px;
+            text-decoration: none;
+        }
+        .sim-back-btn:hover {
+            background: #effaf8;
+            color: #004d49;
+        }
+        .sim-question-head {
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: #006560;
+        }
+        .sim-answer-option {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .sim-answer-option.selected {
+            border-color: #006560;
+            background: #effaf8;
+        }
+        .sim-answer-letter {
+            display: inline-grid;
+            place-items: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        @media (max-width: 900px) {
+            .sim-exam-layout {
+                grid-template-columns: 1fr;
+            }
+            .sim-exam-links {
+                display: none;
+            }
+            .sim-exam-list {
+                min-height: auto;
+            }
+        }
+
         /* Custom sliding panel for timer */
         .time-slider-panel {
             max-height: 0;
@@ -1420,6 +1715,85 @@ if ($test) {
     // Parse selected categories
     $selectedCats = array_filter(array_map('trim', explode(',', $category)));
     ?>
+    <?php if ($mode === 'exam_simulator'): ?>
+    <div class="dashboard-panel animate-in premium-setup-container">
+        <div class="panel-header border-bottom pb-3 mb-4">
+            <h3 class="mb-2 fw-extrabold text-primary d-flex align-items-center gap-2">
+                <i class="bi bi-pc-display-horizontal"></i>Symulator egzaminu
+            </h3>
+            <p class="text-muted mb-0">Oficjalny tryb: 40 pytan, 60 minut, prog 20 poprawnych odpowiedzi.</p>
+        </div>
+        <div class="exam-sim-rule-grid">
+            <div class="exam-sim-rule"><strong>Liczba pytan</strong>40 pytan jednokrotnego wyboru z danej kwalifikacji.</div>
+            <div class="exam-sim-rule"><strong>Czas trwania</strong>60 minut, standardowy czas egzaminu zawodowego.</div>
+            <div class="exam-sim-rule"><strong>Prog zdawalnosci</strong>Minimum 20 poprawnych odpowiedzi, czyli 50%.</div>
+            <div class="exam-sim-rule"><strong>Nawigacja</strong>Mozesz wracac do wczesniejszych pytan i zmieniac odpowiedzi.</div>
+            <div class="exam-sim-rule"><strong>Zakonczenie</strong>Mozesz zakonczyc wczesniej albo poczekac do konca czasu.</div>
+            <div class="exam-sim-rule"><strong>Wyniki</strong>Po zakonczeniu od razu widzisz wynik i analize bledow.</div>
+        </div>
+        <form method="GET" id="examSimulatorSetupForm">
+            <input type="hidden" name="mode" value="exam_simulator">
+            <input type="hidden" name="start" value="1">
+            <input type="hidden" name="category" id="categoryInput" value="<?= htmlspecialchars($category) ?>">
+            <input type="hidden" name="count" value="40">
+            <input type="hidden" name="time" value="60">
+            <input type="hidden" name="time_option" value="custom">
+            <input type="hidden" name="difficulty" value="all">
+            <input type="hidden" name="scope" value="all">
+            <input type="hidden" name="order" value="random">
+            <div class="exam-sim-setup-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-collection-fill me-2"></i>Wybierz kategorie</h5>
+                    <span class="text-muted small">W tym trybie wybierasz tylko kwalifikacje / kategorie.</span>
+                </div>
+                <div class="category-grid">
+                    <?php
+                    $cats = getPublicCategories($pdo);
+                    foreach ($cats as $cat):
+                        $catMeta = getCategoryMeta($cat);
+                        $isSelected = in_array($cat, $selectedCats, true);
+                    ?>
+                    <div class="category-card <?= $isSelected ? 'selected' : '' ?>" data-category="<?= htmlspecialchars($cat) ?>">
+                        <div class="card-checkbox"><i class="bi bi-check"></i></div>
+                        <div class="card-icon-wrapper" style="color: <?= $catMeta['color'] ?>;"><i class="bi <?= $catMeta['icon'] ?>"></i></div>
+                        <div class="card-info">
+                            <div class="card-title"><?= htmlspecialchars($cat) ?></div>
+                            <div class="card-desc"><?= htmlspecialchars($catMeta['desc']) ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 justify-content-between">
+                <a href="test.php?mode=exam&setup=1&new=1" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Wroc
+                </a>
+                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">
+                    <i class="bi bi-play-fill me-2"></i>Rozpocznij symulator
+                </button>
+            </div>
+        </form>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.category-card');
+        const input = document.getElementById('categoryInput');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                cards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                if (input) input.value = card.dataset.category || '';
+            });
+        });
+        document.getElementById('examSimulatorSetupForm')?.addEventListener('submit', function(e) {
+            if (!input || !input.value.trim()) {
+                e.preventDefault();
+                alert('Wybierz kategorie egzaminu.');
+            }
+        });
+    });
+    </script>
+    <?php else: ?>
     <!-- ── Test configuration selector ────────────────────────────────── -->
     <div class="dashboard-panel animate-in premium-setup-container">
         <div class="panel-header d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
@@ -1444,6 +1818,23 @@ if ($test) {
                 <input type="hidden" name="time_option" id="timeOptionInput" value="<?= htmlspecialchars($timeOption) ?>">
                 <input type="hidden" name="preset" id="presetInput" value="<?= htmlspecialchars($preset) ?>">
                 <input type="hidden" name="order" id="orderInput" value="<?= htmlspecialchars($order) ?>">
+
+                <?php if ($mode !== 'single'): ?>
+                <div class="col-12">
+                    <a href="test.php?mode=exam_simulator&setup=1&new=1" class="exam-sim-launch-card">
+                        <span>
+                            <span class="d-flex align-items-center gap-2 fw-bold fs-5">
+                                Tryb testu CKZ - symulator egzaminu
+                                <i class="bi bi-info-circle-fill fs-6"></i>
+                            </span>
+                            <span class="d-block text-muted mt-1">
+                                Wlacz, aby rozwiazac egzamin w wygladzie zblizonym do oficjalnego systemu egzaminacyjnego CKZ.
+                            </span>
+                        </span>
+                        <span class="exam-sim-action-icon"><i class="bi bi-play-fill"></i></span>
+                    </a>
+                </div>
+                <?php endif; ?>
                 
                 <!-- Kategorie -->
                 <div class="col-12 mb-2 exam-setup-compact-cats">
@@ -1998,6 +2389,116 @@ if ($test) {
             </form>
         </div>
     </div>
+    <?php endif; ?>
+    <?php elseif ($currentQuestion && $mode === 'exam_simulator'): ?>
+    <?php
+        $simStart = (int)($test['start_time'] ?? time());
+        $simCategory = trim((string)(($test['config']['category'] ?? '') ?: ($currentQuestion['category'] ?? '')));
+        $simAnswered = (int)$answeredCount;
+        $simUnanswered = max(0, $totalQuestions - $simAnswered);
+        $simQuestionView = (($_GET['view'] ?? '') === 'question');
+    ?>
+    <div class="sim-exam-shell <?= $simQuestionView ? 'sim-question-view' : 'sim-main-view' ?>">
+        <div class="sim-exam-topbar">
+            <div class="sim-exam-brand">AUTOMATYCZNY SYSTEM EGZAMINOWANIA</div>
+            <div class="sim-exam-links"><span>INSTRUKCJA OBSLUGI</span><span>WYLOGUJ Z SYSTEMU</span></div>
+        </div>
+
+        <h2 class="sim-exam-title">EGZAMIN - LISTA ZADAN</h2>
+
+        <div class="sim-exam-layout">
+            <div class="sim-exam-list">
+                <?php foreach ($questions as $idx => $q): ?>
+                <?php $isAnswered = isset($test['answers'][$idx]) && trim((string)($test['answers'][$idx]['user_answer'] ?? '')) !== ''; ?>
+                <form method="POST" class="sim-task-row">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                    <input type="hidden" name="action" value="goto_question">
+                    <input type="hidden" name="target" value="<?= (int)$idx ?>">
+                    <button type="submit" class="sim-task-btn <?= $idx === $currentIdx ? 'active' : '' ?>">Zadanie <?= $idx + 1 ?></button>
+                    <span class="sim-task-status <?= $isAnswered ? 'answered' : '' ?>">
+                        <?= $isAnswered ? 'Udzielono odpowiedzi (mozesz zmienic odpowiedz)' : 'Nie udzielono odpowiedzi' ?>
+                    </span>
+                </form>
+                <?php endforeach; ?>
+            </div>
+
+            <aside class="sim-exam-side">
+                <p class="sim-side-label">Kwalifikacja</p>
+                <div class="sim-side-field"><?= htmlspecialchars($simCategory !== '' ? $simCategory : 'Wszystkie') ?></div>
+
+                <p class="sim-side-label">Czas rozpoczecia egzaminu</p>
+                <div class="sim-side-field"><?= date('d.m.Y H:i:s', $simStart) ?></div>
+
+                <p class="sim-side-label">Czas zakonczenia egzaminu</p>
+                <div class="sim-side-field"><?= date('d.m.Y H:i:s', $simStart + 3600) ?></div>
+
+                <p class="sim-side-label">Liczba udzielonych odpowiedzi</p>
+                <div class="sim-side-field"><?= $simAnswered ?></div>
+
+                <p class="sim-side-label">Liczba nieudzielonych odpowiedzi</p>
+                <div class="sim-side-field danger"><?= $simUnanswered ?></div>
+
+                <div class="sim-timer-label">Do konca egzaminu<br>pozostalo:</div>
+                <div class="sim-timer"<?= $simQuestionView ? '' : ' id="timer"' ?>><?= formatTime($totalTimeLeft) ?></div>
+                <form method="POST" onsubmit="return confirmFinish(this)">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                    <input type="hidden" name="action" value="finish_early">
+                    <button type="submit" class="sim-finish-btn">Zakoncz egzamin</button>
+                </form>
+            </aside>
+
+            <section class="sim-exam-question" id="sim-question">
+                <div class="sim-question-toolbar">
+                    <a href="test.php" class="sim-back-btn"><i class="bi bi-arrow-left me-1"></i>Wroc do listy zadan</a>
+                    <div class="sim-question-head mb-0">Zadanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></div>
+                    <?php if (!empty($test['time_limit'])): ?>
+                    <div class="fw-bold">Pozostalo: <span<?= $simQuestionView ? ' id="timer"' : '' ?>><?= formatTime($totalTimeLeft) ?></span></div>
+                    <?php endif; ?>
+                </div>
+                <?php $questionImage = questionImageSrc($currentQuestion['image_url'] ?? ''); ?>
+                <?php if ($questionImage): ?>
+                    <img src="<?= htmlspecialchars($questionImage) ?>"
+                         alt="Ilustracja do pytania" class="img-fluid rounded mb-3" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+                <?php endif; ?>
+                <p class="mb-4 fw-bold"><?= nl2br(htmlspecialchars($currentQuestion['question_text'])) ?></p>
+                <form method="POST" id="simQuizForm">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                    <input type="hidden" name="question_id" value="<?= (int)$currentQuestion['id'] ?>">
+                    <input type="hidden" name="action" value="submit_answer">
+                    <input type="hidden" name="answer" id="simSelectedAnswer" value="<?= htmlspecialchars($savedAnswer) ?>">
+                    <div id="answersContainer">
+                        <?php foreach (['A', 'B', 'C', 'D'] as $opt):
+                            $text = $currentQuestion['option_' . strtolower($opt)]
+                                 ?? $currentQuestion['option_' . strtoupper($opt)]
+                                 ?? $currentQuestion[strtolower($opt)]
+                                 ?? '';
+                            if (trim($text) === '') continue;
+                        ?>
+                        <div class="sim-answer-option <?= $savedAnswer === $opt ? 'selected' : '' ?>" data-answer="<?= $opt ?>" onclick="selectSimAnswer(this)">
+                            <span class="sim-answer-letter"><?= $opt ?></span><?= htmlspecialchars($text) ?>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 justify-content-between mt-3">
+                        <button type="submit" class="btn btn-success px-4" id="simSubmitBtn" <?= $savedAnswer === '' ? 'disabled' : '' ?>>
+                            Zapisz odpowiedz
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+    <script>
+    function selectSimAnswer(option) {
+        document.querySelectorAll('.sim-answer-option').forEach(el => el.classList.remove('selected'));
+        option.classList.add('selected');
+        const input = document.getElementById('simSelectedAnswer');
+        const submit = document.getElementById('simSubmitBtn');
+        if (input) input.value = option.dataset.answer || '';
+        if (submit) submit.disabled = false;
+    }
+    </script>
+
     <?php elseif ($currentQuestion): ?>
 
     <!-- ── Progress bar ───────────────────────────────────────────────────── -->

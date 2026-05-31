@@ -116,11 +116,26 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
             flex: 0 0 40px;
         }
         .ranking-list-scroll {
-            max-height: 760px;
+            max-height: 860px;
             overflow-y: auto;
             overflow-x: auto;
             border: 1px solid rgba(148, 163, 184, .14);
             border-radius: 18px;
+        }
+        .ranking-list-panel {
+            font-size: 1.03rem;
+        }
+        .ranking-list-panel .panel-title {
+            font-size: 1.22rem;
+        }
+        .ranking-list-panel .table thead th {
+            font-size: .82rem;
+            padding-top: 1.05rem;
+            padding-bottom: 1.05rem;
+        }
+        .ranking-list-panel .table tbody td {
+            padding-top: 1.05rem;
+            padding-bottom: 1.05rem;
         }
         .ranking-list-scroll .ranking-table {
             margin-bottom: 0;
@@ -299,7 +314,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
 
                     <div class="row g-4 ranking-layout">
                         <div class="col-xl-9 col-lg-8">
-                            <div class="dashboard-panel animate-in">
+                        <div class="dashboard-panel animate-in ranking-list-panel">
                                 <div class="panel-header mb-4">
                                     <h5 class="panel-title mb-0">Pełna lista rankingowa</h5>
                                 </div>

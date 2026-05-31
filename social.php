@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch social data
 $friends = getUserFriends($pdo, $myId);
+$initialFriendsVisible = 6;
 $pendingRequests = getPendingFriendRequests($pdo, $myId);
 
 // Fetch requests SENT by me
@@ -355,6 +356,30 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .social-card {
             min-height: 100%;
+        }
+
+        .social-hero {
+            border-radius: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 18px 44px rgba(15, 23, 42, .08);
+        }
+        .social-friend-item.is-hidden {
+            display: none;
+        }
+        .social-more-btn {
+            border-radius: 999px;
+            padding: .8rem 1.25rem;
+            font-weight: 800;
+        }
+        body.dark-mode .social-hero {
+            background:
+                radial-gradient(circle at 12% 20%, rgba(96, 165, 250, .18), transparent 30%),
+                linear-gradient(135deg, #1e293b, #172033) !important;
+        }
+        body.dark-mode .search-submit-btn {
+            background: #172033 !important;
+            color: #e5e7eb !important;
+            border-color: rgba(148, 163, 184, .35) !important;
         }
 
         .request-badge {
@@ -691,13 +716,13 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <p class="text-muted">Twoja lista znajomych jest pusta. Skorzystaj z wyszukiwarki!</p>
                                 </div>
                             <?php else: ?>
-                                <div class="row g-4">
-                                    <?php foreach ($friends as $friend): 
+                                <div class="row g-4" id="friendsGrid">
+                                    <?php foreach ($friends as $friendIndex => $friend): 
                                         $isOnline = isUserOnline($friend['last_activity']);
                                         $avatarClass = 'avatar-' . strtolower(substr($friend['username'], 0, 1));
                                         $avatarSrc = userAvatarSrc($friend['avatar_path'] ?? '');
                                     ?>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 social-friend-item <?php echo $friendIndex >= $initialFriendsVisible ? 'is-hidden' : ''; ?>">
                                             <div class="social-card p-4">
                                                 <div class="d-flex align-items-center gap-3 mb-4">
                                                     <?php if ($avatarSrc): ?>
@@ -750,6 +775,13 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
+                                <?php if (count($friends) > $initialFriendsVisible): ?>
+                                <div class="text-center mt-4">
+                                    <button type="button" class="btn btn-outline-primary social-more-btn" id="showMoreFriends" data-step="6">
+                                        Pokaż więcej znajomych
+                                    </button>
+                                </div>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
 
@@ -964,6 +996,16 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     openProfile(event);
                 }
             });
+        });
+
+        const showMoreBtn = document.getElementById('showMoreFriends');
+        showMoreBtn?.addEventListener('click', () => {
+            const hidden = Array.from(document.querySelectorAll('.social-friend-item.is-hidden'));
+            const step = Number(showMoreBtn.dataset.step || 6);
+            hidden.slice(0, step).forEach(item => item.classList.remove('is-hidden'));
+            if (document.querySelectorAll('.social-friend-item.is-hidden').length === 0) {
+                showMoreBtn.remove();
+            }
         });
 
         const input = document.getElementById('socialLiveSearch');

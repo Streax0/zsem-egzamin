@@ -97,6 +97,9 @@
 
                     const modalEl = document.getElementById('appStatusModal');
                     if (!modalEl || !window.bootstrap?.Modal) return;
+                    if (modalEl.parentElement !== document.body) {
+                        document.body.appendChild(modalEl);
+                    }
 
                     const titleEl = document.getElementById('appStatusModalLabel');
                     const bodyEl = document.getElementById('appStatusModalBody');
@@ -116,7 +119,7 @@
                         levelEl.className = 'badge rounded-pill mb-2 text-bg-' + (['success', 'warning', 'danger', 'info'].includes(level) ? level : 'info');
                     }
 
-                    window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    window.bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: true, focus: true }).show();
                 });
             });
         }

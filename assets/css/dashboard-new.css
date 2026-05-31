@@ -1957,9 +1957,35 @@ body.dark-mode .duel-lobby-card {
   background: rgba(30, 41, 59, 0.6) !important;
   border-color: var(--border-color) !important;
 }
+body.dark-mode .duel-lobby-card .empty-state,
+body.dark-mode .dashboard-panel .empty-state {
+  background: #172033 !important;
+  color: #94a3b8 !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+body.dark-mode .duel-lobby-card .empty-state i,
+body.dark-mode .dashboard-panel .empty-state i {
+  color: #93c5fd !important;
+}
 .duel-lobby-card:hover {
   transform: translateX(4px);
   border-color: var(--primary-color) !important;
+}
+.duel-lobby-card .user-avatar-small {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px;
+  flex: 0 0 30px;
+  border-radius: 50%;
+}
+.duel-lobby-card .user-avatar-small img,
+.duel-lobby-card .user-avatar-img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 /* Force stats cards into a 2-column grid on mobile instead of wrapping to 1 vertical column */

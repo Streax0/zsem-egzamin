@@ -29,6 +29,17 @@ if (!$duel) {
     redirect('../index.php');
 }
 
+if (isset($_GET['poll'])) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => $duel['status'] ?? '',
+        'finished' => ($duel['status'] ?? '') === 'finished',
+        'challenger_finished' => !empty($duel['challenger_finished_at']),
+        'opponent_finished' => !empty($duel['opponent_finished_at']),
+    ]);
+    exit;
+}
+
 $isChallenger = ($duel['challenger_id'] == $myId);
 $meFinished = $isChallenger ? $duel['challenger_finished_at'] : $duel['opponent_finished_at'];
 $opponentFinished = $isChallenger ? $duel['opponent_finished_at'] : $duel['challenger_finished_at'];
@@ -237,5 +248,25 @@ unset($answerRow);
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <?php if ($duel['status'] !== 'finished'): ?>
+    <script>
+    (() => {
+        const duelId = <?= (int)$duelId ?>;
+        let tries = 0;
+        const timer = setInterval(async () => {
+            tries++;
+            try {
+                const res = await fetch(`results.php?id=${duelId}&poll=1`, { cache: 'no-store', headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                if (data.finished) {
+                    clearInterval(timer);
+                    window.location.reload();
+                }
+            } catch (_) {}
+            if (tries > 300) clearInterval(timer);
+        }, 3000);
+    })();
+    </script>
+    <?php endif; ?>
 </body>
 </html>

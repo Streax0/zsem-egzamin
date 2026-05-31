@@ -326,6 +326,10 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     // 2. Test results table
     try {
         if (dbTableExists($pdo, 'test_results')) {
+            $modeColumn = $pdo->query("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'test_results' AND COLUMN_NAME = 'mode'")->fetchColumn();
+            if ($modeColumn && !str_contains((string)$modeColumn, "'exam_simulator'")) {
+                $pdo->exec("ALTER TABLE test_results MODIFY mode ENUM('exam','practice','single','exam_simulator') DEFAULT 'exam'");
+            }
             dbAddColumnIfMissing($pdo, 'test_results', 'exclude_from_ranking', "TINYINT(1) DEFAULT 0 AFTER mode");
             dbAddIndexIfMissing($pdo, 'test_results', 'idx_user_test_date', '(user_id, test_date)');
             dbAddIndexIfMissing($pdo, 'test_results', 'idx_ranking_tests', '(total_questions, exclude_from_ranking)');
@@ -450,6 +454,13 @@ function ensurePlatformEnhancements(PDO $pdo): void {
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_active_created (is_active, created_at),
             INDEX idx_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS app_status_deliveries (
+            status_id INT NOT NULL,
+            user_id INT NOT NULL,
+            delivered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (status_id, user_id),
+            INDEX idx_user_status_delivery (user_id, delivered_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     } catch (Throwable $e) {
         error_log('Application statuses table creation failed: ' . $e->getMessage());
@@ -772,6 +783,26 @@ function resolveAppStatusNotification(PDO $pdo, array $notification): ?array {
     $statusId = extractAppStatusIdFromNotification($notification);
     $status = $statusId > 0 ? getAppStatusById($pdo, $statusId) : null;
     if (!$status) {
+        $titleCandidate = trim(preg_replace('/^Nowy status\s*#\d+:\s*/u', '', (string)($notification['message'] ?? '')));
+        if ($titleCandidate !== '') {
+            try {
+                ensurePlatformEnhancements($pdo);
+                $stmt = $pdo->prepare("
+                    SELECT s.*, u.first_name, u.last_name, u.username, u.role
+                    FROM app_statuses s
+                    LEFT JOIN users u ON u.id = s.created_by
+                    WHERE s.title = ?
+                    ORDER BY s.is_active DESC, s.created_at DESC, s.id DESC
+                    LIMIT 1
+                ");
+                $stmt->execute([$titleCandidate]);
+                $status = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            } catch (PDOException $e) {
+                error_log('Resolve app status by title failed: ' . $e->getMessage());
+            }
+        }
+    }
+    if (!$status) {
         $message = preg_replace('/^Nowy status\s*#\d+:\s*/u', '', (string)($notification['message'] ?? ''));
         return [
             'id' => $statusId,
@@ -841,6 +872,10 @@ function addAppStatusNotification(PDO $pdo, int $userId, array $status): bool {
     try {
         ensurePlatformEnhancements($pdo);
         $actionUrl = 'settings.php#app-status-' . $statusId;
+        $delivery = $pdo->prepare("SELECT 1 FROM app_status_deliveries WHERE status_id = ? AND user_id = ? LIMIT 1");
+        $delivery->execute([$statusId, $userId]);
+        if ($delivery->fetchColumn()) return false;
+
         if (dbColumnExists($pdo, 'notifications', 'dedupe_key')) {
             $dedupeKey = hash('sha256', $userId . '|app_status|' . $statusId);
             $hasActionUrl = dbColumnExists($pdo, 'notifications', 'action_url');
@@ -853,16 +888,30 @@ function addAppStatusNotification(PDO $pdo, int $userId, array $status): bool {
             $sql .= ") LIMIT 1";
             $check = $pdo->prepare($sql);
             $check->execute($params);
-            if ($check->fetchColumn()) return false;
-            return addNotification($pdo, $userId, 'app_status', $title, $actionUrl, $dedupeKey);
+            if ($check->fetchColumn()) {
+                $pdo->prepare("INSERT IGNORE INTO app_status_deliveries (status_id, user_id) VALUES (?, ?)")->execute([$statusId, $userId]);
+                return false;
+            }
+            $ok = addNotification($pdo, $userId, 'app_status', $title, $actionUrl, $dedupeKey);
+            if ($ok) {
+                $pdo->prepare("INSERT IGNORE INTO app_status_deliveries (status_id, user_id) VALUES (?, ?)")->execute([$statusId, $userId]);
+            }
+            return $ok;
         }
 
         if (dbColumnExists($pdo, 'notifications', 'action_url')) {
             $check = $pdo->prepare("SELECT id FROM notifications WHERE user_id = ? AND type = 'app_status' AND action_url = ? LIMIT 1");
             $check->execute([$userId, $actionUrl]);
-            if ($check->fetchColumn()) return false;
+            if ($check->fetchColumn()) {
+                $pdo->prepare("INSERT IGNORE INTO app_status_deliveries (status_id, user_id) VALUES (?, ?)")->execute([$statusId, $userId]);
+                return false;
+            }
         }
-        return addNotification($pdo, $userId, 'app_status', $title, $actionUrl);
+        $ok = addNotification($pdo, $userId, 'app_status', $title, $actionUrl);
+        if ($ok) {
+            $pdo->prepare("INSERT IGNORE INTO app_status_deliveries (status_id, user_id) VALUES (?, ?)")->execute([$statusId, $userId]);
+        }
+        return $ok;
     } catch (PDOException $e) {
         error_log('Add app status notification failed: ' . $e->getMessage());
         return false;
@@ -2783,6 +2832,7 @@ function getActiveTestSummary(?array $test): array {
         'exam' => 'Egzamin',
         'practice' => 'Ćwiczenia',
         'single' => 'Jedno pytanie',
+        'exam_simulator' => 'Symulator egzaminu',
     ];
     $mode = (string)($test['mode'] ?? 'exam');
     $config = is_array($test['config'] ?? null) ? $test['config'] : [];

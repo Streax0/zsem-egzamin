@@ -93,11 +93,12 @@ foreach ($dailyMissions as $mission) {
     if (!empty($mission['is_completed'])) $completedMissions++;
 }
 
-// Fetch pending duels
+// Fetch pending/active duels
 $pendingDuels = [];
+$activeDuels = [];
 try {
     $stmt = $pdo->prepare("
-        SELECT d.*, u.username as challenger_name 
+        SELECT d.*, u.username as challenger_name, u.avatar_path as challenger_avatar
         FROM duels d 
         JOIN users u ON d.challenger_id = u.id 
         WHERE d.opponent_id = ? AND d.status = 'pending' AND d.expires_at > NOW()
@@ -105,9 +106,27 @@ try {
     ");
     $stmt->execute([$_SESSION['user_id']]);
     $pendingDuels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt = $pdo->prepare("
+        SELECT d.*,
+               CASE WHEN d.challenger_id = ? THEN uo.username ELSE uc.username END AS opponent_name,
+               CASE WHEN d.challenger_id = ? THEN uo.avatar_path ELSE uc.avatar_path END AS opponent_avatar,
+               (SELECT COUNT(DISTINCT da.question_id) FROM duel_answers da WHERE da.duel_id = d.id AND da.user_id = ?) AS answered_count
+        FROM duels d
+        JOIN users uc ON d.challenger_id = uc.id
+        JOIN users uo ON d.opponent_id = uo.id
+        WHERE d.status = 'accepted'
+          AND (d.challenger_id = ? OR d.opponent_id = ?)
+          AND (CASE WHEN d.challenger_id = ? THEN d.challenger_finished_at ELSE d.opponent_finished_at END) IS NULL
+        ORDER BY COALESCE(d.challenger_started_at, d.opponent_started_at, d.created_at) DESC
+        LIMIT 5
+    ");
+    $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);
+    $activeDuels = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log('Index duel fetch failed: ' . $e->getMessage());
     $pendingDuels = [];
+    $activeDuels = [];
 }
 ?>
 <!DOCTYPE html>
@@ -356,17 +375,43 @@ try {
                                 <a href="social.php" class="text-danger text-decoration-none small fw-bold">Znajomi</a>
                             </div>
                             <div class="vstack gap-3 mt-2">
-                                <?php if (empty($pendingDuels)): ?>
+                                <?php if (empty($pendingDuels) && empty($activeDuels)): ?>
                                     <div class="empty-state py-3">
                                         <i class="bi bi-lightning-charge fs-2"></i>
-                                        <p class="small">Brak oczekujących wyzwań.</p>
+                                        <p class="small">Brak oczekujących i aktywnych wyzwań.</p>
                                     </div>
                                 <?php else: ?>
+                                <?php foreach ($activeDuels as $duel): ?>
+                                <?php $activeAvatar = userAvatarSrc($duel['opponent_avatar'] ?? ''); ?>
+                                <div class="duel-lobby-card d-flex align-items-center justify-content-between p-2 rounded-3 shadow-sm border small">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="user-avatar-small bg-warning text-dark fw-bold" style="width:30px; height:30px; font-size:0.7rem;">
+                                            <?php if ($activeAvatar): ?>
+                                                <img class="user-avatar-img" src="<?= htmlspecialchars($activeAvatar) ?>" alt="">
+                                            <?php else: ?>
+                                                <?= strtoupper(substr($duel['opponent_name'], 0, 1)) ?>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold"><?= htmlspecialchars($duel['opponent_name']) ?></div>
+                                            <div class="text-muted smaller" style="font-size:0.65rem;">
+                                                W trakcie - <?= (int)$duel['answered_count'] ?>/<?= (int)$duel['question_count'] ?> - <?= htmlspecialchars($duel['category']) ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a href="duels/take.php?id=<?= (int)$duel['id'] ?>" class="btn btn-warning btn-sm p-1 px-2 fw-bold" style="font-size:0.65rem;">Kontynuuj</a>
+                                </div>
+                                <?php endforeach; ?>
                                 <?php foreach ($pendingDuels as $duel): ?>
+                                <?php $pendingAvatar = userAvatarSrc($duel['challenger_avatar'] ?? ''); ?>
                                 <div class="duel-lobby-card d-flex align-items-center justify-content-between p-2 rounded-3 shadow-sm border small">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="user-avatar-small bg-danger text-white fw-bold" style="width:30px; height:30px; font-size:0.7rem;">
-                                            <?= strtoupper(substr($duel['challenger_name'], 0, 1)) ?>
+                                            <?php if ($pendingAvatar): ?>
+                                                <img class="user-avatar-img" src="<?= htmlspecialchars($pendingAvatar) ?>" alt="">
+                                            <?php else: ?>
+                                                <?= strtoupper(substr($duel['challenger_name'], 0, 1)) ?>
+                                            <?php endif; ?>
                                         </div>
                                         <div>
                                             <div class="fw-bold"><?= htmlspecialchars($duel['challenger_name']) ?></div>

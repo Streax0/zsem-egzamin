@@ -98,7 +98,15 @@ $duelStartedAt = ensureDuelParticipantStarted($pdo, $duelId, $isChallenger);
 $serverNow = time();
 $elapsedSeconds = max(0, $serverNow - $duelStartedAt);
 
-$answeredCount = getDuelAnsweredCount($pdo, $duelId, $myId);
+$answeredQuestionIds = [];
+try {
+    $answeredStmt = $pdo->prepare("SELECT question_id FROM duel_answers WHERE duel_id = ? AND user_id = ?");
+    $answeredStmt->execute([$duelId, $myId]);
+    $answeredQuestionIds = array_map('intval', $answeredStmt->fetchAll(PDO::FETCH_COLUMN));
+} catch (PDOException $e) {
+    error_log('Duel answered ids load failed: ' . $e->getMessage());
+}
+$answeredCount = count($answeredQuestionIds);
 if ($answeredCount >= count($questions)) {
     redirect('results.php?id=' . $duelId);
 }
@@ -231,7 +239,7 @@ $initialProgressPct = count($questions) > 0 ? round((($initialStep + 1) / count(
         const totalTimeLimit = <?= (int)$totalTimeLimit ?>;
         const serverElapsedSeconds = <?= (int)$elapsedSeconds ?>;
         const serverNowMs = <?= (int)$serverNow * 1000 ?>;
-        const answered = new Set();
+        const answered = new Set(<?= json_encode($answeredQuestionIds) ?>);
         const clockOffsetMs = Date.now() - serverNowMs;
         let startTime = Date.now() - clockOffsetMs - (serverElapsedSeconds * 1000);
         let questionStartTime = Date.now();

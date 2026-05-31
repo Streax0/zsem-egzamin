@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div class="px-4 mb-2 small text-uppercase fw-bold opacity-50 text-white" style="font-size: 0.65rem;">Administracja</div>
         <a href="<?php echo $base_url; ?>admin.php" class="sidebar-item <?php echo $current_page == 'admin' ? 'active' : ''; ?>">
             <i class="bi bi-shield-lock-fill text-danger"></i>
-            <span>Użytkownicy</span>
+            <span>Panel Admin</span>
         </a>
         <a href="<?php echo $base_url; ?>manage_questions.php" class="sidebar-item <?php echo $current_page == 'manage_questions' ? 'active' : ''; ?>">
             <i class="bi bi-database-fill-gear text-warning"></i>
