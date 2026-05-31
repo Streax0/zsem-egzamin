@@ -19,8 +19,8 @@ function sanitize($data) {
 
 function validatePasswordPolicy(string $password): array {
     $errors = [];
-    if (mb_strlen($password, '8bit') < 8) {
-        $errors[] = 'Hasło musi mieć minimum 8 znaków.';
+    if (mb_strlen($password, '8bit') < 6) {
+        $errors[] = 'Hasło musi mieć minimum 6 znaków.';
     }
     if (!preg_match('/[a-z]/', $password)) {
         $errors[] = 'Hasło musi zawierać małą literę.';
@@ -1943,7 +1943,7 @@ function isAdmin($pdo, $userId) {
 function getUsers($pdo, $limit = 50, $offset = 0) {
     try {
         ensurePlatformEnhancements($pdo);
-        $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users ORDER BY COALESCE(NULLIF(class, ''), 'ZZZ'), id DESC LIMIT :limit OFFSET :offset");
+        $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users ORDER BY CASE WHEN role = 'teacher' THEN 'Nauczyciele' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -2031,6 +2031,9 @@ function setUserRole($pdo, $userId, $role) {
         }
         $success = $stmt->execute([':role' => $role, ':ranking_visible' => $rankingVisible, ':verified' => $verified, ':id' => $userId]);
         if ($success && in_array($role, privilegedStaffRoles(), true)) {
+            if ($role === 'teacher') {
+                $pdo->prepare("UPDATE users SET class = NULL, class_year = NULL, class_suffix = NULL WHERE id = ?")->execute([$userId]);
+            }
             $pdo->prepare("UPDATE users SET profile_public = 0, stats_public = 0, searchable = 0, allow_friend_requests = 0 WHERE id = ?")->execute([$userId]);
             syncTeacherAdminFriends($pdo, $userId);
         }

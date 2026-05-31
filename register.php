@@ -99,6 +99,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
+        try {
+            $availabilityStmt = $pdo->prepare('SELECT username, email FROM users WHERE username = ? OR email = ? LIMIT 1');
+            $availabilityStmt->execute([$username, mb_strtolower($email, 'UTF-8')]);
+            $existingAccount = $availabilityStmt->fetch(PDO::FETCH_ASSOC);
+            if ($existingAccount) {
+                if (strcasecmp((string)$existingAccount['username'], $username) === 0) {
+                    $errors[] = 'Ta nazwa użytkownika jest już zajęta. Wybierz inną.';
+                }
+                if (strcasecmp((string)$existingAccount['email'], $email) === 0) {
+                    $errors[] = 'Ten adres e-mail jest już używany. Zaloguj się albo użyj innego adresu.';
+                }
+            }
+        } catch (PDOException $e) {
+            error_log('Registration availability check failed: ' . $e->getMessage());
+            $errors[] = 'Nie udało się sprawdzić dostępności loginu i e-maila. Spróbuj ponownie.';
+        }
+    }
+
+    if (empty($errors)) {
         if (isIpBanned(authClientIpAddress())) {
             $errors[] = 'Rejestracja z Twojego adresu IP została zablokowana.';
         }
@@ -116,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: login.php');
                 exit;
             } else {
-                $errors[] = 'Nie można założyć konta z podanymi danymi. Sprawdź formularz albo użyj innych danych logowania.';
+                $errors[] = 'Nie można założyć konta: login lub e-mail może być zajęty, hasło może nie spełniać zasad albo z tego adresu IP utworzono już limit kont.';
             }
         }
     }
@@ -209,13 +228,19 @@ $csrf_token = generateCsrfToken();
             <div class="row g-3">
                 <div class="col-md-6 mb-3">
                     <label class="form-label" for="regPassword">Hasło</label>
-                    <input type="password" name="password" id="regPassword" class="form-control" placeholder="••••••••" minlength="10" maxlength="128" autocomplete="new-password" required aria-describedby="passwordPolicy">
+                    <input type="password" name="password" id="regPassword" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required aria-describedby="passwordPolicy">
                     <div class="strength-meter"><div id="strengthBar" class="strength-meter-bar"></div></div>
-                    <div id="passwordPolicy" class="small text-muted mt-1">Min. 10 znaków: mała i wielka litera, cyfra oraz znak specjalny.</div>
+                    <div id="passwordPolicy" class="password-policy-checks small mt-2">
+                        <label><input type="checkbox" data-password-rule="length" disabled> minimum 6 znaków</label>
+                        <label><input type="checkbox" data-password-rule="lower" disabled> mała litera</label>
+                        <label><input type="checkbox" data-password-rule="upper" disabled> wielka litera</label>
+                        <label><input type="checkbox" data-password-rule="digit" disabled> cyfra</label>
+                        <label><input type="checkbox" data-password-rule="special" disabled> znak specjalny</label>
+                    </div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label" for="confirm_password">Powtórz hasło</label>
-                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="••••••••" minlength="10" maxlength="128" autocomplete="new-password" required>
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required>
                 </div>
             </div>
 

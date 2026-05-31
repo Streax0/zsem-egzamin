@@ -171,6 +171,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('admin.php');
             break;
 
+        case 'delete_avatar':
+            if ($userId <= 0) {
+                setSessionMessage('error', 'Nieprawidłowy użytkownik.');
+            } else {
+                try {
+                    $stmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = ? LIMIT 1");
+                    $stmt->execute([$userId]);
+                    $oldAvatar = (string)($stmt->fetchColumn() ?: '');
+                    $pdo->prepare("UPDATE users SET avatar_path = NULL WHERE id = ?")->execute([$userId]);
+                    if ($oldAvatar !== '' && preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $oldAvatar)) {
+                        $oldPath = __DIR__ . '/' . $oldAvatar;
+                        if (is_file($oldPath)) @unlink($oldPath);
+                    }
+                    logAdminAction($pdo, $_SESSION['user_id'], 'delete_avatar', 'user', $userId);
+                    setSessionMessage('success', 'Zdjęcie profilowe użytkownika zostało usunięte.');
+                } catch (PDOException $e) {
+                    setSessionMessage('error', 'Nie udało się usunąć zdjęcia profilowego.');
+                }
+            }
+            redirect('admin.php#admin-users');
+            break;
+
         case 'ban_user':
             $reason = trim((string)($_POST['reason'] ?? 'Naruszenie regulaminu'));
             $reason = mb_substr($reason !== '' ? $reason : 'Naruszenie regulaminu', 0, 500);
@@ -480,7 +502,7 @@ $offset = ($page - 1) * $limit;
 
 if ($search !== '') {
     $like = '%' . $search . '%';
-    $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users WHERE username LIKE :q OR email LIKE :q OR first_name LIKE :q OR last_name LIKE :q OR class LIKE :q ORDER BY COALESCE(NULLIF(class, ''), 'ZZZ'), id DESC LIMIT :limit OFFSET :offset");
+    $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users WHERE username LIKE :q OR email LIKE :q OR first_name LIKE :q OR last_name LIKE :q OR class LIKE :q ORDER BY CASE WHEN role = 'teacher' THEN 'Nauczyciele' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
     $stmt->bindValue(':q', $like, PDO::PARAM_STR);
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -1350,7 +1372,7 @@ if (is_array($rawFlash)) {
                                     <?php $currentAdminClass = null; ?>
                                     <?php foreach ($users as $u): ?>
                                     <?php
-                                        $adminClassLabel = trim((string)($u['class'] ?? '')) !== '' ? trim((string)$u['class']) : 'Bez klasy';
+                                        $adminClassLabel = ($u['role'] ?? '') === 'teacher' ? 'Nauczyciele' : (trim((string)($u['class'] ?? '')) !== '' ? trim((string)$u['class']) : 'Bez klasy');
                                         $adminAvatar = (string)($u['avatar_path'] ?? '');
                                         $adminAvatarSrc = (preg_match('#^uploads/avatars/[a-zA-Z0-9_.-]+\.webp$#', $adminAvatar) && is_file(__DIR__ . '/' . $adminAvatar)) ? $adminAvatar : '';
                                         $adminDisplayName = userDisplayName($u);
@@ -1415,6 +1437,17 @@ if (is_array($rawFlash)) {
                                                         <i class="bi bi-shield-x"></i>
                                                     </button>
                                                 </form>
+
+                                                <?php if ($adminAvatarSrc !== ''): ?>
+                                                <form method="POST">
+                                                    <?php echo csrfTokenField('admin'); ?>
+                                                    <input type="hidden" name="action" value="delete_avatar">
+                                                    <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm admin-icon-btn" title="Usuń avatar" data-admin-confirm="Usunąć avatar tego konta?">
+                                                        <i class="bi bi-image-x"></i>
+                                                    </button>
+                                                </form>
+                                                <?php endif; ?>
 
                                                 <form method="POST" class="role-form admin-role-form d-flex gap-1 align-items-center">
                                                     <?php echo csrfTokenField('admin'); ?>
@@ -1546,8 +1579,8 @@ if (is_array($rawFlash)) {
                                     <div class="modal-body">
                                         <div class="admin-user-modal-note mb-3">Konto: <strong data-admin-modal-user>użytkownik</strong>. Po zapisie stare sesje konta zostaną unieważnione.</div>
                                         <label class="form-label fw-semibold" for="adminNewPassword">Nowe hasło</label>
-                                        <input type="password" name="new_password" id="adminNewPassword" class="form-control" minlength="10" autocomplete="new-password" required>
-                                        <div class="form-text">Minimum 10 znaków, mała i wielka litera, cyfra oraz znak specjalny.</div>
+                                        <input type="password" name="new_password" id="adminNewPassword" class="form-control" minlength="6" autocomplete="new-password" required>
+                                        <div class="form-text">Minimum 6 znaków, mała i wielka litera, cyfra oraz znak specjalny.</div>
                                     </div>
                                     <div class="modal-footer border-0">
                                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anuluj</button>

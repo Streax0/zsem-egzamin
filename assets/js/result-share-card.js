@@ -47,6 +47,16 @@
         return clipped.length;
     }
 
+    function fitFont(ctx, text, weight, size, family, maxWidth, minSize) {
+        let current = size;
+        do {
+            ctx.font = `${weight} ${current}px ${family}`;
+            if (ctx.measureText(String(text || '')).width <= maxWidth) break;
+            current -= 2;
+        } while (current >= minSize);
+        return current;
+    }
+
     function drawMortarboard(ctx, x, y, size) {
         ctx.save();
         ctx.translate(x, y);
@@ -133,8 +143,9 @@
         ctx.scale(SCALE, SCALE);
 
         const passed = !!data.passed;
-        const accent = passed ? '#34d399' : '#f87171';
-        const accentDeep = passed ? '#059669' : '#dc2626';
+        const isHarvest = !!data.isHarvest;
+        const accent = isHarvest ? '#fb923c' : (passed ? '#34d399' : '#f87171');
+        const accentDeep = isHarvest ? '#ea580c' : (passed ? '#059669' : '#dc2626');
 
         const bg = ctx.createLinearGradient(0, 0, W, H);
         bg.addColorStop(0, '#0b1220');
@@ -162,8 +173,8 @@
 
         const headerH = 92;
         const headerGrad = ctx.createLinearGradient(28, 28, W - 28, 28 + headerH);
-        headerGrad.addColorStop(0, '#1d4ed8');
-        headerGrad.addColorStop(1, '#312e81');
+        headerGrad.addColorStop(0, isHarvest ? '#b91c1c' : '#1d4ed8');
+        headerGrad.addColorStop(1, isHarvest ? '#7c2d12' : '#312e81');
         roundRect(ctx, 28, 28, W - 56, headerH, 28);
         ctx.save();
         ctx.clip();
@@ -185,24 +196,26 @@
         ctx.fillText(String(data.brandUrl || 'zsem-egzamin.online'), W - 56, 68);
         ctx.font = '600 12px Inter, "Segoe UI", sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.55)';
-        ctx.fillText('Karta wyniku testu', W - 56, 88);
+        ctx.fillText(isHarvest ? 'Karta wyniku Harvest' : 'Karta wyniku testu', W - 56, 88);
         ctx.textAlign = 'left';
 
         ctx.fillStyle = accent;
-        roundRect(ctx, 56, 136, 140, 34, 17);
+        const passText = isHarvest ? 'HARVEST' : String(data.passLabel || '');
+        ctx.font = '800 13px Inter, "Segoe UI", sans-serif';
+        const passW = Math.max(140, Math.min(220, ctx.measureText(passText).width + 46));
+        roundRect(ctx, 56, 136, passW, 34, 17);
         ctx.fill();
         ctx.fillStyle = '#0f172a';
-        ctx.font = '800 13px Inter, "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(String(data.passLabel || ''), 126, 158);
+        ctx.fillText(passText, 56 + passW / 2, 158);
         ctx.textAlign = 'left';
 
         const firstName = String(data.firstName || '—');
         const lastName = String(data.lastName || '—');
         const fullName = String(data.fullName || `${firstName} ${lastName}`.trim());
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 46px Inter, "Segoe UI", sans-serif';
-        ctx.fillText(truncate(ctx, fullName, 620), 56, 228);
+        fitFont(ctx, fullName, '900', 46, 'Inter, "Segoe UI", sans-serif', 600, 30);
+        ctx.fillText(truncate(ctx, fullName, 600), 56, 228);
 
         ctx.fillStyle = 'rgba(226,232,240,0.88)';
         ctx.font = '700 18px Inter, "Segoe UI", sans-serif';
@@ -211,15 +224,15 @@
 
         ctx.fillStyle = accent;
         ctx.font = '800 28px Inter, "Segoe UI", sans-serif';
-        ctx.fillText(String(data.performanceLabel || 'Wynik testu'), 56, 308);
+        ctx.fillText(truncate(ctx, isHarvest ? 'Harvest ukończony' : String(data.performanceLabel || 'Wynik testu'), 610), 56, 308);
 
         ctx.fillStyle = 'rgba(203,213,225,0.88)';
         ctx.font = '500 17px Inter, "Segoe UI", sans-serif';
         wrapText(ctx, data.subtitle || '', 56, 342, 620, 24, 2);
 
-        const tileW = 220;
+        const tileW = 210;
         const tileH = 84;
-        const gap = 12;
+        const gap = 14;
         const startX = 56;
         const row1Y = 418;
         const row2Y = row1Y + tileH + gap;

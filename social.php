@@ -188,6 +188,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
         }
         .user-avatar-social.is-image {
+            aspect-ratio: 1 / 1;
             object-fit: cover;
             padding: 0;
             background: #e5e7eb;
@@ -507,6 +508,14 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: linear-gradient(135deg, rgba(59,130,246,.10), rgba(14,165,233,.06)) !important;
             border: 1px solid rgba(59,130,246,.16) !important;
             box-shadow: 0 18px 44px rgba(37,99,235,.08);
+            order: 1;
+        }
+        .social-sidebar {
+            display: flex;
+            flex-direction: column;
+        }
+        .social-activity-card {
+            order: 2;
         }
         .suggested-user-row {
             padding: .85rem;
@@ -830,7 +839,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             <?php endif; ?>
 
-                            <div class="dashboard-panel mb-5">
+                            <div class="dashboard-panel mb-5 social-activity-card">
                                 <h5 class="fw-800 mb-4"><i class="bi bi-activity text-success me-2"></i>Ostatnia aktywność znajomych</h5>
                                 <?php if (empty($recentFriendActivity)): ?>
                                     <div class="empty-state p-4">

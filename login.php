@@ -191,12 +191,12 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
         <section class="auth-info-panel" aria-label="ZSEM Tech">
             <div>
                 <div class="auth-brand"><i class="bi bi-mortarboard-fill"></i> ZSEM Tech</div>
-                <h1>Panel nauki i sprawdzianów</h1>
-                <p class="text-muted fs-5 mb-0">Zaloguj się, żeby wrócić do testów, arkuszy, rankingu i sprawdzianów nauczyciela.</p>
+                <h1>Wejdź do panelu ZSEM Tech</h1>
+                <p class="text-muted fs-5 mb-0">Testy, arkusze, wyniki i sprawdziany nauczyciela w jednym miejscu.</p>
             </div>
             <div class="row g-3 mt-4">
-                <div class="col-6"><div class="p-3 rounded-4 bg-light border"><strong>INF.02</strong><br><span class="small text-muted">pytania i arkusze</span></div></div>
-                <div class="col-6"><div class="p-3 rounded-4 bg-light border"><strong>XP</strong><br><span class="small text-muted">ranking od 0 XP</span></div></div>
+                <div class="col-6"><div class="p-3 rounded-4 bg-light border"><strong>Testy</strong><br><span class="small text-muted">INF.02 i arkusze</span></div></div>
+                <div class="col-6"><div class="p-3 rounded-4 bg-light border"><strong>Wyniki</strong><br><span class="small text-muted">postęp i ranking</span></div></div>
             </div>
         </section>
 

@@ -128,6 +128,45 @@ usort($filteredQuestions, function($a, $b) use ($userProgress) {
         .dashboard-panel { border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .category-badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 6px; }
         .stat-highlight { font-size: 2rem; font-weight: 800; line-height: 1; }
+        .question-details {
+            background: var(--panel-bg, #fff) !important;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, .08);
+            color: var(--text-main, #0f172a);
+        }
+        .question-details h6 {
+            font-weight: 800;
+            line-height: 1.45;
+            margin-bottom: 1rem;
+            color: var(--text-main, #0f172a);
+        }
+        .question-details .form-check {
+            margin: 0 0 .55rem;
+            padding: .7rem .85rem .7rem 2.35rem;
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--panel-bg, #fff) 92%, #f8fafc);
+        }
+        .question-details .form-check-label {
+            color: var(--text-main, #0f172a);
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+        .question-details .alert-info {
+            border: 1px solid rgba(37, 99, 235, .16);
+            background: rgba(37, 99, 235, .08);
+            color: var(--text-main, #0f172a);
+        }
+        body.dark-mode .question-details {
+            background: #111827 !important;
+            border-color: rgba(148, 163, 184, .22);
+            box-shadow: 0 16px 34px rgba(0, 0, 0, .26);
+        }
+        body.dark-mode .question-details .form-check {
+            background: rgba(15, 23, 42, .58);
+            border-color: rgba(148, 163, 184, .22);
+        }
     </style>
 </head>
 <body>

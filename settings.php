@@ -34,6 +34,7 @@ $username = $userSettings['username'] ?? ($_SESSION['username'] ?? '');
 $email = $userSettings['email'] ?? '';
 $classYear = $userSettings['class_year'] ?? '';
 $classSuffix = $userSettings['class_suffix'] ?? '';
+$settingsAvatarSrc = userAvatarSrc($userSettings['avatar_path'] ?? '');
 $profilePublic = (bool)($userSettings['profile_public'] ?? 1);
 $statsPublic = (bool)($userSettings['stats_public'] ?? 1);
 $allowFriendRequests = (bool)($userSettings['allow_friend_requests'] ?? 1);
@@ -138,6 +139,16 @@ try {
                                         </div>
                                     </div>
                                 </form>
+                                <?php if ($settingsAvatarSrc): ?>
+                                <form action="actions/update_profile.php" method="POST" class="mt-3" onsubmit="return appConfirmSubmit(this, 'Usunąć zdjęcie profilowe?')">
+                                    <?php echo csrfTokenField(); ?>
+                                    <input type="hidden" name="return_to" value="settings.php">
+                                    <input type="hidden" name="action" value="delete_avatar">
+                                    <button type="submit" class="btn btn-outline-danger px-4">
+                                        <i class="bi bi-trash3 me-1"></i>Usuń zdjęcie profilowe
+                                    </button>
+                                </form>
+                                <?php endif; ?>
                             </div>
 
                             <div class="dashboard-panel animate-in" style="animation-delay: 0.1s;">

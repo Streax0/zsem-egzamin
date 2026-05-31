@@ -562,6 +562,11 @@ $questionSelectorLimit = min(260, count($allQuestions));
             font-weight:800;
             margin:1rem 0 .75rem;
         }
+        .worksheet-group-page + .worksheet-group-page {
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #cbd5e1;
+        }
         .worksheet-question h2 { font-size:1rem; line-height:1.42; }
         .worksheet-options {
             display:grid;
@@ -659,6 +664,8 @@ $questionSelectorLimit = min(260, count($allQuestions));
                 box-shadow:none !important;
             }
             .worksheet-options { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+            .worksheet-group-page { page-break-before:always; break-before:page; }
+            .worksheet-cover + .worksheet-group-page { page-break-before:auto; break-before:auto; }
             .answer-key { columns:4 140px !important; }
             a[href]::after { content:""; }
         }
@@ -689,6 +696,8 @@ $questionSelectorLimit = min(260, count($allQuestions));
         .worksheet-meta { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; font-size:10pt; }
         .worksheet-meta div { border:1px solid #dbe4f0; border-radius:6px; padding:7px 8px; min-height:32px; }
         .worksheet-question { break-inside:avoid; page-break-inside:avoid; border:1px solid #e5e7eb; border-radius:7px; padding:10px 12px; margin-bottom:10px; }
+        .worksheet-group-page { page-break-before:always; break-before:page; }
+        .worksheet-cover + .worksheet-group-page { page-break-before:auto; break-before:auto; }
         .worksheet-group-label { display:inline-block; border-radius:999px; padding:4px 9px; background:#dbeafe; color:#1d4ed8; font-weight:800; margin:12px 0 8px; }
         .worksheet-question h2 { margin:4px 0 8px; font-size:11.5pt; line-height:1.38; }
         .worksheet-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px 12px; margin-top:8px; }
@@ -932,6 +941,18 @@ $questionSelectorLimit = min(260, count($allQuestions));
                             <button type="button" class="btn btn-outline-danger rounded-pill px-4" onclick="printWorksheet('pdf')">
                                 <i class="bi bi-filetype-pdf me-1"></i>Zapisz PDF
                             </button>
+                            <?php if ((int)$groupCount > 1): ?>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-primary rounded-pill px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-collection me-1"></i>PDF grupy
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <?php foreach ($worksheetGroups as $group): ?>
+                                            <li><button class="dropdown-item" type="button" onclick="printWorksheet('pdf', '<?php echo htmlspecialchars($group['label'], ENT_QUOTES, 'UTF-8'); ?>')">Grupa <?php echo htmlspecialchars($group['label']); ?></button></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
                             <form method="POST" class="m-0">
                                 <?php echo csrfTokenField('teacher_pdf_generator_save'); ?>
                                 <input type="hidden" name="worksheet_action" value="save_preview">
@@ -983,13 +1004,10 @@ $questionSelectorLimit = min(260, count($allQuestions));
                         </header>
 
                         <?php foreach ($worksheetGroups as $group): ?>
+                            <section class="worksheet-group-page" data-worksheet-group="<?php echo htmlspecialchars($group['label']); ?>">
                             <div class="worksheet-group-label"><i class="bi bi-collection"></i>Grupa <?php echo htmlspecialchars($group['label']); ?></div>
                             <?php foreach ($group['questions'] as $index => $question): ?>
                                 <section class="worksheet-question">
-                                    <div class="small text-muted mb-1">
-                                        <?php echo htmlspecialchars((string)($question['category'] ?? 'Inne')); ?>
-                                        <?php if (($question['source'] ?? '') === 'txt'): ?> · TXT<?php endif; ?>
-                                    </div>
                                     <h2 class="fw-bold"><?php echo $index + 1; ?>. <?php echo htmlspecialchars($question['question_text'] ?? ''); ?></h2>
                                     <?php if (!empty($question['image_url'])): ?>
                                         <?php $imageSrc = questionImageSrc($question['image_url'], '../'); ?>
@@ -1011,6 +1029,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                     <?php endif; ?>
                                 </section>
                             <?php endforeach; ?>
+                            </section>
                         <?php endforeach; ?>
 
                         <?php if ($includeKey): ?>
@@ -1040,7 +1059,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
                         <?php endif; ?>
 
                         <footer class="worksheet-footer">
-                            Wygenerowano dla: <?php echo htmlspecialchars($generatedFor); ?> · ZSEM Tech · <?php echo date('d.m.Y H:i'); ?>
+                            ZSEM Tech
                         </footer>
                     </article>
                 <?php endif; ?>
@@ -1212,11 +1231,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function printWorksheet() {
     const mode = arguments[0] || 'print';
+    const groupLabel = arguments[1] || '';
     const source = document.getElementById('worksheetPrintSource');
     if (!source) return;
 
     const css = document.getElementById('worksheetPrintCss')?.textContent || '';
-    const title = (source.dataset.printTitle || document.title) + (mode === 'pdf' ? ' - PDF' : '');
+    const title = (source.dataset.printTitle || document.title) + (groupLabel ? ` - grupa ${groupLabel}` : '') + (mode === 'pdf' ? ' - PDF' : '');
+    const printable = source.cloneNode(true);
+    if (groupLabel) {
+        printable.querySelectorAll('[data-worksheet-group]').forEach(section => {
+            if (section.dataset.worksheetGroup !== groupLabel) section.remove();
+        });
+        printable.querySelector('.answer-key-page')?.remove();
+    }
     const win = window.open('', '_blank', 'width=960,height=720');
     if (!win) {
         window.print();
@@ -1232,7 +1259,7 @@ function printWorksheet() {
 <title>${title.replace(/[<>]/g, '')}</title>
 <style>${css}</style>
 </head>
-<body>${source.outerHTML}</body>
+<body>${printable.outerHTML}</body>
 </html>`);
     win.document.close();
     win.focus();

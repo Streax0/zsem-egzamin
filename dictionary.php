@@ -86,7 +86,7 @@ foreach ($dictionaryData as $group) {
         .sticky-filters {
             position: sticky;
             top: calc(70px + 0.5rem);
-            z-index: 1000;
+            z-index: 20;
             background: color-mix(in srgb, var(--bg-color) 92%, transparent);
             backdrop-filter: blur(14px);
             padding: 0.75rem 0;

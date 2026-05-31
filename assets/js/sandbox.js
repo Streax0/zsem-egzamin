@@ -189,6 +189,44 @@
       truthTable.innerHTML = `<thead><tr>${labels.map((label) => `<th>${escapeHtml(label)}</th>`).join('')}<th>Y</th></tr></thead><tbody>${rows.map((row) => `<tr>${labels.map((label) => `<td>${row.overrides[label] ? 1 : 0}</td>`).join('')}<td><strong>${row.out}</strong></td></tr>`).join('')}</tbody>`;
     };
 
+    const exportLogicPdf = () => {
+      render();
+      requestAnimationFrame(() => {
+        const boardClone = board.cloneNode(true);
+        boardClone.removeAttribute('id');
+        boardClone.style.width = `${Math.max(board.clientWidth, board.scrollWidth, BASE_WIDTH)}px`;
+        boardClone.style.minHeight = `${Math.max(board.clientHeight, board.scrollHeight, BASE_HEIGHT)}px`;
+        const popup = window.open('', '_blank', 'width=1200,height=900');
+        if (!popup) {
+          setHint('Przeglądarka zablokowała okno PDF. Zezwól na wyskakujące okna.', 'danger');
+          return;
+        }
+        popup.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Układ logiczny</title>
+          <style>
+            @page { size: A4 landscape; margin: 12mm; }
+            body { font-family: Inter, Segoe UI, Arial, sans-serif; color: #0f172a; margin: 0; }
+            h1 { font-size: 20pt; margin: 0 0 10px; }
+            .logic-canvas { position: relative; min-height: 380px; overflow: hidden; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc; }
+            .logic-wire-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+            .logic-wire-path { fill: none; stroke: #64748b; stroke-width: 4; stroke-linecap: round; }
+            .logic-wire-path.is-active { stroke: #16a34a; }
+            .logic-node { position: absolute; min-width: 126px; padding: 10px; border-radius: 8px; border: 2px solid #cbd5e1; background: #fff; font-weight: 800; text-align: center; z-index: 2; box-shadow: 0 8px 20px rgba(15,23,42,.08); }
+            .logic-node-header { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+            .logic-node-delete, .logic-port { display: none !important; }
+            .logic-led { display: inline-block; width: 26px; height: 26px; border-radius: 50%; background: #cbd5e1; border: 4px solid #e2e8f0; vertical-align: middle; margin-right: 8px; }
+            .logic-led.is-on { background: #22c55e; box-shadow: 0 0 18px rgba(34,197,94,.8); }
+            .logic-switch { border: 1px solid #cbd5e1; border-radius: 999px; min-width: 42px; padding: 6px 12px; font-weight: 900; background: #e2e8f0; }
+            .logic-switch.is-on { background: #22c55e; color: #fff; border-color: #16a34a; }
+            table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 10pt; }
+            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; }
+            th { background: #eff6ff; }
+          </style></head><body><h1>Układ logiczny</h1>${boardClone.outerHTML}<h1 style="margin-top:16px;font-size:14pt">Tabela prawdy</h1>${truthTable.outerHTML}</body></html>`);
+        popup.document.close();
+        popup.focus();
+        setTimeout(() => popup.print(), 250);
+      });
+    };
+
     const render = () => {
       syncBoardSize();
       board.querySelectorAll('.logic-node').forEach((node) => node.remove());
@@ -350,6 +388,7 @@
       render();
     });
     $('logicDemo')?.addEventListener('click', seedDemo);
+    $('logicExportPdf')?.addEventListener('click', exportLogicPdf);
     window.addEventListener('resize', () => {
       syncBoardSize();
       renderWires();

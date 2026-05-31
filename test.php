@@ -685,7 +685,7 @@ if ($test) {
 
         /* ==================== PREMIUM SETUP SYSTEM ==================== */
         .premium-setup-container {
-            max-width: 1050px;
+            max-width: min(1280px, 100%);
             margin: 0 auto;
         }
         .setup-section-title {

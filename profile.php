@@ -844,6 +844,14 @@ $socialPlatforms = [
                             </div>
                             <div class="form-text">JPG, PNG, GIF albo WebP. Zapis automatycznie do WebP, maks. 2 MB.</div>
                         </form>
+                        <?php if ($avatarSrc): ?>
+                        <form action="actions/update_profile.php" method="POST" class="mt-2 profile-edit-tools" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć zdjęcie profilowe?')">
+                            <?php echo csrfTokenField(); ?>
+                            <input type="hidden" name="return_to" value="profile.php">
+                            <input type="hidden" name="action" value="delete_avatar">
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" type="submit"><i class="bi bi-trash3 me-1"></i>Usuń zdjęcie</button>
+                        </form>
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -1471,8 +1479,8 @@ $socialPlatforms = [
                         <div class="mb-3">
                             <label for="newPassword" class="form-label">Nowe hasło</label>
                             <input type="password" class="form-control" id="newPassword" name="new_password" 
-                                   pattern=".{8,}" title="Hasło musi mieć co najmniej 8 znaków" required>
-                            <div class="form-text">Minimalnie 8 znaków</div>
+                                   pattern=".{6,}" title="Hasło musi mieć co najmniej 6 znaków" required>
+                            <div class="form-text">Minimum 6 znaków, mała i wielka litera, cyfra oraz znak specjalny.</div>
                         </div>
                         
                         <div class="mb-3">

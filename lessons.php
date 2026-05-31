@@ -1227,7 +1227,7 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
                     <form method="GET" class="row g-3 align-items-end">
                         <div class="col-lg-6">
                             <label class="form-label fw-bold">Szukaj</label>
-                            <input name="q" class="form-control" value="<?php echo htmlspecialchars($query); ?>" placeholder="Tytuł, treść albo autor">
+                            <input type="search" name="q" class="form-control" value="<?php echo htmlspecialchars($query); ?>" placeholder="Tytuł, treść albo autor">
                         </div>
                         <div class="col-lg-3">
                             <label class="form-label fw-bold">Kwalifikacja</label>
@@ -1243,7 +1243,10 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
                                 <?php foreach ($types as $value => $label): ?><option value="<?php echo htmlspecialchars($value); ?>" <?php echo $filterType === $value ? 'selected' : ''; ?>><?php echo htmlspecialchars($label); ?></option><?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-lg-1 d-grid"><button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button></div>
+                        <div class="col-lg-1 d-grid"><button class="btn btn-primary" type="submit" title="Szukaj"><i class="bi bi-search"></i></button></div>
+                        <?php if ($query !== '' || $filterQual !== '' || $filterType !== ''): ?>
+                            <div class="col-12"><a class="btn btn-sm btn-light border rounded-pill" href="lessons.php"><i class="bi bi-x-lg me-1"></i>Wyczyść filtry</a></div>
+                        <?php endif; ?>
                     </form>
                 </section>
 

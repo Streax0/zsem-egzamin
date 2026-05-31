@@ -94,6 +94,26 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
             color: #64748b !important;
         }
         .ranking-table { table-layout: fixed; width: 100%; }
+        .ranking-sidebar {
+            display: flex;
+            flex-direction: column;
+        }
+        .user-rank-widget { order: 1; }
+        #rank-threshold { order: 2; }
+        .ranking-avatar {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            max-width: 40px;
+            aspect-ratio: 1 / 1;
+            border-radius: 10px;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex: 0 0 40px;
+        }
         .ranking-list-scroll {
             max-height: 760px;
             overflow-y: auto;
@@ -312,9 +332,9 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                                 <td class="user-name-cell">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <?php if ($rowAvatar): ?>
-                                                            <img class="user-avatar-small" src="<?php echo htmlspecialchars($rowAvatar); ?>" alt="" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">
+                                                            <img class="user-avatar-small ranking-avatar" src="<?php echo htmlspecialchars($rowAvatar); ?>" alt="">
                                                         <?php else: ?>
-                                                            <div class="user-avatar-small bg-primary bg-opacity-10 text-primary fw-bold" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                                            <div class="user-avatar-small ranking-avatar bg-primary bg-opacity-10 text-primary fw-bold">
                                                                 <?php echo strtoupper(substr($u['username'], 0, 1)); ?>
                                                             </div>
                                                         <?php endif; ?>
@@ -381,7 +401,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                             </div>
                         </div>
 
-                        <div class="col-xl-3 col-lg-4">
+                        <div class="col-xl-3 col-lg-4 ranking-sidebar">
                             <div id="rank-threshold" class="dashboard-panel mb-4 animate-in">
                                 <div class="panel-header mb-3">
                                     <h5 class="panel-title mb-0"><i class="bi bi-trophy me-2 text-primary"></i>Próg Rang</h5>
@@ -407,7 +427,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                 </div>
                             </div>
                             <!-- User Stats Widget -->
-                            <div class="dashboard-panel mb-4 animate-in" style="border-top: 4px solid var(--primary-color);">
+                            <div class="dashboard-panel mb-4 animate-in user-rank-widget" style="border-top: 4px solid var(--primary-color);">
                                 <div class="text-center py-2">
                                     <div class="display-5 fw-900 text-primary mb-0">#<?php echo $userRank; ?></div>
                                     <p class="text-muted fw-bold small text-uppercase letter-spacing-1">Twoja Pozycja</p>

@@ -141,6 +141,7 @@ $shareCardData = [
     'performanceLabel' => $performanceLabel,
     'subtitle' => $resultSubtitle,
     'modeName' => $modeInfo['name'],
+    'isHarvest' => ($mode === 'exam' && (int)$total_questions === 40 && (int)$time_spent <= 2400),
     'passLabel' => $passed ? 'Zaliczony' : 'Niezaliczony',
     'scorePercent' => (int)round($score_percent),
     'correctAnswers' => $correctAnswers,

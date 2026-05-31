@@ -10,35 +10,78 @@ document.addEventListener('DOMContentLoaded', () => {
   const teacherWrap = document.getElementById('teacherMotivationWrap');
   const teacherMotivation = document.getElementById('teacherMotivation');
   const teacherMotivationHelp = document.getElementById('teacherMotivationHelp');
+  const passwordRules = {
+    length: document.querySelector('[data-password-rule="length"]'),
+    lower: document.querySelector('[data-password-rule="lower"]'),
+    upper: document.querySelector('[data-password-rule="upper"]'),
+    digit: document.querySelector('[data-password-rule="digit"]'),
+    special: document.querySelector('[data-password-rule="special"]')
+  };
 
   if (passInput && bar) {
-    passInput.addEventListener('input', () => {
+    const syncPasswordRules = () => {
       const val = passInput.value;
+      const checks = {
+        length: val.length >= 6,
+        lower: /[a-z]/.test(val),
+        upper: /[A-Z]/.test(val),
+        digit: /[0-9]/.test(val),
+        special: /[^A-Za-z0-9]/.test(val)
+      };
       let score = 0;
-      if (val.length >= 10) score++;
-      if (/[a-z]/.test(val)) score++;
-      if (/[A-Z]/.test(val)) score++;
-      if (/[0-9]/.test(val)) score++;
-      if (/[^A-Za-z0-9]/.test(val)) score++;
-
+      Object.entries(checks).forEach(([key, met]) => {
+        if (met) score++;
+        const input = passwordRules[key];
+        if (!input) return;
+        input.checked = met;
+        input.closest('label')?.classList.toggle('is-met', met);
+      });
       const colors = ['#ef4444', '#ef4444', '#f59e0b', '#2563eb', '#10b981'];
       bar.style.width = `${Math.min(score, 5) * 20}%`;
       bar.style.backgroundColor = colors[score - 1] || 'transparent';
-    });
+    };
+    passInput.addEventListener('input', syncPasswordRules);
+    syncPasswordRules();
   }
+
+  const checkAvailability = (() => {
+    const timers = new Map();
+    return (type, value, target, localOk = true, localMessage = '') => {
+      clearTimeout(timers.get(type));
+      if (!target) return;
+      if (!value) {
+        target.textContent = type === 'username' ? 'Puste pole = login zostanie wygenerowany z imienia i nazwiska.' : '';
+        target.className = 'small mt-1 text-muted';
+        return;
+      }
+      if (!localOk) {
+        target.textContent = localMessage;
+        target.className = 'small mt-1 feedback-error';
+        return;
+      }
+      target.textContent = 'Sprawdzam dostępność...';
+      target.className = 'small mt-1 text-muted';
+      timers.set(type, setTimeout(async () => {
+        try {
+          const res = await fetch(`ajax/check_registration_availability.php?type=${encodeURIComponent(type)}&value=${encodeURIComponent(value)}`, { headers: { Accept: 'application/json' } });
+          const data = await res.json();
+          target.textContent = data.message || 'Nie udało się sprawdzić dostępności.';
+          target.className = data.ok && data.available ? 'small mt-1 feedback-ok' : 'small mt-1 feedback-error';
+        } catch (_) {
+          target.textContent = 'Nie udało się sprawdzić dostępności.';
+          target.className = 'small mt-1 feedback-error';
+        }
+      }, 260));
+    };
+  })();
 
   if (usernameInput && usernameFeedback) {
     usernameInput.addEventListener('input', () => {
       const username = usernameInput.value.trim();
-      if (!username) {
-        usernameFeedback.textContent = '';
-        usernameFeedback.className = 'small mt-1';
-        return;
-      }
       const ok = /^[A-Za-z0-9_.-]{3,16}$/.test(username);
-      usernameFeedback.textContent = ok ? 'Format loginu jest poprawny. Dostępność sprawdzimy po wysłaniu formularza.' : 'Login: 3-16 znaków, litery, cyfry, kropka, myślnik lub podkreślenie.';
-      usernameFeedback.className = ok ? 'small mt-1 feedback-ok' : 'small mt-1 feedback-error';
+      checkAvailability('username', username, usernameFeedback, ok, 'Login: 3-16 znaków, litery, cyfry, kropka, myślnik lub podkreślenie.');
     });
+    usernameInput.dispatchEvent(new Event('input'));
   }
 
   if (emailInput && emailFeedback) {
@@ -51,9 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const ok = acceptedDomains.includes(parts[1]);
-      emailFeedback.textContent = ok ? 'Domena e-mail jest akceptowana.' : 'Ta domena e-mail nie jest obsługiwana. Użyj innego adresu.';
-      emailFeedback.className = ok ? 'small mt-1 feedback-ok' : 'small mt-1 feedback-error';
+      checkAvailability('email', emailInput.value.trim(), emailFeedback, ok, 'Ta domena e-mail nie jest obsługiwana. Użyj innego adresu.');
     });
+    emailInput.dispatchEvent(new Event('input'));
   }
 
   if (classSuffix) {
@@ -69,8 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const words = teacherMotivation.value.match(wordRegex) || [];
       const longWord = words.find((word) => word.length > 20);
       if (words.length > 100) {
-        let kept = words.slice(0, 100).join(' ');
-        teacherMotivation.value = kept;
+        teacherMotivation.value = words.slice(0, 100).join(' ');
       }
       const nextWords = teacherMotivation.value.match(wordRegex) || [];
       const hasLongWord = nextWords.some((word) => word.length > 20) || !!longWord;

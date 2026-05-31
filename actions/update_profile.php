@@ -22,6 +22,26 @@ if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
 
 $userId = (int)$_SESSION['user_id'];
 ensurePlatformEnhancements($pdo);
+
+if (($_POST['action'] ?? '') === 'delete_avatar') {
+    try {
+        $stmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $oldAvatar = (string)($stmt->fetchColumn() ?: '');
+        $pdo->prepare("UPDATE users SET avatar_path = NULL WHERE id = ?")->execute([$userId]);
+        if ($oldAvatar !== '' && preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $oldAvatar)) {
+            $oldPath = dirname(__DIR__) . '/' . $oldAvatar;
+            if (is_file($oldPath)) @unlink($oldPath);
+        }
+        setSessionMessage('success', 'Zdjęcie profilowe zostało usunięte.');
+    } catch (PDOException $e) {
+        error_log('Avatar delete error: ' . $e->getMessage());
+        setSessionMessage('error', 'Nie udało się usunąć zdjęcia profilowego.');
+    }
+    header('Location: ' . $returnTarget);
+    exit;
+}
+
 $username = trim($_POST['username'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $classParts = normalizeClassParts($_POST['class_year'] ?? null, $_POST['class_suffix'] ?? '');

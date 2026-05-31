@@ -98,6 +98,7 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                             <div class="logic-toolbar">
                                 <button id="logicDemo" type="button" class="btn btn-sm btn-primary"><i class="bi bi-magic me-1"></i>Demo</button>
                                 <button id="logicReset" type="button" class="btn btn-sm btn-light border"><i class="bi bi-arrow-counterclockwise me-1"></i>Wyczyść</button>
+                                <button id="logicExportPdf" type="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-filetype-pdf me-1"></i>PDF</button>
                                 <span id="logicHint" class="small text-muted">Kliknij wyjście, potem wejście. Węzły można przeciągać.</span>
                             </div>
                             <div class="logic-canvas" id="logicBoard">
