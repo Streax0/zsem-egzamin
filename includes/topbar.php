@@ -155,6 +155,22 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
     </div>
 </header>
 
+<?php
+$isTeacherAreaTopbar = !$isGuestTopbar
+    && isset($_SESSION['user_id'])
+    && in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'], true)
+    && strpos(str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? ''), '/teacher/') !== false;
+if ($isTeacherAreaTopbar):
+?>
+<nav class="teacher-ops-strip" aria-label="Narzędzia sprawdzianów nauczyciela" data-teacher-ops-strip="1">
+    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/index.php"><i class="bi bi-speedometer2"></i>Panel</a>
+    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/create_exam.php"><i class="bi bi-plus-circle"></i>Online</a>
+    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/pdf_generator.php"><i class="bi bi-file-earmark-text"></i>Generator</a>
+    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/custom_exams.php"><i class="bi bi-collection"></i>Baza własna</a>
+    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/requests.php"><i class="bi bi-inbox"></i>Zgłoszenia</a>
+</nav>
+<?php endif; ?>
+
 <div class="modal fade app-status-modal" id="appStatusModal" tabindex="-1" aria-labelledby="appStatusModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

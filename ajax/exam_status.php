@@ -8,10 +8,7 @@ header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 startSecureSession();
 
-if (!isLoggedIn() && !isGuestMode()) {
-    echo json_encode(['error' => 'unauthorized']);
-    exit;
-}
+requireJsonLogin(true, [], ['error' => 'unauthorized'], ['error' => 'unauthorized']);
 
 $sessionId = (int)($_GET['session'] ?? 0);
 $lite = ($_GET['lite'] ?? '') === '1';

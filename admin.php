@@ -619,8 +619,11 @@ $adminKpis = [
     'users_total' => $totalUsers,
     'teachers' => 0,
     'admins' => 0,
+    'directors' => 0,
     'banned' => 0,
     'verified' => 0,
+    'unverified' => 0,
+    'recent_logins' => 0,
 ];
 try {
     $statsStmt = $pdo->query("
@@ -630,7 +633,9 @@ try {
             SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admins,
             SUM(CASE WHEN role = 'dyrektor' THEN 1 ELSE 0 END) AS directors,
             SUM(CASE WHEN is_banned = 1 THEN 1 ELSE 0 END) AS banned,
-            SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END) AS verified
+            SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END) AS verified,
+            SUM(CASE WHEN COALESCE(is_verified, 0) = 0 THEN 1 ELSE 0 END) AS unverified,
+            SUM(CASE WHEN last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) AS recent_logins
         FROM users
     ");
     $statsRow = $statsStmt ? $statsStmt->fetch(PDO::FETCH_ASSOC) : [];
@@ -640,6 +645,13 @@ try {
 } catch (PDOException $e) {
     $adminKpis['users_total'] = $totalUsers;
 }
+$adminOpsChecks = [
+    ['label' => 'Nowe zgłoszenia', 'value' => (int)$systemStats['reports_new'], 'status' => (int)$systemStats['reports_new'] > 0 ? 'action' : 'ok', 'href' => '#admin-system'],
+    ['label' => 'Otwarte wnioski', 'value' => (int)$systemStats['requests_open'], 'status' => (int)$systemStats['requests_open'] > 0 ? 'watch' : 'ok', 'href' => '#admin-requests'],
+    ['label' => 'Konta bez weryfikacji', 'value' => (int)$adminKpis['unverified'], 'status' => (int)$adminKpis['unverified'] > 0 ? 'watch' : 'ok', 'href' => '#admin-users'],
+    ['label' => 'Logowania 7 dni', 'value' => (int)$adminKpis['recent_logins'], 'status' => 'ok', 'href' => '#admin-users'],
+    ['label' => 'Aktywne eventy', 'value' => (int)$systemStats['events_active'], 'status' => (int)$systemStats['events_active'] > 0 ? 'ok' : 'idle', 'href' => '#admin-system'],
+];
 // Get flash message (compat with old string-style flash_message)
 $rawFlash = getSessionMessage();
 $flashMessage = '';
@@ -790,6 +802,43 @@ if (is_array($rawFlash)) {
             font-size: .82rem;
             margin-top: .3rem;
         }
+        .admin-ops-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: .75rem;
+            margin-bottom: 1.25rem;
+        }
+        .admin-ops-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .85rem;
+            padding: .9rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #d8e2ea;
+            background: #ffffff;
+            text-decoration: none;
+            color: #0f172a;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .04);
+        }
+        .admin-ops-item:hover {
+            color: #0f172a;
+            border-color: rgba(59, 130, 246, .35);
+            transform: translateY(-1px);
+        }
+        .admin-ops-value {
+            min-width: 42px;
+            height: 42px;
+            display: inline-grid;
+            place-items: center;
+            border-radius: 8px;
+            font-weight: 900;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .admin-ops-item.is-action .admin-ops-value { background: rgba(239, 68, 68, .12); color: #dc2626; }
+        .admin-ops-item.is-watch .admin-ops-value { background: rgba(234, 179, 8, .14); color: #b45309; }
+        .admin-ops-item.is-ok .admin-ops-value { background: rgba(34, 197, 94, .12); color: #15803d; }
         .admin-search-card {
             border: 1px solid #d8e2ea;
             background: #ffffff;
@@ -1327,6 +1376,14 @@ if (is_array($rawFlash)) {
         body.dark-mode .admin-tool-card.bg-light {
             background: #111827 !important;
         }
+        body.dark-mode .admin-ops-item {
+            background: #111827;
+            border-color: rgba(148, 163, 184, .24);
+            color: #f8fafc;
+        }
+        body.dark-mode .admin-ops-item:hover {
+            color: #f8fafc;
+        }
         body.dark-mode .rank-editor-row {
             background: rgba(15, 23, 42, .78);
             border-color: rgba(148, 163, 184, .24);
@@ -1372,6 +1429,9 @@ if (is_array($rawFlash)) {
                 padding: 1rem;
             }
             .admin-kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .admin-ops-strip {
                 grid-template-columns: 1fr;
             }
             .admin-table-title {
@@ -1448,6 +1508,18 @@ if (is_array($rawFlash)) {
                                 <div class="admin-kpi-label">nowych zgłoszeń</div>
                             </div>
                         </div>
+                    </section>
+
+                    <section class="admin-ops-strip animate-in" aria-label="Szybki stan operacyjny">
+                        <?php foreach ($adminOpsChecks as $check): ?>
+                            <a class="admin-ops-item is-<?php echo htmlspecialchars($check['status']); ?>" href="<?php echo htmlspecialchars($check['href']); ?>">
+                                <span>
+                                    <span class="d-block fw-bold"><?php echo htmlspecialchars($check['label']); ?></span>
+                                    <span class="small text-muted">Kliknij, aby przejÅ›Ä‡ do sekcji</span>
+                                </span>
+                                <span class="admin-ops-value"><?php echo (int)$check['value']; ?></span>
+                            </a>
+                        <?php endforeach; ?>
                     </section>
 
                     <?php if (!empty($flashMessage)): ?>

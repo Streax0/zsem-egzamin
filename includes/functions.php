@@ -1941,7 +1941,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
         'exam' => 'Egzamin',
         'practice' => 'Ćwiczenia',
         'single' => 'Jedno pytanie',
-        'exam_simulator' => 'Symulator egzaminu',
+        'exam_simulator' => 'Tryb CKE',
     ];
     foreach (getTestResults($pdo, $userId, $limit) as $row) {
         $mode = (string)($row['mode'] ?? $row['test_type'] ?? 'exam');
@@ -2881,7 +2881,7 @@ function getActiveTestSummary(?array $test): array {
         'exam' => 'Egzamin',
         'practice' => 'Ćwiczenia',
         'single' => 'Jedno pytanie',
-        'exam_simulator' => 'Symulator egzaminu',
+        'exam_simulator' => 'Tryb CKE',
     ];
     $mode = (string)($test['mode'] ?? 'exam');
     $config = is_array($test['config'] ?? null) ? $test['config'] : [];

@@ -6,10 +6,7 @@ require_once __DIR__ . '/../includes/auth.php';
 header('Content-Type: application/json');
 startSecureSession();
 
-if (!isLoggedIn() || !in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'])) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
+requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 
 $userId = $_SESSION['user_id'];
 

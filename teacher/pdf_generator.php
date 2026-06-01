@@ -427,7 +427,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
+        body.pdf-generator-page { font-family: 'Inter', system-ui, sans-serif; }
         .generator-shell { max-width: 1480px; margin: 0 auto; }
         .generator-title-row {
             display:flex;
@@ -478,6 +478,37 @@ $questionSelectorLimit = min(260, count($allQuestions));
         }
         .config-section { border-left:3px solid var(--bs-primary); padding-left:1rem; }
         .config-section h5 { color:var(--bs-primary); }
+        .generator-preset-row {
+            display:grid;
+            grid-template-columns:repeat(3,minmax(0,1fr));
+            gap:.75rem;
+        }
+        .generator-preset {
+            border:1px solid #dbe4f0;
+            border-radius:8px;
+            background:#fff;
+            padding:.75rem .9rem;
+            text-align:left;
+            transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        .generator-preset:hover {
+            transform:translateY(-1px);
+            border-color:#2563eb;
+            box-shadow:0 10px 24px rgba(15,23,42,.08);
+        }
+        .generator-preset strong { display:block; font-size:.92rem; }
+        .generator-preset span { display:block; color:#64748b; font-size:.78rem; margin-top:.2rem; }
+        .generator-live-estimate {
+            border:1px solid #dbe4f0;
+            border-radius:8px;
+            background:#f8fafc;
+            padding:.65rem .8rem;
+            font-size:.86rem;
+            color:#475569;
+        }
+        @media (max-width: 768px) {
+            .generator-preset-row { grid-template-columns:1fr; }
+        }
         .category-tools, .question-toolbar {
             display:flex;
             align-items:center;
@@ -632,14 +663,119 @@ $questionSelectorLimit = min(260, count($allQuestions));
         body.dark-mode .question-selector,
         body.dark-mode .txt-format-box,
         body.dark-mode .source-method-card,
+        body.dark-mode .generator-preset,
+        body.dark-mode .generator-live-estimate,
         body.dark-mode .manual-q-item {
             background:#111827 !important;
             border-color:rgba(148,163,184,.24) !important;
             color:#e5e7eb;
         }
+        body.dark-mode.pdf-generator-page {
+            --bs-body-bg:#0f172a;
+            --bs-body-color:#f8fafc;
+            --bs-secondary-bg:#0f172a;
+            --bs-tertiary-bg:#111827;
+            --bs-border-color:rgba(148,163,184,.38);
+            --bs-form-control-bg:#0f172a;
+        }
+        body.dark-mode .generator-title-row,
+        body.dark-mode .generator-title-row .text-muted,
+        body.dark-mode .generator-preset span,
+        body.dark-mode .source-method-card span {
+            color:#94a3b8 !important;
+        }
+        body.dark-mode .generator-preset strong,
+        body.dark-mode .source-method-card,
+        body.dark-mode .manual-q-item .fw-bold,
+        body.dark-mode .txt-format-box .fw-bold {
+            color:#f8fafc !important;
+        }
+        body.dark-mode .generator-preset:hover,
+        body.dark-mode .source-method-card:hover {
+            border-color:#60a5fa !important;
+            box-shadow:0 10px 24px rgba(0,0,0,.24);
+        }
+        body.dark-mode .nav-link.btn-outline-primary:not(.active) {
+            color:#dbeafe !important;
+            border-color:rgba(96,165,250,.42) !important;
+            background:rgba(15,23,42,.56) !important;
+        }
+        body.dark-mode.pdf-generator-page .form-control,
+        body.dark-mode.pdf-generator-page .form-select,
+        body.dark-mode.pdf-generator-page textarea {
+            background:#0f172a !important;
+            background-color:#0f172a !important;
+            border-color:rgba(148,163,184,.38) !important;
+            color:#f8fafc !important;
+            box-shadow:none !important;
+        }
+        body.dark-mode.pdf-generator-page input.form-control,
+        body.dark-mode.pdf-generator-page textarea.form-control {
+            appearance:none;
+            color-scheme:dark;
+            background-image:none !important;
+            -webkit-text-fill-color:#f8fafc !important;
+            box-shadow:0 0 0 1000px #0f172a inset !important;
+        }
+        body.dark-mode.pdf-generator-page input[type="number"].form-control,
+        body.dark-mode.pdf-generator-page input[type="text"].form-control {
+            background-color:#0f172a !important;
+            color:#f8fafc !important;
+        }
+        body.dark-mode.pdf-generator-page .form-control:focus,
+        body.dark-mode.pdf-generator-page .form-select:focus,
+        body.dark-mode.pdf-generator-page textarea:focus {
+            border-color:#60a5fa !important;
+            box-shadow:0 0 0 .2rem rgba(96,165,250,.18) !important;
+        }
+        body.dark-mode.pdf-generator-page .form-control::placeholder,
+        body.dark-mode.pdf-generator-page textarea::placeholder {
+            color:#94a3b8 !important;
+        }
+        body.dark-mode.pdf-generator-page .form-check-input:not(:checked) {
+            background-color:#e5e7eb;
+            border-color:#cbd5e1;
+        }
+        body.dark-mode .question-item {
+            border-color:rgba(148,163,184,.22) !important;
+        }
+        body.dark-mode .question-item:hover {
+            background:rgba(96,165,250,.10);
+        }
+        body.dark-mode .category-btn-wrapper label.btn-outline-primary {
+            color:#dbeafe;
+            border-color:rgba(96,165,250,.38);
+        }
         body.dark-mode .worksheet-page {
             background:#fff !important;
             color:#111827 !important;
+            border-color:#e5e7eb !important;
+            box-shadow:0 16px 38px rgba(0,0,0,.34);
+        }
+        body.dark-mode .worksheet-page,
+        body.dark-mode .worksheet-page h1,
+        body.dark-mode .worksheet-page h2,
+        body.dark-mode .worksheet-page h3,
+        body.dark-mode .worksheet-page p,
+        body.dark-mode .worksheet-page .fw-bold,
+        body.dark-mode .worksheet-page .worksheet-option,
+        body.dark-mode .worksheet-page .worksheet-meta div {
+            color:#111827 !important;
+        }
+        body.dark-mode .worksheet-page .text-muted,
+        body.dark-mode .worksheet-page .worksheet-footer {
+            color:#64748b !important;
+        }
+        body.dark-mode .worksheet-page .worksheet-brand-strip,
+        body.dark-mode .worksheet-page .worksheet-brand-strip *,
+        body.dark-mode .worksheet-page .worksheet-brand-mark {
+            color:#fff !important;
+        }
+        body.dark-mode .worksheet-page .worksheet-question,
+        body.dark-mode .worksheet-page .worksheet-option,
+        body.dark-mode .worksheet-page .worksheet-meta div {
+            background:#fff !important;
+            border-color:#d1d5db !important;
         }
         @media (max-width: 767.98px) {
             .generator-title-row { align-items:flex-start; }
@@ -710,7 +846,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
         img { max-width:100%; max-height:220px; height:auto; }
     </style>
 </head>
-<body>
+<body class="pdf-generator-page">
 <div class="dashboard-layout">
     <?php include '../includes/sidebar.php'; ?>
     <div class="main-container">
@@ -790,6 +926,25 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                             <label class="form-check-label" for="showExplanations">Wyjaśnienia w kluczu</label>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="generator-preset-row" aria-label="Szybkie presety generatora">
+                                        <button type="button" class="generator-preset" data-generator-preset data-count="20" data-groups="1" data-strategy="same" data-title="Kartkówka CKE">
+                                            <strong><i class="bi bi-lightning-charge me-1 text-warning"></i>Kartkówka</strong>
+                                            <span>20 pytań, 1 grupa, szybki druk.</span>
+                                        </button>
+                                        <button type="button" class="generator-preset" data-generator-preset data-count="40" data-groups="2" data-strategy="rotate" data-title="Sprawdzian CKE">
+                                            <strong><i class="bi bi-shuffle me-1 text-primary"></i>Sprawdzian</strong>
+                                            <span>40 pytań, 2 grupy, rotacja kolejności.</span>
+                                        </button>
+                                        <button type="button" class="generator-preset" data-generator-preset data-count="60" data-groups="3" data-strategy="unique" data-title="Próbny egzamin zawodowy">
+                                            <strong><i class="bi bi-mortarboard me-1 text-success"></i>Egzamin próbny</strong>
+                                            <span>60 pytań, 3 grupy, różne zestawy.</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="generator-live-estimate" id="worksheetEstimate" aria-live="polite"></div>
                                 </div>
                             </div>
                         </div>
@@ -1227,6 +1382,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (manualCount === 0) addManualQuestion();
     });
     if (generatorMode?.value === 'manual' && manualCount === 0) addManualQuestion();
+
+    function syncWorksheetEstimate() {
+        const questionCount = Math.max(1, Math.min(120, Number(byId('questionCountInput')?.value || 0)));
+        const groupCount = Math.max(1, Math.min(10, Number(byId('groupCountInput')?.value || 0)));
+        const strategy = byId('groupStrategy')?.value || 'unique';
+        const estimate = byId('worksheetEstimate');
+        if (!estimate) return;
+        const pages = Math.max(1, Math.ceil((questionCount * groupCount) / 12));
+        const modeLabel = strategy === 'same' ? 'ten sam zestaw' : (strategy === 'rotate' ? 'rotacja kolejności' : 'różne zestawy');
+        estimate.innerHTML = `<i class="bi bi-speedometer2 me-1"></i>Podgląd: ${questionCount} pytań x ${groupCount} grup, ${modeLabel}. Szacowany druk: ok. ${pages} stron.`;
+    }
+
+    document.querySelectorAll('[data-generator-preset]').forEach(button => {
+        button.addEventListener('click', () => {
+            const titleInput = byId('title');
+            if (titleInput && !titleInput.value.trim()) titleInput.value = button.dataset.title || '';
+            if (byId('questionCountInput')) byId('questionCountInput').value = button.dataset.count || '40';
+            if (byId('groupCountInput')) byId('groupCountInput').value = button.dataset.groups || '1';
+            if (byId('groupStrategy')) byId('groupStrategy').value = button.dataset.strategy || 'unique';
+            if (byId('shuffleQuestions')) byId('shuffleQuestions').checked = true;
+            syncWorksheetEstimate();
+        });
+    });
+    ['questionCountInput', 'groupCountInput', 'groupStrategy'].forEach(id => {
+        byId(id)?.addEventListener('input', syncWorksheetEstimate);
+        byId(id)?.addEventListener('change', syncWorksheetEstimate);
+    });
+    syncWorksheetEstimate();
 });
 
 function printWorksheet() {

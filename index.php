@@ -277,7 +277,7 @@ try {
                             'exam' => ['label' => 'Egzamin', 'color' => 'danger'],
                             'practice' => ['label' => 'Ćwiczenia', 'color' => 'success'],
                             'single' => ['label' => 'Pojedyncze', 'color' => 'info'],
-                            'exam_simulator' => ['label' => 'Symulator egzaminu', 'color' => 'primary'],
+                            'exam_simulator' => ['label' => 'Tryb CKE', 'color' => 'primary'],
                             'duel' => ['label' => 'Pojedynek', 'color' => 'warning'],
                             'exam_session' => ['label' => 'Sprawdzian', 'color' => 'primary'],
                         ];

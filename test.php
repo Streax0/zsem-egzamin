@@ -1719,7 +1719,7 @@ if ($test) {
     <div class="dashboard-panel animate-in premium-setup-container">
         <div class="panel-header border-bottom pb-3 mb-4">
             <h3 class="mb-2 fw-extrabold text-primary d-flex align-items-center gap-2">
-                <i class="bi bi-pc-display-horizontal"></i>Symulator egzaminu
+                <i class="bi bi-pc-display-horizontal"></i>Tryb CKE
             </h3>
             <p class="text-muted mb-0">Oficjalny tryb: 40 pytan, 60 minut, prog 20 poprawnych odpowiedzi.</p>
         </div>
@@ -1824,11 +1824,11 @@ if ($test) {
                     <a href="test.php?mode=exam_simulator&setup=1&new=1" class="exam-sim-launch-card">
                         <span>
                             <span class="d-flex align-items-center gap-2 fw-bold fs-5">
-                                Tryb testu CKZ - symulator egzaminu
+                                Tryb testu CKE - symulator egzaminu
                                 <i class="bi bi-info-circle-fill fs-6"></i>
                             </span>
                             <span class="d-block text-muted mt-1">
-                                Wlacz, aby rozwiazac egzamin w wygladzie zblizonym do oficjalnego systemu egzaminacyjnego CKZ.
+                                Wlacz, aby rozwiazac egzamin w wygladzie zblizonym do oficjalnego systemu egzaminacyjnego CKE.
                             </span>
                         </span>
                         <span class="exam-sim-action-icon"><i class="bi bi-play-fill"></i></span>

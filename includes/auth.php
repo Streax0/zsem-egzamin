@@ -341,14 +341,22 @@ function syncSessionUserRole() {
     }
 }
 
-function requireJsonLogin(bool $allowGuest = false, array $roles = []): void {
+function requireJsonLogin(
+    bool $allowGuest = false,
+    array $roles = [],
+    ?array $unauthorizedPayload = null,
+    ?array $forbiddenPayload = null
+): void {
+    $unauthorizedPayload = $unauthorizedPayload ?? ['success' => false, 'error' => 'Unauthorized'];
+    $forbiddenPayload = $forbiddenPayload ?? ['success' => false, 'error' => 'Forbidden'];
+
     if ($allowGuest && isGuestMode()) {
         return;
     }
 
     if (!isLoggedIn()) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        echo json_encode($unauthorizedPayload);
         exit;
     }
 
@@ -367,7 +375,7 @@ function requireJsonLogin(bool $allowGuest = false, array $roles = []): void {
                     session_destroy();
                 }
                 http_response_code(401);
-                echo json_encode(['success' => false, 'error' => 'Session expired']);
+                echo json_encode($unauthorizedPayload);
                 exit;
             }
 
@@ -382,13 +390,13 @@ function requireJsonLogin(bool $allowGuest = false, array $roles = []): void {
 
     if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'MFA required']);
+        echo json_encode($forbiddenPayload);
         exit;
     }
 
     if ($roles && !in_array($_SESSION['role'] ?? 'user', $roles, true)) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'Forbidden']);
+        echo json_encode($forbiddenPayload);
         exit;
     }
 }

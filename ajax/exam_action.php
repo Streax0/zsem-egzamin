@@ -8,7 +8,7 @@ startSecureSession();
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-requireJsonLogin();
+requireJsonLogin(false, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
 requireJsonCsrfToken();
 

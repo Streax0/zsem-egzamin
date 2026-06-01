@@ -6,7 +6,7 @@ require_once '../includes/auth.php';
 header('Content-Type: application/json');
 startSecureSession();
 
-requireJsonLogin(true);
+requireJsonLogin(true, [], ['error' => 'unauthorized'], ['error' => 'unauthorized']);
 
 requireJsonCsrfToken();
 

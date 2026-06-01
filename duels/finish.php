@@ -6,11 +6,8 @@ require_once '../includes/functions.php';
 
 header('Content-Type: application/json');
 startSecureSession();
+requireJsonLogin(false, [], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 ensureDuelModeColumns($pdo);
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
 
 $userId = $_SESSION['user_id'];
 

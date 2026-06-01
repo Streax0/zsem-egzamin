@@ -4,10 +4,14 @@ require_once '../includes/session.php';
 require_once '../includes/auth.php';
 
 startSecureSession();
-requireLogin();
 
 $wantsJson = stripos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false
     || strcasecmp($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '', 'XMLHttpRequest') === 0;
+if ($wantsJson) {
+    requireJsonLogin(false, [], ['ok' => false, 'error' => 'unauthorized'], ['ok' => false, 'error' => 'unauthorized']);
+} else {
+    requireLogin();
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? '', 'notifications')) {
     if ($wantsJson) {

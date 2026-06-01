@@ -8,10 +8,7 @@ startSecureSession();
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-if (!in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'])) {
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
-}
+requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
 $sessionId = (int)($_GET['session_id'] ?? 0);
 $scope = $_GET['scope'] ?? 'full';

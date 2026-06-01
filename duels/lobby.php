@@ -5,7 +5,11 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-requireLogin();
+if (isset($_GET['ajax_status'])) {
+    requireJsonLogin(false, [], ['status' => 'unauthorized', 'expires_at' => null], ['status' => 'unauthorized', 'expires_at' => null]);
+} else {
+    requireLogin();
+}
 ensureDuelModeColumns($pdo);
 
 $myId = $_SESSION['user_id'];

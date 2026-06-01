@@ -10,6 +10,7 @@ if (!isLoggedIn()) {
     echo json_encode(['used' => 0]);
     exit;
 }
+requireJsonLogin(false, [], ['used' => 0], ['used' => 0]);
 
 $userId = $_SESSION['user_id'];
 $today = date('Y-m-d');

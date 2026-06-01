@@ -141,6 +141,57 @@ h1, h2, h3, h4, h5, h6 {
   overflow: visible;
 }
 
+.teacher-ops-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+}
+
+.teacher-ops-strip a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 34px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #dbe4f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.teacher-ops-strip a:hover {
+  transform: translateY(-1px);
+  border-color: #2563eb;
+  color: #1d4ed8;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+body.dark-mode .teacher-ops-strip {
+  background: rgba(15, 23, 42, 0.94);
+  border-color: rgba(148, 163, 184, 0.24);
+}
+
+body.dark-mode .teacher-ops-strip a {
+  background: rgba(30, 41, 59, 0.92);
+  border-color: rgba(148, 163, 184, 0.26);
+  color: #e5e7eb;
+}
+
+body.dark-mode .teacher-ops-strip a:hover {
+  border-color: #60a5fa;
+  color: #bfdbfe;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+}
+
 .topbar-actions {
   display: flex;
   align-items: center;

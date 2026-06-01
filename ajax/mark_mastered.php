@@ -6,7 +6,7 @@ require_once '../includes/auth.php';
 header('Content-Type: application/json');
 
 startSecureSession();
-requireJsonLogin();
+requireJsonLogin(false, [], ['success' => false, 'error' => 'Not authenticated'], ['success' => false, 'error' => 'Not authenticated']);
 
 $userId = $_SESSION['user_id'];
 

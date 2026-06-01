@@ -316,6 +316,124 @@ def test_director_role_permissions() -> None:
     assert "['admin', 'dyrektor', 'wujek_luki']" not in read("luki_panel.php")
 
 
+def test_cke_mode_labels_and_no_ckz_copy() -> None:
+    combined = "\n".join(
+        path.read_text(encoding="utf-8", errors="ignore")
+        for path in ROOT.rglob("*")
+        if path.suffix.lower() in {".php", ".js", ".css"}
+        and not path.relative_to(ROOT).as_posix().startswith(("tests/", "scratch/"))
+    )
+    assert "CKZ" not in combined and "ckz" not in combined.lower(), "CKZ copy remains in app code"
+    assert_contains("includes/functions.php", "'exam_simulator' => 'Tryb CKE'")
+    assert_contains("result.php", "'exam_simulator' => ['name' => 'Tryb CKE'")
+    assert_contains("index.php", "'exam_simulator' => ['label' => 'Tryb CKE'")
+    assert_contains("test.php", "Tryb testu CKE", "Tryb CKE")
+
+
+def test_external_cdn_resources_have_sri() -> None:
+    missing = []
+    for path in ROOT.rglob("*.php"):
+        rel = path.relative_to(ROOT).as_posix()
+        content = path.read_text(encoding="utf-8", errors="ignore")
+        for match in re.finditer(r"<(?:script|link)\b[^>]+https://[^>]+>", content, re.I):
+            tag = match.group(0)
+            if any(allowed in tag for allowed in ("fonts.googleapis.com", "fonts.gstatic.com", "api.qrserver.com")):
+                continue
+            if "preconnect" in tag or "workerSrc" in tag:
+                continue
+            if "integrity=" not in tag or "crossorigin=" not in tag:
+                missing.append(f"{rel}: {tag[:140]}")
+    assert not missing, "external CDN resources without SRI: " + "; ".join(missing)
+
+
+def test_json_session_guards_cover_private_endpoints() -> None:
+    guarded = [
+        "actions/mark_read.php",
+        "ajax/check_unranked.php",
+        "ajax/duel_respond.php",
+        "ajax/exam_action.php",
+        "ajax/exam_status.php",
+        "ajax/exam_violation.php",
+        "ajax/extend_session.php",
+        "ajax/get_session_status.php",
+        "ajax/mark_mastered.php",
+        "ajax/notifications_feed.php",
+        "ajax/quiz_action.php",
+        "ajax/search_users_live.php",
+        "ajax/send_warning.php",
+        "ajax/session_status.php",
+        "ajax/teacher_status.php",
+        "ajax/update_bio.php",
+        "duels/finish.php",
+        "duels/lobby.php",
+        "duels/results.php",
+        "duels/save_answer.php",
+    ]
+    for path in guarded:
+        assert_contains(path, "requireJsonLogin(")
+
+
+def test_admin_and_luki_expanded_operational_panels() -> None:
+    assert_contains(
+        "admin.php",
+        "admin-ops-strip",
+        "Konta bez weryfikacji",
+        "Logowania 7 dni",
+        "recent_logins",
+        "adminOpsChecks",
+    )
+    assert_contains(
+        "luki_panel.php",
+        "Tydzień losu",
+        "luki-risk-meter",
+        "weeklySpinCount",
+        "riskScore",
+        "Ostatni spin",
+    )
+
+
+def test_release_teacher_generator_luki_v17_surface() -> None:
+    assert_contains(
+        "settings.php",
+        "1.7 BETA BUG + SEC FIX",
+        "settings-overview-grid",
+        "settings-switch-grid",
+        "settings-release-grid",
+        "SEC FIX: mocniejsze gardy AJAX",
+    )
+    assert_contains(
+        "includes/topbar.php",
+        "data-teacher-ops-strip",
+        "teacher/pdf_generator.php",
+        "teacher/custom_exams.php",
+    )
+    assert_contains(
+        "assets/css/dashboard-new.css",
+        ".teacher-ops-strip",
+        "border-radius: 8px",
+    )
+    assert_contains(
+        "teacher/pdf_generator.php",
+        "pdf-generator-page",
+        "data-generator-preset",
+        "worksheetEstimate",
+        "syncWorksheetEstimate",
+        "body.dark-mode .worksheet-page .fw-bold",
+        "body.dark-mode .generator-preset",
+        "body.dark-mode.pdf-generator-page .form-control",
+        "Próbny egzamin zawodowy",
+    )
+    assert_contains(
+        "luki_panel.php",
+        "'archetype' => 'forge'",
+        "'archetype' => 'mirror'",
+        "'archetype' => 'archive'",
+        "Zakonnica Kuźni",
+        "Zakonnica Lustra",
+        "Zakonnica Archiwum",
+    )
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

@@ -52,6 +52,12 @@ try {
 } catch (PDOException $e) {
     $mfaEnabled = false;
 }
+$settingsHealth = [
+    ['icon' => 'bi-person-check', 'label' => 'Profil', 'value' => ($username !== '' && $email !== '') ? 'OK' : 'Uzupełnij'],
+    ['icon' => 'bi-shield-lock', 'label' => 'Bezpieczeństwo', 'value' => $mfaEnabled ? 'MFA' : ($canUseMfa ? 'MFA opcj.' : 'Hasło')],
+    ['icon' => 'bi-palette', 'label' => 'Motyw', 'value' => $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'],
+    ['icon' => 'bi-sliders', 'label' => 'Interfejs', 'value' => $currentDensity === 'compact' ? 'Kompakt' : 'Wygodny'],
+];
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -73,9 +79,47 @@ try {
             display: grid;
             gap: .85rem;
         }
+        .settings-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: .85rem;
+        }
+        .settings-overview-card {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            border: 1px solid rgba(148, 163, 184, .24);
+            border-radius: 8px;
+            padding: .85rem;
+            background: linear-gradient(180deg, #fff, #f8fafc);
+            min-height: 78px;
+        }
+        .settings-overview-card i {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            background: rgba(37, 99, 235, .10);
+            color: #2563eb;
+            font-size: 1.1rem;
+            flex: 0 0 auto;
+        }
+        .settings-overview-card span {
+            display: block;
+            color: #64748b;
+            font-size: .78rem;
+            font-weight: 700;
+        }
+        .settings-overview-card strong {
+            display: block;
+            color: #0f172a;
+            font-size: .95rem;
+            line-height: 1.2;
+        }
         .settings-status-card {
             border: 1px solid rgba(37, 99, 235, .14);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 1rem;
             background: linear-gradient(135deg, #ffffff, #f8fbff);
             box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
@@ -101,13 +145,91 @@ try {
         .settings-status-meta {
             color: #64748b;
         }
+        .settings-release-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: .5rem;
+        }
+        .settings-release-grid span {
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+            border: 1px solid rgba(59, 130, 246, .18);
+            border-radius: 8px;
+            padding: .55rem .65rem;
+            background: #f8fafc;
+            color: #1e293b;
+            font-size: .82rem;
+            font-weight: 700;
+        }
+        .settings-release-grid span i {
+            color: #2563eb;
+            flex: 0 0 auto;
+        }
+        .settings-preference-stack {
+            display: grid;
+            gap: 1rem;
+        }
+        .settings-preference-box {
+            border: 1px solid rgba(148, 163, 184, .22);
+            border-radius: 8px;
+            padding: .85rem;
+            background: rgba(248, 250, 252, .72);
+        }
+        .settings-switch-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: .55rem;
+        }
+        .settings-switch-grid .form-check {
+            border: 1px solid rgba(148, 163, 184, .22);
+            border-radius: 8px;
+            padding: .65rem .8rem .65rem 2.75rem;
+            background: rgba(248, 250, 252, .72);
+            margin: 0 !important;
+        }
+        body.dark-mode .settings-overview-card,
+        body.dark-mode .settings-preference-box,
+        body.dark-mode .settings-switch-grid .form-check {
+            background: rgba(15, 23, 42, .82);
+            border-color: rgba(148, 163, 184, .24);
+            color: #e5e7eb;
+        }
+        body.dark-mode .settings-overview-card strong {
+            color: #f8fafc;
+        }
+        body.dark-mode .settings-overview-card span {
+            color: #94a3b8;
+        }
+        body.dark-mode .settings-overview-card i {
+            background: rgba(96, 165, 250, .16);
+            color: #bfdbfe;
+        }
         body.dark-mode .settings-status-card {
             background: #111827;
             border-color: rgba(148, 163, 184, .24);
             box-shadow: none;
         }
+        body.dark-mode .settings-release-grid span {
+            background: rgba(15, 23, 42, .82);
+            border-color: rgba(96, 165, 250, .22);
+            color: #f8fafc;
+        }
+        body.dark-mode .settings-release-grid span i {
+            color: #93c5fd;
+        }
         body.dark-mode .settings-status-body {
             color: #f8fafc;
+        }
+        @media (max-width: 991.98px) {
+            .settings-overview-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 575.98px) {
+            .settings-overview-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -130,6 +252,18 @@ try {
                             </div>
                             <a href="profile.php" class="btn btn-outline-primary rounded-pill px-4"><i class="bi bi-person me-1"></i>Profil</a>
                         </div>
+                    </div>
+
+                    <div class="settings-overview-grid mb-4 animate-in" aria-label="Szybki stan ustawień">
+                        <?php foreach ($settingsHealth as $item): ?>
+                            <div class="settings-overview-card">
+                                <i class="bi <?php echo htmlspecialchars($item['icon']); ?>"></i>
+                                <div>
+                                    <span><?php echo htmlspecialchars($item['label']); ?></span>
+                                    <strong><?php echo htmlspecialchars($item['value']); ?></strong>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
 
                     <?php if ($flashMsg): ?>
@@ -398,6 +532,7 @@ try {
                                     </select>
                                 </div>
 
+                                <div class="settings-switch-grid mb-4">
                                 <div class="form-check form-switch mb-3">
                                     <input class="form-check-input" type="checkbox" id="notifySwitch" onchange="localStorage.setItem('notify_new_tests', this.checked ? '1' : '0')">
                                     <label class="form-check-label" for="notifySwitch">Powiadomienia o nowych testach</label>
@@ -421,6 +556,8 @@ try {
                                 <div class="form-check form-switch mb-3">
                                      <input class="form-check-input" type="checkbox" id="helpCenterSwitch" <?php echo $hideHelpCenter ? 'checked' : ''; ?> onchange="setPreferenceCookie('hide_help_center', this.checked ? '1' : '0'); setTimeout(() => location.reload(), 150);">
                                      <label class="form-check-label" for="helpCenterSwitch">Ukryj Centrum Pomocy (pływający przycisk)</label>
+                                </div>
+
                                 </div>
 
                                 <div class="settings-mini-grid mb-4">
@@ -448,7 +585,7 @@ try {
                                 <div class="small">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Wersja aplikacji:</span>
-                                        <span class="fw-bold">1.6 BETA BUGFIX</span>
+                                        <span class="fw-bold">1.7 BETA BUG + SEC FIX</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">ID Użytkownika:</span>
@@ -458,6 +595,11 @@ try {
                                         <span class="text-muted">Ostatnie logowanie:</span>
                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                     </div>
+                                </div>
+                                <div class="settings-release-grid mt-3" aria-label="Zmiany wersji 1.7 BETA">
+                                    <span><i class="bi bi-shield-check"></i> SEC FIX: mocniejsze gardy AJAX</span>
+                                    <span><i class="bi bi-bug"></i> BUG FIX: stabilniejsze sesje</span>
+                                    <span><i class="bi bi-file-earmark-check"></i> Generator i sprawdziany nauczyciela</span>
                                 </div>
                             </div>
 

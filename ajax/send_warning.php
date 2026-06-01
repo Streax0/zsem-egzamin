@@ -7,7 +7,7 @@ require_once '../includes/functions.php';
 header('Content-Type: application/json');
 
 startSecureSession();
-requireJsonLogin(false, ['teacher', 'admin', 'dyrektor']);
+requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireJsonCsrfToken();

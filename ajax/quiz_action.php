@@ -7,14 +7,11 @@ require_once '../includes/functions.php';
 startSecureSession();
 header('Content-Type: application/json');
 
+requireJsonLogin(true, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
+
 $ajaxUserId = (int)($_SESSION['user_id'] ?? 0);
 if ($ajaxUserId > 0) {
     restoreActiveTestForUser($pdo, $ajaxUserId);
-}
-
-if (!isLoggedIn() && !isGuestMode()) {
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
 }
 
 requireJsonCsrfToken();

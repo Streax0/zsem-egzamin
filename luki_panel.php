@@ -112,6 +112,19 @@ function lukiPickOutcome(PDO $pdo, int $userId, int $currentXp): array {
         return ['archetype' => 'fate', 'label' => 'Zakonnica Przeznaczenia', 'xp' => $xp, 'note' => 'Przeznaczenie wymieszało losy — wynik może być zarówno dobry, jak i trudny.'];
     }
 
+    if ($roll <= 9750) {
+        $xp = [120, 180, 240, 320][random_int(0, 3)];
+        return ['archetype' => 'forge', 'label' => 'Zakonnica Kuźni', 'xp' => $xp, 'note' => 'Kuźnia wzmocniła progres bez ryzyka utraty serii.'];
+    }
+    if ($roll <= 9870) {
+        $xp = [-220, -120, 120, 220][random_int(0, 3)];
+        return ['archetype' => 'mirror', 'label' => 'Zakonnica Lustra', 'xp' => $xp, 'note' => 'Lustro odbiło los: wynik jest krótki, mocny i symetryczny.'];
+    }
+    if ($roll <= 9950) {
+        $xp = [0, 90, 180][random_int(0, 2)];
+        return ['archetype' => 'archive', 'label' => 'Zakonnica Archiwum', 'xp' => $xp, 'note' => 'Archiwum zachowało stabilność i dopisało ostrożny bonus.'];
+    }
+
     $stmt = $pdo->prepare("SELECT xp_delta FROM luki_spins WHERE user_id = ? ORDER BY created_at DESC LIMIT 1");
     $stmt->execute([$userId]);
     $previous = $stmt->fetchColumn();
@@ -203,6 +216,24 @@ $stmt = $pdo->prepare("SELECT * FROM luki_spins WHERE user_id = ? ORDER BY creat
 $stmt->execute([$userId]);
 $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$stmt = $pdo->prepare("
+    SELECT
+        COUNT(*) AS spin_count,
+        COALESCE(SUM(xp_delta), 0) AS xp_balance,
+        COALESCE(MAX(xp_delta), 0) AS best_spin,
+        COALESCE(MIN(xp_delta), 0) AS worst_spin,
+        MAX(created_at) AS last_spin_at
+    FROM luki_spins
+    WHERE user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+");
+$stmt->execute([$userId]);
+$weekly = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+$weeklySpinCount = (int)($weekly['spin_count'] ?? 0);
+$weeklyBalance = (int)($weekly['xp_balance'] ?? 0);
+$weeklyBest = (int)($weekly['best_spin'] ?? 0);
+$weeklyWorst = (int)($weekly['worst_spin'] ?? 0);
+$lastSpinAt = !empty($weekly['last_spin_at']) ? date('d.m H:i', strtotime((string)$weekly['last_spin_at'])) : 'brak';
+
 $positive = $neutral = $negative = 0;
 foreach ($history as $entry) {
     if ((int)$entry['xp_delta'] > 0) $positive++;
@@ -213,6 +244,9 @@ $totalHistory = max(1, count($history));
 $luckBalance = array_sum(array_map(fn($row) => (int)$row['xp_delta'], $history));
 $luckTrend = $luckBalance > 0 ? 'Szczęście rośnie' : ($luckBalance < 0 ? 'System testuje cierpliwość' : 'Równowaga systemu');
 
+$riskScore = min(100, max(0, 40 + ($negative * 12) - ($positive * 6) + ($weeklyWorst < -300 ? 18 : 0)));
+$riskLabel = $riskScore >= 70 ? 'Wysokie ryzyko' : ($riskScore >= 45 ? 'Ryzyko umiarkowane' : 'Stabilny profil');
+
 $segments = [
     ['key' => 'blessing', 'name' => 'Błogosławieństwo', 'icon' => 'bi-plus-circle-fill', 'color' => '#22c55e'],
     ['key' => 'abundance', 'name' => 'Obfitość', 'icon' => 'bi-gem', 'color' => '#f59e0b'],
@@ -222,6 +256,9 @@ $segments = [
     ['key' => 'trial', 'name' => 'Próba', 'icon' => 'bi-dash-circle-fill', 'color' => '#ef4444'],
     ['key' => 'judge', 'name' => 'Sędzia', 'icon' => 'bi-exclamation-triangle-fill', 'color' => '#a21caf'],
     ['key' => 'fate', 'name' => 'Przeznaczenie', 'icon' => 'bi-shuffle', 'color' => '#0ea5e9'],
+    ['key' => 'forge', 'name' => 'Kuźnia', 'icon' => 'bi-hammer', 'color' => '#f97316'],
+    ['key' => 'mirror', 'name' => 'Lustro', 'icon' => 'bi-symmetry-horizontal', 'color' => '#14b8a6'],
+    ['key' => 'archive', 'name' => 'Archiwum', 'icon' => 'bi-archive-fill', 'color' => '#6366f1'],
     ['key' => 'oracle', 'name' => 'Los', 'icon' => 'bi-bullseye', 'color' => '#06b6d4'],
     ['key' => 'void', 'name' => 'Nicość', 'icon' => 'bi-moon-stars-fill', 'color' => '#020617'],
 ];
@@ -583,6 +620,10 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
         .chronicle-item:last-child { border-bottom:0; }
         .trend-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:.75rem; }
         .trend-box { padding:.75rem; border-radius:16px; background:#f8fafc; text-align:center; }
+        .luki-week-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:.75rem; }
+        .luki-week-box { border-radius:16px; background:#f8fafc; padding:.85rem; }
+        .luki-risk-meter { height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+        .luki-risk-meter span { display:block; height:100%; width: var(--risk); background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444); }
         .luki-legend {
             display: grid;
             grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -616,7 +657,7 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
         }
         .status-row:last-child { border-bottom: 0; }
         body.dark-mode .luki-spin-card, body.dark-mode .luki-card { background:#1e293b; color:#e5e7eb; border-color:rgba(148,163,184,.24); }
-        body.dark-mode .trend-box { background:#0f172a; }
+        body.dark-mode .trend-box, body.dark-mode .luki-week-box { background:#0f172a; }
         body.dark-mode .legend-pill, body.dark-mode .wheel-label, body.dark-mode .luki-motif { background:#0f172a; color:#e5e7eb; border-color:rgba(148,163,184,.25); }
         @media (max-width: 1199.98px) { .luki-legend { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @media (max-width: 991.98px) {
@@ -682,6 +723,9 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                                     <span class="zakonnica-guard"><i class="bi bi-moon-stars-fill"></i><small>Zakonnica Nicości</small></span>
                                     <span class="zakonnica-guard"><i class="bi bi-stars"></i><small>Zakonnica Gwiazd</small></span>
                                     <span class="zakonnica-guard"><i class="bi bi-award-fill"></i><small>Zakonnica Przeznaczenia</small></span>
+                                    <span class="zakonnica-guard"><i class="bi bi-hammer"></i><small>Zakonnica Kuźni</small></span>
+                                    <span class="zakonnica-guard"><i class="bi bi-symmetry-horizontal"></i><small>Zakonnica Lustra</small></span>
+                                    <span class="zakonnica-guard"><i class="bi bi-archive-fill"></i><small>Zakonnica Archiwum</small></span>
                                 </div>
 
                             <form method="POST" class="text-center spin-actions">
@@ -729,6 +773,7 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                             <div class="status-row"><span>Limit spinów</span><strong><?php echo $isAdmin ? 'Bez limitu' : '2 dziennie'; ?></strong></div>
                             <div class="status-row"><span>Testy dziś</span><strong><?php echo (int)$activity['tests_today']; ?></strong></div>
                             <div class="status-row"><span>Streak aktywności</span><strong><?php echo (int)$activity['streak']; ?> dni</strong></div>
+                            <div class="status-row"><span>Ostatni spin</span><strong><?php echo htmlspecialchars($lastSpinAt); ?></strong></div>
                         </div>
 
                         <?php if ($spinResult): ?>
@@ -751,6 +796,21 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                             </div>
                             <div class="fw-bold"><?php echo htmlspecialchars($luckTrend); ?></div>
                             <div class="small text-muted">Bilans ostatnich spinów: <?php echo $luckBalance > 0 ? '+' : ''; ?><?php echo (int)$luckBalance; ?> XP</div>
+                        </div>
+
+                        <div class="luki-card p-4">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2 text-info"></i>Tydzień losu</h5>
+                            <div class="luki-week-grid mb-3">
+                                <div class="luki-week-box"><strong><?php echo (int)$weeklySpinCount; ?></strong><div class="small text-muted">spinów 7 dni</div></div>
+                                <div class="luki-week-box"><strong><?php echo $weeklyBalance > 0 ? '+' : ''; ?><?php echo (int)$weeklyBalance; ?> XP</strong><div class="small text-muted">bilans tygodnia</div></div>
+                                <div class="luki-week-box"><strong><?php echo $weeklyBest > 0 ? '+' : ''; ?><?php echo (int)$weeklyBest; ?></strong><div class="small text-muted">najlepszy spin</div></div>
+                                <div class="luki-week-box"><strong><?php echo (int)$weeklyWorst; ?></strong><div class="small text-muted">najgorszy spin</div></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold"><?php echo htmlspecialchars($riskLabel); ?></span>
+                                <span class="small text-muted"><?php echo (int)$riskScore; ?>/100</span>
+                            </div>
+                            <div class="luki-risk-meter" style="--risk: <?php echo (int)$riskScore; ?>%;"><span></span></div>
                         </div>
 
                         <div class="luki-card p-4">
