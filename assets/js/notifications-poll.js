@@ -69,7 +69,7 @@
                         });
                         const data = await response.json();
                         if (!data.success) {
-                            window.alert(data.message || 'Nie udało się przetworzyć wyzwania.');
+                            window.appNotice?.(data.message || 'Nie udało się przetworzyć wyzwania.', 'danger');
                             button.disabled = false;
                             return;
                         }
@@ -79,7 +79,7 @@
                         }
                         refreshNotifications();
                     } catch (error) {
-                        window.alert('Błąd połączenia. Spróbuj ponownie.');
+                        window.appNotice?.('Błąd połączenia. Spróbuj ponownie.', 'danger');
                         button.disabled = false;
                     }
                 });

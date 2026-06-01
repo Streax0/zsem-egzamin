@@ -334,7 +334,7 @@
                     await downloadShareImage(data);
                 } catch (err) {
                     console.error(err);
-                    alert('Nie udało się pobrać zdjęcia.');
+                    window.appNotice?.('Nie udało się pobrać zdjęcia.', 'danger');
                 } finally {
                     downloadBtn.disabled = false;
                     downloadBtn.innerHTML = original;

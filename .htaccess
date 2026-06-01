@@ -36,9 +36,7 @@ RewriteRule ^(debug\.log|cookies\.txt|csrf\.txt|response\.json|qid\.txt|full_sch
     # Content-Security-Policy is emitted dynamically by includes/session.php with per-request script nonces.
     # Dynamic CSP keeps img-src https://api.qrserver.com for QR fallback.
     <FilesMatch "\.(css|js)$">
-        Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
-        Header always set Pragma "no-cache"
-        Header always set Expires "0"
+        Header always set Cache-Control "public, max-age=0, must-revalidate"
     </FilesMatch>
 </IfModule>
 

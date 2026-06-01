@@ -8,10 +8,7 @@ startSecureSession();
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
-}
+requireJsonLogin();
 
 requireJsonCsrfToken();
 

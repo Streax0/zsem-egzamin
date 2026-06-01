@@ -1788,7 +1788,7 @@ if ($test) {
         document.getElementById('examSimulatorSetupForm')?.addEventListener('submit', function(e) {
             if (!input || !input.value.trim()) {
                 e.preventDefault();
-                alert('Wybierz kategorie egzaminu.');
+                appNotice('Wybierz kategorie egzaminu.', 'warning');
             }
         });
     });
@@ -2200,7 +2200,7 @@ if ($test) {
                             }
                         });
                         if (!selected.length) {
-                            alert('Wybierz przynajmniej jedną kategorię, aby zapisać domyślną.');
+                            appNotice('Wybierz przynajmniej jedną kategorię, aby zapisać domyślną.', 'warning');
                             return;
                         }
                         setCookie('default_test_categories', selected.join(','), 365);
@@ -2215,7 +2215,7 @@ if ($test) {
                         if (!countInput) return;
                         const countValue = Number(countInput.value || 0);
                         if (countValue < 1) {
-                            alert('Wprowadź poprawną liczbę pytań, aby zapisać domyślną wartość.');
+                            appNotice('Wprowadź poprawną liczbę pytań, aby zapisać domyślną wartość.', 'warning');
                             return;
                         }
                         setCookie('default_test_count', countValue, 365);

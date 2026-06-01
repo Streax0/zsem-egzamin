@@ -1268,7 +1268,7 @@ $socialPlatforms = [
                                         <span class="fw-bold">Szczegóły</span>
                                     </button>
                                     <?php if ($isOwnProfile): ?>
-                                        <form method="POST" action="actions/delete_test_result.php" class="d-inline-block ms-1" onsubmit="return confirm('Usunąć ten wynik z historii?');">
+                                        <form method="POST" action="actions/delete_test_result.php" class="d-inline-block ms-1" onsubmit="return appConfirmSubmit(this, 'Usunąć ten wynik z historii?')">
                                             <?php echo csrfTokenField('delete_test_result'); ?>
                                             <input type="hidden" name="result_id" value="<?php echo (int)$result['id']; ?>">
                                             <input type="hidden" name="return_to" value="../profile.php?id=<?php echo (int)$userId; ?>">

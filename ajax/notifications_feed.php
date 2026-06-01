@@ -7,11 +7,7 @@ require_once '../includes/functions.php';
 startSecureSession();
 header('Content-Type: application/json; charset=utf-8');
 
-if (!isLoggedIn() || isGuestMode()) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
-}
+requireJsonLogin();
 
 $userId = (int)$_SESSION['user_id'];
 $baseUrl = trim((string)($_GET['base'] ?? ''));

@@ -341,6 +341,58 @@ function syncSessionUserRole() {
     }
 }
 
+function requireJsonLogin(bool $allowGuest = false, array $roles = []): void {
+    if ($allowGuest && isGuestMode()) {
+        return;
+    }
+
+    if (!isLoggedIn()) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit;
+    }
+
+    global $pdo;
+    if ($pdo instanceof PDO) {
+        try {
+            $stmt = $pdo->prepare('SELECT role, session_version FROM users WHERE id = ? LIMIT 1');
+            $stmt->execute([$_SESSION['user_id']]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $dbVersion = (int)($row['session_version'] ?? 0);
+            $sessionVersion = (int)($_SESSION['session_version'] ?? $dbVersion);
+
+            if (!$row || ($dbVersion > 0 && $sessionVersion !== $dbVersion) || !validateCurrentUserSession($pdo, (int)$_SESSION['user_id'])) {
+                $_SESSION = [];
+                if (session_status() === PHP_SESSION_ACTIVE) {
+                    session_destroy();
+                }
+                http_response_code(401);
+                echo json_encode(['success' => false, 'error' => 'Session expired']);
+                exit;
+            }
+
+            $_SESSION['role'] = $row['role'] ?? ($_SESSION['role'] ?? 'user');
+            if ($dbVersion > 0) {
+                $_SESSION['session_version'] = $dbVersion;
+            }
+        } catch (Throwable $e) {
+            error_log('JSON auth guard failed: ' . $e->getMessage());
+        }
+    }
+
+    if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'MFA required']);
+        exit;
+    }
+
+    if ($roles && !in_array($_SESSION['role'] ?? 'user', $roles, true)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Forbidden']);
+        exit;
+    }
+}
+
 /**
  * Require user to be logged in, redirect to login page if not
  * 

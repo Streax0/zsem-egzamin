@@ -7,11 +7,7 @@ require_once '../includes/functions.php';
 startSecureSession();
 header('Content-Type: application/json; charset=utf-8');
 
-if (!isLoggedIn() || isGuestMode()) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Brak autoryzacji.']);
-    exit;
-}
+requireJsonLogin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

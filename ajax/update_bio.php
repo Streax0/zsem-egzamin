@@ -7,10 +7,7 @@ require_once '../includes/functions.php';
 header('Content-Type: application/json');
 startSecureSession();
 
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit();
-}
+requireJsonLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF Protection

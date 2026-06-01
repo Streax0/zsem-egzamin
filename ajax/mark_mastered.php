@@ -5,12 +5,8 @@ require_once '../includes/auth.php';
 
 header('Content-Type: application/json');
 
-// Ensure user is logged in
 startSecureSession();
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'error' => 'Not authenticated']);
-    exit;
-}
+requireJsonLogin();
 
 $userId = $_SESSION['user_id'];
 

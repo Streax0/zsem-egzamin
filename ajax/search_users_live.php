@@ -7,11 +7,7 @@ require_once __DIR__ . '/../includes/functions.php';
 startSecureSession();
 header('Content-Type: application/json; charset=utf-8');
 
-if (!isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['ok' => false, 'results' => []]);
-    exit;
-}
+requireJsonLogin();
 
 $userId = (int)$_SESSION['user_id'];
 $role = $_SESSION['role'] ?? 'user';
