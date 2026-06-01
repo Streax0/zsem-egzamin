@@ -22,6 +22,7 @@ $modeBadgeMap = [
     'exam' => 'history-badge-exam',
     'practice' => 'history-badge-practice',
     'single' => 'history-badge-single',
+    'exam_simulator' => 'history-badge-exam-simulator',
     'duel' => 'history-badge-duel',
     'sprawdzian' => 'history-badge-exam-session',
     'exam_session' => 'history-badge-exam-session',
@@ -39,8 +40,8 @@ $modeBadgeMap = [
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
     <style>
         .history-summary-grid {
             display: grid;
@@ -63,6 +64,7 @@ $modeBadgeMap = [
         .history-badge-exam { background: rgba(239,68,68,.12); color: #b91c1c; }
         .history-badge-practice { background: rgba(16,185,129,.12); color: #047857; }
         .history-badge-single { background: rgba(14,165,233,.14); color: #0369a1; }
+        .history-badge-exam-simulator { background: rgba(99,102,241,.14); color: #4338ca; }
         .history-badge-duel { background: rgba(124,58,237,.13); color: #6d28d9; }
         .history-badge-exam-session { background: rgba(245,158,11,.16); color: #b45309; }
         .history-badge-default { background: rgba(100,116,139,.14); color: #475569; }
@@ -193,11 +195,18 @@ $modeBadgeMap = [
                                                         Szczegóły
                                                     </a>
                                                     <?php if (($test['kind'] ?? 'test') === 'test'): ?>
-                                                        <form method="POST" action="actions/delete_test_result.php" onsubmit="return confirm('Usunąć ten wynik z historii?');">
+                                                        <form method="POST" action="actions/delete_test_result.php" onsubmit="return appConfirmSubmit(this, 'Usunąć ten wynik z historii?');">
                                                             <?php echo csrfTokenField('delete_test_result'); ?>
                                                             <input type="hidden" name="result_id" value="<?php echo (int)$test['id']; ?>">
                                                             <input type="hidden" name="return_to" value="../history.php">
                                                             <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń wynik" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
+                                                        </form>
+                                                    <?php elseif (($test['kind'] ?? 'test') === 'duel'): ?>
+                                                        <form method="POST" action="actions/delete_duel_history.php" onsubmit="return appConfirmSubmit(this, 'Usunąć ten pojedynek z Twojej historii?');">
+                                                            <?php echo csrfTokenField('delete_duel_history'); ?>
+                                                            <input type="hidden" name="duel_id" value="<?php echo (int)$test['id']; ?>">
+                                                            <input type="hidden" name="return_to" value="../history.php">
+                                                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń pojedynek" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
                                                         </form>
                                                     <?php endif; ?>
                                                 </div>
@@ -222,7 +231,7 @@ $modeBadgeMap = [
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="assets/js/theme-handler.js"></script>
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const rows = Array.from(document.querySelectorAll('.history-row'));

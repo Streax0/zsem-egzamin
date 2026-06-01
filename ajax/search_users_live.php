@@ -65,6 +65,14 @@ try {
         ];
     }
 
+    $canSendMore = canSendMoreFriendRequests($pdo, (int)$userId);
+    foreach ($rows as &$row) {
+        $row['can_add'] = $canSendMore && !empty($row['can_add']);
+        if (!$canSendMore) {
+            $row['limit_message'] = 'Limit 4 wysłanych zaproszeń został osiągnięty.';
+        }
+    }
+    unset($row);
     echo json_encode(['ok' => true, 'results' => $rows], JSON_UNESCAPED_UNICODE);
 } catch (PDOException $e) {
     error_log('Live user search failed: ' . $e->getMessage());

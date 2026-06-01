@@ -13,7 +13,7 @@ startSecureSession();
     <title>Współpraca - ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
     <style>
         body { background:#f8fafc; color:#1e293b; }
         .legal-wrap { max-width: 920px; margin: 3rem auto; padding: 0 1rem 4rem; }
@@ -22,6 +22,9 @@ startSecureSession();
         .legal-card { background:#fff; border:1px solid rgba(148,163,184,.18); border-radius:1.25rem; padding:2rem; box-shadow:0 8px 28px rgba(15,23,42,.06); margin-bottom:1rem; }
         .legal-card h2 { color:#1e40af; font-weight:800; font-size:1.05rem; }
         .legal-card p, .legal-card li { color:#475569; line-height:1.75; }
+        body.dark-mode .legal-card { background:#1e293b; border-color:rgba(148,163,184,.24); box-shadow:none; }
+        body.dark-mode .legal-card h2 { color:#93c5fd; }
+        body.dark-mode .legal-card p, body.dark-mode .legal-card li { color:#cbd5e1; }
     </style>
 </head>
 <body>
@@ -48,6 +51,7 @@ startSecureSession();
         <p class="mb-0">Napisz na <a href="mailto:zsemtech@zsem.edu.pl">zsemtech@zsem.edu.pl</a> albo użyj formularza kontaktowego.</p>
     </div>
 </main>
+<script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
 <?php include __DIR__ . '/includes/cookie_consent.php'; ?>
 </body>
 </html>

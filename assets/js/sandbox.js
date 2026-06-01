@@ -196,16 +196,22 @@
         boardClone.removeAttribute('id');
         boardClone.style.width = `${Math.max(board.clientWidth, board.scrollWidth, BASE_WIDTH)}px`;
         boardClone.style.minHeight = `${Math.max(board.clientHeight, board.scrollHeight, BASE_HEIGHT)}px`;
+        const exportedAt = new Date().toLocaleString('pl-PL');
         const popup = window.open('', '_blank', 'width=1200,height=900');
         if (!popup) {
           setHint('Przeglądarka zablokowała okno PDF. Zezwól na wyskakujące okna.', 'danger');
           return;
         }
-        popup.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Układ logiczny</title>
+        popup.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Układ logiczny - ZSEM Tech</title>
           <style>
             @page { size: A4 landscape; margin: 12mm; }
             body { font-family: Inter, Segoe UI, Arial, sans-serif; color: #0f172a; margin: 0; }
-            h1 { font-size: 20pt; margin: 0 0 10px; }
+            .pdf-brand { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; border-bottom:3px solid #2563eb; padding-bottom:12px; margin-bottom:16px; }
+            .pdf-brand strong { display:block; font-size:22pt; letter-spacing:.2px; color:#1d4ed8; }
+            .pdf-brand span { display:block; margin-top:4px; color:#475569; font-size:10pt; }
+            .pdf-meta { text-align:right; color:#64748b; font-size:9pt; line-height:1.5; }
+            h1 { font-size: 18pt; margin: 0 0 10px; }
+            h2 { font-size: 13pt; margin: 16px 0 8px; }
             .logic-canvas { position: relative; min-height: 380px; overflow: hidden; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc; }
             .logic-wire-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
             .logic-wire-path { fill: none; stroke: #64748b; stroke-width: 4; stroke-linecap: round; }
@@ -220,7 +226,14 @@
             table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 10pt; }
             th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; }
             th { background: #eff6ff; }
-          </style></head><body><h1>Układ logiczny</h1>${boardClone.outerHTML}<h1 style="margin-top:16px;font-size:14pt">Tabela prawdy</h1>${truthTable.outerHTML}</body></html>`);
+          </style></head><body>
+            <header class="pdf-brand">
+              <div><strong>ZSEM Tech</strong><span>Eksport z symulatora bramek logicznych</span></div>
+              <div class="pdf-meta">Układ logiczny<br>Wygenerowano: ${escapeHtml(exportedAt)}</div>
+            </header>
+            <h1>Schemat układu</h1>${boardClone.outerHTML}
+            <h2>Tabela prawdy</h2>${truthTable.outerHTML}
+          </body></html>`);
         popup.document.close();
         popup.focus();
         setTimeout(() => popup.print(), 250);

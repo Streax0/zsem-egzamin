@@ -38,7 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        if (!canSendFriendRequest($senderRole, $targetRole, $targetAllowsRequests)) {
+        if (!canSendMoreFriendRequests($pdo, (int)$myId)) {
+            setSessionMessage('error', 'Masz już 4 oczekujące wysłane zaproszenia. Anuluj jedno albo poczekaj na akceptację.');
+        } elseif (!canSendFriendRequest($senderRole, $targetRole, $targetAllowsRequests)) {
             setSessionMessage('error', 'Nie możesz wysłać zaproszenia do tego konta.');
         } else {
             if (sendFriendRequest($pdo, $myId, $friendId)) {

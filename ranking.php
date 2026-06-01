@@ -42,9 +42,9 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <style>
         .ranking-shell { max-width: 1320px; margin: 0 auto; }
         .ranking-hero {
@@ -98,9 +98,11 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
         .ranking-sidebar {
             display: flex;
             flex-direction: column;
+            gap: 1.25rem;
         }
         .user-rank-widget { order: 1; }
-        #rank-threshold { order: 2; }
+        #rank-threshold { order: 2; padding: 1rem; }
+        #rank-threshold .panel-header { margin-bottom: .75rem !important; }
         .ranking-avatar {
             width: 40px;
             height: 40px;
@@ -156,7 +158,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
         }
         .user-name-cell .rank-meta { opacity: 0.8; }
         .rank-threshold-list {
-            max-height: 760px;
+            max-height: 330px;
             overflow-y: auto;
             overflow-x: hidden;
             padding-right: .25rem;
@@ -260,7 +262,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
         .streak-cold { background: rgba(14,165,233,.12); color: #0284c7; }
         .streak-neutral { background: rgba(148,163,184,.12); color: #64748b; }
         .ranking-info-card {
-            border-radius: 18px;
+            border-radius: 12px;
             background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(14,165,233,.05));
             border: 1px solid rgba(59,130,246,.14);
         }

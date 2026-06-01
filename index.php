@@ -24,9 +24,9 @@ if (isGuestMode()) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
 </head>
 <body>
 <div class="dashboard-layout">
@@ -151,9 +151,9 @@ try {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
 </head>
 <body>
 
@@ -277,6 +277,7 @@ try {
                             'exam' => ['label' => 'Egzamin', 'color' => 'danger'],
                             'practice' => ['label' => 'Ćwiczenia', 'color' => 'success'],
                             'single' => ['label' => 'Pojedyncze', 'color' => 'info'],
+                            'exam_simulator' => ['label' => 'Symulator egzaminu', 'color' => 'primary'],
                             'duel' => ['label' => 'Pojedynek', 'color' => 'warning'],
                             'exam_session' => ['label' => 'Sprawdzian', 'color' => 'primary'],
                         ];
@@ -302,7 +303,7 @@ try {
                                             <tr>
                                                 <td>
                                                      <?php
-                                                     $typeKey = $test['kind'] === 'test' ? ($test['label'] ?? 'unknown') : ($test['kind'] ?? 'unknown');
+                                                     $typeKey = $test['kind'] === 'test' ? ($test['mode'] ?? $test['label'] ?? 'unknown') : ($test['kind'] ?? 'unknown');
                                                      $typeInfo = $recentTestLabels[$typeKey] ?? ['label' => ucfirst($typeKey), 'color' => 'secondary'];
                                                  ?>
                                                  <span class="badge bg-<?php echo $typeInfo['color']; ?> text-white test-type-badge">

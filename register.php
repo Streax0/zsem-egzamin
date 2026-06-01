@@ -152,8 +152,8 @@ $csrf_token = generateCsrfToken();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/auth.css">
-    <script src="assets/js/register.js" defer></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/auth.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/register.js')); ?>" defer></script>
 </head>
 <body class="auth-page">
     <div class="auth-shell auth-shell-register">
@@ -229,7 +229,7 @@ $csrf_token = generateCsrfToken();
                 <div class="col-md-6 mb-3">
                     <label class="form-label" for="regPassword">Hasło</label>
                     <input type="password" name="password" id="regPassword" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required aria-describedby="passwordPolicy">
-                    <div class="strength-meter"><div id="strengthBar" class="strength-meter-bar"></div></div>
+                    <div class="strength-meter" role="meter" aria-label="Siła hasła" aria-valuemin="0" aria-valuemax="5"><div id="strengthBar" class="strength-meter-bar"></div></div>
                     <div id="passwordPolicy" class="password-policy-checks small mt-2" aria-live="polite">
                         <span data-password-rule="length">minimum 6 znaków</span>
                         <span data-password-rule="lower">mała litera</span>

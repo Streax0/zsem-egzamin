@@ -16,7 +16,7 @@ startSecureSession();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
     <style>
         body { background: #f8fafc; color: #1e293b; font-family: 'Inter', sans-serif; }
         .legal-wrap { max-width: 920px; margin: 3rem auto; padding: 0 1rem 4rem; }
@@ -30,8 +30,10 @@ startSecureSession();
         .rights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .75rem; }
         .right-item { background: #f1f5f9; border-radius: .5rem; padding: .85rem; font-weight: 600; }
         .table { --bs-table-bg: transparent; }
-        body.dark-mode .legal-card { background: #ffffff !important; color: #1e293b !important; border: 1px solid rgba(148,163,184,.2); }
-        body.dark-mode .legal-card p, body.dark-mode .legal-card li, body.dark-mode .legal-card td, body.dark-mode .legal-card th { color: #334155 !important; }
+        body.dark-mode .legal-card { background: #1e293b !important; color: #e5e7eb !important; border: 1px solid rgba(148,163,184,.24); box-shadow: none; }
+        body.dark-mode .legal-card h2 { color: #93c5fd !important; }
+        body.dark-mode .legal-card p, body.dark-mode .legal-card li, body.dark-mode .legal-card td, body.dark-mode .legal-card th { color: #cbd5e1 !important; }
+        body.dark-mode .legal-wrap { color: #e5e7eb; }
     </style>
 </head>
 <body>
@@ -157,6 +159,7 @@ startSecureSession();
 
         <p class="text-center text-muted small">Ostatnia aktualizacja: <?= date('d.m.Y') ?> | <a href="terms.php">Regulamin</a></p>
     </main>
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <?php include __DIR__ . '/includes/cookie_consent.php'; ?>
 </body>
 </html>

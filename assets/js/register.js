@@ -34,11 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const rule = passwordRules[key];
         if (!rule) return;
         rule.classList.toggle('is-met', met);
+        rule.classList.toggle('is-missing', !met);
         rule.setAttribute('aria-checked', met ? 'true' : 'false');
       });
-      const colors = ['#ef4444', '#ef4444', '#f59e0b', '#2563eb', '#10b981'];
+      const colors = ['#ef4444', '#f97316', '#f59e0b', '#2563eb', '#10b981'];
       bar.style.width = `${Math.min(score, 5) * 20}%`;
       bar.style.backgroundColor = colors[score - 1] || 'transparent';
+      bar.parentElement?.setAttribute('aria-valuenow', String(score));
     };
     passInput.addEventListener('input', syncPasswordRules);
     syncPasswordRules();

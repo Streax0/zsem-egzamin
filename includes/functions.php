@@ -1937,12 +1937,20 @@ function getQualifiedTestResults(PDO $pdo, int $userId, int $limit = 100, int $m
 
 function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
     $items = [];
+    $modeLabels = [
+        'exam' => 'Egzamin',
+        'practice' => 'Ćwiczenia',
+        'single' => 'Jedno pytanie',
+        'exam_simulator' => 'Symulator egzaminu',
+    ];
     foreach (getTestResults($pdo, $userId, $limit) as $row) {
+        $mode = (string)($row['mode'] ?? $row['test_type'] ?? 'exam');
         $items[] = [
             'kind' => 'test',
             'id' => (int)$row['id'],
             'date' => $row['completed_at'],
-            'label' => $row['test_type'],
+            'mode' => $mode,
+            'label' => $modeLabels[$mode] ?? ucfirst(str_replace('_', ' ', $mode)),
             'score_percent' => (float)$row['percentage'],
             'correct_count' => (int)$row['correct_count'],
             'total_questions' => (int)$row['total_questions'],
@@ -1960,6 +1968,10 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
             JOIN users opponent ON opponent.id = d.opponent_id
             WHERE (d.challenger_id = ? OR d.opponent_id = ?)
               AND (d.challenger_finished_at IS NOT NULL OR d.opponent_finished_at IS NOT NULL OR d.status = 'finished')
+              AND (
+                  (d.challenger_id = ? AND d.challenger_hidden_at IS NULL)
+                  OR (d.opponent_id = ? AND d.opponent_hidden_at IS NULL)
+              )
             ORDER BY COALESCE(
                 CASE WHEN d.challenger_id = ? THEN d.challenger_finished_at ELSE d.opponent_finished_at END,
                 d.created_at
@@ -1969,7 +1981,9 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
         $stmt->bindValue(1, $userId, PDO::PARAM_INT);
         $stmt->bindValue(2, $userId, PDO::PARAM_INT);
         $stmt->bindValue(3, $userId, PDO::PARAM_INT);
-        $stmt->bindValue(4, max(1, min(200, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue(4, $userId, PDO::PARAM_INT);
+        $stmt->bindValue(5, $userId, PDO::PARAM_INT);
+        $stmt->bindValue(6, max(1, min(200, $limit)), PDO::PARAM_INT);
         $stmt->execute();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $duel) {
             $isChallenger = (int)$duel['challenger_id'] === $userId;
@@ -2276,10 +2290,45 @@ function updateUserPassword($pdo, $userId, $newPassword) {
  * @param int $userId
  * @return bool
  */
+function deleteLocalAvatarFile(string $avatarPath): bool {
+    $avatarPath = trim($avatarPath);
+    if ($avatarPath === '' || !preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $avatarPath)) {
+        return false;
+    }
+    $absoluteAvatarPath = dirname(__DIR__) . '/' . $avatarPath;
+    if (!is_file($absoluteAvatarPath)) {
+        return false;
+    }
+    return @unlink($absoluteAvatarPath);
+}
+
+function deleteUserAvatar(PDO $pdo, int $userId, bool $clearColumn = true): bool {
+    if ($userId <= 0) return false;
+    try {
+        $stmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $avatarPath = (string)($stmt->fetchColumn() ?: '');
+        if ($clearColumn) {
+            $pdo->prepare("UPDATE users SET avatar_path = NULL WHERE id = ?")->execute([$userId]);
+        }
+        return deleteLocalAvatarFile($avatarPath);
+    } catch (PDOException $e) {
+        error_log('Delete user avatar failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
 function deleteUser($pdo, $userId) {
     try {
+        $stmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $userId]);
+        $avatarPath = (string)($stmt->fetchColumn() ?: '');
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = :id");
-        return $stmt->execute([':id' => $userId]);
+        $ok = $stmt->execute([':id' => $userId]);
+        if ($ok) {
+            deleteLocalAvatarFile($avatarPath);
+        }
+        return $ok;
     } catch (PDOException $e) {
         error_log("Error deleting user: " . $e->getMessage());
         return false;
@@ -3329,6 +3378,28 @@ function deleteUserTestResult(PDO $pdo, int $userId, int $resultId): bool {
     }
 }
 
+function hideUserDuelFromHistory(PDO $pdo, int $userId, int $duelId): bool {
+    if ($userId <= 0 || $duelId <= 0) return false;
+    try {
+        ensureDuelModeColumns($pdo);
+        $stmt = $pdo->prepare("SELECT challenger_id, opponent_id FROM duels WHERE id = ? LIMIT 1");
+        $stmt->execute([$duelId]);
+        $duel = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$duel) return false;
+        if ((int)$duel['challenger_id'] === $userId) {
+            $stmt = $pdo->prepare("UPDATE duels SET challenger_hidden_at = NOW() WHERE id = ?");
+        } elseif ((int)$duel['opponent_id'] === $userId) {
+            $stmt = $pdo->prepare("UPDATE duels SET opponent_hidden_at = NOW() WHERE id = ?");
+        } else {
+            return false;
+        }
+        return $stmt->execute([$duelId]);
+    } catch (PDOException $e) {
+        error_log('Hide user duel from history failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
 /**
  * Get top users by XP
  */
@@ -3422,6 +3493,8 @@ function ensureDuelModeColumns($pdo) {
         'allow_early_finish' => "ALTER TABLE duels ADD COLUMN allow_early_finish TINYINT(1) NOT NULL DEFAULT 1 AFTER require_answer_confirmation",
         'challenger_started_at' => "ALTER TABLE duels ADD COLUMN challenger_started_at DATETIME DEFAULT NULL AFTER opponent_finished_at",
         'opponent_started_at' => "ALTER TABLE duels ADD COLUMN opponent_started_at DATETIME DEFAULT NULL AFTER challenger_started_at",
+        'challenger_hidden_at' => "ALTER TABLE duels ADD COLUMN challenger_hidden_at DATETIME DEFAULT NULL AFTER opponent_started_at",
+        'opponent_hidden_at' => "ALTER TABLE duels ADD COLUMN opponent_hidden_at DATETIME DEFAULT NULL AFTER challenger_hidden_at",
     ];
 
     foreach ($columns as $column => $sql) {
@@ -3595,6 +3668,14 @@ function resolvePublicBaseUrl(): string {
 function publicUrl(string $path): string {
     $path = ltrim(str_replace('\\', '/', $path), '/');
     return resolvePublicBaseUrl() . $path;
+}
+
+function assetUrl(string $path, string $basePrefix = ''): string {
+    $cleanPath = ltrim(str_replace('\\', '/', $path), '/');
+    $absolute = dirname(__DIR__) . '/' . $cleanPath;
+    $version = is_file($absolute) ? (string)filemtime($absolute) : (string)time();
+    $prefix = rtrim($basePrefix, '/');
+    return ($prefix !== '' ? $prefix . '/' : '') . $cleanPath . '?v=' . rawurlencode($version);
 }
 
 function getPendingDuelChallengeForUser(PDO $pdo, int $userId, int $duelId): ?array {
@@ -4225,6 +4306,7 @@ function sendFriendRequest($pdo, $fromId, $toId) {
     
     $status = getFriendshipStatus($pdo, $fromId, $toId);
     if ($status !== 'none') return false;
+    if (getActiveSentFriendRequestCount($pdo, (int)$fromId) >= friendRequestLimit()) return false;
 
     $stmt = $pdo->prepare("SELECT id, role, allow_friend_requests FROM users WHERE id IN (?, ?)");
     $stmt->execute([$fromId, $toId]);
@@ -4391,6 +4473,25 @@ function scanAvatarImageSafety($image, int $width, int $height): array {
         return ['ok' => false, 'message' => 'Zdjęcie może zawierać zakazany symbol. Wybierz neutralny avatar.'];
     }
     return ['ok' => true, 'message' => ''];
+}
+
+function friendRequestLimit(): int {
+    return 4;
+}
+
+function getActiveSentFriendRequestCount(PDO $pdo, int $userId): int {
+    if ($userId <= 0) return 0;
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM friends WHERE user_id = ? AND status = 'pending'");
+        $stmt->execute([$userId]);
+        return (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+        return 0;
+    }
+}
+
+function canSendMoreFriendRequests(PDO $pdo, int $userId): bool {
+    return getActiveSentFriendRequestCount($pdo, $userId) < friendRequestLimit();
 }
 
 function markUserUntrusted(PDO $pdo, int $userId, string $flag = 'possible fraud / duplicate identity'): void {

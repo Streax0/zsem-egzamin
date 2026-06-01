@@ -732,6 +732,10 @@ CREATE TABLE duels (
     opponent_time_spent INT DEFAULT NULL,
     challenger_finished_at DATETIME DEFAULT NULL,
     opponent_finished_at DATETIME DEFAULT NULL,
+    challenger_started_at DATETIME DEFAULT NULL,
+    opponent_started_at DATETIME DEFAULT NULL,
+    challenger_hidden_at DATETIME DEFAULT NULL,
+    opponent_hidden_at DATETIME DEFAULT NULL,
     winner_id INT DEFAULT NULL,
     revenge_parent_id INT DEFAULT NULL,
     expires_at DATETIME NOT NULL,
@@ -902,6 +906,10 @@ ALTER TABLE duels ADD COLUMN IF NOT EXISTS time_per_question_seconds INT DEFAULT
 ALTER TABLE duels ADD COLUMN IF NOT EXISTS total_time_seconds INT DEFAULT NULL AFTER time_per_question_seconds;
 ALTER TABLE duels ADD COLUMN IF NOT EXISTS require_answer_confirmation TINYINT(1) NOT NULL DEFAULT 0 AFTER total_time_seconds;
 ALTER TABLE duels ADD COLUMN IF NOT EXISTS allow_early_finish TINYINT(1) NOT NULL DEFAULT 1 AFTER require_answer_confirmation;
+ALTER TABLE duels ADD COLUMN IF NOT EXISTS challenger_started_at DATETIME DEFAULT NULL AFTER opponent_finished_at;
+ALTER TABLE duels ADD COLUMN IF NOT EXISTS opponent_started_at DATETIME DEFAULT NULL AFTER challenger_started_at;
+ALTER TABLE duels ADD COLUMN IF NOT EXISTS challenger_hidden_at DATETIME DEFAULT NULL AFTER opponent_started_at;
+ALTER TABLE duels ADD COLUMN IF NOT EXISTS opponent_hidden_at DATETIME DEFAULT NULL AFTER challenger_hidden_at;
 ALTER TABLE exams ADD COLUMN IF NOT EXISTS navigation_mode VARCHAR(30) NOT NULL DEFAULT 'free' AFTER max_attempts;
 ALTER TABLE exams ADD COLUMN IF NOT EXISTS allow_answer_changes TINYINT(1) NOT NULL DEFAULT 1 AFTER navigation_mode;
 ALTER TABLE exams ADD COLUMN IF NOT EXISTS warning_limit TINYINT UNSIGNED DEFAULT NULL AFTER allow_answer_changes;

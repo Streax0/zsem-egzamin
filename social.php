@@ -29,7 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     if ($target) {
                         $myRole = $_SESSION['role'] ?? 'user';
-                        if (canSendFriendRequest($myRole, $target['role'], $target['allow_friend_requests'])) {
+                        if (!canSendMoreFriendRequests($pdo, (int)$myId)) {
+                            setSessionMessage('error', 'Masz już 4 oczekujące wysłane zaproszenia. Anuluj jedno albo poczekaj na akceptację.');
+                        } elseif (canSendFriendRequest($myRole, $target['role'], $target['allow_friend_requests'])) {
                             if (sendFriendRequest($pdo, $myId, $friendId)) {
                                 setSessionMessage('success', 'Zaproszenie zostało wysłane.');
                             } else {
@@ -67,8 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch social data
 $friends = getUserFriends($pdo, $myId);
-$initialFriendsVisible = 6;
+$friendsLimit = max(6, min(48, (int)($_GET['friends_limit'] ?? 6)));
+$initialFriendsVisible = $friendsLimit;
 $pendingRequests = getPendingFriendRequests($pdo, $myId);
+$sentRequestLimit = friendRequestLimit();
 
 // Fetch requests SENT by me
 $stmt = $pdo->prepare("
@@ -80,6 +84,8 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$myId]);
 $sentRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$sentRequestCount = count($sentRequests);
+$canSendMoreRequests = $sentRequestCount < $sentRequestLimit;
 
 // Search for users if query exists
 $searchQuery = trim($_GET['search'] ?? '');
@@ -126,7 +132,7 @@ $stmt = $pdo->prepare("
       AND u.id != ?
       AND f.status = 'accepted'
     ORDER BY u.last_activity DESC, u.xp DESC
-    LIMIT 5
+    LIMIT 3
 ");
 $stmt->execute([$myId, $myId, $myId]);
 $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -149,9 +155,9 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <style>
         :root {
             --card-radius: 1.25rem;
@@ -340,8 +346,14 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .social-sidebar {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
             min-height: 100%;
+        }
+
+        .social-sidebar-pair {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
         .social-sidebar .dashboard-panel,
@@ -356,6 +368,34 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .social-card {
             min-height: 100%;
+            border: 1px solid rgba(148, 163, 184, .18);
+            border-radius: 1rem;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, .07);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .social-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(59, 130, 246, .24);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, .1);
+        }
+
+        .social-sidebar .dashboard-panel {
+            border-radius: 1rem;
+            margin-bottom: 0 !important;
+        }
+
+        .suggested-users-card { order: 3; }
+        .social-activity-card { order: 4; }
+
+        .social-request-limit {
+            border: 1px solid rgba(59, 130, 246, .16);
+            border-radius: .9rem;
+            background: rgba(59, 130, 246, .07);
+            color: #1e40af;
+            padding: .75rem .9rem;
+            font-size: .82rem;
+            font-weight: 700;
         }
 
         .social-hero {
@@ -380,6 +420,19 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: #172033 !important;
             color: #e5e7eb !important;
             border-color: rgba(148, 163, 184, .35) !important;
+        }
+
+        body.dark-mode .social-card,
+        body.dark-mode .social-sidebar .dashboard-panel {
+            background: #1e293b;
+            border-color: rgba(148, 163, 184, .24);
+            color: #e5e7eb;
+        }
+
+        body.dark-mode .social-request-limit {
+            background: rgba(96, 165, 250, .12);
+            border-color: rgba(96, 165, 250, .22);
+            color: #bfdbfe;
         }
 
         .request-badge {
@@ -656,7 +709,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     <div class="d-flex gap-2">
                                                         <?php if ($status === 'none'): ?>
                                                             <?php 
-                                                                $canAdd = canSendFriendRequest($_SESSION['role'], $user['role'], $user['allow_friend_requests'] ?? 1);
+                                                                $canAdd = $canSendMoreRequests && canSendFriendRequest($_SESSION['role'], $user['role'], $user['allow_friend_requests'] ?? 1);
                                                             ?>
                                                             <form action="social.php" method="POST">
                                                                 <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
@@ -717,12 +770,12 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             <?php else: ?>
                                 <div class="row g-4" id="friendsGrid">
-                                    <?php foreach ($friends as $friendIndex => $friend): 
+                                    <?php foreach (array_slice($friends, 0, $initialFriendsVisible) as $friendIndex => $friend):
                                         $isOnline = isUserOnline($friend['last_activity']);
                                         $avatarClass = 'avatar-' . strtolower(substr($friend['username'], 0, 1));
                                         $avatarSrc = userAvatarSrc($friend['avatar_path'] ?? '');
                                     ?>
-                                        <div class="col-md-6 social-friend-item <?php echo $friendIndex >= $initialFriendsVisible ? 'is-hidden' : ''; ?>">
+                                        <div class="col-md-6 social-friend-item">
                                             <div class="social-card p-4">
                                                 <div class="d-flex align-items-center gap-3 mb-4">
                                                     <?php if ($avatarSrc): ?>
@@ -777,9 +830,9 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                                 <?php if (count($friends) > $initialFriendsVisible): ?>
                                 <div class="text-center mt-4">
-                                    <button type="button" class="btn btn-outline-primary social-more-btn" id="showMoreFriends" data-step="6">
+                                    <a class="btn btn-outline-primary social-more-btn" id="showMoreFriends" href="social.php?friends_limit=<?php echo min(count($friends), $initialFriendsVisible + 6); ?>">
                                         Pokaż więcej znajomych
-                                    </button>
+                                    </a>
                                 </div>
                                 <?php endif; ?>
                             <?php endif; ?>
@@ -839,7 +892,10 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <!-- Sent Requests (Cancelable) -->
                             <?php if (!empty($sentRequests)): ?>
                                 <div class="dashboard-panel mb-5">
-                                    <h5 class="fw-800 mb-4">Wysłane zaproszenia</h5>
+                                    <h5 class="fw-800 mb-2">Wysłane zaproszenia</h5>
+                                    <div class="social-request-limit mb-3">
+                                        <?php echo (int)$sentRequestCount; ?> / <?php echo (int)$sentRequestLimit; ?> aktywne. Kolejne zaproszenia odblokują się po akceptacji albo anulowaniu.
+                                    </div>
                                     <div class="vstack gap-3">
                                         <?php foreach ($sentRequests as $req): 
                                             $avatarClass = 'avatar-' . strtolower(substr($req['username'], 0, 1));
@@ -956,7 +1012,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                                                 <input type="hidden" name="action" value="send">
                                                 <input type="hidden" name="friend_id" value="<?php echo $s['id']; ?>">
-                                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" style="font-size: 0.7rem;">Dodaj</button>
+                                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" style="font-size: 0.7rem;" <?php echo $canSendMoreRequests ? '' : 'disabled title="Limit 4 wysłanych zaproszeń"'; ?>>Dodaj</button>
                                             </form>
                                             <?php elseif ($suggStatus === 'sent'): ?>
                                             <form action="social.php" method="POST">
@@ -996,16 +1052,6 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     openProfile(event);
                 }
             });
-        });
-
-        const showMoreBtn = document.getElementById('showMoreFriends');
-        showMoreBtn?.addEventListener('click', () => {
-            const hidden = Array.from(document.querySelectorAll('.social-friend-item.is-hidden'));
-            const step = Number(showMoreBtn.dataset.step || 6);
-            hidden.slice(0, step).forEach(item => item.classList.remove('is-hidden'));
-            if (document.querySelectorAll('.social-friend-item.is-hidden').length === 0) {
-                showMoreBtn.remove();
-            }
         });
 
         const input = document.getElementById('socialLiveSearch');

@@ -205,14 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setSessionMessage('error', 'Nieprawidłowy użytkownik.');
             } else {
                 try {
-                    $stmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = ? LIMIT 1");
-                    $stmt->execute([$userId]);
-                    $oldAvatar = (string)($stmt->fetchColumn() ?: '');
-                    $pdo->prepare("UPDATE users SET avatar_path = NULL WHERE id = ?")->execute([$userId]);
-                    if ($oldAvatar !== '' && preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $oldAvatar)) {
-                        $oldPath = __DIR__ . '/' . $oldAvatar;
-                        if (is_file($oldPath)) @unlink($oldPath);
-                    }
+                    deleteUserAvatar($pdo, (int)$userId, true);
                     logAdminAction($pdo, $_SESSION['user_id'], 'delete_avatar', 'user', $userId);
                     setSessionMessage('success', 'Zdjęcie profilowe użytkownika zostało usunięte.');
                 } catch (PDOException $e) {
@@ -244,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $banIp = in_array($banMethod, ['ip', 'both'], true);
 
                 try {
-                    $stmt = $pdo->prepare("SELECT email, last_login_ip FROM users WHERE id = ? LIMIT 1");
+                    $stmt = $pdo->prepare("SELECT email, last_login_ip, avatar_path FROM users WHERE id = ? LIMIT 1");
                     $stmt->execute([$userId]);
                     $userData = $stmt->fetch(PDO::FETCH_ASSOC);
                     if (!$userData) {
@@ -255,6 +248,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->beginTransaction();
                     $pdo->prepare("UPDATE users SET is_banned = 1, ban_expires_at = ?, session_version = COALESCE(session_version, 1) + 1 WHERE id = ?")
                         ->execute([$banExpiresAt, $userId]);
+                    if (!empty($userData['avatar_path'])) {
+                        deleteLocalAvatarFile((string)$userData['avatar_path']);
+                        $pdo->prepare("UPDATE users SET avatar_path = NULL WHERE id = ?")->execute([$userId]);
+                    }
                     $email = $userData['email'] ?? null;
                     $lastLoginIp = $userData['last_login_ip'] ?? null;
 

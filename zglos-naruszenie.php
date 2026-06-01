@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="description" content="Formularz zgłaszania naruszeń i nielegalnych treści w ZSEM Tech.">
     <title>Zgłoś naruszenie – ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
     <style>
         body { background: #f8fafc; color: #1e293b; font-family: 'Inter', sans-serif; }
         .legal-wrap { max-width: 820px; margin: 3rem auto; padding: 0 1rem 4rem; }
@@ -79,7 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .preset-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:.75rem; }
         .preset-option { border:1px solid #e2e8f0; border-radius:1rem; padding:.85rem; cursor:pointer; }
         .btn-check:checked + .preset-option { border-color:#dc2626; background:#fff1f2; box-shadow:0 0 0 4px rgba(220,38,38,.08); }
-        body.dark-mode .legal-card { background: #fff !important; color: #1e293b !important; }
+        body.dark-mode .legal-card { background: #1e293b !important; color: #e5e7eb !important; border: 1px solid rgba(148,163,184,.24); box-shadow: none; }
+        body.dark-mode .legal-card p, body.dark-mode .legal-card li, body.dark-mode .legal-card label { color: #cbd5e1 !important; }
     </style>
 </head>
 <body>
@@ -168,5 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     description?.addEventListener('input', syncWords);
     syncWords();
     </script>
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
 </body>
 </html>

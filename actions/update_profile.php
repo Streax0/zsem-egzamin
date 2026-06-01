@@ -25,14 +25,7 @@ ensurePlatformEnhancements($pdo);
 
 if (($_POST['action'] ?? '') === 'delete_avatar') {
     try {
-        $stmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = ? LIMIT 1");
-        $stmt->execute([$userId]);
-        $oldAvatar = (string)($stmt->fetchColumn() ?: '');
-        $pdo->prepare("UPDATE users SET avatar_path = NULL WHERE id = ?")->execute([$userId]);
-        if ($oldAvatar !== '' && preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $oldAvatar)) {
-            $oldPath = dirname(__DIR__) . '/' . $oldAvatar;
-            if (is_file($oldPath)) @unlink($oldPath);
-        }
+        deleteUserAvatar($pdo, $userId, true);
         setSessionMessage('success', 'Zdjęcie profilowe zostało usunięte.');
     } catch (PDOException $e) {
         error_log('Avatar delete error: ' . $e->getMessage());
@@ -172,10 +165,7 @@ try {
         $oldAvatar = (string)($oldStmt->fetchColumn() ?: '');
         $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, class = ?, class_year = ?, class_suffix = ?, avatar_path = ?, avatar_changed_at = NOW() WHERE id = ?");
         $stmt->execute([$username, $email, $classParts['label'], $classParts['year'], $classParts['suffix'], $avatarPath, $userId]);
-        if ($oldAvatar !== '' && preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $oldAvatar)) {
-            $oldPath = dirname(__DIR__) . '/' . $oldAvatar;
-            if (is_file($oldPath)) @unlink($oldPath);
-        }
+        deleteLocalAvatarFile($oldAvatar);
     } else {
         $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, class = ?, class_year = ?, class_suffix = ? WHERE id = ?");
         $stmt->execute([$username, $email, $classParts['label'], $classParts['year'], $classParts['suffix'], $userId]);
