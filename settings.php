@@ -54,7 +54,7 @@ try {
 }
 $settingsHealth = [
     ['icon' => 'bi-person-check', 'label' => 'Profil', 'value' => ($username !== '' && $email !== '') ? 'OK' : 'Uzupełnij'],
-    ['icon' => 'bi-shield-lock', 'label' => 'Bezpieczeństwo', 'value' => $mfaEnabled ? 'MFA' : ($canUseMfa ? 'MFA opcj.' : 'Hasło')],
+    ['icon' => 'bi-shield-lock', 'label' => 'Bezpieczeństwo', 'value' => $mfaEnabled ? 'MFA aktywne' : ($canUseMfa ? 'MFA opcjonalne' : 'Hasło')],
     ['icon' => 'bi-palette', 'label' => 'Motyw', 'value' => $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'],
     ['icon' => 'bi-sliders', 'label' => 'Interfejs', 'value' => $currentDensity === 'compact' ? 'Kompakt' : 'Wygodny'],
 ];
@@ -71,9 +71,9 @@ $settingsHealth = [
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <style>
         .settings-status-list {
             display: grid;
@@ -561,17 +561,17 @@ $settingsHealth = [
                                 </div>
 
                                 <div class="settings-mini-grid mb-4">
-                                    <div class="settings-mini-card">
+                                    <div class="settings-mini-card" data-settings-mini="notify">
                                         <i class="bi bi-bell"></i>
-                                        <span>Alerty</span>
+                                        <span>Alerty: <strong data-settings-mini-value>--</strong></span>
                                     </div>
-                                    <div class="settings-mini-card">
+                                    <div class="settings-mini-card" data-settings-mini="layout">
                                         <i class="bi bi-layout-sidebar"></i>
-                                        <span>Układ</span>
+                                        <span>Układ: <strong data-settings-mini-value><?php echo htmlspecialchars($dashboardView); ?></strong></span>
                                     </div>
-                                    <div class="settings-mini-card">
+                                    <div class="settings-mini-card" data-settings-mini="theme">
                                         <i class="bi bi-palette"></i>
-                                        <span>Wygląd</span>
+                                        <span>Wygląd: <strong data-settings-mini-value><?php echo $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'; ?></strong></span>
                                     </div>
                                 </div>
 
@@ -673,6 +673,21 @@ $settingsHealth = [
         }
         return getCookie('cookie_consent') === 'accepted';
     }
+    function syncSettingsMiniCards() {
+        const notify = document.querySelector('[data-settings-mini="notify"] [data-settings-mini-value]');
+        const layout = document.querySelector('[data-settings-mini="layout"] [data-settings-mini-value]');
+        const theme = document.querySelector('[data-settings-mini="theme"] [data-settings-mini-value]');
+        if (notify) notify.textContent = localStorage.getItem('notify_new_tests') === '1' ? 'Włączone' : 'Wyłączone';
+        if (layout) layout.textContent = document.getElementById('dashboardView')?.value || 'balanced';
+        if (theme) theme.textContent = document.body.classList.contains('dark-mode') ? 'Ciemny' : 'Jasny';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        syncSettingsMiniCards();
+        document.querySelectorAll('#dashboardView, #themeSelect, #notifySwitch').forEach((el) => {
+            el.addEventListener('change', () => setTimeout(syncSettingsMiniCards, 40));
+        });
+    });
+
     function setPreferenceCookie(name, value) {
         if (window.setUiPreference) {
             window.setUiPreference(name, value);

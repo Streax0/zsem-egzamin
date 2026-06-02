@@ -483,6 +483,135 @@
     sync6();
   }
 
+  function initRouter() {
+    const board = $('routerBoard');
+    const wireLayer = $('routerWireLayer');
+    const out = $('routerConsoleOut');
+    const form = $('routerCliForm');
+    const input = $('routerCliInput');
+    if (!board || !wireLayer || !out || !form || !input) return;
+
+    const labels = { cisco: 'Cisco', mikrotik: 'MikroTik', tplink: 'TP-Link', switch: 'Switch', pc: 'PC' };
+    const icons = { cisco: 'bi-hdd-network', mikrotik: 'bi-router', tplink: 'bi-wifi', switch: 'bi-diagram-3', pc: 'bi-pc-display' };
+    const state = { nodes: [], links: [], nextId: 1, selected: null, connectFrom: null, connectMode: false, cliMode: 'user', currentInterface: '', routing: '', config: { interfaces: {}, rip: [] } };
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
+    const selectedNode = () => state.nodes.find((node) => node.id === state.selected) || state.nodes.find((node) => ['cisco', 'mikrotik', 'tplink'].includes(node.type));
+    const write = (line) => { out.textContent += `\n${line}`; out.scrollTop = out.scrollHeight; };
+    const setPrompt = () => {
+      const node = selectedNode();
+      const name = node ? labels[node.type] : 'Router';
+      $('routerConsoleTitle').textContent = `${name} CLI`;
+      $('routerVendorBadge').textContent = node ? labels[node.type] : 'Cisco';
+      $('routerPrompt').textContent = state.cliMode === 'config' ? `${name}(config)#` : (state.cliMode === 'priv' ? `${name}#` : `${name}>`);
+    };
+    const addNode = (type, x, y) => {
+      const id = `r${state.nextId++}`;
+      state.nodes.push({ id, type, x, y, name: `${labels[type]} ${state.nextId - 1}` });
+      state.selected = id;
+      render();
+    };
+    const renderLinks = () => {
+      wireLayer.setAttribute('viewBox', `0 0 ${board.clientWidth} ${board.clientHeight}`);
+      wireLayer.innerHTML = state.links.map((link) => {
+        const a = state.nodes.find((node) => node.id === link.a);
+        const b = state.nodes.find((node) => node.id === link.b);
+        if (!a || !b) return '';
+        return `<line class="router-wire-path" x1="${a.x + 58}" y1="${a.y + 41}" x2="${b.x + 58}" y2="${b.y + 41}" />`;
+      }).join('');
+    };
+    const render = () => {
+      board.querySelectorAll('.router-node').forEach((node) => node.remove());
+      state.nodes.forEach((node) => {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = `router-node ${node.id === state.selected ? 'is-selected' : ''}`;
+        el.dataset.routerNode = node.id;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+        el.innerHTML = `<i class="bi ${icons[node.type]}"></i><span>${esc(node.name)}</span>`;
+        board.appendChild(el);
+      });
+      renderLinks();
+      setPrompt();
+    };
+    const runCisco = (cmd) => {
+      const parts = cmd.trim().split(/\s+/);
+      const lower = cmd.trim().toLowerCase();
+      if (!lower) return '';
+      if (lower === 'enable') { state.cliMode = 'priv'; return 'Tryb uprzywilejowany.'; }
+      if (lower === 'configure terminal' || lower === 'conf t') { state.cliMode = 'config'; return 'Enter configuration commands, one per line.'; }
+      if (lower === 'exit') { state.cliMode = state.cliMode === 'config' ? 'priv' : 'user'; return 'exit'; }
+      if (lower.startsWith('interface ')) { state.currentInterface = parts.slice(1).join(' '); return `Interface ${state.currentInterface}`; }
+      if (lower.startsWith('ip address ') && state.currentInterface) {
+        state.config.interfaces[state.currentInterface] = `${parts[2]} ${parts[3] || ''}`.trim();
+        return `Adres IP zapisany na ${state.currentInterface}.`;
+      }
+      if (lower === 'no shutdown' && state.currentInterface) return `${state.currentInterface} administratively up`;
+      if (lower === 'router rip') { state.routing = 'rip'; return 'Router(config-router)# RIP enabled'; }
+      if (lower.startsWith('network ')) { state.config.rip.push(parts[1]); return `Dodano sieć ${parts[1]} do RIP.`; }
+      if (lower === 'show ip interface brief') {
+        const rows = Object.entries(state.config.interfaces);
+        return rows.length ? rows.map(([iface, ip]) => `${iface.padEnd(18)} ${ip.split(' ')[0].padEnd(15)} up up`).join('\n') : 'Interface              IP-Address      Status Protocol\nGigabitEthernet0/0     unassigned      down   down';
+      }
+      if (lower === 'show running-config') return `hostname Router\n${Object.entries(state.config.interfaces).map(([iface, ip]) => `interface ${iface}\n ip address ${ip}\n no shutdown`).join('\n') || '!'}\nrouter rip\n${state.config.rip.map((net) => ` network ${net}`).join('\n')}`;
+      if (lower === 'show ip route') return state.config.rip.length ? `R ${state.config.rip.join('\nR ')}` : 'Gateway of last resort is not set';
+      if (lower.startsWith('ping ')) return `Sending 5, 100-byte ICMP Echos to ${parts[1]}, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent`;
+      if (lower.startsWith('traceroute ')) return `1 192.168.1.1 1 ms\n2 ${parts[1]} 4 ms`;
+      return '% Invalid input detected. Obsługiwane: enable, configure terminal, interface, ip address, no shutdown, router rip, network, show ip interface brief, show running-config, show ip route, ping, traceroute.';
+    };
+    const runVendor = (cmd) => {
+      const node = selectedNode();
+      if (node?.type === 'mikrotik' && cmd.startsWith('/')) return `MikroTik: wykonano ${cmd}`;
+      if (node?.type === 'tplink') return cmd.toLowerCase() === 'help' ? 'TP-Link: ip, dhcp, route, ping' : `TP-Link: ${cmd}`;
+      return runCisco(cmd);
+    };
+    document.querySelectorAll('[data-router-device]').forEach((button) => {
+      button.addEventListener('click', () => addNode(button.dataset.routerDevice, 70 + (state.nodes.length % 4) * 150, 80 + Math.floor(state.nodes.length / 4) * 130));
+    });
+    board.addEventListener('click', (event) => {
+      const el = event.target.closest('[data-router-node]');
+      if (!el) return;
+      if (state.connectMode) {
+        if (!state.connectFrom) state.connectFrom = el.dataset.routerNode;
+        else if (state.connectFrom !== el.dataset.routerNode) {
+          state.links.push({ a: state.connectFrom, b: el.dataset.routerNode });
+          state.connectFrom = null;
+        }
+      }
+      state.selected = el.dataset.routerNode;
+      render();
+    });
+    $('routerConnectMode')?.addEventListener('click', () => {
+      state.connectMode = !state.connectMode;
+      state.connectFrom = null;
+      $('routerConnectMode').classList.toggle('is-active', state.connectMode);
+    });
+    $('routerClear')?.addEventListener('click', () => {
+      state.nodes = [];
+      state.links = [];
+      state.nextId = 1;
+      state.selected = null;
+      state.config = { interfaces: {}, rip: [] };
+      out.textContent = 'Topologia wyczyszczona.';
+      render();
+    });
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const cmd = input.value.trim();
+      if (!cmd) return;
+      write(`${$('routerPrompt').textContent} ${cmd}`);
+      write(runVendor(cmd));
+      input.value = '';
+      setPrompt();
+    });
+    addNode('cisco', 80, 90);
+    addNode('switch', 320, 120);
+    addNode('pc', 550, 90);
+    state.links = [{ a: 'r1', b: 'r2' }, { a: 'r2', b: 'r3' }];
+    out.textContent = 'Cisco CLI gotowe. Spróbuj: enable, configure terminal, interface gigabitEthernet 0/0, ip address 192.168.1.1 255.255.255.0, no shutdown, show ip interface brief.';
+    render();
+  }
+
   function parseByBase(value, base) {
     const clean = String(value).trim().replace(/^0x/i, '');
     const parsed = parseInt(clean, base);
@@ -635,6 +764,7 @@
     initLogic();
     initPsu();
     initSubnet();
+    initRouter();
     initNumbers();
     initOhm();
     initLive();

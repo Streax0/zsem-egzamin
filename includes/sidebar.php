@@ -70,6 +70,10 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="bi bi-book"></i>
             <span>Słownik pojęć</span>
         </a>
+        <a href="<?php echo $base_url; ?>flashcards.php" class="sidebar-item <?php echo $current_page == 'flashcards' ? 'active' : ''; ?>">
+            <i class="bi bi-card-text"></i>
+            <span>Fiszki</span>
+        </a>
         <a href="<?php echo $base_url; ?>sandbox.php" class="sidebar-item <?php echo $current_page == 'sandbox' ? 'active' : ''; ?>">
             <i class="bi bi-cpu"></i>
             <span>Sandbox</span>
@@ -111,6 +115,10 @@ document.addEventListener('DOMContentLoaded', function () {
         <a href="<?php echo $base_url; ?>dictionary.php" class="sidebar-item <?php echo $current_page == 'dictionary' ? 'active' : ''; ?>">
             <i class="bi bi-book"></i>
             <span>Słownik pojęć</span>
+        </a>
+        <a href="<?php echo $base_url; ?>flashcards.php" class="sidebar-item <?php echo $current_page == 'flashcards' ? 'active' : ''; ?>">
+            <i class="bi bi-card-text"></i>
+            <span>Fiszki</span>
         </a>
         <a href="<?php echo $base_url; ?>sandbox.php" class="sidebar-item <?php echo $current_page == 'sandbox' ? 'active' : ''; ?>">
             <i class="bi bi-cpu"></i>

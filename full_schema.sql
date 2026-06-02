@@ -346,7 +346,7 @@ CREATE TABLE test_results (
     correct_answers INT NOT NULL,
     score_percent DECIMAL(5,2) NOT NULL,
     time_spent INT,
-    mode ENUM('exam', 'practice', 'single') DEFAULT 'exam',
+    mode ENUM('exam', 'practice', 'single', 'exam_simulator') DEFAULT 'exam',
     exclude_from_ranking TINYINT(1) DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),

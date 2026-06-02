@@ -62,7 +62,7 @@ if (!$guestResultId) {
     // Fetch all answers for this result with question details
     $answers_stmt = $pdo->prepare("
         SELECT ta.question_id, ta.user_answer, ta.correct_answer, ta.is_correct,
-               q.question_text, q.category AS question_category
+               q.question_text, q.category AS question_category, q.explanation
         FROM test_answers ta
         LEFT JOIN questions q ON ta.question_id = q.id
         WHERE ta.result_id = :result_id
@@ -436,7 +436,7 @@ $shareCardData = [
             padding: 0 1.25rem;
         }
         .answer-card.open .answer-card-body {
-            max-height: 500px;
+            max-height: 760px;
             padding: .25rem 1.25rem 1.25rem;
         }
 
@@ -452,6 +452,24 @@ $shareCardData = [
         .answer-detail-row.your-answer { background: rgba(239,68,68,.06); }
         .answer-detail-row.your-answer.is-correct { background: rgba(16,185,129,.06); }
         .answer-detail-row.correct-answer { background: rgba(16,185,129,.06); }
+        .answer-explanation {
+            background: rgba(59,130,246,.08);
+            border: 1px solid rgba(59,130,246,.14);
+            border-radius: 12px;
+            padding: .75rem .85rem;
+            margin: .55rem 0;
+            font-size: .86rem;
+            line-height: 1.5;
+            color: var(--text-main, #1e293b);
+        }
+        .answer-explanation-label {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-weight: 700;
+            color: var(--primary-color-dark, #3b82f6);
+            margin-bottom: .25rem;
+        }
 
         .answer-status-icon {
             width: 26px;
@@ -850,6 +868,29 @@ $shareCardData = [
                                     if (empty($question_text) && !empty($questions_map[$answer['question_id']])) {
                                         $question_text = $questions_map[$answer['question_id']]['question_text'] ?? '';
                                     }
+                                    $question_source = $questions_map[(int)$answer['question_id']] ?? [];
+                                    $correct_answer_text = '';
+                                    if ($correct_answer !== '') {
+                                        $correct_answer_text = trim((string)($question_source['option_' . strtolower($correct_answer)] ?? ''));
+                                    }
+                                    $user_answer_text = '';
+                                    if ($user_answer !== '-' && $user_answer !== '') {
+                                        $user_answer_text = trim((string)($question_source['option_' . strtolower($user_answer)] ?? ''));
+                                    }
+                                    $answer_explanation = trim((string)($answer['explanation'] ?? ($question_source['explanation'] ?? '')));
+                                    if ($answer_explanation === '') {
+                                        $correct_label = $correct_answer_text !== ''
+                                            ? $correct_answer . ' („' . $correct_answer_text . '”)'
+                                            : $correct_answer;
+                                        $user_label = $user_answer_text !== ''
+                                            ? $user_answer . ' („' . $user_answer_text . '”)'
+                                            : $user_answer;
+                                        if ($is_correct) {
+                                            $answer_explanation = 'Wybrałeś poprawnie. Odpowiedź ' . $correct_label . ' pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.';
+                                        } else {
+                                            $answer_explanation = 'Zaznaczyłeś ' . $user_label . ', ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ' . $correct_label . ', bo to ona odpowiada na podane polecenie.';
+                                        }
+                                    }
                                     ?>
                                     <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo (int)$answer['question_id']; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>" style="animation-delay: <?php echo min($index * 0.04, 1.2); ?>s">
                                         <div class="answer-card-header" onclick="toggleAnswerCard(this)">
@@ -885,6 +926,13 @@ $shareCardData = [
                                                     </span>
                                                     <?php echo $is_correct ? 'Poprawna' : 'Błędna'; ?>
                                                 </span>
+                                            </div>
+                                            <div class="answer-explanation">
+                                                <div class="answer-explanation-label">
+                                                    <i class="bi bi-info-circle-fill"></i>
+                                                    Wyjaśnienie
+                                                </div>
+                                                <div><?php echo nl2br(htmlspecialchars($answer_explanation)); ?></div>
                                             </div>
                                             <button type="button" class="answer-card-view-btn" onclick="event.stopPropagation(); viewQuestion(<?php echo (int)$answer['question_id']; ?>, '<?php echo addslashes($user_answer); ?>', '<?php echo addslashes($correct_answer); ?>')">
                                                 <i class="bi bi-eye"></i> Zobacz pytanie
@@ -947,6 +995,7 @@ $shareCardData = [
                     <div id="modalAnswersContainer" class="d-flex flex-column gap-3">
                         <!-- Options will be injected here -->
                     </div>
+                    <div id="modalQuestionExplanation" class="answer-explanation d-none mt-3"></div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Zamknij</button>
@@ -1055,6 +1104,23 @@ $shareCardData = [
                 }
                 container.appendChild(div);
             }
+
+            const explanationBox = document.getElementById('modalQuestionExplanation');
+            const correctText = options[correctAns] || '';
+            const userText = options[userAns] || '';
+            let explanation = String(q.explanation || '').trim();
+            if (!explanation) {
+                const correctLabel = correctText ? `${correctAns} („${correctText}”)` : correctAns;
+                const userLabel = userText ? `${userAns} („${userText}”)` : userAns;
+                explanation = userAns === correctAns
+                    ? `Wybrałeś poprawnie. Odpowiedź ${correctLabel} pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.`
+                    : `Zaznaczyłeś ${userLabel}, ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ${correctLabel}, bo to ona odpowiada na podane polecenie.`;
+            }
+            explanationBox.innerHTML = '<div class="answer-explanation-label"><i class="bi bi-info-circle-fill"></i>Wyjaśnienie</div>';
+            const explanationText = document.createElement('div');
+            explanationText.textContent = explanation;
+            explanationBox.appendChild(explanationText);
+            explanationBox.classList.remove('d-none');
 
             questionModal.show();
         }

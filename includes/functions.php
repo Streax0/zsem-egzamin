@@ -3063,6 +3063,8 @@ function testDisallowsPreviousQuestion(array $test): bool {
 function finishTest($pdo, $userId, $test) {
     // Get old rank before XP update
     $oldRank = getUserRank($pdo, $userId);
+    $allowedModes = ['exam', 'practice', 'single', 'exam_simulator'];
+    $testMode = in_array((string)($test['mode'] ?? 'exam'), $allowedModes, true) ? (string)$test['mode'] : 'exam';
 
     $totalQ     = count($test['questions']);
     $correctCount = 0;
@@ -3120,7 +3122,7 @@ function finishTest($pdo, $userId, $test) {
             "INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode, start_time, exclude_from_ranking)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $test['mode'], $startTime, $excludeFromRanking]);
+        $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $testMode, $startTime, $excludeFromRanking]);
     } catch (PDOException $e) {
         // Fallback if exclude_from_ranking column doesn't exist
         if ($e->getCode() == '42S22') {
@@ -3130,13 +3132,13 @@ function finishTest($pdo, $userId, $test) {
                     "INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode, start_time, exclude_from_ranking)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                 );
-                $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $test['mode'], $startTime, $excludeFromRanking]);
+                $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $testMode, $startTime, $excludeFromRanking]);
             } catch (PDOException $e2) {
                 $stmt = $pdo->prepare(
                     "INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode)
                      VALUES (?, ?, ?, ?, ?, ?)"
                 );
-                $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $test['mode']]);
+                $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $testMode]);
             }
         } else {
             throw $e;
@@ -3243,7 +3245,7 @@ function finishGuestTest(array $test): string {
             'total_questions' => $totalQuestions,
             'score_percent' => $totalQuestions > 0 ? round(($correct / $totalQuestions) * 100, 2) : 0,
             'time_spent' => $timeSpent,
-            'mode' => (string)($test['mode'] ?? 'exam'),
+            'mode' => in_array((string)($test['mode'] ?? 'exam'), ['exam', 'practice', 'single', 'exam_simulator'], true) ? (string)$test['mode'] : 'exam',
             'test_date' => date('Y-m-d H:i:s'),
         ],
         'answers' => $answerRows,

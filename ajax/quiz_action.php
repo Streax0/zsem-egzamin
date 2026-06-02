@@ -135,7 +135,10 @@ switch ($action) {
                 $test['last_result'] = [
                     'is_correct' => $isCorrect,
                     'user_answer' => $userAnswer,
+                    'user_answer_text' => $q['option_' . strtolower((string)$userAnswer)] ?? '',
                     'correct_answer' => $q['correct_answer'],
+                    'correct_answer_text' => $q['option_' . strtolower((string)$q['correct_answer'])] ?? '',
+                    'explanation' => $q['explanation'] ?? '',
                     'is_last' => $isLast
                 ];
 
@@ -261,6 +264,7 @@ function formatQuestionForAjax($q) {
     return [
         'id' => $q['id'],
         'question_text' => $q['question_text'],
+        'explanation' => $q['explanation'] ?? '',
         'image_url' => questionImageSrc($q['image_url'] ?? '') ?? '',
         'category' => $q['category'] ?? 'Ogólne',
         'options' => [

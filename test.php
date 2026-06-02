@@ -735,6 +735,27 @@ if ($test) {
             border-color: #ef4444 !important;
             color: #fff !important;
         }
+        .answer-explanation {
+            background: rgba(59, 130, 246, .08);
+            border: 1px solid rgba(59, 130, 246, .14);
+            border-radius: 12px;
+            padding: .75rem .85rem;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+        .answer-explanation-label {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: .25rem;
+        }
+        body.dark-mode .answer-explanation {
+            background: rgba(96, 165, 250, .08);
+            border-color: rgba(96, 165, 250, .18);
+            color: #e5e7eb;
+        }
 
         /* ==================== PREMIUM SETUP SYSTEM ==================== */
         .premium-setup-container {
@@ -1128,17 +1149,22 @@ if ($test) {
             justify-content: space-between;
             gap: 1rem;
             width: 100%;
-            border: 1px solid #2563eb;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: 1px solid rgba(14, 165, 233, .28);
+            border-left: 8px solid #14b8a6;
+            border-radius: 8px;
+            background:
+                linear-gradient(90deg, rgba(20, 184, 166, .95) 0 18px, transparent 18px),
+                linear-gradient(135deg, #0f172a 0%, #1d4ed8 58%, #14b8a6 100%);
             color: #fff;
-            padding: 1rem 1.1rem;
+            padding: 1rem 1.1rem 1rem 1.35rem;
             text-decoration: none;
-            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
         }
         .exam-sim-launch-card:hover {
             color: #fff;
-            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            background:
+                linear-gradient(90deg, rgba(20, 184, 166, 1) 0 18px, transparent 18px),
+                linear-gradient(135deg, #111827 0%, #1e40af 58%, #0f766e 100%);
             transform: translateY(-1px);
         }
         .exam-sim-action-icon {
@@ -2611,6 +2637,19 @@ if ($test) {
             <?php
                 $lr      = $lastResult;
                 $correct = $currentQuestion['correct_answer'];
+                $correctText = trim((string)($currentQuestion['option_' . strtolower((string)$correct)] ?? ''));
+                $userAnswer = strtoupper(trim((string)($lr['user_answer'] ?? '-')));
+                $userText = $userAnswer !== '-' ? trim((string)($currentQuestion['option_' . strtolower($userAnswer)] ?? '')) : '';
+                $reviewExplanation = trim((string)($currentQuestion['explanation'] ?? ($lr['explanation'] ?? '')));
+                if ($reviewExplanation === '') {
+                    $correctLabel = $correctText !== '' ? $correct . ' („' . $correctText . '”)' : $correct;
+                    $userLabel = $userText !== '' ? $userAnswer . ' („' . $userText . '”)' : $userAnswer;
+                    if (!empty($lr['is_correct'])) {
+                        $reviewExplanation = 'Wybrałeś poprawnie. Odpowiedź ' . $correctLabel . ' pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.';
+                    } else {
+                        $reviewExplanation = 'Zaznaczyłeś ' . $userLabel . ', ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ' . $correctLabel . ', bo to ona odpowiada na podane polecenie.';
+                    }
+                }
             ?>
                 <div id="answersContainer" class="d-flex flex-column gap-2">
                     <?php foreach (['A', 'B', 'C', 'D'] as $opt):
@@ -2655,6 +2694,13 @@ if ($test) {
                         – <?= htmlspecialchars($currentQuestion['option_' . strtolower($lr['correct_answer'])] ?? '') ?>
                     </p>
                 <?php endif; ?>
+                <div class="answer-explanation mt-3">
+                    <div class="answer-explanation-label">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Wyjaśnienie
+                    </div>
+                    <div><?= nl2br(htmlspecialchars($reviewExplanation)) ?></div>
+                </div>
             </div>
 
             <!-- Next / Finish buttons -->

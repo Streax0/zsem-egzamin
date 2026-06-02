@@ -230,12 +230,9 @@ $csrf_token = generateCsrfToken();
                     <label class="form-label" for="regPassword">Hasło</label>
                     <input type="password" name="password" id="regPassword" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required aria-describedby="passwordPolicy">
                     <div class="strength-meter" role="meter" aria-label="Siła hasła" aria-valuemin="0" aria-valuemax="5"><div id="strengthBar" class="strength-meter-bar"></div></div>
-                    <div id="passwordPolicy" class="password-policy-checks small mt-2" aria-live="polite">
-                        <span data-password-rule="length">minimum 6 znaków</span>
-                        <span data-password-rule="lower">mała litera</span>
-                        <span data-password-rule="upper">wielka litera</span>
-                        <span data-password-rule="digit">cyfra</span>
-                        <span data-password-rule="special">znak specjalny</span>
+                    <div id="passwordPolicy" class="password-policy-single small mt-2" aria-live="polite">
+                        <i class="bi bi-shield-lock"></i>
+                        <span id="passwordPolicyMessage">Wpisz hasło, aby sprawdzić wymagania.</span>
                     </div>
                 </div>
                 <div class="col-md-6 mb-3">

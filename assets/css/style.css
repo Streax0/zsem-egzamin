@@ -322,6 +322,11 @@ body {
   overflow-x: hidden;
 }
 
+p, h1, h2, h3, h4, h5, h6, .btn, .badge, .card, .dashboard-panel, .answer-option,
+input, select, textarea, button, .sidebar, .top-header, .main-footer {
+  font-family: var(--czcionka-glowna);
+}
+
 p, h1, h2, h3, h4, h5, h6, .btn, .badge, .card, .dashboard-panel, .answer-option {
   overflow-wrap: anywhere;
 }

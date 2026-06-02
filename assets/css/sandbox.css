@@ -116,6 +116,7 @@
 
 .logic-workbench,
 .psu-workbench,
+.router-workbench,
 .subnet-workbench,
 .numbers-workbench,
 .live-workbench {
@@ -131,6 +132,8 @@
 .sandbox-rail,
 .sandbox-panel,
 .logic-canvas-panel,
+.router-board-panel,
+.router-console-panel,
 .sandbox-result-panel,
 .preview-frame {
   border: 1px solid rgba(148,163,184,.22);
@@ -207,6 +210,109 @@
 
 .logic-canvas-panel {
   overflow-x: auto;
+}
+
+.router-workbench {
+  grid-template-columns: 240px minmax(0, 1fr) 360px;
+}
+
+.router-board-panel,
+.router-console-panel {
+  padding: 1rem;
+}
+
+.router-board {
+  min-height: 560px;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(20,184,166,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20,184,166,.08) 1px, transparent 1px),
+    #f8fafc;
+  background-size: 28px 28px;
+}
+
+.router-wire-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.router-wire-path {
+  stroke: #0f766e;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.router-node {
+  position: absolute;
+  width: 116px;
+  min-height: 82px;
+  display: grid;
+  place-items: center;
+  gap: .25rem;
+  padding: .7rem;
+  border: 2px solid rgba(15,118,110,.25);
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  text-align: center;
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgba(15,23,42,.08);
+  cursor: pointer;
+  user-select: none;
+  z-index: 2;
+}
+
+.router-node i {
+  font-size: 1.4rem;
+  color: #0f766e;
+}
+
+.router-node.is-selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37,99,235,.16), 0 14px 32px rgba(37,99,235,.14);
+}
+
+.router-console-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 560px;
+}
+
+.router-console-out {
+  min-height: 420px;
+  margin: 0;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #020617;
+  color: #d1fae5;
+  font: 600 .86rem/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow: auto;
+}
+
+.router-cli-form {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .75rem;
+  padding: .6rem;
+  border-radius: 8px;
+  background: #020617;
+  color: #d1fae5;
+  font: 700 .86rem ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.router-cli-form input {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  box-shadow: none !important;
+  font: inherit;
 }
 
 .logic-toolbar label {
@@ -503,6 +609,9 @@ body.dark-mode .sandbox-tabs a,
 body.dark-mode .sandbox-rail,
 body.dark-mode .sandbox-panel,
 body.dark-mode .logic-canvas-panel,
+body.dark-mode .router-board-panel,
+body.dark-mode .router-console-panel,
+body.dark-mode .router-node,
 body.dark-mode .logic-node,
 body.dark-mode .preview-frame {
   background: #1e293b;
@@ -511,6 +620,7 @@ body.dark-mode .preview-frame {
 }
 
 body.dark-mode .logic-canvas,
+body.dark-mode .router-board,
 body.dark-mode .result-grid div,
 body.dark-mode .toolbox-group button,
 body.dark-mode .logic-port,
@@ -523,6 +633,7 @@ body.dark-mode .logic-switch {
 @media (max-width: 1100px) {
   .logic-workbench,
   .psu-workbench,
+  .router-workbench,
   .subnet-workbench,
   .numbers-workbench,
   .live-workbench,

@@ -157,38 +157,32 @@ body.auth-page::before {
   background-size: .9rem .9rem;
 }
 
-.password-policy-checks {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: .5rem;
-  color: #64748b;
-}
-
-.password-policy-checks span {
-  display: inline-flex;
+.password-policy-single {
+  display: flex;
   align-items: center;
-  gap: .45rem;
-  margin: 0;
-  min-height: 34px;
+  gap: .6rem;
+  min-height: 42px;
   border: 1px solid #dbe4ef;
-  border-radius: 999px;
-  padding: .42rem .65rem;
+  border-radius: 8px;
+  padding: .65rem .75rem;
   background: #f8fafc;
-  line-height: 1.1;
+  color: #475569;
+  line-height: 1.25;
   transition: background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
 }
 
-.password-policy-checks span::before {
-  content: "";
-  width: .72rem;
-  height: .72rem;
-  border-radius: 999px;
-  border: 2px solid #cbd5e1;
-  background: #fff;
+.password-policy-single i {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(37, 99, 235, .10);
+  color: #2563eb;
   flex: 0 0 auto;
 }
 
-.password-policy-checks span.is-met {
+.password-policy-single.is-complete {
   color: #15803d;
   font-weight: 700;
   background: #ecfdf3;
@@ -196,10 +190,9 @@ body.auth-page::before {
   box-shadow: 0 6px 14px rgba(22, 163, 74, .08);
 }
 
-.password-policy-checks span.is-met::before {
-  border-color: #16a34a;
+.password-policy-single.is-complete i {
   background: #16a34a;
-  box-shadow: inset 0 0 0 2px #fff;
+  color: #fff;
 }
 
 .guest-mode-btn {

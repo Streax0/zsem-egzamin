@@ -272,6 +272,18 @@ const QuizEngine = {
 
         // Add review feedback and next button
         const cardBody = document.querySelector('.question-card .card-body');
+        const userAnswerText = String(result.user_answer_text || '').trim();
+        const correctAnswerText = String(result.correct_answer_text || '').trim();
+        const userLabel = userAnswerText
+            ? `${result.user_answer || '-'} („${userAnswerText}”)`
+            : (result.user_answer || '-');
+        const correctLabel = correctAnswerText
+            ? `${result.correct_answer} („${correctAnswerText}”)`
+            : result.correct_answer;
+        const explanation = String(result.explanation || '').trim()
+            || (result.is_correct
+                ? `Wybrałeś poprawnie. Odpowiedź ${correctLabel} pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.`
+                : `Zaznaczyłeś ${userLabel}, ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ${correctLabel}, bo to ona odpowiada na podane polecenie.`);
         
         const reviewHtml = `
             <div class="review-box mt-3 animate-in">
@@ -286,6 +298,13 @@ const QuizEngine = {
                     </div>
                     <p class="mb-0 text-muted">Poprawna odpowiedź: <strong class="text-success">${result.correct_answer}</strong></p>`
                 }
+                <div class="answer-explanation mt-3">
+                    <div class="answer-explanation-label">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Wyjaśnienie
+                    </div>
+                    <div>${this.escapeHtml(explanation).replace(/\n/g, '<br>')}</div>
+                </div>
             </div>
             <div class="review-next-actions d-flex gap-2 mt-4 flex-wrap animate-in">
                 <button type="button" class="btn ${result.is_last ? 'btn-success' : 'btn-primary'} btn-lg" onclick="QuizEngine.nextQuestion()">

@@ -10,37 +10,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const teacherWrap = document.getElementById('teacherMotivationWrap');
   const teacherMotivation = document.getElementById('teacherMotivation');
   const teacherMotivationHelp = document.getElementById('teacherMotivationHelp');
-  const passwordRules = {
-    length: document.querySelector('[data-password-rule="length"]'),
-    lower: document.querySelector('[data-password-rule="lower"]'),
-    upper: document.querySelector('[data-password-rule="upper"]'),
-    digit: document.querySelector('[data-password-rule="digit"]'),
-    special: document.querySelector('[data-password-rule="special"]')
-  };
+  const passwordPolicy = document.getElementById('passwordPolicy');
+  const passwordPolicyMessage = document.getElementById('passwordPolicyMessage');
 
   if (passInput && bar) {
     const syncPasswordRules = () => {
       const val = passInput.value;
-      const checks = {
-        length: val.length >= 6,
-        lower: /[a-z]/.test(val),
-        upper: /[A-Z]/.test(val),
-        digit: /[0-9]/.test(val),
-        special: /[^A-Za-z0-9]/.test(val)
-      };
+      const checks = [
+        { ok: val.length >= 6, text: 'minimum 6 znaków' },
+        { ok: /[a-z]/.test(val), text: 'mała litera' },
+        { ok: /[A-Z]/.test(val), text: 'wielka litera' },
+        { ok: /[0-9]/.test(val), text: 'cyfra' },
+        { ok: /[^A-Za-z0-9]/.test(val), text: 'znak specjalny' }
+      ];
       let score = 0;
-      Object.entries(checks).forEach(([key, met]) => {
-        if (met) score++;
-        const rule = passwordRules[key];
-        if (!rule) return;
-        rule.classList.toggle('is-met', met);
-        rule.classList.toggle('is-missing', !met);
-        rule.setAttribute('aria-checked', met ? 'true' : 'false');
-      });
+      checks.forEach((rule) => { if (rule.ok) score++; });
+      const missing = checks.filter((rule) => !rule.ok).map((rule) => rule.text);
       const colors = ['#ef4444', '#f97316', '#f59e0b', '#2563eb', '#10b981'];
       bar.style.width = `${Math.min(score, 5) * 20}%`;
       bar.style.backgroundColor = colors[score - 1] || 'transparent';
       bar.parentElement?.setAttribute('aria-valuenow', String(score));
+      if (passwordPolicy && passwordPolicyMessage) {
+        passwordPolicy.classList.toggle('is-complete', missing.length === 0 && val.length > 0);
+        passwordPolicy.classList.toggle('is-empty', val.length === 0);
+        passwordPolicyMessage.textContent = val.length === 0
+          ? 'Wpisz hasło, aby sprawdzić wymagania.'
+          : (missing.length ? `Brakuje: ${missing.join(', ')}.` : 'Hasło spełnia wszystkie wymagania.');
+      }
     };
     passInput.addEventListener('input', syncPasswordRules);
     syncPasswordRules();

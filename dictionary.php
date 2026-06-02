@@ -35,9 +35,9 @@ foreach ($dictionaryData as $group) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <style>
         /* CSS Variables for backward compatibility */
         :root {
@@ -268,6 +268,7 @@ foreach ($dictionaryData as $group) {
                     <div class="dict-quality-note mb-3 animate-in">
                         <div class="fw-bold"><i class="bi bi-lightbulb text-primary me-2"></i>Jak korzystać ze słownika</div>
                         <div class="small text-muted">Szukaj po konkretnym haśle, filtruj kwalifikację i sprawdzaj przykłady. Karty pilnują długich definicji, żeby tekst nie wychodził poza układ.</div>
+                        <a href="flashcards.php" class="btn btn-sm btn-primary rounded-pill mt-3"><i class="bi bi-card-text me-1"></i>Tryb fiszek</a>
                     </div>
 
                     <!-- Sticky Filters Section -->

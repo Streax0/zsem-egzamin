@@ -11,6 +11,7 @@ $tools = [
     'logic' => ['title' => 'Bramki logiczne', 'icon' => 'bi-diagram-3', 'desc' => 'Buduj układy z wejść, bramek i LED, sprawdzaj połączenia oraz tabelę prawdy.'],
     'psu' => ['title' => 'Kalkulator PSU', 'icon' => 'bi-pc-display', 'desc' => 'Policz pobór zestawu PC, zapas mocy, obciążenie zasilacza i pobór z gniazdka.'],
     'subnet' => ['title' => 'Podsieci IP', 'icon' => 'bi-router', 'desc' => 'Wylicz sieć, broadcast, maskę, hosty i podstawowe parametry IPv4 oraz IPv6.'],
+    'router' => ['title' => 'Symulator routera', 'icon' => 'bi-hdd-network', 'desc' => 'Buduj topologie i ćwicz podstawowe CLI Cisco, MikroTik oraz TP-Link w przeglądarce.'],
     'numbers' => ['title' => 'Systemy liczbowe', 'icon' => 'bi-123', 'desc' => 'Konwertuj BIN/OCT/DEC/HEX, sprawdzaj zapis 8-bitowy, U2 i operacje bitowe.'],
     'ohm' => ['title' => 'Prawo Ohma', 'icon' => 'bi-lightning-charge', 'desc' => 'Licz napięcie, prąd, opór, moc oraz najbliższy rezystor do zasilania LED.'],
     'live' => ['title' => 'Live HTML/CSS/JS', 'icon' => 'bi-code-slash', 'desc' => 'Testuj HTML, CSS i JavaScript w izolowanym podglądzie z zapisem szkicu po odświeżeniu.'],
@@ -157,6 +158,44 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                             </div>
                             <div id="ipv6Out" class="result-grid mt-3"></div>
                         </div>
+                    </section>
+                <?php elseif ($tool === 'router'): ?>
+                    <section class="sandbox-workbench router-workbench" data-tool="router">
+                        <aside class="sandbox-rail">
+                            <h5 class="fw-800 mb-3">Urządzenia</h5>
+                            <div class="toolbox-group">
+                                <span>Routery</span>
+                                <button type="button" data-router-device="cisco"><i class="bi bi-hdd-network"></i>Cisco</button>
+                                <button type="button" data-router-device="mikrotik"><i class="bi bi-router"></i>MikroTik</button>
+                                <button type="button" data-router-device="tplink"><i class="bi bi-wifi"></i>TP-Link</button>
+                            </div>
+                            <div class="toolbox-group">
+                                <span>Końcówki</span>
+                                <button type="button" data-router-device="switch"><i class="bi bi-diagram-3"></i>Switch</button>
+                                <button type="button" data-router-device="pc"><i class="bi bi-pc-display"></i>Komputer</button>
+                            </div>
+                            <div class="toolbox-group">
+                                <span>Akcje</span>
+                                <button type="button" id="routerConnectMode"><i class="bi bi-plug"></i>Połącz</button>
+                                <button type="button" id="routerClear"><i class="bi bi-arrow-counterclockwise"></i>Wyczyść</button>
+                            </div>
+                        </aside>
+                        <div class="router-board-panel">
+                            <div class="router-board" id="routerBoard">
+                                <svg id="routerWireLayer" class="router-wire-layer" aria-hidden="true"></svg>
+                            </div>
+                        </div>
+                        <aside class="router-console-panel">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                                <strong id="routerConsoleTitle">Konsola</strong>
+                                <span class="badge text-bg-primary" id="routerVendorBadge">Cisco</span>
+                            </div>
+                            <pre id="routerConsoleOut" class="router-console-out">Wybierz router i wpisz komendę.</pre>
+                            <form id="routerCliForm" class="router-cli-form">
+                                <span id="routerPrompt">Router&gt;</span>
+                                <input id="routerCliInput" class="form-control" autocomplete="off" spellcheck="false" placeholder="enable">
+                            </form>
+                        </aside>
                     </section>
                 <?php elseif ($tool === 'numbers'): ?>
                     <section class="sandbox-workbench numbers-workbench" data-tool="numbers">
