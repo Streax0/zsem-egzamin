@@ -11,7 +11,7 @@ $tools = [
     'logic' => ['title' => 'Bramki logiczne', 'icon' => 'bi-diagram-3', 'desc' => 'Buduj układy z wejść, bramek i LED, sprawdzaj połączenia oraz tabelę prawdy.'],
     'psu' => ['title' => 'Kalkulator PSU', 'icon' => 'bi-pc-display', 'desc' => 'Policz pobór zestawu PC, zapas mocy, obciążenie zasilacza i pobór z gniazdka.'],
     'subnet' => ['title' => 'Podsieci IP', 'icon' => 'bi-router', 'desc' => 'Wylicz sieć, broadcast, maskę, hosty i podstawowe parametry IPv4 oraz IPv6.'],
-    'router' => ['title' => 'Symulator routera', 'icon' => 'bi-hdd-network', 'desc' => 'Buduj topologie i ćwicz podstawowe CLI Cisco, MikroTik oraz TP-Link w przeglądarce.'],
+    'router' => ['title' => 'Laboratorium sieci', 'icon' => 'bi-hdd-network', 'desc' => 'Buduj topologie, przesuwaj urządzenia, łącz porty i ćwicz CLI Cisco, MikroTik oraz TP-Link.'],
     'numbers' => ['title' => 'Systemy liczbowe', 'icon' => 'bi-123', 'desc' => 'Konwertuj BIN/OCT/DEC/HEX, sprawdzaj zapis 8-bitowy, U2 i operacje bitowe.'],
     'ohm' => ['title' => 'Prawo Ohma', 'icon' => 'bi-lightning-charge', 'desc' => 'Licz napięcie, prąd, opór, moc oraz najbliższy rezystor do zasilania LED.'],
     'live' => ['title' => 'Live HTML/CSS/JS', 'icon' => 'bi-code-slash', 'desc' => 'Testuj HTML, CSS i JavaScript w izolowanym podglądzie z zapisem szkicu po odświeżeniu.'],
@@ -190,7 +190,7 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                                 <strong id="routerConsoleTitle">Konsola</strong>
                                 <span class="badge text-bg-primary" id="routerVendorBadge">Cisco</span>
                             </div>
-                            <pre id="routerConsoleOut" class="router-console-out">Wybierz router i wpisz komendę.</pre>
+                            <pre id="routerConsoleOut" class="router-console-out">Wybierz urządzenie i wpisz help.</pre>
                             <form id="routerCliForm" class="router-cli-form">
                                 <span id="routerPrompt">Router&gt;</span>
                                 <input id="routerCliInput" class="form-control" autocomplete="off" spellcheck="false" placeholder="enable">

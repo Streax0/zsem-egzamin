@@ -2642,13 +2642,7 @@ if ($test) {
                 $userText = $userAnswer !== '-' ? trim((string)($currentQuestion['option_' . strtolower($userAnswer)] ?? '')) : '';
                 $reviewExplanation = trim((string)($currentQuestion['explanation'] ?? ($lr['explanation'] ?? '')));
                 if ($reviewExplanation === '') {
-                    $correctLabel = $correctText !== '' ? $correct . ' („' . $correctText . '”)' : $correct;
-                    $userLabel = $userText !== '' ? $userAnswer . ' („' . $userText . '”)' : $userAnswer;
-                    if (!empty($lr['is_correct'])) {
-                        $reviewExplanation = 'Wybrałeś poprawnie. Odpowiedź ' . $correctLabel . ' pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.';
-                    } else {
-                        $reviewExplanation = 'Zaznaczyłeś ' . $userLabel . ', ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ' . $correctLabel . ', bo to ona odpowiada na podane polecenie.';
-                    }
+                    $reviewExplanation = buildQuestionExplanation($currentQuestion, $userAnswer, !empty($lr['is_correct']));
                 }
             ?>
                 <div id="answersContainer" class="d-flex flex-column gap-2">

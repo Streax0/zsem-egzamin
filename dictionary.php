@@ -346,7 +346,7 @@ foreach ($dictionaryData as $group) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Data Preparation
-    const rawData = <?= json_encode($dictionaryData) ?>;
+    const rawData = <?= json_encode($dictionaryData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     let allTerms = [];
     
     rawData.forEach(group => {
@@ -384,6 +384,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
     }[ch]));
+    const safeHttpUrl = (value) => {
+        try {
+            const url = new URL(String(value || ''), window.location.href);
+            return ['http:', 'https:'].includes(url.protocol) ? url.href : '#';
+        } catch (_) {
+            return '#';
+        }
+    };
 
     // Handle Sticky Menu Animation on Scroll
     window.addEventListener('scroll', function() {
@@ -441,7 +449,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sortedQuals.forEach(qual => {
                 const headerHtml = `
                 <div class="qualification-header fade-in-js" style="animation-delay: ${Math.min(globalIndex * 0.02, 0.3)}s;">
-                    <i class="bi bi-tags-fill me-3 text-primary"></i> ${qual}
+                    <i class="bi bi-tags-fill me-3 text-primary"></i> ${escapeHtml(qual)}
                 </div>
                 <div class="row g-4 mb-5 qual-group-container"></div>
                 `;
@@ -465,9 +473,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     let linkHtml = '';
-                    if (item.link !== '') {
+                    const safeLink = safeHttpUrl(item.link);
+                    if (safeLink !== '#') {
                         linkHtml = `
-                        <a href="${escapeHtml(item.link)}" target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1" rel="noopener">
+                        <a href="${escapeHtml(safeLink)}" target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1" rel="noopener">
                             <i class="bi bi-wikipedia"></i> Wikipedia
                         </a>`;
                     }
@@ -486,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 
                                 <div class="d-flex gap-2 mt-auto">
                                     ${linkHtml}
-                                    <a href="${ytLink}" target="_blank" class="btn btn-sm btn-outline-danger flex-grow-1" title="Szukaj poradnika na YouTube">
+                                    <a href="${ytLink}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger flex-grow-1" title="Szukaj poradnika na YouTube">
                                         <i class="bi bi-youtube"></i> YouTube
                                     </a>
                                 </div>

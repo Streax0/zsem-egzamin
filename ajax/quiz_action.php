@@ -138,7 +138,7 @@ switch ($action) {
                     'user_answer_text' => $q['option_' . strtolower((string)$userAnswer)] ?? '',
                     'correct_answer' => $q['correct_answer'],
                     'correct_answer_text' => $q['option_' . strtolower((string)$q['correct_answer'])] ?? '',
-                    'explanation' => $q['explanation'] ?? '',
+                    'explanation' => buildQuestionExplanation($q, $userAnswer, $isCorrect),
                     'is_last' => $isLast
                 ];
 

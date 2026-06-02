@@ -281,9 +281,13 @@ const QuizEngine = {
             ? `${result.correct_answer} („${correctAnswerText}”)`
             : result.correct_answer;
         const explanation = String(result.explanation || '').trim()
-            || (result.is_correct
-                ? `Wybrałeś poprawnie. Odpowiedź ${correctLabel} pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.`
-                : `Zaznaczyłeś ${userLabel}, ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ${correctLabel}, bo to ona odpowiada na podane polecenie.`);
+            || [
+                `Poprawna odpowiedź to ${correctLabel}.`,
+                result.is_correct
+                    ? 'Twoja odpowiedź spełnia warunek z pytania.'
+                    : `Wybrana odpowiedź ${userLabel} nie spełnia warunku z pytania albo opisuje inną sytuację.`,
+                correctAnswerText ? `Najważniejsze do zapamiętania: ${correctAnswerText}` : ''
+            ].filter(Boolean).join('\n');
         
         const reviewHtml = `
             <div class="review-box mt-3 animate-in">

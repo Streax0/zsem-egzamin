@@ -879,17 +879,14 @@ $shareCardData = [
                                     }
                                     $answer_explanation = trim((string)($answer['explanation'] ?? ($question_source['explanation'] ?? '')));
                                     if ($answer_explanation === '') {
-                                        $correct_label = $correct_answer_text !== ''
-                                            ? $correct_answer . ' („' . $correct_answer_text . '”)'
-                                            : $correct_answer;
-                                        $user_label = $user_answer_text !== ''
-                                            ? $user_answer . ' („' . $user_answer_text . '”)'
-                                            : $user_answer;
-                                        if ($is_correct) {
-                                            $answer_explanation = 'Wybrałeś poprawnie. Odpowiedź ' . $correct_label . ' pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.';
-                                        } else {
-                                            $answer_explanation = 'Zaznaczyłeś ' . $user_label . ', ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ' . $correct_label . ', bo to ona odpowiada na podane polecenie.';
+                                        $question_for_explanation = $question_source;
+                                        $question_for_explanation['question_text'] = $question_text;
+                                        $question_for_explanation['correct_answer'] = $correct_answer;
+                                        $question_for_explanation['option_' . strtolower($correct_answer)] = $correct_answer_text;
+                                        if ($user_answer !== '-' && $user_answer !== '') {
+                                            $question_for_explanation['option_' . strtolower($user_answer)] = $user_answer_text;
                                         }
+                                        $answer_explanation = buildQuestionExplanation($question_for_explanation, $user_answer, $is_correct);
                                     }
                                     ?>
                                     <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo (int)$answer['question_id']; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>" style="animation-delay: <?php echo min($index * 0.04, 1.2); ?>s">
@@ -1112,9 +1109,13 @@ $shareCardData = [
             if (!explanation) {
                 const correctLabel = correctText ? `${correctAns} („${correctText}”)` : correctAns;
                 const userLabel = userText ? `${userAns} („${userText}”)` : userAns;
-                explanation = userAns === correctAns
-                    ? `Wybrałeś poprawnie. Odpowiedź ${correctLabel} pasuje do treści pytania i dlatego jest wskazana jako prawidłowa.`
-                    : `Zaznaczyłeś ${userLabel}, ale ta opcja nie spełnia warunku z pytania. Prawidłowa jest odpowiedź ${correctLabel}, bo to ona odpowiada na podane polecenie.`;
+                explanation = [
+                    `Poprawna odpowiedź to ${correctLabel}.`,
+                    userAns === correctAns
+                        ? 'Twoja odpowiedź spełnia warunek z pytania.'
+                        : `Wybrana odpowiedź ${userLabel} nie spełnia warunku z pytania albo opisuje inną sytuację.`,
+                    correctText ? `Najważniejsze do zapamiętania: ${correctText}` : ''
+                ].filter(Boolean).join('\n');
             }
             explanationBox.innerHTML = '<div class="answer-explanation-label"><i class="bi bi-info-circle-fill"></i>Wyjaśnienie</div>';
             const explanationText = document.createElement('div');

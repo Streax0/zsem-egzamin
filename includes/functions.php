@@ -2302,6 +2302,38 @@ function deleteLocalAvatarFile(string $avatarPath): bool {
     return @unlink($absoluteAvatarPath);
 }
 
+function answerOptionText(array $question, string $letter): string {
+    $letter = strtolower(trim($letter));
+    return trim((string)($question['option_' . $letter] ?? ''));
+}
+
+function buildQuestionExplanation(array $question, string $userAnswer = '', ?bool $isCorrect = null): string {
+    $existing = trim((string)($question['explanation'] ?? ''));
+    if ($existing !== '') return $existing;
+
+    $correct = strtoupper(trim((string)($question['correct_answer'] ?? ($question['correct'] ?? ''))));
+    $user = strtoupper(trim($userAnswer));
+    $correctText = answerOptionText($question, $correct);
+    $userText = answerOptionText($question, $user);
+    $questionText = trim((string)($question['question_text'] ?? ($question['question'] ?? '')));
+
+    $correctLabel = $correctText !== '' ? "{$correct} - {$correctText}" : $correct;
+    $parts = ["Poprawna odpowiedź to {$correctLabel}."];
+    if ($questionText !== '') {
+        $parts[] = "Treść pytania wymaga wskazania opcji, która bezpośrednio spełnia warunek: {$questionText}";
+    }
+    if ($user !== '' && $user !== '-' && $user !== $correct) {
+        $userLabel = $userText !== '' ? "{$user} - {$userText}" : $user;
+        $parts[] = "Wybrana odpowiedź {$userLabel} nie spełnia tego warunku albo opisuje inną sytuację.";
+    } elseif ($isCorrect === true || ($user !== '' && $user === $correct)) {
+        $parts[] = "Twoja odpowiedź jest zgodna z wymaganiem z pytania.";
+    }
+    if ($correctText !== '') {
+        $parts[] = "Najważniejsze do zapamiętania: {$correctText}";
+    }
+    return implode("\n", $parts);
+}
+
 function deleteUserAvatar(PDO $pdo, int $userId, bool $clearColumn = true): bool {
     if ($userId <= 0) return false;
     try {
