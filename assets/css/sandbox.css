@@ -216,6 +216,152 @@
   grid-template-columns: 240px minmax(0, 1fr) 360px;
 }
 
+.router-web-emulator {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  min-height: 640px;
+  border: 1px solid rgba(34, 197, 94, .32);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f4f8f3;
+  box-shadow: 0 22px 52px rgba(15,23,42,.10);
+}
+
+.router-web-nav {
+  background: linear-gradient(180deg, #14532d, #1f2937 42%, #111827);
+  color: #fff;
+  padding: 1rem .75rem;
+  display: grid;
+  align-content: start;
+  gap: .35rem;
+}
+
+.router-web-brand {
+  padding: .7rem .7rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.18);
+  margin-bottom: .55rem;
+}
+
+.router-web-brand strong {
+  display: block;
+  font-size: 1.1rem;
+  letter-spacing: 0;
+}
+
+.router-web-brand span {
+  display: block;
+  color: rgba(255,255,255,.72);
+  font-size: .72rem;
+  margin-top: .25rem;
+}
+
+.router-web-nav a {
+  color: rgba(255,255,255,.78);
+  text-decoration: none;
+  padding: .58rem .7rem;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: .86rem;
+}
+
+.router-web-nav a:hover,
+.router-web-nav a.active {
+  color: #fff;
+  background: rgba(34,197,94,.26);
+}
+
+.router-web-main {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: #eef6ed;
+}
+
+.router-web-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.35rem;
+  border-bottom: 1px solid rgba(20,83,45,.16);
+  background: linear-gradient(90deg, #ecfdf5, #f8fafc);
+}
+
+.router-web-top p {
+  color: #475569;
+}
+
+.router-web-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: .4rem .7rem;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 900;
+  font-size: .78rem;
+}
+
+.router-web-status.is-saved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.router-web-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.router-config-card {
+  display: grid;
+  gap: .7rem;
+  align-content: start;
+  border: 1px solid rgba(20,83,45,.18);
+  border-radius: 8px;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 10px 26px rgba(15,23,42,.06);
+}
+
+.router-config-card h5 {
+  margin: 0 0 .15rem;
+  color: #166534;
+  font-weight: 900;
+}
+
+.router-config-card label {
+  display: grid;
+  gap: .35rem;
+  color: #334155;
+  font-size: .78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.router-toggle-row {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  text-transform: none !important;
+  font-size: .9rem !important;
+}
+
+.router-web-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.35rem;
+  border-top: 1px solid rgba(20,83,45,.16);
+  background: #f8fafc;
+}
+
+.router-summary {
+  color: #475569;
+  font-size: .84rem;
+  font-weight: 700;
+}
+
 .router-board-panel,
 .router-console-panel {
   padding: 1rem;
@@ -632,6 +778,10 @@ body.dark-mode .preview-frame {
 
 body.dark-mode .logic-canvas,
 body.dark-mode .router-board,
+body.dark-mode .router-web-main,
+body.dark-mode .router-config-card,
+body.dark-mode .router-web-top,
+body.dark-mode .router-web-footer,
 body.dark-mode .result-grid div,
 body.dark-mode .toolbox-group button,
 body.dark-mode .logic-port,
@@ -641,16 +791,42 @@ body.dark-mode .logic-switch {
   border-color: #334155;
 }
 
+body.dark-mode .router-web-emulator {
+  background: #0f172a;
+  border-color: rgba(34,197,94,.22);
+}
+
+body.dark-mode .router-config-card label,
+body.dark-mode .router-web-top p,
+body.dark-mode .router-summary {
+  color: #cbd5e1;
+}
+
 @media (max-width: 1100px) {
   .logic-workbench,
   .psu-workbench,
   .router-workbench,
+  .router-web-emulator,
   .subnet-workbench,
   .numbers-workbench,
   .live-workbench,
   .component-grid,
   .code-editors {
     grid-template-columns: 1fr;
+  }
+  .router-web-nav {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  .router-web-brand {
+    grid-column: 1 / -1;
+  }
+  .router-web-grid {
+    grid-template-columns: 1fr;
+  }
+  .router-web-footer,
+  .router-web-top {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

@@ -145,6 +145,65 @@ function lukiPickOutcome(PDO $pdo, int $userId, int $currentXp): array {
     return ['archetype' => 'oracle', 'label' => 'Zakonnica Losu', 'xp' => $xp, 'note' => $note];
 }
 
+function lukiSegments(): array {
+    return [
+        ['key' => 'blessing', 'name' => 'Błogosławieństwo', 'icon' => 'bi-plus-circle-fill', 'color' => '#22c55e'],
+        ['key' => 'abundance', 'name' => 'Obfitość', 'icon' => 'bi-gem', 'color' => '#f59e0b'],
+        ['key' => 'grace', 'name' => 'Łaska', 'icon' => 'bi-heart-fill', 'color' => '#8b5cf6'],
+        ['key' => 'ciaza', 'name' => 'Ciąża', 'icon' => 'bi-heart-pulse', 'color' => '#ec4899'],
+        ['key' => 'silence', 'name' => 'Cisza', 'icon' => 'bi-volume-mute-fill', 'color' => '#94a3b8'],
+        ['key' => 'trial', 'name' => 'Próba', 'icon' => 'bi-dash-circle-fill', 'color' => '#ef4444'],
+        ['key' => 'judge', 'name' => 'Sędzia', 'icon' => 'bi-exclamation-triangle-fill', 'color' => '#a21caf'],
+        ['key' => 'fate', 'name' => 'Przeznaczenie', 'icon' => 'bi-shuffle', 'color' => '#0ea5e9'],
+        ['key' => 'forge', 'name' => 'Kuźnia', 'icon' => 'bi-hammer', 'color' => '#f97316'],
+        ['key' => 'mirror', 'name' => 'Lustro', 'icon' => 'bi-symmetry-horizontal', 'color' => '#14b8a6'],
+        ['key' => 'archive', 'name' => 'Archiwum', 'icon' => 'bi-archive-fill', 'color' => '#6366f1'],
+        ['key' => 'oracle', 'name' => 'Los', 'icon' => 'bi-bullseye', 'color' => '#06b6d4'],
+        ['key' => 'void', 'name' => 'Nicość', 'icon' => 'bi-moon-stars-fill', 'color' => '#020617'],
+    ];
+}
+
+function lukiOutcomeIndex(array $segments, string $archetype): int {
+    $index = array_search($archetype, array_column($segments, 'key'), true);
+    return $index === false ? 0 : (int)$index;
+}
+
+function lukiWantsJson(): bool {
+    $requestedWith = strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+    $accept = strtolower((string)($_SERVER['HTTP_ACCEPT'] ?? ''));
+    return $requestedWith === 'xmlhttprequest' || strpos($accept, 'application/json') !== false;
+}
+
+function lukiJsonResponse(array $payload, int $status = 200): void {
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+function lukiSpinResponsePayload(array $outcome, int $spinId, int $resultIndex, int $spinsLeft, string $spinsDisplay, int $currentXp, array $rankInfo, string $createdAt): array {
+    return [
+        'success' => true,
+        'result' => [
+            'id' => $spinId,
+            'archetype' => (string)$outcome['archetype'],
+            'label' => (string)$outcome['label'],
+            'xp' => (int)$outcome['xp'],
+            'note' => (string)$outcome['note'],
+            'index' => $resultIndex,
+            'created_at' => $createdAt,
+        ],
+        'state' => [
+            'current_xp' => $currentXp,
+            'rank' => (string)($rankInfo['name'] ?? ''),
+            'spins_left' => $spinsLeft,
+            'spins_display' => $spinsDisplay,
+            'last_spin_at' => date('d.m H:i', strtotime($createdAt)),
+        ],
+    ];
+}
+
+$segments = lukiSegments();
 $activity = lukiTodayActivity($pdo, $userId);
 $dailySpinLimit = $isAdmin ? null : 2;
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM luki_spins WHERE user_id = ? AND spin_date = ?");
@@ -154,7 +213,11 @@ $spinsLeft = $isAdmin ? PHP_INT_MAX : max(0, $dailySpinLimit - $spinsToday);
 $spinsDisplay = $isAdmin ? '∞' : ((string)$spinsLeft . '/' . (string)$dailySpinLimit);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $wantsJson = lukiWantsJson();
     if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+        if ($wantsJson) {
+            lukiJsonResponse(['success' => false, 'message' => 'Błąd bezpieczeństwa CSRF. Odśwież stronę i spróbuj ponownie.'], 403);
+        }
         setSessionMessage('error', 'Błąd bezpieczeństwa CSRF.');
         redirect('luki_panel.php');
     }
@@ -166,6 +229,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $lockedRole = (string)$stmt->fetchColumn();
         if (!in_array($lockedRole, ['admin', 'wujek_luki'], true)) {
             $pdo->rollBack();
+            if ($wantsJson) {
+                lukiJsonResponse(['success' => false, 'message' => 'Brak dostępu do Zakonnicomatu.'], 403);
+            }
             setSessionMessage('error', 'Brak dostępu do Zakonnicomatu.');
             redirect('luki_panel.php');
         }
@@ -176,6 +242,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$userId, $today]);
             if ((int)$stmt->fetchColumn() >= 2) {
                 $pdo->rollBack();
+                if ($wantsJson) {
+                    lukiJsonResponse(['success' => false, 'message' => 'Limit 2 spinów na dziś został wykorzystany.'], 429);
+                }
                 setSessionMessage('error', 'Limit 2 spinów na dziś został wykorzystany.');
                 redirect('luki_panel.php');
             }
@@ -192,11 +261,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("INSERT INTO xp_events (user_id, source, source_id, amount, description) VALUES (?, 'luki_spin', ?, ?, ?)");
         $stmt->execute([$userId, $spinId, (int)$outcome['xp'], $outcome['label'] . ': ' . $outcome['note']]);
         $pdo->commit();
+        if ($wantsJson) {
+            $stmt = $pdo->prepare("SELECT xp FROM users WHERE id = ? LIMIT 1");
+            $stmt->execute([$userId]);
+            $updatedXp = max(0, (int)$stmt->fetchColumn());
+            $rankAfterSpin = getRankInfoByXp($updatedXp);
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM luki_spins WHERE user_id = ? AND spin_date = ?");
+            $stmt->execute([$userId, $today]);
+            $spinsTodayAfter = (int)$stmt->fetchColumn();
+            $spinsLeftAfter = $isAdminSpin ? PHP_INT_MAX : max(0, 2 - $spinsTodayAfter);
+            $spinsDisplayAfter = $isAdminSpin ? '∞' : ((string)$spinsLeftAfter . '/2');
+            lukiJsonResponse(lukiSpinResponsePayload(
+                $outcome,
+                $spinId,
+                lukiOutcomeIndex($segments, (string)$outcome['archetype']),
+                $spinsLeftAfter,
+                $spinsDisplayAfter,
+                $updatedXp,
+                $rankAfterSpin,
+                date('Y-m-d H:i:s')
+            ));
+        }
         $_SESSION['luki_last_spin'] = $outcome + ['id' => $spinId];
         redirect('luki_panel.php?spin=1');
     } catch (PDOException $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         error_log('Luki spin failed: ' . $e->getMessage());
+        if (!empty($wantsJson)) {
+            lukiJsonResponse(['success' => false, 'message' => 'Nie udało się wykonać spinu. Spróbuj ponownie.'], 500);
+        }
         setSessionMessage('error', 'Nie udało się wykonać spinu.');
         redirect('luki_panel.php');
     }
@@ -262,7 +355,7 @@ $segments = [
     ['key' => 'oracle', 'name' => 'Los', 'icon' => 'bi-bullseye', 'color' => '#06b6d4'],
     ['key' => 'void', 'name' => 'Nicość', 'icon' => 'bi-moon-stars-fill', 'color' => '#020617'],
 ];
-$resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column($segments, 'key'), true) : 0;
+$resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['archetype']) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -311,6 +404,7 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
             background-size: 42px 42px;
             mask-image: linear-gradient(90deg, #000, transparent 78%);
             opacity: .35;
+            animation: lukiHeroGridDrift 12s ease-in-out infinite;
         }
         .luki-hero-copy, .luki-hero-art { position: relative; z-index: 1; }
         .luki-hero h1 { color: #fff; text-shadow: 0 10px 28px rgba(0,0,0,.28); }
@@ -326,6 +420,7 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
             width: min(68%, 390px);
             max-width: 100%;
             filter: drop-shadow(0 18px 28px rgba(0,0,0,.38));
+            animation: lukiSignFloat 5.5s ease-in-out infinite;
         }
         .luki-mascot {
             position: static;
@@ -334,6 +429,7 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
             min-width: 96px;
             opacity: .98;
             filter: drop-shadow(0 20px 28px rgba(0,0,0,.28));
+            animation: lukiMascotFloat 4.8s ease-in-out infinite;
         }
         .luki-grid { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 1.5rem; align-items: start; }
         .wheel-wrap { display:flex; flex-direction:column; align-items:center; gap:1.15rem; }
@@ -396,6 +492,11 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                 0 28px 90px rgba(15,23,42,.24);
             transition: transform 4.2s cubic-bezier(.12,.76,.16,1);
             overflow: hidden;
+            will-change: transform, filter;
+        }
+        .luki-wheel.is-spinning {
+            filter: saturate(1.12) brightness(1.06);
+            transition-duration: 4.8s;
         }
         .luki-wheel::after {
             content: "";
@@ -559,6 +660,10 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
             border-top: 38px solid #fff;
             filter: drop-shadow(0 8px 10px rgba(0,0,0,.24));
             z-index: 3;
+            transform-origin: 50% 0;
+        }
+        .wheel-pointer.is-ticking {
+            animation: lukiPointerTick .18s ease-in-out infinite;
         }
         .luki-spin-card, .luki-card {
             border-radius: 24px;
@@ -582,11 +687,28 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
             pointer-events: none;
         }
         .spin-actions { position: relative; z-index: 4; }
+        .spin-actions .btn {
+            transition: transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s ease, filter .2s ease;
+        }
+        .spin-actions .btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 16px 32px rgba(37,99,235,.26);
+        }
+        .spin-actions .btn.is-busy {
+            filter: saturate(1.12);
+            pointer-events: none;
+        }
+        [data-luki-spin-alert] {
+            min-height: 1.15rem;
+            color: #dc2626;
+            font-weight: 800;
+        }
         .result-card {
             border-radius: 22px;
             padding: 1rem;
             border: 1px solid rgba(148,163,184,.22);
             background: linear-gradient(135deg, rgba(59,130,246,.08), rgba(139,92,246,.08));
+            box-shadow: 0 18px 44px rgba(15,23,42,.10);
         }
         .result-card.blessing { background: linear-gradient(135deg, rgba(34,197,94,.18), rgba(22,163,74,.08)); }
         .result-card.abundance { background: linear-gradient(135deg, rgba(245,158,11,.25), rgba(250,204,21,.1)); }
@@ -616,6 +738,12 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
         }
         .luki-motif i { font-size: 1.35rem; color: var(--label-color); }
         @keyframes lukiShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+        @keyframes lukiHeroGridDrift { 0%,100%{ transform: translate3d(0,0,0); } 50%{ transform: translate3d(18px,-10px,0); } }
+        @keyframes lukiSignFloat { 0%,100%{ transform: translateY(0) rotate(-1deg); } 50%{ transform: translateY(-8px) rotate(1deg); } }
+        @keyframes lukiMascotFloat { 0%,100%{ transform: translateY(0) rotate(1deg); } 50%{ transform: translateY(-10px) rotate(-2deg); } }
+        @keyframes lukiPointerTick { 0%,100%{ transform: translateX(-50%) rotate(0); } 50%{ transform: translateX(-50%) rotate(4deg); } }
+        @keyframes lukiHistoryIn { from { opacity:0; transform: translateY(-8px) scale(.98); } to { opacity:1; transform: translateY(0) scale(1); } }
+        .chronicle-item.is-new { animation: lukiHistoryIn .34s cubic-bezier(.16,1,.3,1) both; }
         .chronicle-item { display:flex; justify-content:space-between; gap:1rem; padding:.85rem 0; border-bottom:1px solid rgba(148,163,184,.18); }
         .chronicle-item:last-child { border-bottom:0; }
         .trend-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:.75rem; }
@@ -659,6 +787,14 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
         body.dark-mode .luki-spin-card, body.dark-mode .luki-card { background:#1e293b; color:#e5e7eb; border-color:rgba(148,163,184,.24); }
         body.dark-mode .trend-box, body.dark-mode .luki-week-box { background:#0f172a; }
         body.dark-mode .legend-pill, body.dark-mode .wheel-label, body.dark-mode .luki-motif { background:#0f172a; color:#e5e7eb; border-color:rgba(148,163,184,.25); }
+        @media (prefers-reduced-motion: reduce) {
+            .luki-hero::before, .luki-sign, .luki-mascot, .wheel-pointer.is-ticking, .chronicle-item.is-new {
+                animation: none !important;
+            }
+            .luki-wheel, .luki-wheel.is-spinning {
+                transition-duration: .01ms !important;
+            }
+        }
         @media (max-width: 1199.98px) { .luki-legend { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         @media (max-width: 991.98px) {
             .luki-grid, .luki-hero { grid-template-columns: 1fr; }
@@ -728,12 +864,13 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                                     <span class="zakonnica-guard"><i class="bi bi-archive-fill"></i><small>Zakonnica Archiwum</small></span>
                                 </div>
 
-                            <form method="POST" class="text-center spin-actions">
+                            <form method="POST" action="luki_panel.php" class="text-center spin-actions" data-luki-spin-form>
                                 <?php echo csrfTokenField(); ?>
-                                <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold" <?php echo $spinsLeft <= 0 ? 'disabled' : ''; ?>>
+                                <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold" data-luki-spin-button <?php echo $spinsLeft <= 0 ? 'disabled' : ''; ?>>
                                     <i class="bi bi-arrow-repeat me-2"></i>Spin Zakonnicomatem
                                 </button>
-                                <div class="small text-muted mt-2">Pozostało dziś: <strong><?php echo htmlspecialchars($spinsDisplay); ?></strong></div>
+                                <div class="small text-muted mt-2">Pozostało dziś: <strong data-spins-left><?php echo htmlspecialchars($spinsDisplay); ?></strong></div>
+                                <div class="small mt-2 d-none" data-luki-spin-alert aria-live="polite"></div>
                             </form>
 
                             <div class="luki-legend w-100">
@@ -768,24 +905,26 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                     <aside class="vstack gap-4">
                         <div class="luki-card p-4">
                             <h5 class="fw-bold mb-3"><i class="bi bi-person-badge me-2 text-primary"></i>Status Lukiego</h5>
-                            <div class="status-row"><span>XP</span><strong><?php echo number_format($currentXp); ?></strong></div>
-                            <div class="status-row"><span>Ranga</span><strong><?php echo htmlspecialchars($rankInfo['name']); ?></strong></div>
+                            <div class="status-row"><span>XP</span><strong data-luki-xp><?php echo number_format($currentXp); ?></strong></div>
+                            <div class="status-row"><span>Ranga</span><strong data-luki-rank><?php echo htmlspecialchars($rankInfo['name']); ?></strong></div>
                             <div class="status-row"><span>Limit spinów</span><strong><?php echo $isAdmin ? 'Bez limitu' : '2 dziennie'; ?></strong></div>
                             <div class="status-row"><span>Testy dziś</span><strong><?php echo (int)$activity['tests_today']; ?></strong></div>
                             <div class="status-row"><span>Streak aktywności</span><strong><?php echo (int)$activity['streak']; ?> dni</strong></div>
-                            <div class="status-row"><span>Ostatni spin</span><strong><?php echo htmlspecialchars($lastSpinAt); ?></strong></div>
+                            <div class="status-row"><span>Ostatni spin</span><strong data-luki-last-spin><?php echo htmlspecialchars($lastSpinAt); ?></strong></div>
                         </div>
 
-                        <?php if ($spinResult): ?>
-                        <div class="result-card pending-reveal <?php echo htmlspecialchars($spinResult['archetype']); ?>" id="spinResult" data-index="<?php echo (int)$resultIndex; ?>" data-delta="<?php echo (int)$spinResult['xp']; ?>">
-                            <div class="small text-muted fw-bold text-uppercase">Wynik spinu</div>
-                            <h4 class="fw-900 mb-1"><?php echo htmlspecialchars($spinResult['label']); ?></h4>
-                            <div class="display-6 fw-900 <?php echo (int)$spinResult['xp'] >= 0 ? 'text-success' : 'text-danger'; ?>">
-                                <?php echo (int)$spinResult['xp'] > 0 ? '+' : ''; ?><?php echo (int)$spinResult['xp']; ?> XP
+                        <div id="spinResultMount" data-spin-result-mount>
+                            <?php if ($spinResult): ?>
+                            <div class="result-card pending-reveal <?php echo htmlspecialchars($spinResult['archetype']); ?>" id="spinResult" data-index="<?php echo (int)$resultIndex; ?>" data-delta="<?php echo (int)$spinResult['xp']; ?>">
+                                <div class="small text-muted fw-bold text-uppercase">Wynik spinu</div>
+                                <h4 class="fw-900 mb-1"><?php echo htmlspecialchars($spinResult['label']); ?></h4>
+                                <div class="display-6 fw-900 <?php echo (int)$spinResult['xp'] >= 0 ? 'text-success' : 'text-danger'; ?>">
+                                    <?php echo (int)$spinResult['xp'] > 0 ? '+' : ''; ?><?php echo (int)$spinResult['xp']; ?> XP
+                                </div>
+                                <p class="mb-0 text-muted"><?php echo htmlspecialchars($spinResult['note']); ?></p>
                             </div>
-                            <p class="mb-0 text-muted"><?php echo htmlspecialchars($spinResult['note']); ?></p>
+                            <?php endif; ?>
                         </div>
-                        <?php endif; ?>
 
                         <div class="luki-card p-4">
                             <h5 class="fw-bold mb-3"><i class="bi bi-activity me-2 text-warning"></i>Luck Trend</h5>
@@ -827,11 +966,12 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                         <h4 class="fw-bold mb-0"><i class="bi bi-scroll me-2 text-primary"></i>Chronicle of Spins</h4>
                         <span class="badge text-bg-light rounded-pill">Ostatnie 10 wyników</span>
                     </div>
-                    <?php if (empty($history)): ?>
-                        <div class="text-center text-muted py-4">Brak spinów. Chronicle czeka na pierwszy werdykt.</div>
-                    <?php else: ?>
-                        <?php foreach ($history as $entry): ?>
-                            <div class="chronicle-item">
+                    <div data-luki-history>
+                        <?php if (empty($history)): ?>
+                            <div class="text-center text-muted py-4" data-luki-history-empty>Brak spinów. Chronicle czeka na pierwszy werdykt.</div>
+                        <?php else: ?>
+                            <?php foreach ($history as $entry): ?>
+                            <div class="chronicle-item" data-luki-history-entry>
                                 <div>
                                     <div class="fw-bold"><?php echo htmlspecialchars($entry['label']); ?></div>
                                     <div class="small text-muted"><?php echo htmlspecialchars($entry['note'] ?? ''); ?></div>
@@ -841,8 +981,9 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
                                     <div class="small text-muted"><?php echo date('d.m H:i', strtotime($entry['created_at'])); ?></div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </section>
             </div>
         </main>
@@ -853,39 +994,148 @@ $resultIndex = $spinResult ? array_search($spinResult['archetype'], array_column
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const result = document.getElementById('spinResult');
     const wheel = document.getElementById('lukiWheel');
-    if (!result || !wheel) return;
+    const pointer = document.querySelector('.wheel-pointer');
+    const form = document.querySelector('[data-luki-spin-form]');
+    const button = document.querySelector('[data-luki-spin-button]');
+    const alertBox = document.querySelector('[data-luki-spin-alert]');
+    const resultMount = document.querySelector('[data-spin-result-mount]');
+    let currentRotation = 0;
 
-    const segmentCount = Number(wheel.dataset.segments || 6);
-    const index = Number(result.dataset.index || 0);
-    const segmentAngle = 360 / segmentCount;
-    const segmentCenter = index * segmentAngle + segmentAngle / 2;
-    const rotations = 360 * (5 + Math.floor(Math.random() * 3));
-    const target = rotations + (360 - segmentCenter);
-    requestAnimationFrame(() => {
-        wheel.style.setProperty('--rot', target + 'deg');
-    });
-    setTimeout(() => {
-        result.classList.add('is-visible');
-    }, 4350);
-
-    const delta = Number(result.dataset.delta || 0);
-    setTimeout(() => {
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    })[char]);
+    const signedXp = (value) => {
+        const amount = Number(value || 0);
+        return `${amount > 0 ? '+' : ''}${amount} XP`;
+    };
+    const toneForDelta = (delta) => {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.frequency.value = delta > 0 ? 880 : (delta < 0 ? 120 : 320);
+            osc.frequency.value = delta > 0 ? 880 : (delta < 0 ? 140 : 340);
             gain.gain.setValueAtTime(0.0001, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
             gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
             osc.start();
             osc.stop(ctx.currentTime + 0.5);
         } catch (e) {}
-    }, 4300);
+    };
+    const setAlert = (message, type = 'danger') => {
+        if (!alertBox) return;
+        alertBox.textContent = message || '';
+        alertBox.className = `small mt-2 ${message ? `text-${type}` : 'd-none'}`;
+    };
+    const renderSpinResultCard = (result) => {
+        const delta = Number(result?.xp || 0);
+        const toneClass = delta >= 0 ? 'text-success' : 'text-danger';
+        return `<div class="result-card pending-reveal ${escapeHtml(result?.archetype || '')}" id="spinResult" data-index="${Number(result?.index || 0)}" data-delta="${delta}">
+            <div class="small text-muted fw-bold text-uppercase">Wynik spinu</div>
+            <h4 class="fw-900 mb-1">${escapeHtml(result?.label || '')}</h4>
+            <div class="display-6 fw-900 ${toneClass}">${signedXp(delta)}</div>
+            <p class="mb-0 text-muted">${escapeHtml(result?.note || '')}</p>
+        </div>`;
+    };
+    const updateState = (state) => {
+        const xp = document.querySelector('[data-luki-xp]');
+        const rank = document.querySelector('[data-luki-rank]');
+        const spinsLeft = document.querySelector('[data-spins-left]');
+        const lastSpin = document.querySelector('[data-luki-last-spin]');
+        if (xp) xp.textContent = Number(state?.current_xp || 0).toLocaleString('pl-PL');
+        if (rank) rank.textContent = state?.rank || '';
+        if (spinsLeft) spinsLeft.textContent = state?.spins_display || '';
+        if (lastSpin) lastSpin.textContent = state?.last_spin_at || '';
+        if (button) button.disabled = Number(state?.spins_left || 0) <= 0;
+    };
+    const prependHistory = (result) => {
+        const history = document.querySelector('[data-luki-history]');
+        if (!history || !result) return;
+        history.querySelector('[data-luki-history-empty]')?.remove();
+        const entry = document.createElement('div');
+        const delta = Number(result.xp || 0);
+        entry.className = 'chronicle-item is-new';
+        entry.setAttribute('data-luki-history-entry', '1');
+        entry.innerHTML = `<div><div class="fw-bold">${escapeHtml(result.label)}</div><div class="small text-muted">${escapeHtml(result.note)}</div></div>
+            <div class="text-end"><div class="fw-900 ${delta >= 0 ? 'text-success' : 'text-danger'}">${signedXp(delta)}</div><div class="small text-muted">teraz</div></div>`;
+        history.prepend(entry);
+        history.querySelectorAll('[data-luki-history-entry]').forEach((item, index) => {
+            if (index >= 10) item.remove();
+        });
+    };
+    const playSpinResult = (resultCard) => {
+        if (!resultCard) return;
+        if (!wheel) {
+            resultCard.classList.add('is-visible');
+            return;
+        }
+        const segmentCount = Number(wheel.dataset.segments || 6);
+        const index = Number(resultCard.dataset.index || 0);
+        const segmentAngle = 360 / segmentCount;
+        const segmentCenter = index * segmentAngle + segmentAngle / 2;
+        const desired = (360 - segmentCenter) % 360;
+        const normalized = ((currentRotation % 360) + 360) % 360;
+        const rotations = 360 * (5 + Math.floor(Math.random() * 3));
+        currentRotation += rotations + ((desired - normalized + 360) % 360);
+        wheel.classList.add('is-spinning');
+        pointer?.classList.add('is-ticking');
+        requestAnimationFrame(() => {
+            wheel.style.setProperty('--rot', currentRotation + 'deg');
+        });
+        window.setTimeout(() => {
+            resultCard.classList.add('is-visible');
+            wheel.classList.remove('is-spinning');
+            pointer?.classList.remove('is-ticking');
+            toneForDelta(Number(resultCard.dataset.delta || 0));
+        }, 4850);
+    };
+
+    const initialResult = document.getElementById('spinResult');
+    if (initialResult) playSpinResult(initialResult);
+
+    if (!form || !button || !window.fetch) return;
+    const defaultButtonHtml = button.innerHTML;
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        if (button.disabled || button.classList.contains('is-busy')) return;
+        setAlert('');
+        button.disabled = true;
+        button.classList.add('is-busy');
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Losowanie...';
+        try {
+            const response = await fetch(form.action || 'luki_panel.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new FormData(form)
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Nie udało się wykonać spinu.');
+            }
+            if (resultMount) {
+                resultMount.innerHTML = renderSpinResultCard(data.result);
+                playSpinResult(resultMount.querySelector('#spinResult'));
+            }
+            updateState(data.state || {});
+            prependHistory(data.result);
+        } catch (error) {
+            setAlert(error.message || 'Nie udało się wykonać spinu.');
+            button.disabled = false;
+        } finally {
+            button.classList.remove('is-busy');
+            button.innerHTML = defaultButtonHtml;
+        }
+    });
 });
 </script>
 </body>

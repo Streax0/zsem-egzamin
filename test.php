@@ -1153,8 +1153,7 @@ if ($test) {
             border-left: 8px solid #14b8a6;
             border-radius: 8px;
             background:
-                linear-gradient(90deg, rgba(20, 184, 166, .95) 0 18px, transparent 18px),
-                linear-gradient(135deg, #0f172a 0%, #1d4ed8 58%, #14b8a6 100%);
+                linear-gradient(135deg, #102a6b 0%, #1d4ed8 52%, #14b8a6 100%);
             color: #fff;
             padding: 1rem 1.1rem 1rem 1.35rem;
             text-decoration: none;
@@ -1163,8 +1162,7 @@ if ($test) {
         .exam-sim-launch-card:hover {
             color: #fff;
             background:
-                linear-gradient(90deg, rgba(20, 184, 166, 1) 0 18px, transparent 18px),
-                linear-gradient(135deg, #111827 0%, #1e40af 58%, #0f766e 100%);
+                linear-gradient(135deg, #0f2358 0%, #1e40af 54%, #0f766e 100%);
             transform: translateY(-1px);
         }
         .exam-sim-action-icon {
@@ -1747,15 +1745,15 @@ if ($test) {
             <h3 class="mb-2 fw-extrabold text-primary d-flex align-items-center gap-2">
                 <i class="bi bi-pc-display-horizontal"></i>Tryb CKE
             </h3>
-            <p class="text-muted mb-0">Oficjalny tryb: 40 pytan, 60 minut, prog 20 poprawnych odpowiedzi.</p>
+            <p class="text-muted mb-0">Oficjalny tryb: 40 pytań, 60 minut, próg 20 poprawnych odpowiedzi.</p>
         </div>
         <div class="exam-sim-rule-grid">
-            <div class="exam-sim-rule"><strong>Liczba pytan</strong>40 pytan jednokrotnego wyboru z danej kwalifikacji.</div>
+            <div class="exam-sim-rule"><strong>Liczba pytań</strong>40 pytań jednokrotnego wyboru z danej kwalifikacji.</div>
             <div class="exam-sim-rule"><strong>Czas trwania</strong>60 minut, standardowy czas egzaminu zawodowego.</div>
-            <div class="exam-sim-rule"><strong>Prog zdawalnosci</strong>Minimum 20 poprawnych odpowiedzi, czyli 50%.</div>
-            <div class="exam-sim-rule"><strong>Nawigacja</strong>Mozesz wracac do wczesniejszych pytan i zmieniac odpowiedzi.</div>
-            <div class="exam-sim-rule"><strong>Zakonczenie</strong>Mozesz zakonczyc wczesniej albo poczekac do konca czasu.</div>
-            <div class="exam-sim-rule"><strong>Wyniki</strong>Po zakonczeniu od razu widzisz wynik i analize bledow.</div>
+            <div class="exam-sim-rule"><strong>Próg zdawalności</strong>Minimum 20 poprawnych odpowiedzi, czyli 50%.</div>
+            <div class="exam-sim-rule"><strong>Nawigacja</strong>Możesz wracać do wcześniejszych pytań i zmieniać odpowiedzi.</div>
+            <div class="exam-sim-rule"><strong>Zakończenie</strong>Możesz zakończyć wcześniej albo poczekać do końca czasu.</div>
+            <div class="exam-sim-rule"><strong>Wyniki</strong>Po zakończeniu od razu widzisz wynik i analizę błędów.</div>
         </div>
         <form method="GET" id="examSimulatorSetupForm">
             <input type="hidden" name="mode" value="exam_simulator">
@@ -1792,7 +1790,7 @@ if ($test) {
             </div>
             <div class="d-flex flex-wrap gap-2 justify-content-between">
                 <a href="test.php?mode=exam&setup=1&new=1" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="bi bi-arrow-left me-2"></i>Wroc
+                    <i class="bi bi-arrow-left me-2"></i>Wróć
                 </a>
                 <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">
                     <i class="bi bi-play-fill me-2"></i>Rozpocznij symulator
@@ -1854,7 +1852,7 @@ if ($test) {
                                 <i class="bi bi-info-circle-fill fs-6"></i>
                             </span>
                             <span class="d-block text-muted mt-1">
-                                Wlacz, aby rozwiazac egzamin w wygladzie zblizonym do oficjalnego systemu egzaminacyjnego CKE.
+                                Włącz, aby rozwiązać egzamin w wyglądzie zbliżonym do oficjalnego systemu egzaminacyjnego CKE.
                             </span>
                         </span>
                         <span class="exam-sim-action-icon"><i class="bi bi-play-fill"></i></span>
@@ -2442,7 +2440,7 @@ if ($test) {
                     <input type="hidden" name="target" value="<?= (int)$idx ?>">
                     <button type="submit" class="sim-task-btn <?= $idx === $currentIdx ? 'active' : '' ?>">Zadanie <?= $idx + 1 ?></button>
                     <span class="sim-task-status <?= $isAnswered ? 'answered' : '' ?>">
-                        <?= $isAnswered ? 'Udzielono odpowiedzi (mozesz zmienic odpowiedz)' : 'Nie udzielono odpowiedzi' ?>
+                        <?= $isAnswered ? 'Udzielono odpowiedzi (możesz zmienić odpowiedź)' : 'Nie udzielono odpowiedzi' ?>
                     </span>
                 </form>
                 <?php endforeach; ?>
@@ -2452,10 +2450,10 @@ if ($test) {
                 <p class="sim-side-label">Kwalifikacja</p>
                 <div class="sim-side-field"><?= htmlspecialchars($simCategory !== '' ? $simCategory : 'Wszystkie') ?></div>
 
-                <p class="sim-side-label">Czas rozpoczecia egzaminu</p>
+                <p class="sim-side-label">Czas rozpoczęcia egzaminu</p>
                 <div class="sim-side-field"><?= date('d.m.Y H:i:s', $simStart) ?></div>
 
-                <p class="sim-side-label">Czas zakonczenia egzaminu</p>
+                <p class="sim-side-label">Czas zakończenia egzaminu</p>
                 <div class="sim-side-field"><?= date('d.m.Y H:i:s', $simStart + 3600) ?></div>
 
                 <p class="sim-side-label">Liczba udzielonych odpowiedzi</p>
@@ -2464,21 +2462,21 @@ if ($test) {
                 <p class="sim-side-label">Liczba nieudzielonych odpowiedzi</p>
                 <div class="sim-side-field danger"><?= $simUnanswered ?></div>
 
-                <div class="sim-timer-label">Do konca egzaminu<br>pozostalo:</div>
+                <div class="sim-timer-label">Do końca egzaminu<br>pozostało:</div>
                 <div class="sim-timer"<?= $simQuestionView ? '' : ' id="timer"' ?>><?= formatTime($totalTimeLeft) ?></div>
                 <form method="POST" onsubmit="return confirmFinish(this)">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                     <input type="hidden" name="action" value="finish_early">
-                    <button type="submit" class="sim-finish-btn">Zakoncz egzamin</button>
+                    <button type="submit" class="sim-finish-btn">Zakończ egzamin</button>
                 </form>
             </aside>
 
             <section class="sim-exam-question" id="sim-question">
                 <div class="sim-question-toolbar">
-                    <a href="test.php" class="sim-back-btn"><i class="bi bi-arrow-left me-1"></i>Wroc do listy zadan</a>
+                    <a href="test.php" class="sim-back-btn"><i class="bi bi-arrow-left me-1"></i>Wróć do listy zadań</a>
                     <div class="sim-question-head mb-0">Zadanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></div>
                     <?php if (!empty($test['time_limit'])): ?>
-                    <div class="fw-bold">Pozostalo: <span<?= $simQuestionView ? ' id="timer"' : '' ?>><?= formatTime($totalTimeLeft) ?></span></div>
+                    <div class="fw-bold">Pozostało: <span<?= $simQuestionView ? ' id="timer"' : '' ?>><?= formatTime($totalTimeLeft) ?></span></div>
                     <?php endif; ?>
                 </div>
                 <?php $questionImage = questionImageSrc($currentQuestion['image_url'] ?? ''); ?>
@@ -2507,7 +2505,7 @@ if ($test) {
                     </div>
                     <div class="d-flex flex-wrap gap-2 justify-content-between mt-3">
                         <button type="submit" class="btn btn-success px-4" id="simSubmitBtn" <?= $savedAnswer === '' ? 'disabled' : '' ?>>
-                            Zapisz odpowiedz
+                            Zapisz odpowiedź
                         </button>
                     </div>
                 </form>

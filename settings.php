@@ -53,10 +53,10 @@ try {
     $mfaEnabled = false;
 }
 $settingsHealth = [
-    ['icon' => 'bi-person-check', 'label' => 'Profil', 'value' => ($username !== '' && $email !== '') ? 'OK' : 'Uzupełnij'],
-    ['icon' => 'bi-shield-lock', 'label' => 'Bezpieczeństwo', 'value' => $mfaEnabled ? 'MFA aktywne' : ($canUseMfa ? 'MFA opcjonalne' : 'Hasło')],
-    ['icon' => 'bi-palette', 'label' => 'Motyw', 'value' => $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'],
-    ['icon' => 'bi-sliders', 'label' => 'Interfejs', 'value' => $currentDensity === 'compact' ? 'Kompakt' : 'Wygodny'],
+    ['key' => 'profile', 'icon' => 'bi-person-check', 'label' => 'Profil', 'value' => ($username !== '' && $email !== '') ? 'OK' : 'Uzupełnij'],
+    ['key' => 'security', 'icon' => 'bi-shield-lock', 'label' => 'Bezpieczeństwo', 'value' => $mfaEnabled ? 'MFA aktywne' : ($canUseMfa ? 'MFA opcjonalne' : 'Hasło')],
+    ['key' => 'theme', 'icon' => 'bi-palette', 'label' => 'Motyw', 'value' => $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'],
+    ['key' => 'density', 'icon' => 'bi-sliders', 'label' => 'Interfejs', 'value' => $currentDensity === 'compact' ? 'Kompakt' : 'Wygodny'],
 ];
 ?>
 <!DOCTYPE html>
@@ -256,11 +256,11 @@ $settingsHealth = [
 
                     <div class="settings-overview-grid mb-4 animate-in" aria-label="Szybki stan ustawień">
                         <?php foreach ($settingsHealth as $item): ?>
-                            <div class="settings-overview-card">
+                            <div class="settings-overview-card" data-settings-overview="<?php echo htmlspecialchars($item['key']); ?>">
                                 <i class="bi <?php echo htmlspecialchars($item['icon']); ?>"></i>
                                 <div>
                                     <span><?php echo htmlspecialchars($item['label']); ?></span>
-                                    <strong><?php echo htmlspecialchars($item['value']); ?></strong>
+                                    <strong data-settings-overview-value><?php echo htmlspecialchars($item['value']); ?></strong>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -681,10 +681,24 @@ $settingsHealth = [
         if (layout) layout.textContent = document.getElementById('dashboardView')?.value || 'balanced';
         if (theme) theme.textContent = document.body.classList.contains('dark-mode') ? 'Ciemny' : 'Jasny';
     }
+    function syncSettingsOverviewCards() {
+        const setOverview = (key, value) => {
+            const target = document.querySelector(`[data-settings-overview="${key}"] [data-settings-overview-value]`);
+            if (target) target.textContent = value;
+        };
+        const themeValue = document.getElementById('themeSelect')?.value === 'dark' ? 'Ciemny' : 'Jasny';
+        const densityValue = document.getElementById('densitySelect')?.value === 'compact' ? 'Kompakt' : 'Wygodny';
+        setOverview('theme', themeValue);
+        setOverview('density', densityValue);
+    }
     document.addEventListener('DOMContentLoaded', () => {
         syncSettingsMiniCards();
-        document.querySelectorAll('#dashboardView, #themeSelect, #notifySwitch').forEach((el) => {
-            el.addEventListener('change', () => setTimeout(syncSettingsMiniCards, 40));
+        syncSettingsOverviewCards();
+        document.querySelectorAll('#dashboardView, #themeSelect, #densitySelect, #notifySwitch').forEach((el) => {
+            el.addEventListener('change', () => setTimeout(() => {
+                syncSettingsMiniCards();
+                syncSettingsOverviewCards();
+            }, 40));
         });
     });
 
@@ -771,6 +785,7 @@ $settingsHealth = [
         if (notify) notify.checked = localStorage.getItem('notify_new_tests') === '1';
         if (sounds) sounds.checked = localStorage.getItem('ui_sounds') === '1';
         applyUiPreferences();
+        syncSettingsOverviewCards();
     });
     </script>
 </body>

@@ -161,13 +161,22 @@ $isTeacherAreaTopbar = !$isGuestTopbar
     && in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'], true)
     && strpos(str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? ''), '/teacher/') !== false;
 if ($isTeacherAreaTopbar):
+$teacherOpsCurrent = basename(str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? ''));
+$teacherOpsLinks = [
+    ['href' => 'teacher/index.php', 'icon' => 'bi-speedometer2', 'label' => 'Panel', 'files' => ['index.php']],
+    ['href' => 'teacher/create_exam.php', 'icon' => 'bi-plus-circle', 'label' => 'Online', 'files' => ['create_exam.php', 'edit_exam.php', 'host_exam.php', 'exam_details.php']],
+    ['href' => 'teacher/pdf_generator.php', 'icon' => 'bi-file-earmark-text', 'label' => 'Generator', 'files' => ['pdf_generator.php', 'txt_generator.php', 'import_txt.php']],
+    ['href' => 'teacher/custom_exams.php', 'icon' => 'bi-collection', 'label' => 'Baza własna', 'files' => ['custom_exams.php', 'custom_exam.php', 'custom_exam_edit.php']],
+    ['href' => 'teacher/requests.php', 'icon' => 'bi-inbox', 'label' => 'Zgłoszenia', 'files' => ['requests.php']],
+];
 ?>
 <nav class="teacher-ops-strip" aria-label="Narzędzia sprawdzianów nauczyciela" data-teacher-ops-strip="1">
-    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/index.php"><i class="bi bi-speedometer2"></i>Panel</a>
-    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/create_exam.php"><i class="bi bi-plus-circle"></i>Online</a>
-    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/pdf_generator.php"><i class="bi bi-file-earmark-text"></i>Generator</a>
-    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/custom_exams.php"><i class="bi bi-collection"></i>Baza własna</a>
-    <a href="<?php echo htmlspecialchars($base_url); ?>teacher/requests.php"><i class="bi bi-inbox"></i>Zgłoszenia</a>
+    <?php foreach ($teacherOpsLinks as $link): ?>
+        <?php $isCurrentTeacherOp = in_array($teacherOpsCurrent, $link['files'], true); ?>
+        <a href="<?php echo htmlspecialchars($base_url . $link['href']); ?>" class="<?php echo $isCurrentTeacherOp ? 'active teacher-ops-strip-current' : ''; ?>" <?php echo $isCurrentTeacherOp ? 'aria-current="page"' : ''; ?>>
+            <i class="bi <?php echo htmlspecialchars($link['icon']); ?>"></i><?php echo htmlspecialchars($link['label']); ?>
+        </a>
+    <?php endforeach; ?>
 </nav>
 <?php endif; ?>
 
@@ -505,23 +514,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('sidebarOverlay');
     
     if (sidebar && overlay) {
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.add('show');
-                overlay.classList.add('show');
+        const openSidebar = function() {
+            sidebar.classList.add('is-opening');
+            sidebar.classList.add('show');
+            overlay.classList.add('show');
+            document.body.classList.add('sidebar-open');
+            window.requestAnimationFrame(function() {
+                window.setTimeout(function() {
+                    sidebar.classList.remove('is-opening');
+                }, 360);
             });
+        };
+        const closeSidebar = function() {
+            sidebar.classList.remove('show', 'is-opening');
+            overlay.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        };
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', openSidebar);
         }
         
         if (sidebarClose) {
-            sidebarClose.addEventListener('click', function() {
-                sidebar.classList.remove('show');
-                overlay.classList.remove('show');
-            });
+            sidebarClose.addEventListener('click', closeSidebar);
         }
         
-        overlay.addEventListener('click', function() {
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
+        overlay.addEventListener('click', closeSidebar);
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && sidebar.classList.contains('show')) {
+                closeSidebar();
+                sidebarToggle?.focus();
+            }
         });
     }
 });

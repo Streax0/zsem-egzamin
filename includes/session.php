@@ -34,26 +34,39 @@ function appStartCspNonceBuffer(string $nonce): void {
     }
     $GLOBALS['app_csp_nonce_buffer_started'] = true;
     ob_start(static function ($buffer) use ($nonce) {
-        if (stripos($buffer, '<script') === false) {
+        if (stripos($buffer, '<script') === false && stripos($buffer, '<style') === false) {
             return $buffer;
         }
         $attr = ' nonce="' . htmlspecialchars($nonce, ENT_QUOTES, 'UTF-8') . '"';
-        return preg_replace('/<script(?![^>]*\bsrc\s*=)(?![^>]*\bnonce\s*=)/i', '<script' . $attr, $buffer);
+        $buffer = preg_replace('/<script(?![^>]*\bnonce\s*=)/i', '<script' . $attr, $buffer);
+        return preg_replace('/<style(?![^>]*\bnonce\s*=)/i', '<style' . $attr, $buffer);
     });
+}
+
+function appSecurityPermissionsPolicy(): string {
+    return "accelerometer=(), ambient-light-sensor=(), autoplay=(self), browsing-topics=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()";
 }
 
 function appContentSecurityPolicy(string $nonce): string {
     return "default-src 'none'; "
-        . "script-src 'self' blob: https://cdn.jsdelivr.net; "
+        . "script-src 'self' 'nonce-{$nonce}' blob: https://cdn.jsdelivr.net; "
         . "script-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net; "
         . "script-src-attr 'unsafe-inline'; "
         . "worker-src 'self' blob:; "
         . "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+        . "style-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+        . "style-src-attr 'unsafe-inline'; "
         . "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         . "img-src 'self' data: https://praktycznyegzamin.pl https://www.praktycznyegzamin.pl https://api.qrserver.com; "
         . "connect-src 'self' https://cdn.jsdelivr.net; "
+        . "media-src 'self'; manifest-src 'self'; "
         . "frame-src 'self' https://www.openstreetmap.org; "
-        . "object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests";
+        . "child-src 'self' https://www.openstreetmap.org; "
+        . "object-src 'none'; frame-ancestors 'self'; base-uri 'none'; form-action 'self'; upgrade-insecure-requests";
+}
+
+function appContentSecurityPolicyReportOnly(string $nonce): string {
+    return "require-trusted-types-for 'script'; trusted-types default zsemtech-app; script-src 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net; object-src 'none'; base-uri 'none'";
 }
 
 register_shutdown_function(function() {
@@ -83,15 +96,18 @@ function startSecureSession() {
         appStartCspNonceBuffer($cspNonce);
         header("X-Content-Type-Options: nosniff");
         header("X-XSS-Protection: 0");
-        // X-Frame-Options removed: redundant with CSP frame-ancestors 'self'
+        header("X-Frame-Options: SAMEORIGIN");
         header("Referrer-Policy: strict-origin-when-cross-origin");
-        header("Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()");
+        header("Permissions-Policy: " . appSecurityPermissionsPolicy());
         header("Cross-Origin-Opener-Policy: same-origin");
         header("Cross-Origin-Embedder-Policy: unsafe-none");
         header("Cross-Origin-Resource-Policy: same-origin");
         header("X-Permitted-Cross-Domain-Policies: none");
+        header("X-DNS-Prefetch-Control: off");
+        header("Origin-Agent-Cluster: ?1");
         header_remove("X-Powered-By");
         header("Content-Security-Policy: " . appContentSecurityPolicy($cspNonce));
+        header("Content-Security-Policy-Report-Only: " . appContentSecurityPolicyReportOnly($cspNonce));
     }
 
     // Session lifetime: 0 = until browser closes, 10800 = 3 hours
@@ -125,7 +141,7 @@ function startSecureSession() {
     }
 
     if (!headers_sent() && $isSecure) {
-        header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
+        header("Strict-Transport-Security: max-age=63072000; includeSubDomains; preload");
     }
 
     // Set session cookie parameters BEFORE starting the session

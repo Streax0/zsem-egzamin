@@ -1935,6 +1935,27 @@ function getQualifiedTestResults(PDO $pdo, int $userId, int $limit = 100, int $m
     }
 }
 
+function normalizeHistoryMode($mode, array $row = []): string {
+    $raw = strtolower(trim((string)$mode));
+    $aliases = [
+        'exam' => 'exam',
+        'practice' => 'practice',
+        'single' => 'single',
+        'exam_simulator' => 'exam_simulator',
+        'official_cke' => 'exam_simulator',
+        'oficjalny_cke' => 'exam_simulator',
+        'cke' => 'exam_simulator',
+        'tryb_cke' => 'exam_simulator',
+    ];
+    if (isset($aliases[$raw])) {
+        return $aliases[$raw];
+    }
+    if ($raw === '') {
+        return 'exam_simulator';
+    }
+    return 'exam';
+}
+
 function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
     $items = [];
     $modeLabels = [
@@ -1944,7 +1965,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
         'exam_simulator' => 'Tryb CKE',
     ];
     foreach (getTestResults($pdo, $userId, $limit) as $row) {
-        $mode = (string)($row['mode'] ?? $row['test_type'] ?? 'exam');
+        $mode = normalizeHistoryMode($row['mode'] ?? $row['test_type'] ?? 'exam', $row);
         $items[] = [
             'kind' => 'test',
             'id' => (int)$row['id'],
@@ -2307,6 +2328,44 @@ function answerOptionText(array $question, string $letter): string {
     return trim((string)($question['option_' . $letter] ?? ''));
 }
 
+function buildDistractorExplanation(array $question, string $letter, string $optionText, string $questionText = ''): string {
+    $text = mb_strtolower(trim($optionText), 'UTF-8');
+    if ($text === '') {
+        return 'ta opcja nie ma pełnego opisu w bazie pytania.';
+    }
+    if (str_contains($text, 'modem analog')) {
+        return 'modem analogowy służy głównie do transmisji danych przez linię telefoniczną, a nie do zamiany połączenia PSTN na rozmowę VoIP.';
+    }
+    if (str_contains($text, 'mostek') || str_contains($text, 'bridge')) {
+        return 'mostek łączy segmenty sieci komputerowej i nie obsługuje bezpośrednio analogowych aparatów telefonicznych.';
+    }
+    if (str_contains($text, 'repet') || str_contains($text, 'wzmacni')) {
+        return 'repeater wzmacnia lub regeneruje sygnał w sieci, ale nie konwertuje telefonu analogowego na usługi internetowe.';
+    }
+    if (str_contains($text, 'voip') || str_contains($text, 'bramk')) {
+        return 'ta odpowiedź opisuje urządzenie łączące telefonię analogową z transmisją pakietową.';
+    }
+    if (str_contains($text, 'dns')) {
+        return 'DNS rozwiązuje nazwy domen na adresy IP, więc pasuje tylko wtedy, gdy pytanie dotyczy nazw hostów.';
+    }
+    if (str_contains($text, 'dhcp')) {
+        return 'DHCP przydziela konfigurację IP klientom, więc nie zastępuje usługi ani urządzenia wskazanego w pytaniu.';
+    }
+    if (str_contains($text, 'router')) {
+        return 'router przekazuje ruch między sieciami; jest poprawny tylko wtedy, gdy pytanie dotyczy routingu lub bramy sieciowej.';
+    }
+    if (str_contains($text, 'switch') || str_contains($text, 'przełącz')) {
+        return 'przełącznik działa głównie w sieci lokalnej i nie realizuje funkcji opisanej przez poprawną odpowiedź.';
+    }
+    if (str_contains($text, 'mask')) {
+        return 'maska podsieci opisuje część sieciową adresu, ale sama nie wykonuje akcji wymaganej w pytaniu.';
+    }
+    if ($questionText !== '') {
+        return 'nie spełnia bezpośrednio warunku z pytania albo opisuje inną warstwę działania.';
+    }
+    return 'nie jest najlepszą odpowiedzią dla tego pytania.';
+}
+
 function buildQuestionExplanation(array $question, string $userAnswer = '', ?bool $isCorrect = null): string {
     $existing = trim((string)($question['explanation'] ?? ''));
     if ($existing !== '') return $existing;
@@ -2317,19 +2376,33 @@ function buildQuestionExplanation(array $question, string $userAnswer = '', ?boo
     $userText = answerOptionText($question, $user);
     $questionText = trim((string)($question['question_text'] ?? ($question['question'] ?? '')));
 
-    $correctLabel = $correctText !== '' ? "{$correct} - {$correctText}" : $correct;
-    $parts = ["Poprawna odpowiedź to {$correctLabel}."];
+    $correctLabel = $correctText !== '' ? "{$correct}. {$correctText}" : $correct;
+    $parts = ["Wyjaśnienie:"];
+    if ($correctText !== '') {
+        $parts[] = "• {$correctLabel} - to odpowiedź, która bezpośrednio spełnia warunek z pytania.";
+    } else {
+        $parts[] = "• Poprawna odpowiedź to {$correct}.";
+    }
     if ($questionText !== '') {
-        $parts[] = "Treść pytania wymaga wskazania opcji, która bezpośrednio spełnia warunek: {$questionText}";
+        $parts[] = "Klucz pytania: {$questionText}";
     }
     if ($user !== '' && $user !== '-' && $user !== $correct) {
-        $userLabel = $userText !== '' ? "{$user} - {$userText}" : $user;
-        $parts[] = "Wybrana odpowiedź {$userLabel} nie spełnia tego warunku albo opisuje inną sytuację.";
+        $userLabel = $userText !== '' ? "{$user}. {$userText}" : $user;
+        $parts[] = "Wybrano {$userLabel}, ale ta opcja nie spełnia głównego warunku pytania.";
     } elseif ($isCorrect === true || ($user !== '' && $user === $correct)) {
         $parts[] = "Twoja odpowiedź jest zgodna z wymaganiem z pytania.";
     }
-    if ($correctText !== '') {
-        $parts[] = "Najważniejsze do zapamiętania: {$correctText}";
+    $distractors = [];
+    foreach (['A', 'B', 'C', 'D'] as $letter) {
+        if ($letter === $correct) continue;
+        $option = answerOptionText($question, $letter);
+        if ($option === '') continue;
+        $distractors[] = "• {$letter}. {$option} - " . buildDistractorExplanation($question, $letter, $option, $questionText);
+    }
+    if (!empty($distractors)) {
+        $parts[] = "";
+        $parts[] = "Dlaczego nie reszta?";
+        array_push($parts, ...$distractors);
     }
     return implode("\n", $parts);
 }
@@ -4465,6 +4538,10 @@ function scanAvatarImageSafety($image, int $width, int $height): array {
     $dark = 0;
     $symbolDark = 0;
     $symbolAxis = 0;
+    $upperSkin = 0;
+    $upperTotal = 0;
+    $centerSkin = 0;
+    $centerTotal = 0;
     for ($y = 0; $y < $sampleH; $y++) {
         for ($x = 0; $x < $sampleW; $x++) {
             $srcX = (int)floor($x * $width / $sampleW);
@@ -4476,8 +4553,17 @@ function scanAvatarImageSafety($image, int $width, int $height): array {
             $max = max($r, $g, $b);
             $min = min($r, $g, $b);
             if ($max < 42) $dark++;
-            if ($r > 95 && $g > 40 && $b > 20 && ($max - $min) > 15 && abs($r - $g) > 15 && $r > $g && $r > $b) {
+            $isSkin = $r > 95 && $g > 40 && $b > 20 && ($max - $min) > 15 && abs($r - $g) > 15 && $r > $g && $r > $b;
+            $isWarmSkin = $r > 120 && $g > 70 && $b > 45 && $r > $g && $g > $b && ($r - $b) > 35;
+            $isUpper = $y <= (int)floor($sampleH * 0.72);
+            $isCenter = $x >= (int)floor($sampleW * 0.18) && $x <= (int)ceil($sampleW * 0.82)
+                && $y >= (int)floor($sampleH * 0.08) && $y <= (int)ceil($sampleH * 0.92);
+            if ($isUpper) $upperTotal++;
+            if ($isCenter) $centerTotal++;
+            if ($isSkin || $isWarmSkin) {
                 $skin++;
+                if ($isUpper) $upperSkin++;
+                if ($isCenter) $centerSkin++;
             }
             if ($r > 130 && $g < 90 && $b < 90 && $r > ($g * 1.45) && $r > ($b * 1.45)) {
                 $red++;
@@ -4497,10 +4583,12 @@ function scanAvatarImageSafety($image, int $width, int $height): array {
     $darkRatio = $dark / max(1, $total);
     $symbolDarkRatio = $symbolDark / max(1, $total);
     $symbolAxisRatio = $symbolAxis / max(1, $symbolDark);
-    if ($skinRatio > 0.48 || ($skinRatio > 0.38 && $redRatio > 0.035)) {
+    $upperSkinRatio = $upperSkin / max(1, $upperTotal);
+    $centerSkinRatio = $centerSkin / max(1, $centerTotal);
+    if ($skinRatio > 0.48 || ($upperSkinRatio > 0.36 && $centerSkinRatio > 0.30) || ($skinRatio > 0.34 && $redRatio > 0.032)) {
         return ['ok' => false, 'message' => 'Zdjęcie wygląda jak niedozwolona nagość albo zbyt odsłonięty kadr. Wybierz neutralny avatar.'];
     }
-    if ($redRatio > 0.10 || ($redRatio > 0.055 && $darkRatio > 0.20)) {
+    if ($redRatio > 0.085 || ($redRatio > 0.045 && $darkRatio > 0.16) || ($redRatio > 0.035 && $symbolDarkRatio > 0.12)) {
         return ['ok' => false, 'message' => 'Zdjęcie może zawierać przemoc lub drastyczne treści. Wybierz neutralny avatar.'];
     }
     if ($symbolDarkRatio > 0.045 && $symbolDarkRatio < 0.32 && $symbolAxisRatio > 0.26) {

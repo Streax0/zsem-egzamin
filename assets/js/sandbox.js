@@ -674,6 +674,67 @@
     render();
   }
 
+  function initRouterWebEmulator() {
+    const status = $('routerConfigStatus');
+    const summary = $('routerSummary');
+    const save = $('routerSaveConfig');
+    if (!status || !summary || !save) return;
+
+    const fields = [
+      'routerWanType',
+      'routerWanIp',
+      'routerGateway',
+      'routerWanMac',
+      'routerLanIp',
+      'routerLanMask',
+      'routerDns',
+      'routerDhcpToggle',
+      'routerDhcpStart',
+      'routerDhcpEnd',
+      'routerLease',
+      'routerSsid',
+      'routerWifiSecurity',
+      'routerChannel'
+    ];
+    const read = (id) => {
+      const el = $(id);
+      if (!el) return '';
+      return el.type === 'checkbox' ? (el.checked ? 'enabled' : 'disabled') : el.value.trim();
+    };
+    const markDirty = () => {
+      status.textContent = 'Niezapisane';
+      status.classList.remove('is-saved');
+      sync();
+    };
+    const sync = () => {
+      const dhcpState = read('routerDhcpToggle') === 'enabled' ? `${read('routerDhcpStart')} - ${read('routerDhcpEnd')}` : 'wyłączony';
+      summary.textContent = `WAN ${read('routerWanType')} ${read('routerWanIp')} | LAN ${read('routerLanIp')} / ${read('routerLanMask')} | DHCP ${dhcpState} | Wi-Fi ${read('routerSsid')} (${read('routerWifiSecurity')})`;
+    };
+    fields.forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener('input', markDirty);
+      el.addEventListener('change', markDirty);
+    });
+    $('routerCloneMac')?.addEventListener('click', () => {
+      const mac = $('routerWanMac');
+      if (!mac) return;
+      mac.value = 'EC:08:6B:EF:45:60';
+      markDirty();
+    });
+    $('routerResetConfig')?.addEventListener('click', () => {
+      const mac = $('routerWanMac');
+      if (mac) mac.value = '00:AB:E1:37:B8:00';
+      markDirty();
+    });
+    save.addEventListener('click', () => {
+      sync();
+      status.textContent = 'Zapisano lokalnie';
+      status.classList.add('is-saved');
+    });
+    sync();
+  }
+
   function parseByBase(value, base) {
     const clean = String(value).trim().replace(/^0x/i, '');
     const parsed = parseInt(clean, base);
@@ -826,6 +887,7 @@
     initLogic();
     initPsu();
     initSubnet();
+    initRouterWebEmulator();
     initRouter();
     initNumbers();
     initOhm();

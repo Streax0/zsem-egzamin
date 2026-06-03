@@ -24,15 +24,18 @@ RewriteRule ^(debug\.log|cookies\.txt|csrf\.txt|response\.json|qid\.txt|full_sch
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-XSS-Protection "0"
-    # X-Frame-Options removed: redundant with CSP frame-ancestors 'self'
+    Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+    Header always set Permissions-Policy "accelerometer=(), ambient-light-sensor=(), autoplay=(self), browsing-topics=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()"
     Header always set Cross-Origin-Opener-Policy "same-origin"
     Header always set Cross-Origin-Embedder-Policy "unsafe-none"
     Header always set Cross-Origin-Resource-Policy "same-origin"
     Header always set X-Permitted-Cross-Domain-Policies "none"
+    Header always set X-DNS-Prefetch-Control "off"
+    Header always set Origin-Agent-Cluster "?1"
     Header always unset X-Powered-By
-    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" "expr=%{HTTPS} == 'on'"
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" "expr=%{HTTPS} == 'on'"
+    Header always set Content-Security-Policy-Report-Only "require-trusted-types-for 'script'; trusted-types default zsemtech-app; object-src 'none'; base-uri 'none'"
     # Content-Security-Policy is emitted dynamically by includes/session.php with per-request script nonces.
     # Dynamic CSP keeps img-src https://api.qrserver.com for QR fallback.
     <FilesMatch "\.(css|js)$">

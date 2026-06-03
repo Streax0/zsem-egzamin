@@ -198,6 +198,73 @@ def test_pdf_security_fixes() -> None:
     assert "$_GET['id']" not in read("settings.php")
 
 
+def test_observatory_header_hardening() -> None:
+    assert_contains(
+        "includes/session.php",
+        "appSecurityPermissionsPolicy",
+        "appContentSecurityPolicyReportOnly",
+        "Content-Security-Policy-Report-Only",
+        "require-trusted-types-for 'script'",
+        "style-src-elem 'self' 'nonce-{$nonce}'",
+        "base-uri 'none'",
+        "max-age=63072000; includeSubDomains; preload",
+        "X-Frame-Options: SAMEORIGIN",
+        "X-DNS-Prefetch-Control: off",
+        "Origin-Agent-Cluster: ?1",
+    )
+    assert_contains(
+        ".htaccess",
+        "Header always set X-Frame-Options \"SAMEORIGIN\"",
+        "Header always set X-DNS-Prefetch-Control \"off\"",
+        "Header always set Origin-Agent-Cluster \"?1\"",
+        "interest-cohort=()",
+        "browsing-topics=()",
+        "max-age=63072000; includeSubDomains; preload",
+    )
+
+
+def test_sidebar_topbar_animation_polish() -> None:
+    assert_contains(
+        "assets/css/dashboard-new.css",
+        "sidebarItemEnter",
+        "sidebarBrandPulse",
+        "topbarIconGlow",
+        "notificationBadgePulse",
+        "topbarDropdownIn 0.24s cubic-bezier",
+        ".sidebar-overlay",
+        "visibility: hidden",
+        ".sidebar.show .sidebar-item",
+        "@media (prefers-reduced-motion: reduce)",
+    )
+    assert_contains(
+        "includes/topbar.php",
+        "openSidebar",
+        "closeSidebar",
+        "sidebar.classList.add('is-opening')",
+        "document.addEventListener('keydown'",
+        "Escape",
+    )
+
+
+def test_luki_spin_ajax_without_page_refresh() -> None:
+    assert_contains(
+        "luki_panel.php",
+        "function lukiWantsJson",
+        "function lukiJsonResponse",
+        "lukiSpinResponsePayload",
+        "data-luki-spin-form",
+        "data-luki-spin-alert",
+        "data-spin-result-mount",
+        "data-luki-xp",
+        "data-spins-left",
+        "fetch(form.action || 'luki_panel.php'",
+        "'X-Requested-With': 'XMLHttpRequest'",
+        "renderSpinResultCard",
+        "history.prepend(entry)",
+        "playSpinResult",
+    )
+
+
 def test_duel_integrity_guards() -> None:
     assert_contains(
         "duels/finish.php",
@@ -431,6 +498,90 @@ def test_release_teacher_generator_luki_v17_surface() -> None:
         "Zakonnica Kuźni",
         "Zakonnica Lustra",
         "Zakonnica Archiwum",
+    )
+
+
+def test_pdf_final_cke_history_copy_and_launch_card() -> None:
+    assert_contains(
+        "includes/functions.php",
+        "function normalizeHistoryMode",
+        "'official_cke'",
+        "'exam_simulator'",
+    )
+    assert_contains(
+        "test.php",
+        "Oficjalny tryb: 40 pytań",
+        "Próg zdawalności",
+        "Możesz wracać",
+        "Zakończenie",
+        "Włącz, aby rozwiązać",
+        "exam-sim-launch-card",
+        "linear-gradient(135deg, #102a6b",
+    )
+    assert "Wlacz" not in read("test.php")
+    assert "Liczba pytan" not in read("test.php")
+    assert "Prog zdawalnosci" not in read("test.php")
+    assert "Mozesz" not in read("test.php")
+
+
+def test_pdf_final_flashcards_surface_and_teacher_requests() -> None:
+    assert_contains(
+        "flashcards.php",
+        "flashcard-request-form",
+        "csrfTokenField('flashcard_request')",
+        "createAdminRequest($pdo",
+        "'flashcard_request'",
+        "qualificationProgress",
+        "data-flashcard-progress",
+        "flashcard-shortcuts",
+    )
+    content = read("flashcards.php")
+    assert "customKey" not in content
+    assert "addCustomCard" not in content
+    assert "Moje fiszki" not in content
+    assert "Własna fiszka" not in content
+
+
+def test_pdf_final_router_web_emulator() -> None:
+    assert_contains(
+        "sandbox.php",
+        "router-web-emulator",
+        "ZSEM RouterOS",
+        "MAC Clone",
+        "WAN",
+        "LAN",
+        "DHCP",
+        "Wireless",
+    )
+    assert_contains(
+        "assets/js/sandbox.js",
+        "initRouterWebEmulator",
+        "routerWanMac",
+        "routerDhcpToggle",
+        "routerSaveConfig",
+    )
+
+
+def test_pdf_final_explanations_settings_teacher_avatar() -> None:
+    assert_contains(
+        "includes/functions.php",
+        "function normalizeHistoryMode",
+        "function buildDistractorExplanation",
+        "Dlaczego nie reszta?",
+        "upperSkinRatio",
+        "centerSkinRatio",
+    )
+    assert_contains(
+        "settings.php",
+        "data-settings-overview",
+        "syncSettingsOverviewCards",
+        "syncSettingsMiniCards",
+    )
+    assert_contains(
+        "assets/css/dashboard-new.css",
+        ".teacher-ops-strip a.active",
+        "teacher-ops-strip-current",
+        "overflow-x: auto",
     )
 
 

@@ -1107,19 +1107,25 @@ $shareCardData = [
             const userText = options[userAns] || '';
             let explanation = String(q.explanation || '').trim();
             if (!explanation) {
-                const correctLabel = correctText ? `${correctAns} („${correctText}”)` : correctAns;
-                const userLabel = userText ? `${userAns} („${userText}”)` : userAns;
+                const correctLabel = correctText ? `${correctAns}. ${correctText}` : correctAns;
+                const userLabel = userText ? `${userAns}. ${userText}` : userAns;
+                const distractors = Object.entries(options)
+                    .filter(([letter, text]) => letter !== correctAns && String(text || '').trim())
+                    .map(([letter, text]) => `• ${letter}. ${text} - ta opcja nie spełnia bezpośrednio warunku z pytania albo opisuje inną warstwę działania.`);
                 explanation = [
-                    `Poprawna odpowiedź to ${correctLabel}.`,
+                    'Wyjaśnienie:',
+                    `• ${correctLabel} - to odpowiedź, która bezpośrednio spełnia warunek z pytania.`,
                     userAns === correctAns
-                        ? 'Twoja odpowiedź spełnia warunek z pytania.'
-                        : `Wybrana odpowiedź ${userLabel} nie spełnia warunku z pytania albo opisuje inną sytuację.`,
-                    correctText ? `Najważniejsze do zapamiętania: ${correctText}` : ''
+                        ? 'Twoja odpowiedź jest zgodna z wymaganiem z pytania.'
+                        : `Wybrano ${userLabel}, ale ta opcja nie spełnia głównego warunku pytania.`,
+                    distractors.length ? '\nDlaczego nie reszta?' : '',
+                    ...distractors
                 ].filter(Boolean).join('\n');
             }
             explanationBox.innerHTML = '<div class="answer-explanation-label"><i class="bi bi-info-circle-fill"></i>Wyjaśnienie</div>';
             const explanationText = document.createElement('div');
             explanationText.textContent = explanation;
+            explanationText.style.whiteSpace = 'pre-line';
             explanationBox.appendChild(explanationText);
             explanationBox.classList.remove('d-none');
 
