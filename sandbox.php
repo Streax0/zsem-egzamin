@@ -163,10 +163,13 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                     <section class="router-web-emulator" data-tool="router">
                         <aside class="router-web-nav" aria-label="Menu routera">
                             <div class="router-web-brand">
-                                <strong>ZSEM RouterOS</strong>
-                                <span>AC750 Wireless Dual Band Router</span>
+                                <strong>TP-LINK</strong>
+                                <span>AC750 Wireless Dual Band Gigabit Router</span>
+                                <span>Model No. Archer C2</span>
+                                <span>ZSEM RouterOS emulator</span>
                             </div>
                             <a href="#router-wan" class="active">WAN</a>
+                            <a href="#router-mac-clone">MAC Clone</a>
                             <a href="#router-lan">LAN</a>
                             <a href="#router-dhcp">DHCP</a>
                             <a href="#router-wireless">Wireless</a>
@@ -176,8 +179,8 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                         <div class="router-web-main">
                             <header class="router-web-top">
                                 <div>
-                                    <h3 class="fw-900 mb-1">ZSEM Tech Router Configuration</h3>
-                                    <p class="mb-0">Ćwicz konfigurację WAN, LAN, DHCP i Wi-Fi w bezpiecznym emulatorze panelu routera.</p>
+                                    <h3 class="fw-900 mb-1">TP-LINK Archer C2</h3>
+                                    <p class="mb-0">Model No. Archer C2. Ćwicz konfigurację WAN, LAN, DHCP, Wi-Fi i MAC Clone w bezpiecznym emulatorze panelu routera.</p>
                                 </div>
                                 <span id="routerConfigStatus" class="router-web-status">Niezapisane</span>
                             </header>
@@ -194,7 +197,8 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                                     </label>
                                     <label>WAN IP Address<input id="routerWanIp" class="form-control" value="10.0.0.2"></label>
                                     <label>Default Gateway<input id="routerGateway" class="form-control" value="10.0.0.1"></label>
-                                    <label>MAC Clone<input id="routerWanMac" class="form-control" value="00:AB:E1:37:B8:00"></label>
+                                    <label id="router-mac-clone">MAC Clone<input id="routerWanMac" class="form-control" value="50:C7:BF:12:34:56" aria-describedby="routerMacCloneHelp"></label>
+                                    <div id="routerMacCloneHelp" class="small text-muted mb-2">Clone PC MAC Address kopiuje adres karty klienta, a Restore Factory MAC wraca do adresu fabrycznego Archer C2.</div>
                                     <button type="button" id="routerCloneMac" class="btn btn-sm btn-outline-primary">Clone PC MAC Address</button>
                                 </section>
 

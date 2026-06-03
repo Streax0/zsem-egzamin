@@ -355,6 +355,12 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
             grid-template-columns: 1fr;
             gap: 1rem;
         }
+        .social-insights-grid {
+            display: grid;
+            grid-template-columns: minmax(280px, .9fr) minmax(0, 1.2fr);
+            gap: 1rem;
+            align-items: start;
+        }
 
         .social-sidebar .dashboard-panel,
         .social-sidebar .dashboard-panel.border-0,
@@ -387,6 +393,8 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .suggested-users-card { order: 3; }
         .social-activity-card { order: 4; }
+        .social-insights-grid .suggested-users-card { order: 1; }
+        .social-insights-grid .social-activity-card { order: 2; }
 
         .social-request-limit {
             border: 1px solid rgba(59, 130, 246, .16);
@@ -605,7 +613,12 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: rgba(15,23,42,.78);
             border-color: rgba(148,163,184,.24);
         }
-        @media (max-width: 767.98px) { .social-stat-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 767.98px) {
+            .social-stat-grid { grid-template-columns: 1fr; }
+            .social-insights-grid { grid-template-columns: 1fr; }
+            .social-insights-grid .social-activity-card { order: 1; }
+            .social-insights-grid .suggested-users-card { order: 2; }
+        }
     </style>
 </head>
 <body>
@@ -927,6 +940,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             <?php endif; ?>
 
+                            <div class="social-insights-grid mb-5">
                             <div class="dashboard-panel mb-5 social-activity-card">
                                 <h5 class="fw-800 mb-4"><i class="bi bi-activity text-success me-2"></i>Ostatnia aktywność znajomych</h5>
                                 <?php if (empty($recentFriendActivity)): ?>
@@ -1027,6 +1041,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
+                            </div>
                             </div>
                         </div>
                     </div>

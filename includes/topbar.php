@@ -170,6 +170,40 @@ $teacherOpsLinks = [
     ['href' => 'teacher/requests.php', 'icon' => 'bi-inbox', 'label' => 'Zgłoszenia', 'files' => ['requests.php']],
 ];
 ?>
+<script>
+(function() {
+    const initDropdowns = function() {
+        if (typeof bootstrap === 'undefined') {
+            window.requestAnimationFrame(initDropdowns);
+            return;
+        }
+
+        document.querySelectorAll('.dropdown').forEach(function(drop) {
+            const menu = drop.querySelector('.dropdown-menu');
+            if (!menu) return;
+
+            drop.addEventListener('show.bs.dropdown', function() {
+                menu.style.display = 'none';
+            });
+
+            drop.addEventListener('shown.bs.dropdown', function() {
+                // Double RAF: wait for Popper to fully position
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        menu.style.display = '';
+                    });
+                });
+            });
+
+            drop.addEventListener('hide.bs.dropdown', function() {
+                menu.style.display = 'none';
+            });
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', initDropdowns);
+})();
+</script>
 <nav class="teacher-ops-strip" aria-label="Narzędzia sprawdzianów nauczyciela" data-teacher-ops-strip="1">
     <?php foreach ($teacherOpsLinks as $link): ?>
         <?php $isCurrentTeacherOp = in_array($teacherOpsCurrent, $link['files'], true); ?>
@@ -540,9 +574,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         overlay.addEventListener('click', closeSidebar);
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && sidebar.classList.contains('show')) {
-                closeSidebar();
-                sidebarToggle?.focus();
+            if (event.key === 'Tab' && sidebar.classList.contains('show')) {
+                sidebar.classList.add('keyboard-navigation');
             }
         });
     }

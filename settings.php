@@ -585,7 +585,7 @@ $settingsHealth = [
                                 <div class="small">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Wersja aplikacji:</span>
-                                        <span class="fw-bold">1.7 BETA BUG + SEC FIX</span>
+                                        <span class="fw-bold">1.8 BETA</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">ID Użytkownika:</span>
@@ -596,10 +596,10 @@ $settingsHealth = [
                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                     </div>
                                 </div>
-                                <div class="settings-release-grid mt-3" aria-label="Zmiany wersji 1.7 BETA">
-                                    <span><i class="bi bi-shield-check"></i> SEC FIX: mocniejsze gardy AJAX</span>
-                                    <span><i class="bi bi-bug"></i> BUG FIX: stabilniejsze sesje</span>
-                                    <span><i class="bi bi-file-earmark-check"></i> Generator i sprawdziany nauczyciela</span>
+                                <div class="settings-release-grid mt-3" aria-label="Zmiany wersji 1.8 Beta">
+                                    <span><i class="bi bi-person-lock"></i> Prywatne loginy i szybsze powiadomienia</span>
+                                    <span><i class="bi bi-card-checklist"></i> Poprawki z listy PDF 1-17</span>
+                                    <span><i class="bi bi-shield-check"></i> Scoped hardening sesji i formularzy</span>
                                 </div>
                             </div>
 

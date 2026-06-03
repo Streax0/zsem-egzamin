@@ -675,10 +675,22 @@
   }
 
   function initRouterWebEmulator() {
+    const routerStorageKey = 'zsem.router.config.v1';
+    const routerFactoryMac = '50:C7:BF:12:34:56';
+    const routerCloneMac = 'EC:08:6B:EF:45:60';
     const status = $('routerConfigStatus');
     const summary = $('routerSummary');
     const save = $('routerSaveConfig');
-    if (!status || !summary || !save) return;
+    if (!status || !summary || !save) {
+      sessionStorage.removeItem(routerStorageKey);
+      return;
+    }
+
+    const navType = performance.getEntriesByType?.('navigation')?.[0]?.type || '';
+    if (sessionStorage.getItem(`${routerStorageKey}.left`) === '1' && navType !== 'reload') {
+      sessionStorage.removeItem(routerStorageKey);
+    }
+    sessionStorage.removeItem(`${routerStorageKey}.left`);
 
     const fields = [
       'routerWanType',
@@ -701,6 +713,31 @@
       if (!el) return '';
       return el.type === 'checkbox' ? (el.checked ? 'enabled' : 'disabled') : el.value.trim();
     };
+    const write = (id, value) => {
+      const el = $(id);
+      if (!el) return;
+      if (el.type === 'checkbox') {
+        el.checked = value === true || value === 'enabled';
+      } else {
+        el.value = String(value ?? '');
+      }
+    };
+    const snapshot = () => Object.fromEntries(fields.map((id) => [id, read(id)]));
+    const restoreConfig = () => {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(routerStorageKey) || 'null');
+        if (!saved || typeof saved !== 'object') return false;
+        fields.forEach((id) => {
+          if (Object.prototype.hasOwnProperty.call(saved, id)) write(id, saved[id]);
+        });
+        status.textContent = 'Odtworzono po odświeżeniu';
+        status.classList.add('is-saved');
+        return true;
+      } catch (error) {
+        sessionStorage.removeItem(routerStorageKey);
+        return false;
+      }
+    };
     const markDirty = () => {
       status.textContent = 'Niezapisane';
       status.classList.remove('is-saved');
@@ -719,19 +756,24 @@
     $('routerCloneMac')?.addEventListener('click', () => {
       const mac = $('routerWanMac');
       if (!mac) return;
-      mac.value = 'EC:08:6B:EF:45:60';
+      mac.value = routerCloneMac;
       markDirty();
     });
     $('routerResetConfig')?.addEventListener('click', () => {
       const mac = $('routerWanMac');
-      if (mac) mac.value = '00:AB:E1:37:B8:00';
+      if (mac) mac.value = routerFactoryMac;
       markDirty();
     });
     save.addEventListener('click', () => {
       sync();
+      sessionStorage.setItem(routerStorageKey, JSON.stringify(snapshot()));
       status.textContent = 'Zapisano lokalnie';
       status.classList.add('is-saved');
     });
+    window.addEventListener('pagehide', () => {
+      sessionStorage.setItem(`${routerStorageKey}.left`, '1');
+    });
+    restoreConfig();
     sync();
   }
 

@@ -16,16 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (passInput && bar) {
     const syncPasswordRules = () => {
       const val = passInput.value;
-      const checks = [
+      const requiredChecks = [
         { ok: val.length >= 6, text: 'minimum 6 znaków' },
         { ok: /[a-z]/.test(val), text: 'mała litera' },
         { ok: /[A-Z]/.test(val), text: 'wielka litera' },
-        { ok: /[0-9]/.test(val), text: 'cyfra' },
-        { ok: /[^A-Za-z0-9]/.test(val), text: 'znak specjalny' }
+        { ok: /[0-9]/.test(val), text: 'cyfra' }
       ];
+      const bonusCheck = { ok: /[^A-Za-z0-9]/.test(val), text: 'znak specjalny' };
+      const checks = [...requiredChecks, bonusCheck];
       let score = 0;
       checks.forEach((rule) => { if (rule.ok) score++; });
-      const missing = checks.filter((rule) => !rule.ok).map((rule) => rule.text);
+      const missing = requiredChecks.filter((rule) => !rule.ok).map((rule) => rule.text);
       const colors = ['#ef4444', '#f97316', '#f59e0b', '#2563eb', '#10b981'];
       bar.style.width = `${Math.min(score, 5) * 20}%`;
       bar.style.backgroundColor = colors[score - 1] || 'transparent';
@@ -35,12 +36,37 @@ document.addEventListener('DOMContentLoaded', () => {
         passwordPolicy.classList.toggle('is-empty', val.length === 0);
         passwordPolicyMessage.textContent = val.length === 0
           ? 'Wpisz hasło, aby sprawdzić wymagania.'
-          : (missing.length ? `Brakuje: ${missing.join(', ')}.` : 'Hasło spełnia wszystkie wymagania.');
+          : (missing.length ? `Brakuje: ${missing.join(', ')}.` : (bonusCheck.ok ? 'Hasło spełnia wszystkie wymagania.' : 'Znak specjalny zwiększa siłę hasła, ale nie jest wymagany.'));
       }
     };
     passInput.addEventListener('input', syncPasswordRules);
     syncPasswordRules();
   }
+
+  const renderUsernameSuggestions = (target, suggestions = []) => {
+    const clean = Array.isArray(suggestions) ? suggestions.filter(Boolean).slice(0, 2) : [];
+    if (!target || clean.length === 0) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'username-suggestions d-flex flex-wrap align-items-center gap-2 mt-2';
+    const label = document.createElement('span');
+    label.className = 'text-muted';
+    label.textContent = 'Propozycje:';
+    wrap.appendChild(label);
+    suggestions.forEach((suggestion) => {
+      if (!clean.includes(suggestion)) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn-sm btn-outline-primary py-0 px-2';
+      button.textContent = suggestion;
+      button.addEventListener('click', () => {
+        usernameInput.value = suggestion;
+        usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
+        usernameInput.focus();
+      });
+      wrap.appendChild(button);
+    });
+    target.appendChild(wrap);
+  };
 
   const checkAvailability = (() => {
     const timers = new Map();
@@ -48,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(timers.get(type));
       if (!target) return;
       if (!value) {
-        target.textContent = type === 'username' ? 'Puste pole = login zostanie wygenerowany z imienia i nazwiska.' : '';
+        target.textContent = type === 'username' ? 'Puste pole = losowy prywatny login.' : '';
         target.className = 'small mt-1 text-muted';
         return;
       }
@@ -65,6 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
           const data = await res.json();
           target.textContent = data.message || 'Nie udało się sprawdzić dostępności.';
           target.className = data.ok && data.available ? 'small mt-1 feedback-ok' : 'small mt-1 feedback-error';
+          if (type === 'username' && data.ok && !data.available) {
+            renderUsernameSuggestions(target, data.suggestions || []);
+          }
         } catch (_) {
           target.textContent = 'Nie udało się sprawdzić dostępności.';
           target.className = 'small mt-1 feedback-error';

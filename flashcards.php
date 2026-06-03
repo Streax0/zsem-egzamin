@@ -45,15 +45,24 @@ if (is_file($dictionaryFile)) {
 }
 
 $cards = [];
+function flashcardDifficulty(string $front, string $back, string $source): string {
+    $weight = mb_strlen($front . ' ' . $back, 'UTF-8') + ($source === 'Baza pytań' ? 120 : 0);
+    if ($weight > 520) return 'hard';
+    if ($weight > 260) return 'medium';
+    return 'easy';
+}
 foreach ($dictionaryData as $group) {
     foreach (($group['terms'] ?? []) as $term) {
         $front = (string)($term['term'] ?? '');
         if ($front === '') continue;
+        $source = 'Słownik';
+        $back = trim((string)($term['definition'] ?? '') . "\n\n" . (string)($term['example'] ?? ''));
         $cards[] = [
             'qualification' => (string)($group['qualification'] ?? ''),
             'front' => $front,
-            'back' => trim((string)($term['definition'] ?? '') . "\n\n" . (string)($term['example'] ?? '')),
-            'source' => 'Słownik',
+            'back' => $back,
+            'source' => $source,
+            'difficulty' => flashcardDifficulty($front, $back, $source),
             'wiki' => (string)($term['link'] ?? ''),
             'youtube' => 'https://www.youtube.com/results?search_query=' . rawurlencode($front . ' informatyka')
         ];
@@ -68,11 +77,14 @@ foreach (loadQuestions($pdo) as $question) {
     if (mb_strlen($front, 'UTF-8') > 320) continue;
     $correctText = answerOptionText($question, $correct);
     if ($correctText === '') continue;
+    $source = 'Baza pytań';
+    $back = "Poprawna odpowiedź: {$correct}" . ($correctText !== '' ? " - {$correctText}" : '') . "\n\n" . buildQuestionExplanation($question);
     $cards[] = [
         'qualification' => (string)($question['category'] ?? 'Testy'),
         'front' => $front,
-        'back' => "Poprawna odpowiedź: {$correct}" . ($correctText !== '' ? " - {$correctText}" : '') . "\n\n" . buildQuestionExplanation($question),
-        'source' => 'Baza pytań',
+        'back' => $back,
+        'source' => $source,
+        'difficulty' => flashcardDifficulty($front, $back, $source),
         'wiki' => '',
         'youtube' => 'https://www.youtube.com/results?search_query=' . rawurlencode($front . ' egzamin zawodowy informatyka')
     ];
@@ -80,6 +92,13 @@ foreach (loadQuestions($pdo) as $question) {
 
 $qualifications = array_values(array_unique(array_filter(array_map(static fn($card) => (string)($card['qualification'] ?? ''), $cards))));
 sort($qualifications, SORT_NATURAL | SORT_FLAG_CASE);
+$qualificationCounts = [];
+foreach ($cards as $card) {
+    $qual = (string)($card['qualification'] ?? '');
+    if ($qual === '') continue;
+    $qualificationCounts[$qual] = ($qualificationCounts[$qual] ?? 0) + 1;
+}
+arsort($qualificationCounts);
 $flashMessage = getSessionMessage();
 $flashAlertClass = 'info';
 if ($flashMessage) {
@@ -119,6 +138,18 @@ if ($flashMessage) {
         .flashcard-card strong { position: relative; z-index: 1; display: block; font-size: clamp(1.65rem, 4vw, 3rem); line-height: 1.08; color: #0f172a; letter-spacing: 0; }
         .flashcard-card p { position: relative; z-index: 1; margin: 1rem 0 0; color: #334155; white-space: pre-line; font-size: 1.02rem; line-height: 1.65; }
         .flashcard-tools, .flashcard-side { border: 1px solid rgba(148,163,184,.24); border-radius: 8px; background: #fff; padding: 1rem; box-shadow: 0 12px 30px rgba(15,23,42,.06); }
+        .flashcard-qualification-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+        .flashcard-qualification-grid button, .flashcard-study-builder button, .flashcard-difficulty-filter button { border: 1px solid rgba(148,163,184,.28); border-radius: 8px; background: #fff; padding: .75rem .85rem; text-align: left; font-weight: 800; color: #0f172a; }
+        .flashcard-qualification-grid button span { display: block; color: #64748b; font-size: .75rem; margin-top: .15rem; }
+        .flashcard-study-builder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; }
+        .flashcard-difficulty-filter { display: flex; flex-wrap: wrap; gap: .45rem; }
+        .flashcard-difficulty-filter button { padding: .45rem .7rem; font-size: .8rem; }
+        .flashcard-difficulty-filter button.active, .flashcard-study-builder button.active, .flashcard-qualification-grid button.active { border-color: #2563eb; background: rgba(37,99,235,.10); color: #1d4ed8; }
+        .flashcard-list-panel { border: 1px solid rgba(148,163,184,.24); border-radius: 8px; background: #fff; padding: 1rem; box-shadow: 0 12px 30px rgba(15,23,42,.06); }
+        .flashcard-list { display: grid; gap: .5rem; max-height: 340px; overflow: auto; }
+        .flashcard-list button { border: 1px solid rgba(148,163,184,.22); border-radius: 8px; background: #f8fafc; padding: .65rem .75rem; text-align: left; color: #0f172a; }
+        .flashcard-list button strong { display: block; font-size: .9rem; }
+        .flashcard-list button span { display: block; color: #64748b; font-size: .75rem; margin-top: .18rem; }
         .flashcard-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: .65rem; }
         .flashcard-actions button { min-height: 48px; font-weight: 800; }
         .flashcard-progress { display: grid; gap: .55rem; margin-top: 1rem; }
@@ -132,12 +163,12 @@ if ($flashMessage) {
         .flashcard-hint-row span:last-child { color: #16a34a; }
         .flashcard-request-form { display: grid; grid-template-columns: 1fr; gap: .65rem; }
         .flashcard-request-note { border: 1px dashed rgba(37,99,235,.28); border-radius: 8px; padding: .8rem; background: rgba(37,99,235,.06); color: #334155; font-size: .86rem; }
-        body.dark-mode .flashcard-card, body.dark-mode .flashcard-tools, body.dark-mode .flashcard-side { background: #1e293b; border-color: rgba(148,163,184,.24); }
+        body.dark-mode .flashcard-card, body.dark-mode .flashcard-tools, body.dark-mode .flashcard-side, body.dark-mode .flashcard-list-panel { background: #1e293b; border-color: rgba(148,163,184,.24); }
         body.dark-mode .flashcard-card strong { color: #f8fafc; }
         body.dark-mode .flashcard-card p { color: #cbd5e1; }
-        body.dark-mode .flashcard-request-note, body.dark-mode .flashcard-shortcuts span { background: #0f172a; color: #cbd5e1; border-color: rgba(148,163,184,.24); }
+        body.dark-mode .flashcard-request-note, body.dark-mode .flashcard-shortcuts span, body.dark-mode .flashcard-qualification-grid button, body.dark-mode .flashcard-study-builder button, body.dark-mode .flashcard-difficulty-filter button, body.dark-mode .flashcard-list button { background: #0f172a; color: #cbd5e1; border-color: rgba(148,163,184,.24); }
         @media (max-width: 991.98px) { .flashcard-stage { grid-template-columns: 1fr; } }
-        @media (max-width: 575.98px) { .flashcard-actions, .flashcard-shortcuts { grid-template-columns: 1fr 1fr; } .flashcard-progress-row { grid-template-columns: 1fr; } }
+        @media (max-width: 575.98px) { .flashcard-actions, .flashcard-shortcuts, .flashcard-study-builder { grid-template-columns: 1fr 1fr; } .flashcard-progress-row { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -159,6 +190,14 @@ if ($flashMessage) {
                         <?php echo htmlspecialchars($flashMessage['message'] ?? ''); ?>
                     </div>
                 <?php endif; ?>
+                <section class="flashcard-qualification-grid" aria-label="Kwalifikacje fiszek">
+                    <?php foreach (array_slice($qualificationCounts, 0, 8, true) as $qual => $count): ?>
+                        <button type="button" data-flashcard-qual-card="<?php echo htmlspecialchars($qual); ?>">
+                            <?php echo htmlspecialchars($qual); ?>
+                            <span><?php echo (int)$count; ?> fiszek</span>
+                        </button>
+                    <?php endforeach; ?>
+                </section>
 
                 <section class="flashcard-stage">
                     <div>
@@ -188,6 +227,17 @@ if ($flashMessage) {
                                     <input id="flashcardSearch" class="form-control" placeholder="Adres IP, DNS, BIOS...">
                                 </div>
                             </div>
+                            <div class="flashcard-study-builder mt-3" aria-label="Kreator nauki">
+                                <button type="button" data-flashcard-study="all" class="active"><i class="bi bi-layers me-1"></i>Wszystkie tematy</button>
+                                <button type="button" data-flashcard-study="mixed"><i class="bi bi-shuffle me-1"></i>Mieszane źródła</button>
+                                <button type="button" data-flashcard-study="wrong"><i class="bi bi-arrow-repeat me-1"></i>Powtórka błędnych pojęć</button>
+                            </div>
+                            <div class="flashcard-difficulty-filter mt-3" aria-label="Poziom trudności">
+                                <button type="button" data-flashcard-difficulty="all" class="active">Wszystkie</button>
+                                <button type="button" data-flashcard-difficulty="easy">Łatwe</button>
+                                <button type="button" data-flashcard-difficulty="medium">Średnie</button>
+                                <button type="button" data-flashcard-difficulty="hard">Trudne</button>
+                            </div>
                             <div class="flashcard-progress" data-flashcard-progress aria-live="polite"></div>
                         </div>
                         <div class="flashcard-deck">
@@ -201,6 +251,14 @@ if ($flashMessage) {
                             <button class="btn btn-outline-danger" data-rate="hard"><i class="bi bi-arrow-repeat me-1"></i>Trudne</button>
                             <button class="btn btn-outline-primary" data-rate="medium"><i class="bi bi-clock-history me-1"></i>Średnie</button>
                             <button class="btn btn-outline-success" data-rate="easy"><i class="bi bi-check2-circle me-1"></i>Łatwe</button>
+                        </div>
+                        <div class="flashcard-list-panel mt-3">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                                <h5 class="fw-bold mb-0">Lista fiszek</h5>
+                                <span id="flashcardListCount" class="small text-muted"></span>
+                            </div>
+                            <div id="flashcardList" class="flashcard-list"></div>
+                            <button type="button" class="btn btn-outline-primary w-100 mt-3" data-flashcard-load-more>Załaduj więcej</button>
                         </div>
                     </div>
                     <aside class="flashcard-side">
@@ -259,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         front: String(card?.front || ''),
         back: String(card?.back || ''),
         source: String(card?.source || 'Moje'),
+        difficulty: ['easy', 'medium', 'hard'].includes(String(card?.difficulty || '')) ? String(card.difficulty) : 'medium',
         wiki: String(card?.wiki || ''),
         youtube: String(card?.youtube || '')
     });
@@ -267,6 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let pool = [];
     let index = 0;
     let flipped = false;
+    let visibleListCount = 12;
+    let difficultyFilter = 'all';
+    let studyMode = 'all';
     const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
     const safeHttpUrl = (value) => {
         try {
@@ -284,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem(wrongKey, JSON.stringify(wrong));
         }
     };
-    function rebuild() {
+    function rebuild(resetList = true) {
         const set = document.getElementById('flashcardSet').value;
         const qual = document.getElementById('flashcardQual').value;
         const search = document.getElementById('flashcardSearch').value.trim().toLowerCase();
@@ -300,11 +362,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 (set === 'due' && due(card));
             return setOk
                 && (qual === 'all' || card.qualification === qual)
+                && (difficultyFilter === 'all' || card.difficulty === difficultyFilter)
                 && (!search || `${card.front} ${card.back}`.toLowerCase().includes(search));
         });
+        if (studyMode === 'mixed') {
+            pool = pool.slice().sort(() => Math.random() - 0.5);
+        }
         index = 0;
         flipped = false;
+        if (resetList) visibleListCount = 12;
         updateProgress();
+        syncQualificationCards();
+        renderList();
         render();
     }
     function qualificationProgress() {
@@ -345,6 +414,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('flashcardWiki').href = safeHttpUrl(card.wiki);
         document.getElementById('flashcardYoutube').href = safeHttpUrl(card.youtube);
     }
+    function renderList() {
+        const list = document.getElementById('flashcardList');
+        const loadMore = document.querySelector('[data-flashcard-load-more]');
+        const count = document.getElementById('flashcardListCount');
+        if (!list || !loadMore) return;
+        const visible = pool.slice(0, visibleListCount);
+        list.innerHTML = visible.length
+            ? visible.map((card, idx) => `<button type="button" data-flashcard-list-index="${idx}"><strong>${esc(card.front)}</strong><span>${esc(card.qualification || 'Moje')} | ${esc(card.source)} | ${esc(card.difficulty)}</span></button>`).join('')
+            : '<div class="small text-muted">Brak fiszek dla wybranych filtrów.</div>';
+        loadMore.hidden = visibleListCount >= pool.length;
+        if (count) count.textContent = `${Math.min(visibleListCount, pool.length)}/${pool.length}`;
+    }
+    function syncQualificationCards() {
+        const selected = document.getElementById('flashcardQual').value;
+        document.querySelectorAll('[data-flashcard-qual-card]').forEach(button => {
+            button.classList.toggle('active', selected !== 'all' && button.dataset.flashcardQualCard === selected);
+        });
+    }
     function rate(level, direction = '') {
         const card = pool[index];
         if (!card) return;
@@ -361,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         wrong.expires = Date.now() + 3 * 3600000;
         localStorage.setItem(wrongKey, JSON.stringify(wrong));
         updateProgress();
+        renderList();
         const box = document.getElementById('flashcardCard');
         box.classList.add(direction === 'left' || level === 'hard' ? 'is-leaving-left' : 'is-leaving-right');
         setTimeout(() => {
@@ -382,6 +470,42 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('flashcardSet').addEventListener('change', rebuild);
     document.getElementById('flashcardQual').addEventListener('change', rebuild);
     document.getElementById('flashcardSearch').addEventListener('input', rebuild);
+    document.querySelectorAll('[data-flashcard-qual-card]').forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('flashcardQual').value = button.dataset.flashcardQualCard || 'all';
+            rebuild();
+        });
+    });
+    document.querySelectorAll('[data-flashcard-difficulty]').forEach(button => {
+        button.addEventListener('click', () => {
+            difficultyFilter = button.dataset.flashcardDifficulty || 'all';
+            document.querySelectorAll('[data-flashcard-difficulty]').forEach(item => item.classList.toggle('active', item === button));
+            rebuild();
+        });
+    });
+    document.querySelectorAll('[data-flashcard-study]').forEach(button => {
+        button.addEventListener('click', () => {
+            studyMode = button.dataset.flashcardStudy || 'all';
+            document.querySelectorAll('[data-flashcard-study]').forEach(item => item.classList.toggle('active', item === button));
+            if (studyMode === 'wrong') {
+                document.getElementById('flashcardSet').value = 'wrong';
+            } else {
+                document.getElementById('flashcardSet').value = 'all';
+            }
+            rebuild();
+        });
+    });
+    document.getElementById('flashcardList')?.addEventListener('click', (event) => {
+        const item = event.target.closest('[data-flashcard-list-index]');
+        if (!item) return;
+        index = Number(item.dataset.flashcardListIndex) || 0;
+        flipped = false;
+        render();
+    });
+    document.querySelector('[data-flashcard-load-more]')?.addEventListener('click', () => {
+        visibleListCount += 12;
+        renderList();
+    });
     (() => {
         const box = document.getElementById('flashcardCard');
         let startX = 0;

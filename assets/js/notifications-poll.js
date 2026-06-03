@@ -12,9 +12,10 @@
         const csrfToken = root.dataset.csrf || '';
         const badge = document.getElementById('notificationBadge');
         const markReadForm = document.getElementById('notificationMarkReadForm');
-        const intervalMs = Math.max(1500, parseInt(list.dataset.pollInterval || '2000', 10) || 2000);
+        const baseIntervalMs = Math.max(8000, parseInt(list.dataset.pollInterval || '12000', 10) || 12000);
         let pollTimer = null;
         let inFlight = false;
+        let failureCount = 0;
 
         function resolveUrl(raw) {
             if (!raw) return '';
@@ -124,13 +125,18 @@
             });
         }
 
-        async function refreshNotifications() {
-            if (!feedUrl || inFlight) return;
+        function pollDelay() {
+            return baseIntervalMs * Math.min(6, 1 + failureCount);
+        }
+
+        async function refreshNotifications(options = {}) {
+            const refreshOnOpen = options.refreshOnOpen === true;
+            if (!feedUrl || inFlight || (document.hidden && !refreshOnOpen)) return;
             inFlight = true;
             try {
                 const url = new URL(resolveUrl(feedUrl));
                 url.searchParams.set('base', baseUrl);
-                url.searchParams.set('limit', '5');
+                url.searchParams.set('limit', refreshOnOpen ? '10' : '3');
                 url.searchParams.set('_', String(Date.now()));
 
                 const response = await fetch(url.toString(), {
@@ -141,37 +147,55 @@
                         'X-Requested-With': 'XMLHttpRequest',
                     },
                 });
-                if (!response.ok) return;
+                if (!response.ok) {
+                    failureCount++;
+                    return;
+                }
                 const data = await response.json();
-                if (!data.success) return;
+                if (!data.success) {
+                    failureCount++;
+                    return;
+                }
+                failureCount = 0;
                 list.innerHTML = data.html || '';
                 updateBadge(Number(data.unread_count || 0));
                 bindDuelActions();
                 bindAppStatusActions(list);
             } catch (error) {
-                // ignore background polling errors
+                failureCount++;
             } finally {
                 inFlight = false;
             }
         }
 
         function startPolling() {
-            if (pollTimer) clearInterval(pollTimer);
-            pollTimer = window.setInterval(refreshNotifications, intervalMs);
+            if (pollTimer) clearTimeout(pollTimer);
+            if (document.hidden) {
+                pollTimer = null;
+                return;
+            }
+            pollTimer = window.setTimeout(async () => {
+                await refreshNotifications();
+                startPolling();
+            }, pollDelay());
         }
 
         bindDuelActions();
         bindAppStatusActions(document);
-        refreshNotifications();
+        refreshNotifications({ refreshOnOpen: false });
         startPolling();
+
+        root.addEventListener('show.bs.dropdown', () => {
+            refreshNotifications({ refreshOnOpen: true });
+        });
 
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                if (pollTimer) clearInterval(pollTimer);
+                if (pollTimer) clearTimeout(pollTimer);
                 pollTimer = null;
                 return;
             }
-            refreshNotifications();
+            refreshNotifications({ refreshOnOpen: false });
             startPolling();
         });
     }

@@ -13,13 +13,14 @@ $value = trim((string)($_GET['value'] ?? ''));
 $response = [
     'ok' => false,
     'available' => false,
-    'message' => 'Nieprawidłowe dane.'
+    'message' => 'Nieprawidłowe dane.',
+    'suggestions' => []
 ];
 
 try {
     if ($type === 'username') {
         if ($value === '') {
-            $response = ['ok' => true, 'available' => true, 'message' => 'Login zostanie wygenerowany z imienia i nazwiska.'];
+            $response = ['ok' => true, 'available' => true, 'message' => 'Login zostanie wygenerowany losowo.', 'suggestions' => []];
         } elseif (!preg_match('/^[A-Za-z0-9_.-]{3,16}$/', $value)) {
             $response['message'] = 'Login: 3-16 znaków, litery, cyfry, kropka, myślnik lub podkreślenie.';
         } elseif (containsProfanity($value)) {
@@ -31,7 +32,8 @@ try {
             $response = [
                 'ok' => true,
                 'available' => !$taken,
-                'message' => $taken ? 'Ta nazwa użytkownika jest już zajęta.' : 'Ta nazwa użytkownika jest dostępna.'
+                'message' => $taken ? 'Ta nazwa użytkownika jest już zajęta.' : 'Ta nazwa użytkownika jest dostępna.',
+                'suggestions' => $taken ? registrationUsernameSuggestions($pdo, $value, 2) : []
             ];
         }
     } elseif ($type === 'email') {
@@ -47,13 +49,14 @@ try {
             $response = [
                 'ok' => true,
                 'available' => !$taken,
-                'message' => $taken ? 'Ten adres e-mail jest już używany.' : 'Ten adres e-mail jest dostępny.'
+                'message' => $taken ? 'Ten adres e-mail jest już używany.' : 'Ten adres e-mail jest dostępny.',
+                'suggestions' => []
             ];
         }
     }
 } catch (Throwable $e) {
     error_log('Registration availability endpoint failed: ' . $e->getMessage());
-    $response = ['ok' => false, 'available' => false, 'message' => 'Nie udało się sprawdzić dostępności.'];
+    $response = ['ok' => false, 'available' => false, 'message' => 'Nie udało się sprawdzić dostępności.', 'suggestions' => []];
 }
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE);

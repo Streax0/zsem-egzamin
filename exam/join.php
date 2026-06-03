@@ -209,6 +209,21 @@ if (!$isGuest && !$savedData) {
             font-size: .85rem;
             display: none;
         }
+        .join-hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            width: fit-content;
+            padding: .45rem .8rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .16);
+            color: #fff;
+            font-size: .82rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, .28);
+        }
         @media (min-width: 768px) {
             .qr-desktop-note {
                 display: block;
@@ -234,17 +249,17 @@ if (!$isGuest && !$savedData) {
                     <div class="join-exam-shell">
                         <div class="join-hero-panel animate-in">
                             <div class="join-hero-icon"><i class="bi bi-qr-code-scan"></i></div>
-                            <span class="badge rounded-pill text-bg-light mb-3">Sprawdzian nauczyciela</span>
+                            <span class="join-hero-kicker mb-3"><i class="bi bi-lightning-charge"></i> Sprawdzian nauczyciela</span>
                             <h2 style="color: #fff;">Dołącz bez odświeżania i czekaj w lobby.</h2>
                             <p>Wpisz kod z tablicy albo zeskanuj QR. Po dołączeniu zobaczysz status sesji i start sprawdzianu w czasie rzeczywistym.</p>
                             <div class="join-steps">
                                 <div><span>1</span> Kod lub QR</div>
                                 <div><span>2</span> Dane uczestnika</div>
-                                <div><span>3</span> Lobby i start</div>
+                                <div><span>3</span> Lobby i start bez odświeżania</div>
                             </div>
                         </div>
                         <div class="join-form-panel animate-in">
-                            <div class="dashboard-panel">
+                            <div class="dashboard-panel" data-join-code-card>
                                 <div class="text-center mb-4">
                                     <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px;height:80px;">
                                         <i class="bi bi-qr-code-scan display-5 text-primary"></i>

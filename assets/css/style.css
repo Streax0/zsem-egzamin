@@ -400,6 +400,16 @@ a, button, .btn, .card, .form-control, .navbar, .progress-bar {
   transition: var(--przejscie);
 }
 
+/* Smooth dropdown open/close (avoid jumping) */
+.dropdown-menu {
+  transform-origin: top center;
+  will-change: opacity;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(15,23,42,0.06);
+  box-shadow: 0 8px 20px rgba(2,6,23,0.12);
+  overflow: visible;
+}
+
 /* ==================== UKRYWANIE ==================== */
 .visually-hidden {
   position: absolute;
@@ -481,7 +491,6 @@ a, button, .btn, .card, .form-control, .navbar, .progress-bar {
   box-shadow: var(--cień-duzy);
   padding: 0.5rem;
   margin-top: 0.25rem;
-  animation: dropdownFade 0.2s ease;
   background-color: var(--kolor-tlo-wtoczne);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
@@ -818,23 +827,13 @@ body.dark-mode .table > :not(caption) > * > * {
   border: 2px solid #1e293b;
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
   line-height: 1;
+  z-index: 2;
 }
 
 @media (prefers-color-scheme: dark) {
   .dropdown-menu {
     background-color: rgba(30, 41, 59, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-}
-
-@keyframes dropdownFade {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -853,6 +852,20 @@ body.dark-mode .table > :not(caption) > * > * {
 .dropdown-divider {
   border-color: var(--kolor-ramka);
   margin: 0.5rem 0;
+}
+
+.dropdown-menu {
+  opacity: 0;
+  transition: opacity 210ms ease 50ms;
+  will-change: opacity;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* Avatar */

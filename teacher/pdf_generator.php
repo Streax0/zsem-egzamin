@@ -639,6 +639,15 @@ $questionSelectorLimit = min(260, count($allQuestions));
         }
         .manual-q-item { border:1px solid rgba(148,163,184,.22); border-radius:8px; padding:1rem; background:#fff; }
         .manual-q-item + .manual-q-item { margin-top:.85rem; }
+        .manual-q-textarea,
+        .manual-q-explanation {
+            resize: vertical;
+            max-height: 220px;
+            overflow: auto;
+        }
+        .manual-q-explanation {
+            max-height: 180px;
+        }
         .worksheet-brand-strip {
             display:flex;
             justify-content:space-between;
@@ -1314,12 +1323,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const manualBox = byId('manualQuestions');
     const manualInitial = <?php echo json_encode(is_array($_POST['manual_questions'] ?? null) ? $_POST['manual_questions'] : [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+    const manualQuestionLimit = 120;
     let manualCount = 0;
     const escAttr = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'}[char]));
     function addManualQuestion(data = {}) {
-        if (!manualBox || manualCount >= 120) return;
+        if (!manualBox || manualBox.querySelectorAll('[data-manual-item]').length >= manualQuestionLimit) return;
         const n = manualCount++;
         const type = data.type === 'open' ? 'open' : 'closed';
+        const selectedCategory = document.querySelector('[name="categories[]"]:checked')?.value || 'Własne';
         manualBox.insertAdjacentHTML('beforeend', `
             <div class="manual-q-item" data-manual-item>
                 <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
@@ -1329,11 +1340,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="row g-2">
                     <div class="col-md-8">
                         <label class="form-label small fw-bold">Treść pytania</label>
-                        <textarea class="form-control" rows="2" name="manual_questions[${n}][question_text]" maxlength="1400">${escAttr(data.question_text || '')}</textarea>
+                        <textarea class="form-control manual-q-textarea" rows="2" name="manual_questions[${n}][question_text]" maxlength="1400">${escAttr(data.question_text || '')}</textarea>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small fw-bold">Kategoria</label>
-                        <input class="form-control" name="manual_questions[${n}][category]" maxlength="80" value="${escAttr(data.category || 'Własne')}">
+                        <input class="form-control" name="manual_questions[${n}][category]" data-manual-category maxlength="80" value="${escAttr(data.category || selectedCategory)}">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small fw-bold">Typ</label>
@@ -1360,7 +1371,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-bold">Wyjaśnienie do klucza</label>
-                        <textarea class="form-control" rows="2" name="manual_questions[${n}][explanation]" maxlength="1600">${escAttr(data.explanation || '')}</textarea>
+                        <textarea class="form-control manual-q-explanation" rows="2" name="manual_questions[${n}][explanation]" maxlength="1600">${escAttr(data.explanation || '')}</textarea>
                     </div>
                 </div>
             </div>

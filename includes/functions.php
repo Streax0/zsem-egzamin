@@ -31,9 +31,6 @@ function validatePasswordPolicy(string $password): array {
     if (!preg_match('/\d/', $password)) {
         $errors[] = 'Hasło musi zawierać cyfrę.';
     }
-    if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-        $errors[] = 'Hasło musi zawierać znak specjalny.';
-    }
     $weak = ['password', 'haslo', 'qwerty', '123456', 'zsemtech'];
     $lower = mb_strtolower($password, 'UTF-8');
     foreach ($weak as $fragment) {
@@ -43,6 +40,48 @@ function validatePasswordPolicy(string $password): array {
         }
     }
     return $errors;
+}
+
+function registrationUsernameSuggestions(PDO $pdo, string $seed, int $count = 2): array {
+    $count = max(1, min(5, $count));
+    $raw = trim($seed);
+    $map = [
+        'ą'=>'a','ć'=>'c','ę'=>'e','ł'=>'l','ń'=>'n','ó'=>'o','ś'=>'s','ź'=>'z','ż'=>'z',
+        'Ą'=>'a','Ć'=>'c','Ę'=>'e','Ł'=>'l','Ń'=>'n','Ó'=>'o','Ś'=>'s','Ź'=>'z','Ż'=>'z'
+    ];
+    $raw = strtr($raw, $map);
+    if (function_exists('iconv')) {
+        $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $raw);
+        if ($converted !== false) {
+            $raw = $converted;
+        }
+    }
+
+    $base = strtolower((string)preg_replace('/[^A-Za-z0-9_.-]+/', '', $raw));
+    $base = trim((string)preg_replace('/[._-]{2,}/', '_', $base), '._-');
+    if (strlen($base) < 3 || (function_exists('containsProfanity') && containsProfanity($base))) {
+        $base = 'user';
+    }
+    $base = substr($base, 0, 10);
+
+    $suggestions = [];
+    for ($i = 0; count($suggestions) < $count && $i < 40; $i++) {
+        $suffix = $i < 8 ? (string)random_int(10, 99) : bin2hex(secureRandomBytes(2));
+        $candidate = substr($base, 0, 16 - strlen($suffix)) . $suffix;
+        if (!preg_match('/^[A-Za-z0-9_.-]{3,16}$/', $candidate)) {
+            continue;
+        }
+        if (function_exists('containsProfanity') && containsProfanity($candidate)) {
+            continue;
+        }
+        $stmt = $pdo->prepare('SELECT 1 FROM users WHERE username = ? LIMIT 1');
+        $stmt->execute([$candidate]);
+        if (!$stmt->fetchColumn() && !in_array($candidate, $suggestions, true)) {
+            $suggestions[] = $candidate;
+        }
+    }
+
+    return $suggestions;
 }
 
 function adminRoleValues(): array {
@@ -4005,10 +4044,11 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
 function buildNotificationsDropdownPayload(PDO $pdo, int $userId, string $baseUrl, int $limit = 5): array {
     syncAppStatusNotificationsForUser($pdo, $userId);
     $notifications = getNotifications($pdo, $userId, $limit);
+    $unreadCount = getUnreadNotificationsCount($pdo, $userId);
     return [
-        'unread_count' => getUnreadNotificationsCount($pdo, $userId),
+        'unread_count' => $unreadCount,
         'html' => renderNotificationsDropdownListHtml($pdo, $userId, $notifications, $baseUrl),
-        'has_unread' => getUnreadNotificationsCount($pdo, $userId) > 0,
+        'has_unread' => $unreadCount > 0,
     ];
 }
 

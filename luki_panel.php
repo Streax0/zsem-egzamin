@@ -355,6 +355,16 @@ $segments = [
     ['key' => 'oracle', 'name' => 'Los', 'icon' => 'bi-bullseye', 'color' => '#06b6d4'],
     ['key' => 'void', 'name' => 'Nicość', 'icon' => 'bi-moon-stars-fill', 'color' => '#020617'],
 ];
+
+$segmentCount = count($segments);
+$wheelGradientStops = [];
+foreach ($segments as $i => $segment) {
+    $start = 90 + ($i * 360) / $segmentCount;
+    $end = 90 + (($i + 1) * 360) / $segmentCount;
+    $wheelGradientStops[] = sprintf('%s %.4fdeg %.4fdeg', htmlspecialchars($segment['color']), $start, $end);
+}
+$wheelGradient = implode(",\n                ", $wheelGradientStops);
+
 $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['archetype']) : 0;
 ?>
 <!DOCTYPE html>
@@ -474,16 +484,19 @@ $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['ar
             border-radius: 50%;
             position: relative;
             background: conic-gradient(
-                #22c55e 0 36deg,
-                #f59e0b 36deg 72deg,
-                #8b5cf6 72deg 108deg,
-                #ec4899 108deg 144deg,
-                #94a3b8 144deg 180deg,
-                #ef4444 180deg 216deg,
-                #a21caf 216deg 252deg,
-                #0ea5e9 252deg 288deg,
-                #06b6d4 288deg 324deg,
-                #020617 324deg 360deg
+                #22c55e 0 27.69deg,
+                #f59e0b 27.69deg 55.38deg,
+                #8b5cf6 55.38deg 83.07deg,
+                #ec4899 83.07deg 110.76deg,
+                #94a3b8 110.76deg 138.46deg,
+                #ef4444 138.46deg 166.15deg,
+                #a21caf 166.15deg 193.85deg,
+                #0ea5e9 193.85deg 221.54deg,
+                #f97316 221.54deg 249.23deg,
+                #14b8a6 249.23deg 276.92deg,
+                #6366f1 276.92deg 304.62deg,
+                #06b6d4 304.62deg 332.31deg,
+                #020617 332.31deg 360deg
             );
             transform: rotate(var(--rot));
             box-shadow:
@@ -536,19 +549,20 @@ $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['ar
             align-items: center;
             justify-content: center;
             gap: .35rem;
-            min-width: 108px;
-            max-width: 128px;
-            padding: .45rem .55rem;
+            min-width: 92px;
+            max-width: 140px;
+            padding: .35rem .55rem;
             border-radius: 999px;
             color: #fff;
             background: linear-gradient(135deg, rgba(255,255,255,.24), rgba(255,255,255,.08)), var(--segment-color);
             border: 1px solid rgba(255,255,255,.26);
-            font-size: .75rem;
+            font-size: .72rem;
             font-weight: 800;
             text-shadow: 0 1px 8px rgba(0,0,0,.22);
-            transform: rotate(var(--angle)) translateX(76%) rotate(calc(-1 * var(--angle))) translate(-50%, -50%);
+            transform: rotate(calc(var(--angle) - 90deg)) translateX(clamp(124px, 24vw, 228px)) rotate(calc(-1 * var(--angle) + 90deg)) translate(-50%, -50%);
             pointer-events: none;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 10px 24px rgba(0,0,0,.18);
+            white-space: nowrap;
         }
         .wheel-segment-label i { color: rgba(255,255,255,.95); }
         .wheel-pointer {
@@ -808,7 +822,14 @@ $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['ar
             .trend-grid, .luki-legend, .luki-motif-grid { grid-template-columns:1fr; }
             .zakonnica-guard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
             .zakonnica-guard { font-size: .68rem; padding: .4rem .55rem; }
-            .wheel-segment-label { font-size: .55rem; max-width: 92px; padding: .25rem .34rem; }
+            .wheel-segment-label {
+                font-size: .55rem;
+                min-width: 76px;
+                max-width: 96px;
+                padding: .22rem .3rem;
+                transform: rotate(calc(var(--angle) - 90deg)) translateX(clamp(92px, 18vw, 150px)) rotate(calc(-1 * var(--angle) + 90deg)) translate(-50%, -50%);
+            }
+            .wheel-stage { padding: 1rem; }
         }
     </style>
 </head>
@@ -840,10 +861,10 @@ $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['ar
                         <div class="wheel-wrap">
                             <div class="wheel-stage">
                                 <div class="wheel-pointer"></div>
-                                <div class="luki-wheel" id="lukiWheel" data-segments="<?php echo count($segments); ?>">
+                                <div class="luki-wheel" id="lukiWheel" data-segments="<?php echo count($segments); ?>" style="background: conic-gradient(<?php echo $wheelGradient; ?>);">
                                     <div class="center-mark"></div>
                                     <?php foreach ($segments as $i => $segment): ?>
-                                        <?php $angle = ($i * (360 / count($segments))) + (180 / count($segments)); ?>
+                                        <?php $angle = 90 + ($i * (360 / count($segments))) + (180 / count($segments)); ?>
                                         <div class="wheel-segment-label" style="--angle: <?php echo $angle; ?>deg; --segment-color: <?php echo htmlspecialchars($segment['color']); ?>;">
                                             <i class="bi <?php echo htmlspecialchars($segment['icon']); ?>"></i>
                                             <span><?php echo htmlspecialchars($segment['name']); ?></span>
@@ -872,6 +893,19 @@ $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['ar
                                 <div class="small text-muted mt-2">Pozostało dziś: <strong data-spins-left><?php echo htmlspecialchars($spinsDisplay); ?></strong></div>
                                 <div class="small mt-2 d-none" data-luki-spin-alert aria-live="polite"></div>
                             </form>
+
+                            <div id="spinResultMobileMount" data-spin-result-mount class="mt-4 d-md-none">
+                                <?php if ($spinResult): ?>
+                                <div class="result-card pending-reveal <?php echo htmlspecialchars($spinResult['archetype']); ?>" data-index="<?php echo (int)$resultIndex; ?>" data-delta="<?php echo (int)$spinResult['xp']; ?>">
+                                    <div class="small text-muted fw-bold text-uppercase">Wynik spinu</div>
+                                    <h4 class="fw-900 mb-1"><?php echo htmlspecialchars($spinResult['label']); ?></h4>
+                                    <div class="display-6 fw-900 <?php echo (int)$spinResult['xp'] >= 0 ? 'text-success' : 'text-danger'; ?>">
+                                        <?php echo (int)$spinResult['xp'] > 0 ? '+' : ''; ?><?php echo (int)$spinResult['xp']; ?> XP
+                                    </div>
+                                    <p class="mb-0 text-muted"><?php echo htmlspecialchars($spinResult['note']); ?></p>
+                                </div>
+                                <?php endif; ?>
+                            </div>
 
                             <div class="luki-legend w-100">
                                 <?php foreach ($segments as $segment): ?>
@@ -912,10 +946,9 @@ $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['ar
                             <div class="status-row"><span>Streak aktywności</span><strong><?php echo (int)$activity['streak']; ?> dni</strong></div>
                             <div class="status-row"><span>Ostatni spin</span><strong data-luki-last-spin><?php echo htmlspecialchars($lastSpinAt); ?></strong></div>
                         </div>
-
-                        <div id="spinResultMount" data-spin-result-mount>
+                        <div id="spinResultDesktopMount" data-spin-result-mount class="d-none d-md-block">
                             <?php if ($spinResult): ?>
-                            <div class="result-card pending-reveal <?php echo htmlspecialchars($spinResult['archetype']); ?>" id="spinResult" data-index="<?php echo (int)$resultIndex; ?>" data-delta="<?php echo (int)$spinResult['xp']; ?>">
+                            <div class="result-card pending-reveal <?php echo htmlspecialchars($spinResult['archetype']); ?>" data-index="<?php echo (int)$resultIndex; ?>" data-delta="<?php echo (int)$spinResult['xp']; ?>">
                                 <div class="small text-muted fw-bold text-uppercase">Wynik spinu</div>
                                 <h4 class="fw-900 mb-1"><?php echo htmlspecialchars($spinResult['label']); ?></h4>
                                 <div class="display-6 fw-900 <?php echo (int)$spinResult['xp'] >= 0 ? 'text-success' : 'text-danger'; ?>">
@@ -999,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('[data-luki-spin-form]');
     const button = document.querySelector('[data-luki-spin-button]');
     const alertBox = document.querySelector('[data-luki-spin-alert]');
-    const resultMount = document.querySelector('[data-spin-result-mount]');
+    const resultMounts = Array.from(document.querySelectorAll('[data-spin-result-mount]'));
     let currentRotation = 0;
 
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -1036,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const renderSpinResultCard = (result) => {
         const delta = Number(result?.xp || 0);
         const toneClass = delta >= 0 ? 'text-success' : 'text-danger';
-        return `<div class="result-card pending-reveal ${escapeHtml(result?.archetype || '')}" id="spinResult" data-index="${Number(result?.index || 0)}" data-delta="${delta}">
+        return `<div class="result-card pending-reveal ${escapeHtml(result?.archetype || '')}" data-index="${Number(result?.index || 0)}" data-delta="${delta}">
             <div class="small text-muted fw-bold text-uppercase">Wynik spinu</div>
             <h4 class="fw-900 mb-1">${escapeHtml(result?.label || '')}</h4>
             <div class="display-6 fw-900 ${toneClass}">${signedXp(delta)}</div>
@@ -1053,6 +1086,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (spinsLeft) spinsLeft.textContent = state?.spins_display || '';
         if (lastSpin) lastSpin.textContent = state?.last_spin_at || '';
         if (button) button.disabled = Number(state?.spins_left || 0) <= 0;
+    };
+
+    const getVisibleResultCard = () => {
+        return resultMounts.map(mount => mount.querySelector('.result-card')).find(card => card?.offsetParent !== null) || null;
     };
     const prependHistory = (result) => {
         const history = document.querySelector('[data-luki-history]');
@@ -1096,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 4850);
     };
 
-    const initialResult = document.getElementById('spinResult');
+    const initialResult = getVisibleResultCard();
     if (initialResult) playSpinResult(initialResult);
 
     if (!form || !button || !window.fetch) return;
@@ -1122,9 +1159,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok || !data.success) {
                 throw new Error(data.message || 'Nie udało się wykonać spinu.');
             }
-            if (resultMount) {
-                resultMount.innerHTML = renderSpinResultCard(data.result);
-                playSpinResult(resultMount.querySelector('#spinResult'));
+            if (resultMounts.length) {
+                const html = renderSpinResultCard(data.result);
+                resultMounts.forEach(mount => { mount.innerHTML = html; });
+                playSpinResult(getVisibleResultCard());
             }
             updateState(data.state || {});
             prependHistory(data.result);

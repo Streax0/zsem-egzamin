@@ -323,7 +323,7 @@ body.dark-mode .teacher-ops-strip-current {
   text-decoration: none;
   -webkit-appearance: none;
   appearance: none;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .topbar-icon::before {

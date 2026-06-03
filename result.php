@@ -470,6 +470,12 @@ $shareCardData = [
             color: var(--primary-color-dark, #3b82f6);
             margin-bottom: .25rem;
         }
+        .answer-distractors {
+            border-top: 1px dashed rgba(59,130,246,.24);
+            margin-top: .65rem;
+            padding-top: .65rem;
+            color: var(--text-muted, #64748b);
+        }
 
         .answer-status-icon {
             width: 26px;
@@ -888,9 +894,33 @@ $shareCardData = [
                                         }
                                         $answer_explanation = buildQuestionExplanation($question_for_explanation, $user_answer, $is_correct);
                                     }
+                                    $answer_explanation_main = $answer_explanation;
+                                    $answer_distractors = '';
+                                    $why_marker = 'Dlaczego nie reszta?';
+                                    $why_pos = mb_strpos($answer_explanation, $why_marker, 0, 'UTF-8');
+                                    if ($why_pos !== false) {
+                                        $answer_explanation_main = trim(mb_substr($answer_explanation, 0, $why_pos, 'UTF-8'));
+                                        $answer_distractors = trim(mb_substr($answer_explanation, $why_pos, mb_strlen($answer_explanation, 'UTF-8'), 'UTF-8'));
+                                    }
+                                    if ($answer_distractors === '') {
+                                        $fallback_distractors = [];
+                                        foreach (['A', 'B', 'C', 'D'] as $letter) {
+                                            if ($letter === $correct_answer) {
+                                                continue;
+                                            }
+                                            $option_text = trim((string)($question_source['option_' . strtolower($letter)] ?? ''));
+                                            if ($option_text === '') {
+                                                continue;
+                                            }
+                                            $fallback_distractors[] = $letter . '. ' . $option_text . ' - ta opcja nie spełnia bezpośrednio warunku z pytania albo opisuje inną warstwę działania.';
+                                        }
+                                        if ($fallback_distractors) {
+                                            $answer_distractors = "Dlaczego nie reszta?\n" . implode("\n", $fallback_distractors);
+                                        }
+                                    }
                                     ?>
                                     <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo (int)$answer['question_id']; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>" style="animation-delay: <?php echo min($index * 0.04, 1.2); ?>s">
-                                        <div class="answer-card-header" onclick="toggleAnswerCard(this)">
+                                        <div class="answer-card-header" data-answer-toggle role="button" tabindex="0" aria-expanded="false" onclick="toggleAnswerCard(this)">
                                             <div class="answer-card-num <?php echo $is_correct ? 'correct' : 'wrong'; ?>">
                                                 <?php echo sprintf('%02d', $index + 1); ?>
                                             </div>
@@ -907,7 +937,7 @@ $shareCardData = [
                                             </div>
                                             <i class="bi bi-chevron-down answer-card-chevron"></i>
                                         </div>
-                                        <div class="answer-card-body">
+                                        <div class="answer-card-body" data-answer-analysis>
                                             <div class="answer-detail-row your-answer <?php echo $is_correct ? 'is-correct' : ''; ?>">
                                                 <span><i class="bi bi-person-fill me-2"></i>Twoja odpowiedź</span>
                                                 <span class="fw-bold <?php echo $is_correct ? 'text-success' : 'text-danger'; ?>"><?php echo htmlspecialchars($user_answer); ?></span>
@@ -929,7 +959,15 @@ $shareCardData = [
                                                     <i class="bi bi-info-circle-fill"></i>
                                                     Wyjaśnienie
                                                 </div>
-                                                <div><?php echo nl2br(htmlspecialchars($answer_explanation)); ?></div>
+                                                <div><?php echo nl2br(htmlspecialchars($answer_explanation_main)); ?></div>
+                                                <?php if ($answer_distractors !== ''): ?>
+                                                    <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); toggleAnswerDistractors(this)">
+                                                        <i class="bi bi-list-check"></i> Dlaczego nie reszta?
+                                                    </button>
+                                                    <div class="answer-distractors d-none" data-distractors-panel>
+                                                        <?php echo nl2br(htmlspecialchars($answer_distractors)); ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                             <button type="button" class="answer-card-view-btn" onclick="event.stopPropagation(); viewQuestion(<?php echo (int)$answer['question_id']; ?>, '<?php echo addslashes($user_answer); ?>', '<?php echo addslashes($correct_answer); ?>')">
                                                 <i class="bi bi-eye"></i> Zobacz pytanie
@@ -1009,8 +1047,46 @@ $shareCardData = [
 
         function toggleAnswerCard(headerEl) {
             const card = headerEl.closest('.answer-card');
-            card.classList.toggle('open');
+            const shouldOpen = !card.classList.contains('open');
+            document.querySelectorAll('.answer-card.open').forEach(openCard => {
+                if (openCard === card) return;
+                openCard.classList.remove('open');
+                openCard.querySelector('[data-answer-toggle]')?.setAttribute('aria-expanded', 'false');
+                openCard.querySelectorAll('[data-distractors-panel]').forEach(panel => panel.classList.add('d-none'));
+                openCard.querySelectorAll('[data-distractors-toggle]').forEach(button => button.setAttribute('aria-expanded', 'false'));
+            });
+            card.classList.toggle('open', shouldOpen);
+            headerEl.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+            if (!shouldOpen) {
+                card.querySelectorAll('[data-distractors-panel]').forEach(panel => panel.classList.add('d-none'));
+                card.querySelectorAll('[data-distractors-toggle]').forEach(button => button.setAttribute('aria-expanded', 'false'));
+            }
         }
+
+        function toggleAnswerDistractors(button) {
+            const panel = button.closest('.answer-explanation')?.querySelector('[data-distractors-panel]');
+            if (!panel) return;
+            const willShow = panel.classList.contains('d-none');
+            panel.classList.toggle('d-none', !willShow);
+            button.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+        }
+
+        document.querySelectorAll('[data-answer-toggle]').forEach(toggle => {
+            toggle.addEventListener('keydown', event => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                toggleAnswerCard(toggle);
+            });
+        });
+
+        document.addEventListener('shown.bs.collapse', event => {
+            const card = event.target.closest('.answer-card');
+            if (!card) return;
+            document.querySelectorAll('.answer-card.open').forEach(openCard => {
+                if (openCard !== card) openCard.classList.remove('open');
+            });
+            card.classList.add('open');
+        });
 
         document.querySelectorAll('[data-answer-filter]').forEach(button => {
             button.addEventListener('click', () => {

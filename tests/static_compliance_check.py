@@ -242,8 +242,8 @@ def test_sidebar_topbar_animation_polish() -> None:
         "closeSidebar",
         "sidebar.classList.add('is-opening')",
         "document.addEventListener('keydown'",
-        "Escape",
     )
+    assert "event.key === 'Escape' && sidebar.classList.contains('show')" not in read("includes/topbar.php")
 
 
 def test_luki_spin_ajax_without_page_refresh() -> None:
@@ -462,11 +462,11 @@ def test_admin_and_luki_expanded_operational_panels() -> None:
 def test_release_teacher_generator_luki_v17_surface() -> None:
     assert_contains(
         "settings.php",
-        "1.7 BETA BUG + SEC FIX",
+        "1.8 BETA",
         "settings-overview-grid",
         "settings-switch-grid",
         "settings-release-grid",
-        "SEC FIX: mocniejsze gardy AJAX",
+        "Prywatne loginy i szybsze powiadomienia",
     )
     assert_contains(
         "includes/topbar.php",
@@ -582,6 +582,103 @@ def test_pdf_final_explanations_settings_teacher_avatar() -> None:
         ".teacher-ops-strip a.active",
         "teacher-ops-strip-current",
         "overflow-x: auto",
+    )
+
+
+def test_v18_registration_password_autologin_and_suggestions() -> None:
+    assert_contains(
+        "register.php",
+        "registrationRandomUsername",
+        "'user_' . bin2hex(secureRandomBytes(4))",
+        "registerCurrentUserSession($pdo, (int)$newUserId)",
+        "header('Location: index.php')",
+    )
+    register_content = read("register.php")
+    assert "Puste = imię.nazwisko" not in register_content
+    assert "registrationUsernameBase($first_name, $last_name)" not in register_content
+    assert_contains(
+        "ajax/check_registration_availability.php",
+        "registrationUsernameSuggestions",
+        "'suggestions'",
+    )
+    assert_contains(
+        "assets/js/register.js",
+        "renderUsernameSuggestions",
+        "suggestions.forEach",
+        "Znak specjalny zwiększa siłę hasła, ale nie jest wymagany.",
+    )
+    assert "Hasło musi zawierać znak specjalny." not in read("includes/functions.php")
+
+
+def test_v18_pdf_remaining_auth_and_performance_surface() -> None:
+    assert_contains(
+        "exam/join.php",
+        "join-hero-kicker",
+        "data-join-code-card",
+        "Lobby i start bez odświeżania",
+    )
+    assert_contains(
+        "teacher/pdf_generator.php",
+        "manual-q-textarea",
+        "manual-q-explanation",
+        "data-manual-category",
+        "manualQuestionLimit",
+    )
+    assert_contains(
+        "assets/js/result-share-card.js",
+        "Tryb CKE",
+        "data.modeName",
+    )
+    assert_contains(
+        "result.php",
+        "data-answer-analysis",
+        "data-answer-toggle",
+        "data-distractors-toggle",
+        "shown.bs.collapse",
+    )
+    assert_contains(
+        "assets/js/notifications-poll.js",
+        "baseIntervalMs",
+        "failureCount",
+        "refreshOnOpen",
+        "document.hidden",
+    )
+
+
+def test_v18_router_flashcards_social_license() -> None:
+    assert_contains(
+        "sandbox.php",
+        "TP-LINK",
+        "AC750 Wireless Dual Band Gigabit Router",
+        "Model No. Archer C2",
+        "routerMacCloneHelp",
+    )
+    assert_contains(
+        "assets/js/sandbox.js",
+        "zsem.router.config.v1",
+        "routerFactoryMac",
+        "routerCloneMac",
+        "pagehide",
+    )
+    assert_contains(
+        "flashcards.php",
+        "flashcard-qualification-grid",
+        "data-flashcard-load-more",
+        "flashcard-study-builder",
+        "data-flashcard-difficulty",
+        "Powtórka błędnych pojęć",
+    )
+    assert_contains(
+        "social.php",
+        "social-insights-grid",
+        "suggested-users-card",
+        "social-activity-card",
+    )
+    assert_contains(
+        "LICENSE",
+        "non-profit",
+        "niekomercyjnych",
+        "prawami autorskimi",
     )
 
 
