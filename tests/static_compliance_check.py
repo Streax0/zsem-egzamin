@@ -588,14 +588,22 @@ def test_pdf_final_explanations_settings_teacher_avatar() -> None:
 def test_v18_registration_password_autologin_and_suggestions() -> None:
     assert_contains(
         "register.php",
-        "registrationRandomUsername",
-        "'user_' . bin2hex(secureRandomBytes(4))",
+        "registrationGeneratedUsername($pdo, $first_name, $last_name, $classParts)",
         "registerCurrentUserSession($pdo, (int)$newUserId)",
         "header('Location: index.php')",
+    )
+    assert_contains(
+        "includes/functions.php",
+        "function registrationUsernameSlug",
+        "function registrationGeneratedUsername",
+        "imie-inicjal-klasa-numer",
+        "$lastInitial",
     )
     register_content = read("register.php")
     assert "Puste = imię.nazwisko" not in register_content
     assert "registrationUsernameBase($first_name, $last_name)" not in register_content
+    assert "'user_' . bin2hex(secureRandomBytes(4))" not in register_content
+    assert "Puste = losowy prywatny login" not in register_content
     assert_contains(
         "ajax/check_registration_availability.php",
         "registrationUsernameSuggestions",
@@ -603,11 +611,45 @@ def test_v18_registration_password_autologin_and_suggestions() -> None:
     )
     assert_contains(
         "assets/js/register.js",
+        "previewGeneratedUsername",
+        "generatedUsernamePreview",
         "renderUsernameSuggestions",
         "suggestions.forEach",
         "Znak specjalny zwiększa siłę hasła, ale nie jest wymagany.",
     )
     assert "Hasło musi zawierać znak specjalny." not in read("includes/functions.php")
+
+
+def test_v19_settings_preferences_are_effective() -> None:
+    assert_contains(
+        "settings.php",
+        "settings-active-preferences",
+        "data-preference-status",
+        "testPreferenceFeedback",
+        "Alerty o aktywnościach",
+    )
+    assert_contains(
+        "assets/js/theme-handler.js",
+        "applyDashboardViewPreference",
+        "applyExternalLinkPreference",
+        "playUiPreferenceChime",
+        "window.testPreferenceFeedback",
+        "dashboard-view-learning",
+        "dashboard-view-compact",
+        "notify_new_tests",
+        "ui_sounds",
+    )
+    assert_contains(
+        "assets/js/notifications-poll.js",
+        "window.zsemNotifyUnreadCountChanged",
+        "previousUnreadCount",
+    )
+    assert_contains(
+        "assets/css/dashboard-new.css",
+        "body.dashboard-view-learning",
+        "body.dashboard-view-compact",
+        ".settings-active-preferences",
+    )
 
 
 def test_v18_pdf_remaining_auth_and_performance_surface() -> None:

@@ -1,5 +1,5 @@
 /**
- * Theme and Font Size handler using cookies
+ * Global UI preference handler.
  */
 
 (function() {
@@ -7,24 +7,43 @@
         return;
     }
     window.__zsemThemeHandlerLoaded = true;
+
+    const preferenceCookieNames = [
+        'user_theme',
+        'user_font_size',
+        'user_density',
+        'user_accent',
+        'reduce_motion',
+        'dashboard_view',
+        'default_test_mode',
+        'external_new_tab',
+        'hide_help_center'
+    ];
+
     function setCookie(name, value, days) {
-        let expires = "";
+        let expires = '';
         if (days) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
+            expires = '; expires=' + date.toUTCString();
         }
         const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax" + secure;
+        document.cookie = name + '=' + encodeURIComponent(value || '') + expires + '; path=/; SameSite=Lax' + secure;
     }
 
     function getCookie(name) {
-        const nameEQ = name + "=";
+        const nameEQ = name + '=';
         const ca = document.cookie.split(';');
         for (let i = 0; i < ca.length; i++) {
             let c = ca[i];
-            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) {
+                try {
+                    return decodeURIComponent(c.substring(nameEQ.length, c.length));
+                } catch (error) {
+                    return c.substring(nameEQ.length, c.length);
+                }
+            }
         }
         return null;
     }
@@ -32,6 +51,22 @@
     function deleteCookie(name) {
         const secure = window.location.protocol === 'https:' ? '; Secure' : '';
         document.cookie = name + '=; Max-Age=0; path=/; SameSite=Lax' + secure;
+    }
+
+    function optionalCookiesAllowed() {
+        try {
+            let consent = getCookie('cookie_consent_v2');
+            if (!consent) {
+                consent = window.localStorage.getItem('cookie_consent_v2');
+            }
+            if (consent) {
+                const parsed = JSON.parse(consent);
+                return !!(parsed.categories && parsed.categories.preferences);
+            }
+        } catch (error) {
+            return false;
+        }
+        return getCookie('cookie_consent') === 'accepted' || window.localStorage.getItem('cookie_consent') === 'accepted';
     }
 
     function getPreference(name, fallback) {
@@ -51,7 +86,20 @@
         }
     }
 
+    function getLocalPreference(name, fallback = '0') {
+        try {
+            return window.localStorage.getItem(name) || fallback;
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    function bodyReady() {
+        return !!document.body;
+    }
+
     function applyHelpCenterPreference() {
+        if (!bodyReady()) return;
         const hidden = getPreference('hide_help_center', '0') === '1';
         document.querySelectorAll('.help-fab, #helpCenterOffcanvas').forEach((node) => {
             node.classList.toggle('d-none', hidden);
@@ -78,26 +126,49 @@
         });
     }
 
-    function optionalCookiesAllowed() {
+    function applyDashboardViewPreference() {
+        if (!bodyReady()) return;
+        const allowed = ['balanced', 'learning', 'compact'];
+        const view = allowed.includes(getPreference('dashboard_view', 'balanced')) ? getPreference('dashboard_view', 'balanced') : 'balanced';
+        document.body.classList.remove('dashboard-view-balanced', 'dashboard-view-learning', 'dashboard-view-compact');
+        document.body.classList.add('dashboard-view-' + view);
+    }
+
+    function isExternalLink(anchor) {
+        const href = anchor.getAttribute('href') || '';
+        if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) {
+            return false;
+        }
         try {
-            let consent = getCookie('cookie_consent_v2');
-            if (!consent) {
-                consent = window.localStorage.getItem('cookie_consent_v2');
-            }
-            if (consent) {
-                const parsed = JSON.parse(decodeURIComponent(consent));
-                return !!(parsed.categories && parsed.categories.preferences);
-            }
+            return new URL(anchor.href, window.location.href).origin !== window.location.origin;
         } catch (error) {
             return false;
         }
-        return getCookie('cookie_consent') === 'accepted' || window.localStorage.getItem('cookie_consent') === 'accepted';
+    }
+
+    function applyExternalLinkPreference() {
+        const openInNewTab = getPreference('external_new_tab', '1') === '1';
+        document.querySelectorAll('a[href]').forEach((anchor) => {
+            if (!isExternalLink(anchor)) return;
+            if (!anchor.dataset.externalPreferenceOriginalTarget) {
+                anchor.dataset.externalPreferenceOriginalTarget = anchor.getAttribute('target') || '';
+            }
+            if (openInNewTab) {
+                anchor.setAttribute('target', '_blank');
+                const rel = new Set((anchor.getAttribute('rel') || '').split(/\s+/).filter(Boolean));
+                rel.add('noopener');
+                rel.add('noreferrer');
+                anchor.setAttribute('rel', Array.from(rel).join(' '));
+            } else {
+                anchor.removeAttribute('target');
+            }
+        });
     }
 
     function applySettings() {
+        if (!bodyReady()) return;
         if (getCookie('cookie_consent') === 'rejected') {
-            deleteCookie('user_theme');
-            deleteCookie('user_font_size');
+            preferenceCookieNames.forEach(deleteCookie);
         }
         const theme = getPreference('user_theme', 'light');
         const fontSize = getPreference('user_font_size', '16');
@@ -105,70 +176,106 @@
         const accent = getPreference('user_accent', '#3b82f6');
         const reduceMotion = getPreference('reduce_motion', '0') === '1';
 
-        // Apply theme
-        if (theme === 'dark') {
-            document.body.classList.add('dark-mode');
-        } else {
-            document.body.classList.remove('dark-mode');
-        }
-
-        // Apply font size
-        document.documentElement.style.fontSize = fontSize + 'px';
-        document.documentElement.style.setProperty('--primary-color', accent);
-        document.documentElement.style.setProperty('--kolor-glowy', accent);
+        document.body.classList.toggle('dark-mode', theme === 'dark');
+        document.documentElement.style.fontSize = (/^(14|16|18)$/.test(fontSize) ? fontSize : '16') + 'px';
+        document.documentElement.style.setProperty('--primary-color', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
+        document.documentElement.style.setProperty('--kolor-glowy', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
         document.body.classList.toggle('ui-compact', density === 'compact');
         document.body.classList.toggle('reduce-motion', reduceMotion);
+
         applyHelpCenterPreference();
         applyDefaultTestModePreference();
+        applyDashboardViewPreference();
+        applyExternalLinkPreference();
+        window.syncSettingsPreferencePanel?.();
     }
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', applySettings);
+    function playUiPreferenceChime(force = false) {
+        if (!force && getLocalPreference('ui_sounds', '0') !== '1') return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(740, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(520, ctx.currentTime + 0.13);
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.045, ctx.currentTime + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.16);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.17);
+            window.setTimeout(() => ctx.close?.(), 240);
+        } catch (error) {}
+    }
 
-    // Expose to window for settings.php
-    window.updateThemeSetting = function(theme) {
-        setPreference('user_theme', theme);
+    window.testPreferenceFeedback = function testPreferenceFeedback(message = 'Preferencje zapisane') {
+        const soundsOn = getLocalPreference('ui_sounds', '0') === '1';
+        window.appNotice?.(soundsOn ? message + ' Dźwięk aktywny.' : message + ' Dźwięki są wyłączone.', 'success');
+        if (soundsOn) playUiPreferenceChime(true);
+        window.syncSettingsPreferencePanel?.();
+    };
+
+    window.zsemNotifyUnreadCountChanged = function zsemNotifyUnreadCountChanged(currentCount, previousCount) {
+        if (currentCount <= previousCount || getLocalPreference('notify_new_tests', '0') !== '1') return;
+        const delta = currentCount - previousCount;
+        window.appNotice?.(delta === 1 ? 'Masz nową aktywność.' : 'Masz nowe aktywności: ' + delta + '.', 'primary');
+        playUiPreferenceChime();
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
         applySettings();
+        const observer = new MutationObserver(() => applyExternalLinkPreference());
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+    });
+
+    window.updateThemeSetting = function(theme) {
+        setPreference('user_theme', theme === 'dark' ? 'dark' : 'light');
+        applySettings();
+        window.testPreferenceFeedback?.('Motyw zapisany.');
     };
 
     window.updateFontSizeSetting = function(size) {
-        setPreference('user_font_size', size);
+        setPreference('user_font_size', /^(14|16|18)$/.test(size) ? size : '16');
         applySettings();
+        window.testPreferenceFeedback?.('Rozmiar tekstu zapisany.');
     };
 
     window.updateDensitySetting = function(density) {
-        setPreference('user_density', density);
+        setPreference('user_density', density === 'compact' ? 'compact' : 'comfortable');
         applySettings();
+        window.testPreferenceFeedback?.('Gęstość interfejsu zapisana.');
     };
 
     window.updateAccentSetting = function(accent) {
-        setPreference('user_accent', accent);
+        setPreference('user_accent', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
         applySettings();
+        window.testPreferenceFeedback?.('Kolor akcentu zapisany.');
     };
 
     window.updateReduceMotionSetting = function(enabled) {
         setPreference('reduce_motion', enabled ? '1' : '0');
         applySettings();
+        window.testPreferenceFeedback?.('Preferencja animacji zapisana.');
     };
 
     window.getUiPreference = getPreference;
     window.setUiPreference = function(name, value) {
         setPreference(name, value);
         applySettings();
+        window.testPreferenceFeedback?.('Preferencja zapisana.');
     };
+    window.playUiPreferenceChime = playUiPreferenceChime;
+    window.applyStoredUiPreferences = applySettings;
+    window.applyUiPreferences = applySettings;
 
     window.addEventListener('cookie-consent-updated', function(event) {
         const categories = event.detail && event.detail.categories;
         if ((event.detail && event.detail.value === 'rejected') || (categories && !categories.preferences)) {
-            deleteCookie('user_theme');
-            deleteCookie('user_font_size');
-            deleteCookie('user_density');
-            deleteCookie('user_accent');
-            deleteCookie('reduce_motion');
-            deleteCookie('dashboard_view');
-            deleteCookie('default_test_mode');
-            deleteCookie('external_new_tab');
-            deleteCookie('hide_help_center');
+            preferenceCookieNames.forEach(deleteCookie);
             applySettings();
         }
     });

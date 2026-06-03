@@ -850,6 +850,51 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
   gap: 1.5rem;
 }
 
+body.dashboard-view-learning .dashboard-grid {
+  grid-template-columns: minmax(320px, .9fr) minmax(0, 1.2fr);
+}
+
+body.dashboard-view-learning .dashboard-grid > .d-flex {
+  order: -1;
+}
+
+body.dashboard-view-learning .quick-start-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+body.dashboard-view-compact .welcome-card {
+  margin-bottom: 1rem;
+}
+
+body.dashboard-view-compact .stats-row {
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+body.dashboard-view-compact .stat-card-new,
+body.dashboard-view-compact .dashboard-panel {
+  padding: .9rem;
+  border-radius: .75rem;
+}
+
+body.dashboard-view-compact .dashboard-grid {
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+body.dashboard-view-compact .quick-start-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+body.dashboard-view-compact .btn-qs {
+  min-height: 54px;
+  padding: .75rem;
+}
+
 .dashboard-panel {
   background: var(--panel-bg);
   border-radius: 1.25rem;
@@ -889,6 +934,61 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
   justify-content: center;
   gap: 0.75rem;
   transition: all 0.2s;
+}
+
+.settings-active-preferences {
+  border: 1px solid rgba(59, 130, 246, .18);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(248, 250, 252, .94), rgba(239, 246, 255, .78));
+  padding: .85rem;
+}
+
+.settings-active-preferences-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .75rem;
+}
+
+.settings-active-preferences-head strong {
+  display: block;
+  color: var(--text-main);
+}
+
+.settings-active-preference-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.settings-active-preference-list span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .72);
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .48rem .55rem;
+}
+
+.settings-active-preference-list strong {
+  color: var(--text-main);
+  text-align: right;
+}
+
+body.dark-mode .settings-active-preferences {
+  background: rgba(15, 23, 42, .82);
+  border-color: rgba(96, 165, 250, .24);
+}
+
+body.dark-mode .settings-active-preference-list span {
+  background: rgba(15, 23, 42, .72);
+  border-color: rgba(148, 163, 184, .22);
 }
 
 .btn-qs-blue {

@@ -16,6 +16,9 @@
         let pollTimer = null;
         let inFlight = false;
         let failureCount = 0;
+        let previousUnreadCount = badge && !badge.classList.contains('d-none')
+            ? parseInt((badge.textContent || '0').replace(/\D+/g, ''), 10) || 0
+            : 0;
 
         function resolveUrl(raw) {
             if (!raw) return '';
@@ -29,6 +32,10 @@
 
         function updateBadge(count) {
             if (!badge) return;
+            if (typeof window.zsemNotifyUnreadCountChanged === 'function') {
+                window.zsemNotifyUnreadCountChanged(Number(count || 0), previousUnreadCount);
+            }
+            previousUnreadCount = Number(count || 0);
             if (count > 0) {
                 badge.textContent = count > 9 ? '9+' : String(count);
                 badge.classList.remove('d-none');

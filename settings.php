@@ -534,12 +534,12 @@ $settingsHealth = [
 
                                 <div class="settings-switch-grid mb-4">
                                 <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="notifySwitch" onchange="localStorage.setItem('notify_new_tests', this.checked ? '1' : '0')">
-                                    <label class="form-check-label" for="notifySwitch">Powiadomienia o nowych testach</label>
+                                    <input class="form-check-input" type="checkbox" id="notifySwitch" onchange="localStorage.setItem('notify_new_tests', this.checked ? '1' : '0'); testPreferenceFeedback('Alerty o aktywnościach zapisane.');">
+                                    <label class="form-check-label" for="notifySwitch">Alerty o aktywnościach</label>
                                 </div>
                                 
                                 <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="soundsSwitch" onchange="localStorage.setItem('ui_sounds', this.checked ? '1' : '0')">
+                                    <input class="form-check-input" type="checkbox" id="soundsSwitch" onchange="localStorage.setItem('ui_sounds', this.checked ? '1' : '0'); testPreferenceFeedback('Efekty dźwiękowe zapisane.');">
                                     <label class="form-check-label" for="soundsSwitch">Efekty dźwiękowe</label>
                                 </div>
 
@@ -549,12 +549,12 @@ $settingsHealth = [
                                 </div>
 
                                 <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="externalTabSwitch" <?php echo $openExternalNewTab ? 'checked' : ''; ?> onchange="setPreferenceCookie('external_new_tab', this.checked ? '1' : '0')">
+                                    <input class="form-check-input" type="checkbox" id="externalTabSwitch" <?php echo $openExternalNewTab ? 'checked' : ''; ?> onchange="setPreferenceCookie('external_new_tab', this.checked ? '1' : '0'); applyUiPreferences();">
                                     <label class="form-check-label" for="externalTabSwitch">Otwieraj linki zewnętrzne w nowej karcie</label>
                                 </div>
                                 
                                 <div class="form-check form-switch mb-3">
-                                     <input class="form-check-input" type="checkbox" id="helpCenterSwitch" <?php echo $hideHelpCenter ? 'checked' : ''; ?> onchange="setPreferenceCookie('hide_help_center', this.checked ? '1' : '0'); setTimeout(() => location.reload(), 150);">
+                                     <input class="form-check-input" type="checkbox" id="helpCenterSwitch" <?php echo $hideHelpCenter ? 'checked' : ''; ?> onchange="setPreferenceCookie('hide_help_center', this.checked ? '1' : '0'); applyUiPreferences();">
                                      <label class="form-check-label" for="helpCenterSwitch">Ukryj Centrum Pomocy (pływający przycisk)</label>
                                 </div>
 
@@ -572,6 +572,27 @@ $settingsHealth = [
                                     <div class="settings-mini-card" data-settings-mini="theme">
                                         <i class="bi bi-palette"></i>
                                         <span>Wygląd: <strong data-settings-mini-value><?php echo $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'; ?></strong></span>
+                                    </div>
+                                </div>
+
+                                <div class="settings-active-preferences mb-4" aria-label="Aktywne preferencje">
+                                    <div class="settings-active-preferences-head">
+                                        <div>
+                                            <span class="text-muted small fw-bold text-uppercase">Aktywne preferencje</span>
+                                            <strong>Co teraz działa</strong>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="testPreferenceFeedback('Test alertu preferencji.')">
+                                            <i class="bi bi-bell me-1"></i>Test
+                                        </button>
+                                    </div>
+                                    <div class="settings-active-preference-list">
+                                        <span>Motyw <strong data-preference-status="theme">--</strong></span>
+                                        <span>Układ <strong data-preference-status="dashboard">--</strong></span>
+                                        <span>Start testu <strong data-preference-status="defaultMode">--</strong></span>
+                                        <span>Linki <strong data-preference-status="external">--</strong></span>
+                                        <span>Pomoc <strong data-preference-status="help">--</strong></span>
+                                        <span>Alerty <strong data-preference-status="notify">--</strong></span>
+                                        <span>Dźwięki <strong data-preference-status="sounds">--</strong></span>
                                     </div>
                                 </div>
 
@@ -673,14 +694,35 @@ $settingsHealth = [
         }
         return getCookie('cookie_consent') === 'accepted';
     }
+    const dashboardLabels = { balanced: 'Zbalansowany', learning: 'Nauka', compact: 'Kompakt' };
+    const defaultModeLabels = { exam: 'Egzamin', practice: 'Ćwiczenia', single: 'Jedno pytanie' };
+    function setPreferenceStatus(key, value) {
+        const target = document.querySelector(`[data-preference-status="${key}"]`);
+        if (target) target.textContent = value;
+    }
     function syncSettingsMiniCards() {
         const notify = document.querySelector('[data-settings-mini="notify"] [data-settings-mini-value]');
         const layout = document.querySelector('[data-settings-mini="layout"] [data-settings-mini-value]');
         const theme = document.querySelector('[data-settings-mini="theme"] [data-settings-mini-value]');
-        if (notify) notify.textContent = localStorage.getItem('notify_new_tests') === '1' ? 'Włączone' : 'Wyłączone';
-        if (layout) layout.textContent = document.getElementById('dashboardView')?.value || 'balanced';
-        if (theme) theme.textContent = document.body.classList.contains('dark-mode') ? 'Ciemny' : 'Jasny';
+        const notifyEnabled = localStorage.getItem('notify_new_tests') === '1';
+        const soundsEnabled = localStorage.getItem('ui_sounds') === '1';
+        const dashboard = document.getElementById('dashboardView')?.value || readPreference('dashboard_view', 'balanced');
+        const defaultMode = document.getElementById('defaultTestMode')?.value || readPreference('default_test_mode', 'exam');
+        const external = document.getElementById('externalTabSwitch')?.checked;
+        const helpHidden = document.getElementById('helpCenterSwitch')?.checked;
+        const themeValue = document.body.classList.contains('dark-mode') ? 'Ciemny' : 'Jasny';
+        if (notify) notify.textContent = notifyEnabled ? 'Włączone' : 'Wyłączone';
+        if (layout) layout.textContent = dashboardLabels[dashboard] || 'Zbalansowany';
+        if (theme) theme.textContent = themeValue;
+        setPreferenceStatus('theme', themeValue);
+        setPreferenceStatus('dashboard', dashboardLabels[dashboard] || dashboard);
+        setPreferenceStatus('defaultMode', defaultModeLabels[defaultMode] || defaultMode);
+        setPreferenceStatus('external', external ? 'Nowa karta' : 'Ta sama karta');
+        setPreferenceStatus('help', helpHidden ? 'Ukryta' : 'Widoczna');
+        setPreferenceStatus('notify', notifyEnabled ? 'Włączone' : 'Wyłączone');
+        setPreferenceStatus('sounds', soundsEnabled ? 'Włączone' : 'Wyłączone');
     }
+    window.syncSettingsPreferencePanel = syncSettingsMiniCards;
     function syncSettingsOverviewCards() {
         const setOverview = (key, value) => {
             const target = document.querySelector(`[data-settings-overview="${key}"] [data-settings-overview-value]`);
@@ -694,8 +736,9 @@ $settingsHealth = [
     document.addEventListener('DOMContentLoaded', () => {
         syncSettingsMiniCards();
         syncSettingsOverviewCards();
-        document.querySelectorAll('#dashboardView, #themeSelect, #densitySelect, #notifySwitch').forEach((el) => {
+        document.querySelectorAll('#dashboardView, #defaultTestMode, #themeSelect, #densitySelect, #notifySwitch, #soundsSwitch, #externalTabSwitch, #helpCenterSwitch, #motionSwitch').forEach((el) => {
             el.addEventListener('change', () => setTimeout(() => {
+                applyUiPreferences();
                 syncSettingsMiniCards();
                 syncSettingsOverviewCards();
             }, 40));
@@ -722,12 +765,11 @@ $settingsHealth = [
         }
     }
     function applyUiPreferences() {
-        const density = document.getElementById('densitySelect')?.value || 'comfortable';
-        const accent = document.getElementById('accentColor')?.value || 'var(--primary-color)';
-        const reduce = document.getElementById('motionSwitch')?.checked;
-        document.documentElement.style.setProperty('--primary-color', accent);
-        document.body.classList.toggle('ui-compact', density === 'compact');
-        document.body.classList.toggle('reduce-motion', !!reduce);
+        if (window.applyStoredUiPreferences) {
+            window.applyStoredUiPreferences();
+        }
+        syncSettingsMiniCards();
+        syncSettingsOverviewCards();
     }
     function pickAccent(color) {
         const input = document.getElementById('accentColor');
@@ -743,6 +785,7 @@ $settingsHealth = [
         });
         localStorage.removeItem('notify_new_tests');
         localStorage.removeItem('ui_sounds');
+        window.appNotice?.('Preferencje zresetowane.', 'secondary');
         location.reload();
     }
     function syncPreferenceControls() {
