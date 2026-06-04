@@ -232,8 +232,11 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         applySettings();
-        const observer = new MutationObserver(() => applyExternalLinkPreference());
-        observer.observe(document.documentElement, { childList: true, subtree: true });
+        const root = document.documentElement || document.body;
+        if (root instanceof Node) {
+            const observer = new MutationObserver(() => applyExternalLinkPreference());
+            observer.observe(root, { childList: true, subtree: true });
+        }
     });
 
     window.updateThemeSetting = function(theme) {

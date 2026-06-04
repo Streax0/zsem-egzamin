@@ -245,85 +245,14 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                         </div>
                     </section>
                 <?php elseif ($tool === 'router'): ?>
-                    <section class="router-web-emulator" data-tool="router">
-                        <aside class="router-web-nav" aria-label="Menu routera">
-                            <div class="router-web-brand">
-                                <strong>TP-LINK</strong>
-                                <span>AC750 Wireless Dual Band Gigabit Router</span>
-                                <span>Model No. Archer C2</span>
-                                <span>ZSEM RouterOS emulator</span>
-                            </div>
-                            <a href="#router-wan" class="active">WAN</a>
-                            <a href="#router-mac-clone">MAC Clone</a>
-                            <a href="#router-lan">LAN</a>
-                            <a href="#router-dhcp">DHCP</a>
-                            <a href="#router-wireless">Wireless</a>
-                            <a href="#router-security">Security</a>
-                            <a href="#router-system">System Tools</a>
-                        </aside>
-                        <div class="router-web-main">
-                            <header class="router-web-top">
-                                <div>
-                                    <h3 class="fw-900 mb-1">TP-LINK Archer C2</h3>
-                                    <p class="mb-0">Model No. Archer C2. Ćwicz konfigurację WAN, LAN, DHCP, Wi-Fi i MAC Clone w bezpiecznym emulatorze panelu routera.</p>
-                                </div>
-                                <span id="routerConfigStatus" class="router-web-status">Niezapisane</span>
-                            </header>
-
-                            <div class="router-web-grid">
-                                <section class="router-config-card" id="router-wan">
-                                    <h5>WAN</h5>
-                                    <label>Connection Type
-                                        <select id="routerWanType" class="form-select">
-                                            <option>Dynamic IP</option>
-                                            <option>Static IP</option>
-                                            <option>PPPoE</option>
-                                        </select>
-                                    </label>
-                                    <label>WAN IP Address<input id="routerWanIp" class="form-control" value="10.0.0.2"></label>
-                                    <label>Default Gateway<input id="routerGateway" class="form-control" value="10.0.0.1"></label>
-                                    <label id="router-mac-clone">MAC Clone<input id="routerWanMac" class="form-control" value="50:C7:BF:12:34:56" aria-describedby="routerMacCloneHelp"></label>
-                                    <div id="routerMacCloneHelp" class="small text-muted mb-2">Clone PC MAC Address kopiuje adres karty klienta, a Restore Factory MAC wraca do adresu fabrycznego Archer C2.</div>
-                                    <button type="button" id="routerCloneMac" class="btn btn-sm btn-outline-primary">Clone PC MAC Address</button>
-                                </section>
-
-                                <section class="router-config-card" id="router-lan">
-                                    <h5>LAN</h5>
-                                    <label>LAN IP Address<input id="routerLanIp" class="form-control" value="192.168.0.1"></label>
-                                    <label>Subnet Mask<input id="routerLanMask" class="form-control" value="255.255.255.0"></label>
-                                    <label>DNS Server<input id="routerDns" class="form-control" value="1.1.1.1"></label>
-                                </section>
-
-                                <section class="router-config-card" id="router-dhcp">
-                                    <h5>DHCP</h5>
-                                    <label class="router-toggle-row"><input id="routerDhcpToggle" type="checkbox" checked> DHCP Server Enabled</label>
-                                    <label>Start IP<input id="routerDhcpStart" class="form-control" value="192.168.0.100"></label>
-                                    <label>End IP<input id="routerDhcpEnd" class="form-control" value="192.168.0.199"></label>
-                                    <label>Lease Time<input id="routerLease" class="form-control" value="120 min"></label>
-                                </section>
-
-                                <section class="router-config-card" id="router-wireless">
-                                    <h5>Wireless</h5>
-                                    <label>SSID<input id="routerSsid" class="form-control" value="ZSEM-Tech-Lab"></label>
-                                    <label>Security
-                                        <select id="routerWifiSecurity" class="form-select">
-                                            <option>WPA2-PSK AES</option>
-                                            <option>WPA3-SAE</option>
-                                            <option>Disabled</option>
-                                        </select>
-                                    </label>
-                                    <label>Channel<input id="routerChannel" class="form-control" value="6"></label>
-                                </section>
-                            </div>
-
-                            <footer class="router-web-footer">
-                                <div id="routerSummary" class="router-summary"></div>
-                                <div class="d-flex gap-2">
-                                    <button type="button" id="routerResetConfig" class="btn btn-light border">Restore Factory MAC</button>
-                                    <button type="button" id="routerSaveConfig" class="btn btn-primary">Save</button>
-                                </div>
-                            </footer>
-                        </div>
+                    <section class="network-lab-embed" data-tool="router">
+                        <iframe
+                            src="sandbox_network_lab.php"
+                            title="Laboratorium sieci INF.02"
+                            class="network-lab-frame"
+                            loading="eager"
+                            referrerpolicy="same-origin"
+                            allowfullscreen></iframe>
                     </section>
                 <?php elseif ($tool === 'numbers'): ?>
                     <section class="sandbox-workbench numbers-workbench" data-tool="numbers">

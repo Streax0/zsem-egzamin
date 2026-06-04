@@ -1,0 +1,461 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',Arial,sans-serif;background:#111;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.site-header{background:#161616;border-bottom:1px solid #222;position:sticky;top:0;z-index:300;flex-shrink:0}
+.header-inner{max-width:1060px;margin:0 auto;padding:0 24px;height:50px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.3px;text-decoration:none}
+.logo em{font-style:normal;color:#16a34a}
+.header-nav{display:flex;gap:2px}
+.header-nav a{padding:6px 12px;border-radius:6px;font-size:13px;font-weight:500;color:#888;text-decoration:none;transition:color .15s,background .15s}
+.header-nav a:hover{color:#e0e0e0;background:#1e1e1e}
+.header-nav a.active{color:#16a34a}
+.layout{display:flex;flex:1;height:calc(100vh - 50px);overflow:hidden}
+
+/* ── TASK PANEL ── */
+.task-panel{flex:1 1 0;min-width:260px;background:#0f0f0f;display:flex;flex-direction:column;overflow:hidden}
+.splitter{width:5px;min-width:5px;background:#2563eb;cursor:col-resize;flex-shrink:0;transition:background .1s}
+.splitter:hover,.splitter.dragging{background:#3b82f6}
+.task-hdr{background:#2563eb;padding:9px 13px;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.pdf-ctrl{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#161616;border-bottom:1px solid #222;flex-shrink:0}
+.pdf-ctrl label{font-size:11px;color:#555;white-space:nowrap;flex-shrink:0}
+.pdf-ctrl select{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;color:#bbb;font-size:12px;padding:4px 6px;border-radius:4px;font-family:inherit;outline:none}
+.pdf-ctrl select:focus{border-color:#2563eb}
+.pdf-ext-btn{color:#93c5fd;font-size:15px;text-decoration:none;flex-shrink:0;padding:2px 4px;border:1px solid #1d4ed8;border-radius:4px}
+.pdf-ext-btn:hover{background:#111d35}
+.pdf-wrap{flex:1;position:relative;overflow:hidden}
+.pdf-frame{position:absolute;inset:0;width:100%;height:100%;border:none;background:#fff}
+.pdf-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0f0f0f;gap:12px;z-index:2}
+.pdf-loading.hidden{display:none}
+.pdf-loading p{font-size:12px;color:#555;text-align:center;line-height:1.6;padding:0 16px}
+.pdf-loading a{color:#93c5fd;font-size:13px;font-weight:600;text-decoration:none;border:1px solid #2563eb;padding:8px 20px;border-radius:4px;display:inline-block}
+.pdf-loading a:hover{background:#2563eb;color:#fff}
+.pdf-spinner{width:28px;height:28px;border:3px solid #222;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── EMULATOR ── */
+.emu-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.dev-tabs{display:flex;background:#1a1a1a;border-bottom:2px solid #2563eb;flex-shrink:0}
+.dev-tab{padding:9px 22px;color:#555;cursor:pointer;font-weight:600;font-size:12px;border:none;background:none;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .15s;border-bottom:3px solid transparent;margin-bottom:-2px}
+.dev-tab.active{color:#93c5fd;background:#222;border-bottom:3px solid #2563eb}
+.dev-tab:hover:not(.active){color:#aaa;background:#1e1e1e}
+
+/* ── CISCO WRAP ── */
+.cisco-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#407BB3}
+.cisco-header{background:linear-gradient(to bottom,#1a3553,#162d49);height:44px;display:flex;align-items:center;padding:0 8px 0 0;border-bottom:1px solid #0d1e30;flex-shrink:0}
+.cisco-logo-cell{width:82px;display:flex;align-items:center;justify-content:center;height:44px;flex-shrink:0}
+.cisco-logo-cell img{height:28px}
+.cisco-prodname{flex:1;padding-left:10px}
+.cisco-appname{font-size:18px;color:#fff;font-family:Arial,sans-serif;font-weight:normal;line-height:1}
+.cisco-prodmodel{font-size:11px;color:#9ab5cc;font-family:Arial}
+.cisco-header-right{display:flex;align-items:center;font-size:11px;color:#fff;font-family:Arial;white-space:nowrap}
+.cisco-header-right span{padding-right:10px}
+.cisco-header-right a{color:#fff;text-decoration:none;padding:0 10px;cursor:pointer;border-left:1px solid #2a4a6a}
+.cisco-header-right a:hover{text-decoration:underline}
+.cisco-body{display:flex;flex:1;overflow:hidden}
+
+/* ── CISCO NAV ── */
+.cisco-nav{width:168px;min-width:168px;background:linear-gradient(to right,#1a3045,#1e3550);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.cisco-nav::-webkit-scrollbar{width:4px}
+.cisco-nav::-webkit-scrollbar-track{background:#152535}
+.cisco-nav::-webkit-scrollbar-thumb{background:#2a4a6a;border-radius:2px}
+.cnav-top{display:block;width:100%;text-align:left;border:none;padding:7px 10px;font-size:12px;color:#b8d0e4;background:none;cursor:pointer;font-family:Arial;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .1s,color .1s;border-bottom:1px solid #0f2030}
+.cnav-top:hover{background:#2a4a6a;color:#fff}
+.cnav-top.sel{background:#2563eb;color:#fff;font-weight:bold}
+.cnav-s{border-bottom:1px solid #0f2030}
+.cnav-s-hdr{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;font-size:11px;font-weight:bold;color:#7aa8c4;cursor:pointer;font-family:Arial;text-transform:uppercase;letter-spacing:.3px;user-select:none;transition:background .1s}
+.cnav-s-hdr:hover{background:#1e3a55;color:#9cc4de}
+.cnav-s.open .cnav-s-hdr{color:#c0daf0;background:#162d45}
+.cnav-arr{font-size:9px;transition:transform .15s;flex-shrink:0}
+.cnav-s.open .cnav-arr{transform:rotate(90deg)}
+.cnav-s-body{display:none;background:#192e45}
+.cnav-s.open .cnav-s-body{display:block}
+.cnav-grp{padding:5px 10px 2px 12px;font-size:10px;font-weight:bold;color:#5a7a90;text-transform:uppercase;letter-spacing:.5px;font-family:Arial}
+.cnav-item{display:block;width:100%;text-align:left;border:none;padding:4px 10px 4px 20px;font-size:12px;color:#9ab8cc;background:none;cursor:pointer;font-family:Arial;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .1s,color .1s}
+.cnav-item:hover{background:#2a4a6a;color:#fff}
+.cnav-item.sel{background:#2563eb;color:#fff;font-weight:bold}
+.cnav-item.task-item::before{content:'▸ ';color:#2563eb;font-size:10px}
+.cnav-item.task-item.sel::before{color:#fff}
+
+/* ── CISCO CONTENT ── */
+.cisco-content{flex:1;overflow-y:auto;background:#f2f4f6;padding:10px 12px 16px}
+.cisco-content::-webkit-scrollbar{width:5px}
+.cisco-content::-webkit-scrollbar-track{background:#e8eef2}
+.cisco-content::-webkit-scrollbar-thumb{background:#8499a2;border-radius:2px}
+.cpanel{background:#fff;border:1px solid #8499a2;margin-bottom:10px}
+.cpanel-title{background:#a2b9c9;padding:5px 10px;font-size:12px;font-weight:bold;color:#000;font-family:Arial;border-bottom:1px solid #8499a2}
+.cpanel-body{padding:12px}
+.cisco-pg-title{font-size:16px;color:#000;font-family:Arial;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #8499a2}
+.cnote{background:#dcedf5;border:1px solid #8499a2;padding:6px 10px;font-size:11px;color:#224466;margin-bottom:10px;font-family:Arial;line-height:1.5}
+.cnote-warn{background:#fff8dc;border:1px solid #ccaa55;padding:6px 10px;font-size:11px;color:#664400;margin-bottom:10px;font-family:Arial;line-height:1.5}
+
+/* Cisco form */
+.cform table{border-collapse:collapse;width:100%}
+.cform td{font-family:Arial;font-size:12px;padding:4px 8px;vertical-align:middle}
+.cform .lbl{width:230px;color:#000;white-space:nowrap}
+.cform input[type=text],.cform select{font-family:Arial;font-size:12px;padding:2px 5px;border:1px solid #999;width:200px}
+.cform input[type=text]:focus,.cform select:focus{outline:none;border-color:#0088C2}
+.cform .hint{font-size:11px;color:#666;padding-left:6px}
+.cform .sep td{height:7px}
+.cform input[type=radio]{margin-right:4px}
+.cform input[type=checkbox]{margin-right:5px}
+.cform .chk-row td{padding:3px 8px;font-family:Arial;font-size:12px}
+
+/* Cisco table */
+.ctable{border-collapse:collapse;width:100%;font-family:Arial;font-size:12px;margin-top:6px}
+.ctable th{background:#d9e3e9;border-bottom:1px solid #8499a2;padding:4px 10px;text-align:left;font-weight:normal;color:#000}
+.ctable td{padding:4px 10px;border-bottom:1px solid #ebebeb;color:#000}
+.ctable tr.odd{background:#f5f9fd}
+.ctable tr.even{background:#ebeff3}
+.ctable tr.sel-row{background:#92b041;color:#fff}
+.ctable tr:hover:not(.sel-row){background:#d0e8f0}
+.ctable-empty{font-family:Arial;font-size:12px;color:#888;text-align:center;padding:16px;border:1px solid #d0d8e0;background:#f9f9f9;margin-top:6px}
+
+/* Cisco buttons */
+.cbtn{font-family:Arial;font-size:12px;padding:3px 14px;cursor:pointer;background:#f0f0f0;border:1px solid #888;margin-right:4px}
+.cbtn:hover{background:#e0e0e0}
+.cbtn.cbtn-primary{background:#5a82a0;color:#fff;border-color:#3a6280}
+.cbtn.cbtn-primary:hover{background:#4a729a}
+.cbtn.cbtn-del{color:#cc0000;border-color:#cc8888}
+.cbtn.cbtn-del:hover{background:#ffeaea}
+.cbtn-row{margin-top:10px;text-align:right;border-top:1px solid #d0d0d0;padding-top:8px;display:flex;justify-content:flex-end;gap:4px;align-items:center}
+
+/* VLAN/Port rows */
+.vrow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #e8eff4;font-family:Arial;font-size:12px}
+.vrow-id{width:55px;font-weight:bold}
+.vrow-input{padding:2px 5px;border:1px solid #999;font-size:12px;width:150px;font-family:Arial}
+.vadd-row{display:flex;gap:6px;margin-top:10px;align-items:center;padding-top:8px;border-top:1px solid #d0d0d0}
+.vadd-row input{padding:2px 5px;border:1px solid #999;font-size:12px;font-family:Arial;width:70px}
+.vadd-row input:last-of-type{width:140px}
+.vadd-row button{font-family:Arial;font-size:11px;padding:3px 12px;cursor:pointer;background:#e8f4e8;border:1px solid #5a9a5a;color:#226622}
+.vadd-row button:hover{background:#d0ecd0}
+
+/* Port grid */
+.port-legend{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;font-family:Arial;font-size:11px;align-items:center}
+.pl-item{display:flex;align-items:center;gap:4px}
+.pl-dot{width:14px;height:14px;border:1px solid #888;border-radius:2px;flex-shrink:0}
+.port-grid{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0}
+.pbtn{width:42px;height:42px;border-radius:3px;cursor:pointer;font-size:9px;font-weight:bold;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid #aaa;background:#f0f0f0;color:#555;font-family:Arial;line-height:1.2;transition:all .1s}
+.pbtn:hover{border-color:#0088C2}
+.pbtn.p-unset{background:#e8e8e8;border-color:#aaa;color:#888}
+.pbtn.p-trunk{background:#fff3cd;border-color:#cc8800;color:#664400}
+.pbtn.p-v10{background:#d0f0d0;border-color:#227722;color:#114411}
+.pbtn.p-v2{background:#d0ffe0;border-color:#1a7a3a;color:#0a3a1a}
+.pbtn.p-v20{background:#cce0ff;border-color:#2255aa;color:#112255}
+.pbtn.p-v30{background:#ffd0d0;border-color:#aa2222;color:#551111}
+.pbtn.p-sel{outline:3px solid #0088C2;outline-offset:0}
+.port-cfg{margin-top:10px;padding:10px;background:#f0f6f9;border:1px solid #8499a2;font-family:Arial;font-size:12px;display:none}
+.port-cfg.vis{display:block}
+.port-cfg select{font-size:12px;font-family:Arial;padding:2px 5px;border:1px solid #999;margin:0 6px}
+
+.st-up{color:#007700;font-weight:bold}
+.st-dn{color:#cc0000;font-weight:bold}
+.st-na{color:#888}
+
+
+/* ── VERIFY BAR ── */
+.verify-bar{background:#1a1a1a;padding:10px 18px;display:flex;align-items:center;gap:14px;border-top:2px solid #2563eb;flex-shrink:0}
+.btn-verify{background:#2563eb;color:#fff;border:none;padding:9px 26px;border-radius:3px;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit;transition:background .12s}
+.btn-verify:hover{background:#1d4ed8}
+.verify-hint{font-size:11px;color:#444;flex:1}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-ov.vis{display:flex}
+.modal-box{background:#fff;border:1px solid #8499a2;max-width:620px;width:100%;max-height:88vh;overflow-y:auto;color:#000;font-family:Arial;font-size:12px}
+.modal-title-bar{background:#a2b9c9;padding:6px 12px;font-weight:bold;font-size:14px;color:#000;border-bottom:1px solid #8499a2;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0}
+.modal-body{padding:16px}
+.chk-grp{margin-bottom:14px}
+.chk-grp-ttl{font-size:11px;font-weight:bold;color:#407BB3;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;padding-bottom:3px;border-bottom:1px solid #d9e3e9}
+.chk-item{display:flex;align-items:flex-start;gap:7px;padding:3px 0;border-bottom:1px solid #f0f0f0;font-size:11px}
+.chk-ok{color:#227722;font-size:13px;flex-shrink:0;line-height:1.4}
+.chk-fail{color:#cc0000;font-size:13px;flex-shrink:0;line-height:1.4}
+.score-row{background:#dcedf5;border:1px solid #8499a2;padding:14px;margin-top:14px;text-align:center}
+.score-v{font-size:28px;font-weight:bold}
+.score-pass{color:#227722}
+.score-fail{color:#cc0000}
+.modal-close-btn{background:#c8d8e8;border:1px solid #8499a2;padding:5px 20px;cursor:pointer;font-family:Arial;font-size:12px;margin-top:14px;width:100%}
+.lab-dialog-message p{margin:10px 0 0;line-height:1.5}
+.lab-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+.toast{position:fixed;bottom:75px;right:16px;background:#2563eb;color:#fff;padding:8px 16px;border-radius:3px;font-weight:700;font-size:12px;z-index:2000;animation:tin 2.5s forwards;font-family:Arial;pointer-events:none}
+@keyframes tin{0%{opacity:0;transform:translateY(6px)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#1a1a1a}
+::-webkit-scrollbar-thumb{background:#444;border-radius:2px}
+@view-transition{navigation:auto}
+.site-header{view-transition-name:site-header}
+::view-transition-old(site-header),::view-transition-new(site-header){animation:none}
+
+/* ── ACTION BUTTONS ── */
+.btn-reset{background:#191919;color:#666;border:1px solid #2a2a2a;padding:7px 12px;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit;transition:all .12s;white-space:nowrap}
+.btn-reset:hover{background:#252525;color:#999}
+
+/* ── TP-LINK THEME ── */
+.tplink-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+/* Header: dark green gradient matching real TL-WR841ND */
+.tplink-hdr{height:62px;background:linear-gradient(to bottom,#2a6e2a 0%,#1e5a1e 100%);display:flex;align-items:center;padding:0 20px;flex-shrink:0;position:relative;overflow:hidden}
+.tplink-hdr::after{content:'';position:absolute;right:0;top:0;bottom:0;width:55%;background:radial-gradient(ellipse at 80% 50%,rgba(80,160,80,0.35) 0%,transparent 70%);pointer-events:none}
+.tplink-logo-area{flex:1;z-index:1}
+.tplink-logo{font-family:Arial,Helvetica,sans-serif;font-size:30px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
+.tplink-logo sup{font-size:11px;vertical-align:super;font-weight:normal;letter-spacing:0}
+.tplink-hdr-right{text-align:right;z-index:1}
+.tplink-prodmodel{font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;color:#fff;line-height:1.3}
+.tplink-prodtype{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#b8ddb8}
+/* Body: 3-column layout */
+.tplink-body{display:flex;flex:1;overflow:hidden}
+/* Left nav: dark gray */
+.tplink-nav{width:148px;min-width:148px;background:#404040;overflow-y:auto;flex-shrink:0}
+.tplink-nav::-webkit-scrollbar{width:3px}
+.tplink-nav::-webkit-scrollbar-thumb{background:#666}
+.tpnav-top{display:block;width:100%;text-align:left;border:none;padding:7px 14px;font-size:12px;color:#fff;background:none;cursor:pointer;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #505050;transition:background .08s;white-space:nowrap}
+.tpnav-top:hover{background:#555}
+.tpnav-top.sel{background:#4CAF50}
+.tpnav-cat{border-bottom:1px solid #505050}
+.tpnav-cat-hdr{display:flex;align-items:center;padding:7px 14px;font-size:12px;font-weight:bold;color:#fff;background:none;cursor:pointer;font-family:Arial,Helvetica,sans-serif;user-select:none;transition:background .08s;white-space:nowrap}
+.tpnav-cat:hover .tpnav-cat-hdr{background:#555}
+.tpnav-arr{display:none}
+.tpnav-items{display:none;background:#383838}
+.tpnav-cat.open .tpnav-items{display:block}
+.tpnav-item{display:block;width:100%;text-align:left;border:none;padding:6px 8px 6px 14px;font-size:12px;color:#d0d0d0;background:none;cursor:pointer;font-family:Arial,Helvetica,sans-serif;border-bottom:1px solid #484848;transition:background .08s;white-space:nowrap}
+.tpnav-item::before,.tpnav-item.task-item::before,.tpnav-item.task-item.sel::before{content:'- '}
+.tpnav-item:hover{background:#555;color:#fff}
+.tpnav-item.sel{background:#4CAF50;color:#fff}
+/* Middle content: white */
+.tplink-content{flex:1;overflow-y:auto;background:#fff;min-width:0}
+.tplink-content::-webkit-scrollbar{width:5px}
+.tplink-content::-webkit-scrollbar-thumb{background:#bbb;border-radius:2px}
+/* Right help panel: light gray */
+.tplink-help{width:256px;min-width:256px;background:#f2f2f2;overflow-y:auto;padding:10px 12px;border-left:1px solid #ddd;flex-shrink:0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#333}
+.tp-help-title{font-size:13px;font-weight:bold;color:#000;margin:0 0 6px;display:block}
+.tplink-help p{margin:3px 0 7px}
+.tplink-help ul{padding-left:14px;margin:4px 0 8px}
+.tplink-help li{margin-bottom:3px}
+/* Page title: green bar */
+.tp-pg-title{background:#4CAF50;color:#fff;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:bold;padding:5px 14px}
+.tp-pg-line{height:2px;background:#66BB6A;margin:0 0 10px}
+.tp-sep-line{height:1px;background:#c8c8c8;margin:6px 14px 8px}
+/* Form: right-aligned bold labels */
+.tp-form{padding:4px 14px 16px}
+.tp-form table{border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;font-size:12px}
+.tp-form tr{height:26px}
+.tp-form .lbl{padding:3px 10px 3px 20px;text-align:right;white-space:nowrap;font-weight:bold;color:#333;min-width:210px;vertical-align:middle}
+.tp-form .val{padding:3px 5px;vertical-align:middle;color:#333}
+.tp-form input[type=text]{font-family:Arial;font-size:12px;padding:1px 4px;border:1px solid #aaa;width:150px;color:#000}
+.tp-form input[type=text].short{width:55px}
+.tp-form input[type=text]:focus{outline:none;border-color:#4CAF50}
+.tp-form select{font-family:Arial;font-size:12px;padding:1px 2px;border:1px solid #aaa;min-width:135px}
+.tp-form .hint{font-size:12px;color:#555;padding-left:5px}
+.tp-form .red{color:#cc0000;font-weight:bold;padding-left:8px}
+.tp-form input[type=radio]{margin-right:3px;vertical-align:middle}
+.tp-form input[type=checkbox]{margin-right:4px;vertical-align:middle}
+.tp-form .tsep{height:7px}
+.tp-form .dis{color:#aaa}
+/* Status layout */
+.tp-st{padding:4px 14px 16px;font-family:Arial,Helvetica,sans-serif;font-size:12px}
+.tp-st-sec{font-size:14px;font-weight:bold;color:#333;padding:10px 0 2px}
+.tp-st table{border-collapse:collapse;width:100%}
+.tp-st .lbl{width:220px;padding:3px 12px 3px 60px;text-align:right;font-weight:bold;color:#333;vertical-align:middle}
+.tp-st .val{padding:3px 0;color:#333;vertical-align:middle}
+.tp-st .sep{background:#c0c0c0;height:1px}
+/* Save button: OS default-style gray */
+.tp-save-btn{font-family:Arial,Helvetica,sans-serif;font-size:12px;padding:3px 22px;cursor:pointer;background:#e8e8e8;color:#333;border:1px solid #aaa;border-radius:2px;margin:14px auto;display:block}
+.tp-save-btn:hover{background:#d8d8d8}
+.tp-tbl{border-collapse:collapse;width:100%;font-family:Arial;font-size:12px}
+.tp-tbl th{background:#4CAF50;color:#fff;padding:5px 10px;text-align:left;font-weight:bold;font-size:11px}
+.tp-tbl td{padding:5px 10px;border-bottom:1px solid #e0e0e0;color:#000}
+.tp-tbl tr:nth-child(odd) td{background:#f5f8f5}
+/* Router model selector in tab bar */
+#router-model-wrap{display:flex;align-items:center;gap:5px;margin-left:auto;padding-right:8px}
+#router-model-wrap label{font-size:11px;color:#555}
+#router-model-sel{font-size:11px;background:#1a1a1a;color:#aaa;border:1px solid #333;padding:3px 6px;border-radius:3px;font-family:inherit;cursor:pointer;outline:none}
+#router-model-sel:focus{border-color:#2563eb}
+
+/* ══ MIKROTIK WINBOX ══ */
+.mt-wb-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#d4d0c8;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#000}
+.mt-wb-toolbar{height:26px;background:#d4d0c8;border-bottom:2px solid #fff;border-top:1px solid #d4d0c8;display:flex;align-items:center;gap:3px;padding:0 4px;flex-shrink:0;box-shadow:inset 0 -1px 0 #808080}
+.mt-wb-navbtn{width:20px;height:20px;background:#d4d0c8;border:1px solid;border-color:#ffffff #808080 #808080 #ffffff;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#000;padding:0;line-height:1}
+.mt-wb-navbtn:active{border-color:#808080 #ffffff #ffffff #808080}
+.mt-wb-sep{width:1px;height:18px;background:#808080;margin:0 3px;box-shadow:1px 0 0 #fff}
+.mt-wb-safebtn{background:#3a8a3a;border:1px solid;border-color:#6fc46f #1a5a1a #1a5a1a #6fc46f;color:#fff;font-family:Tahoma;font-size:11px;padding:1px 8px;cursor:pointer;height:20px}
+.mt-wb-session-lbl{font-size:11px;color:#000;margin-left:4px}
+.mt-wb-session-inp{font-size:11px;font-family:'Courier New',monospace;border:1px solid;border-color:#808080 #ffffff #ffffff #808080;background:#fff;padding:0 3px;height:18px;width:135px;color:#000}
+.mt-wb-body{flex:1;display:flex;overflow:hidden;min-height:0}
+.mt-wb-brand{writing-mode:vertical-rl;transform:rotate(180deg);background:#404040;color:#c8c8c8;font-size:9px;font-weight:bold;letter-spacing:1.5px;padding:6px 3px;flex-shrink:0;user-select:none;white-space:nowrap}
+.mt-wb-nav{width:156px;min-width:156px;background:#d4d0c8;overflow-y:auto;flex-shrink:0;border-right:2px solid;border-right-color:#808080;padding-top:2px}
+.mt-wb-nav::-webkit-scrollbar{width:14px}
+.mt-wb-nav::-webkit-scrollbar-thumb{background:#d4d0c8;border:1px solid;border-color:#fff #808080 #808080 #fff}
+.mt-wb-nav::-webkit-scrollbar-track{background:#d4d0c8}
+.mt-wb-ni{display:flex;align-items:center;gap:3px;padding:2px 3px 2px 5px;height:22px;cursor:pointer;color:#000;user-select:none;font-size:12px}
+.mt-wb-ni:hover,.mt-wb-ni.active{background:#0a246a;color:#fff}
+.mt-wb-ni-icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1}
+.mt-wb-ni-text{flex:1;white-space:nowrap;overflow:hidden;font-family:Tahoma;font-size:12px}
+.mt-wb-ni-arr{font-size:8px;color:inherit;margin-right:2px}
+.mt-wb-sub{display:none}
+.mt-wb-sub.open{display:block}
+.mt-wb-sub .mt-wb-ni{padding-left:24px}
+.mt-wb-content{flex:1;overflow:auto;padding:4px;background:#d4d0c8}
+/* WinBox window chrome */
+.mt-wb-win{border:2px solid;border-color:#ffffff #808080 #808080 #ffffff;background:#d4d0c8;margin-bottom:4px;box-shadow:2px 2px 3px rgba(0,0,0,0.25)}
+.mt-wb-win-title{height:19px;background:linear-gradient(to right,#0a246a 0%,#3a6ea5 95%,#d4d0c8 100%);color:#fff;font-size:11px;font-weight:bold;font-family:Tahoma;padding:2px 6px;display:flex;align-items:center;gap:6px}
+.mt-wb-win-title-icon{font-size:12px}
+.mt-wb-win-body{padding:4px 6px}
+/* WinBox toolbar row */
+.mt-wb-tbar{display:flex;gap:2px;margin-bottom:4px;flex-wrap:wrap}
+.mt-wb-btn{background:#d4d0c8;border:1px solid;border-color:#ffffff #808080 #808080 #ffffff;padding:2px 10px;font-size:11px;font-family:Tahoma;cursor:pointer;color:#000;white-space:nowrap}
+.mt-wb-btn:active{border-color:#808080 #ffffff #ffffff #808080}
+.mt-wb-btn:disabled{color:#808080;cursor:default}
+/* WinBox table */
+.mt-wb-tbl-wrap{overflow-x:auto;max-width:100%}
+.mt-wb-tbl{width:auto;min-width:100%;border-collapse:collapse;background:#fff;font-size:11px;font-family:Tahoma}
+.mt-wb-tbl th{background:#d4d0c8;border:1px solid #808080;padding:1px 8px;text-align:left;font-weight:bold;white-space:nowrap;font-size:11px;color:#000}
+.mt-wb-tbl td{border:1px solid #b8b8b8;padding:1px 8px;white-space:nowrap;font-size:11px;color:#000}
+.mt-wb-tbl tr:hover td{background:#d0e4f0}
+/* WinBox dialog form */
+.mt-wb-dialog{border:2px solid;border-color:#ffffff #808080 #808080 #ffffff;background:#d4d0c8;padding:6px;box-shadow:2px 2px 3px rgba(0,0,0,0.25);margin-top:4px}
+.mt-wb-frow{display:flex;align-items:center;margin-bottom:4px;gap:4px}
+.mt-wb-flbl{font-size:11px;font-family:Tahoma;width:130px;text-align:right;color:#000;flex-shrink:0}
+.mt-wb-finp{font-size:11px;font-family:Tahoma;border:1px solid;border-color:#808080 #ffffff #ffffff #808080;background:#fff;padding:1px 3px;height:20px;min-width:160px;outline:none;color:#000}
+.mt-wb-fsel{font-size:11px;font-family:Tahoma;border:1px solid;border-color:#808080 #ffffff #ffffff #808080;background:#fff;padding:1px 2px;height:20px;min-width:160px;outline:none}
+.mt-wb-fchk{margin:0}
+.mt-wb-sep-line{border:none;border-top:1px solid #808080;border-bottom:1px solid #fff;margin:6px 0}
+.mt-wb-status-bar{background:#d4d0c8;border-top:1px solid #808080;font-size:11px;font-family:Tahoma;padding:2px 6px;color:#000}
+
+/* ══ MIKROTIK WEBFIG ══ */
+.mt-wf-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;font-family:Arial,Helvetica,sans-serif;color:#222}
+.mt-wf-header{height:42px;background:#1a1d23;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.mt-wf-logo{display:flex;align-items:center;gap:6px}
+.mt-wf-tri{color:#e8631a;font-size:22px;line-height:1}
+.mt-wf-brand{font-size:15px;font-weight:bold;color:#fff;letter-spacing:0.5px}
+.mt-wf-hinfo{flex:1;display:flex;align-items:center;gap:12px}
+#mt-wf-identity{font-size:13px;color:#fff;font-weight:600}
+.mt-wf-ver{font-size:11px;color:#666}
+.mt-wf-hright{font-size:12px;color:#aaa}
+.mt-wf-logout{color:#5bc4e8;cursor:pointer;text-decoration:none}
+.mt-wf-logout:hover{text-decoration:underline}
+.mt-wf-body{flex:1;display:flex;overflow:hidden;min-height:0}
+.mt-wf-nav{width:186px;min-width:186px;background:#fff;border-right:1px solid #ddd;overflow-y:auto;flex-shrink:0}
+.mt-wf-nav::-webkit-scrollbar{width:5px}
+.mt-wf-nav::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.mt-wf-ni{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;color:#333;cursor:pointer;border-bottom:1px solid #f5f5f5;user-select:none}
+.mt-wf-ni:hover{background:#f0f5fb}
+.mt-wf-ni.active{background:#e3eefc;color:#1a56b0;border-left:3px solid #1a56b0;padding-left:9px}
+.mt-wf-ni-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.mt-wf-ni-text{flex:1;font-size:13px}
+.mt-wf-ni-arr{font-size:10px;color:#bbb;margin-left:auto}
+.mt-wf-sub{display:none}
+.mt-wf-sub.open{display:block}
+.mt-wf-sub .mt-wf-ni{padding-left:36px;font-size:12px;border-bottom:none}
+.mt-wf-content{flex:1;overflow:auto;padding:14px;background:#f0f0f0}
+/* WebFig card/panel */
+.mt-wf-panel{background:#fff;border:1px solid #dde;border-radius:3px;margin-bottom:12px;overflow:hidden}
+.mt-wf-panel-title{background:#f8f8f8;border-bottom:1px solid #dde;padding:7px 12px;font-size:12px;font-weight:bold;color:#444;display:flex;align-items:center;gap:8px}
+.mt-wf-panel-body{padding:10px 12px}
+/* WebFig toolbar */
+.mt-wf-tbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.mt-wf-btn{background:#fff;border:1px solid #ccc;border-radius:2px;padding:4px 14px;font-size:12px;font-family:Arial;cursor:pointer;color:#333}
+.mt-wf-btn:hover{background:#f0f5fb;border-color:#1a56b0;color:#1a56b0}
+.mt-wf-btn.blue{background:#1a56b0;color:#fff;border-color:#1545a0}
+.mt-wf-btn.blue:hover{background:#1545a0}
+.mt-wf-btn.red{background:#d32f2f;color:#fff;border-color:#b71c1c}
+/* WebFig table */
+.mt-wf-tbl{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+.mt-wf-tbl th{background:#eef1f5;border-bottom:2px solid #c8cdd6;border-right:1px solid #d8dce2;padding:5px 8px;text-align:left;font-size:11px;color:#333;font-weight:bold;white-space:nowrap}
+.mt-wf-tbl td{border-bottom:1px solid #dcdfe4;border-right:1px solid #e4e7ec;padding:5px 8px;white-space:nowrap;color:#222}
+.mt-wf-tbl tr:hover td{background:#f0f5fb}
+/* WebFig form */
+.mt-wf-frow{display:flex;align-items:center;margin-bottom:8px;gap:8px}
+.mt-wf-flbl{font-size:12px;color:#555;width:160px;text-align:right;flex-shrink:0}
+.mt-wf-finp{font-size:12px;border:1px solid #ccc;border-radius:2px;padding:4px 8px;min-width:200px;font-family:Arial;outline:none}
+.mt-wf-finp:focus{border-color:#1a56b0;box-shadow:0 0 0 2px rgba(26,86,176,0.15)}
+.mt-wf-fsel{font-size:12px;border:1px solid #ccc;border-radius:2px;padding:4px 6px;min-width:200px;font-family:Arial;outline:none;background:#fff}
+.mt-wf-sep{border:none;border-top:1px solid #eee;margin:10px 0}
+/* Pill status badges WebFig */
+.mt-wf-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:bold}
+.mt-wf-badge.on{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.mt-wf-badge.off{background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
+
+/* ══ RESPONSIVE / MOBILE ══ */
+@media (max-width:900px){
+  .tplink-help{display:none}
+}
+@media (max-width:768px){
+  /* Stack task-panel above emulator */
+  .layout{flex-direction:column;height:auto;min-height:calc(100vh - 50px);overflow:visible}
+  .task-panel{flex:none;height:240px;min-width:0;border-bottom:2px solid #2563eb}
+  .splitter{display:none}
+  .emu-area{flex:1;min-height:500px;overflow:hidden}
+
+  /* Dev tabs: wrap, shrink text */
+  .dev-tabs{flex-wrap:wrap;gap:0}
+  .dev-tab{padding:7px 10px;font-size:11px}
+  #router-model-wrap{width:100%;padding:5px 8px;border-top:1px solid #2a2a2a;margin-left:0}
+  #router-model-sel{flex:1;width:100%}
+  #router-model-wrap label{font-size:11px}
+
+  /* Cisco / Switch: narrow nav */
+  .cisco-nav{width:110px;min-width:110px}
+  .cnav-top{font-size:11px;padding:6px 6px}
+  .cnav-item{padding:4px 4px 4px 14px;font-size:11px}
+  .cnav-s-hdr{padding:6px 6px;font-size:10px}
+  .cisco-header-right{display:none}
+  .cisco-appname{font-size:14px}
+
+  /* Cisco form: allow horizontal scroll */
+  .cisco-content{padding:6px 8px 12px}
+  .cform .lbl{width:160px}
+  .cform input[type=text],.cform select{width:150px}
+
+  /* TP-Link: narrow nav, hide help */
+  .tplink-help{display:none}
+  .tplink-nav{width:110px;min-width:110px}
+  .tpnav-top,.tpnav-cat-hdr,.tpnav-item{font-size:11px;padding-left:8px}
+  .tplink-hdr{height:48px;padding:0 12px}
+  .tplink-logo{font-size:22px}
+  .tplink-prodmodel{font-size:12px}
+  .tplink-prodtype{font-size:10px}
+  .tp-form .lbl{min-width:150px;font-size:11px}
+  .tp-form input[type=text]{width:120px}
+
+  /* MikroTik WinBox */
+  .mt-wb-brand{display:none}
+  .mt-wb-nav{width:120px;min-width:120px}
+  .mt-wb-toolbar{flex-wrap:wrap;height:auto;padding:2px 4px;gap:2px}
+  .mt-wb-session-inp{width:100px}
+
+  /* MikroTik WebFig */
+  .mt-wf-nav{width:140px;min-width:140px}
+  .mt-wf-header{padding:0 10px;gap:8px}
+  .mt-wf-hright{display:none}
+  .mt-wf-ni{padding:6px 8px;font-size:12px}
+  .mt-wf-sub .mt-wf-ni{padding-left:22px;font-size:11px}
+
+  /* Verify bar */
+  .verify-bar{padding:8px 12px;gap:8px}
+  .btn-verify{padding:8px 16px;font-size:12px}
+  .btn-reset{font-size:11px;padding:6px 10px}
+
+  /* Modal */
+  .modal-box{max-height:92vh}
+  .modal-body{padding:10px}
+}
+@media (max-width:480px){
+  .task-panel{height:180px}
+  .cisco-nav{width:90px;min-width:90px}
+  .cnav-top{font-size:10px;padding:5px 4px}
+  .cnav-item{font-size:10px;padding:3px 3px 3px 10px}
+  .tplink-nav{width:90px;min-width:90px}
+  .mt-wb-nav{width:100px;min-width:100px}
+  .mt-wf-nav{width:110px;min-width:110px}
+  .cform .lbl{width:120px;font-size:11px}
+  .cform input[type=text],.cform select{width:120px}
+  .cisco-content{padding:4px 4px 8px}
+  .dev-tab{padding:6px 8px;font-size:10px}
+  .pdf-ctrl{padding:4px 6px;gap:4px}
+  .pdf-ctrl label{font-size:10px}
+  .pdf-ctrl select{font-size:11px}
+}
+
+/* Local ZSEM embedding: source topbar removed, iframe owns full height. */
+.layout{height:100vh}
+.site-header{display:none}
+.device-logo-text{color:#fff;font-size:12px;font-weight:800;letter-spacing:0}

@@ -697,20 +697,18 @@ def test_pdf_final_flashcards_surface_and_teacher_requests() -> None:
 def test_pdf_final_router_web_emulator() -> None:
     assert_contains(
         "sandbox.php",
-        "router-web-emulator",
-        "ZSEM RouterOS",
-        "MAC Clone",
-        "WAN",
-        "LAN",
-        "DHCP",
-        "Wireless",
+        "network-lab-embed",
+        "network-lab-frame",
+        "sandbox_network_lab.php",
+        "Laboratorium sieci INF.02",
     )
     assert_contains(
-        "assets/js/sandbox.js",
-        "initRouterWebEmulator",
-        "routerWanMac",
-        "routerDhcpToggle",
-        "routerSaveConfig",
+        "assets/js/network-lab.js",
+        "PDF_URLS",
+        "runVerify",
+        "requestResetAll",
+        "router-model-sel",
+        "TL-SG108E",
     )
 
 
@@ -842,17 +840,15 @@ def test_v18_pdf_remaining_auth_and_performance_surface() -> None:
 def test_v18_router_flashcards_social_license() -> None:
     assert_contains(
         "sandbox.php",
-        "TP-LINK",
-        "AC750 Wireless Dual Band Gigabit Router",
-        "Model No. Archer C2",
-        "routerMacCloneHelp",
+        "network-lab-embed",
+        "sandbox_network_lab.php",
+        "Laboratorium sieci INF.02",
     )
     assert_contains(
-        "assets/js/sandbox.js",
-        "zsem.router.config.v1",
-        "routerFactoryMac",
-        "routerCloneMac",
-        "pagehide",
+        "sandbox_network_lab.php",
+        "requireLogin(true)",
+        "assets/css/network-lab.css",
+        "assets/js/network-lab.js",
     )
     assert_contains(
         "flashcards.php",
@@ -873,6 +869,97 @@ def test_v18_router_flashcards_social_license() -> None:
         "non-profit",
         "niekomercyjnych",
         "prawami autorskimi",
+    )
+
+
+def test_network_lab_inf02_scope_and_local_assets() -> None:
+    assert_contains(
+        "sandbox_network_lab.php",
+        'id="exam-sel"',
+        'value="2025-cze"',
+        'value="2024-cze"',
+        'value="2024-sty"',
+        'value="2023-cze"',
+        'value="2023-sty"',
+        'value="2022-cze"',
+        'value="2022-sty"',
+        'value="2021-cze"',
+        'value="cke"',
+        'id="tab-router"',
+        'id="tab-switch"',
+        'id="router-model-sel"',
+        'value="cisco"',
+        "Cisco RV132W",
+        'value="tplink"',
+        "TP-Link TL-WR841ND",
+        'value="mikrotik-wb"',
+        "MikroTik (WinBox)",
+        'value="mikrotik-wf"',
+        "MikroTik (WebFig)",
+        'id="btn-reset"',
+        'id="btn-verify"',
+        'id="modal"',
+        'rel="noopener noreferrer"',
+    )
+    assert_contains(
+        "assets/js/network-lab.js",
+        "'2025-cze': 'data/pdfs/inf02_2025_cze.pdf'",
+        "'2024-cze': 'data/pdfs/inf02_2024_cze.pdf'",
+        "'2024-sty': 'data/pdfs/inf02_2024_sty.pdf'",
+        "'2023-cze': 'data/pdfs/inf02_2023_cze.pdf'",
+        "'2023-sty': 'data/pdfs/inf02_2023_sty.pdf'",
+        "'2022-cze': 'data/pdfs/inf02_2022_cze.pdf'",
+        "'2022-sty': 'data/pdfs/inf02_2022_sty.pdf'",
+        "'2021-cze': 'data/pdfs/inf02_2021_cze.pdf'",
+        "'cke': 'data/pdfs/inf02_cke_2026.pdf'",
+        "TL-SG108E",
+        "runVerify",
+        "resetAll",
+    )
+    lab = read("sandbox_network_lab.php") + read("assets/js/network-lab.js")
+    assert "firebase" not in lab.lower()
+    assert "auth.js" not in lab
+    assert "zawod-header" not in lab
+    assert "site-header" not in read("sandbox_network_lab.php")
+    for name in [
+        "inf02_2025_cze.pdf",
+        "inf02_2024_cze.pdf",
+        "inf02_2024_sty.pdf",
+        "inf02_2023_cze.pdf",
+        "inf02_2023_sty.pdf",
+        "inf02_2022_cze.pdf",
+        "inf02_2022_sty.pdf",
+        "inf02_2021_cze.pdf",
+        "inf02_cke_2026.pdf",
+    ]:
+        pdf = ROOT / "data" / "pdfs" / name
+        assert pdf.is_file() and pdf.stat().st_size > 0, f"missing local PDF: {name}"
+
+
+def test_network_lab_mikrotik_menu_items_have_renderers() -> None:
+    js = read("assets/js/network-lab.js")
+    menu_start = js.index("var MT_MENU")
+    menu_end = js.index("function buildMtWbNav", menu_start)
+    menu = js[menu_start:menu_end]
+    ids = set(re.findall(r"id:'([^']+)'", menu))
+    parent_ids = set(re.findall(r"id:'([^']+)'[^\n}]*sub:\[", menu))
+    leaf_ids = ids - parent_ids
+
+    renderer_start = js.index("function mtPageHtml")
+    renderer_end = js.index("function mtWbTbar", renderer_start)
+    cases = set(re.findall(r"case '([^']+)'", js[renderer_start:renderer_end]))
+
+    missing = sorted(leaf_ids - cases)
+    assert missing == [], f"MikroTik menu items without renderer: {missing}"
+
+
+def test_network_lab_has_fallback_for_static_device_actions() -> None:
+    assert_contains(
+        "assets/js/network-lab.js",
+        "function bindNetworkLabFallbackActions",
+        "data-sim-action",
+        "Symulacja",
+        "addEventListener('click', function(e)",
     )
 
 
