@@ -341,8 +341,16 @@ body.dark-mode .teacher-ops-strip-current {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(148, 163, 184, 0.32);
-  transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22), 0 0 0 1px rgba(96,165,250,.08);
+}
+
+.topbar-icon:hover {
+  transform: translateY(-2px);
+}
+
+.topbar-icon.show,
+.topbar-icon.show:hover {
+  transform: none;
 }
 
 .topbar-icon:hover::before,
@@ -387,8 +395,16 @@ body.dark-mode .teacher-ops-strip-current {
 .user-profile-info.show {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(148, 163, 184, 0.3);
-  transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(2, 6, 23, 0.2);
+}
+
+.user-profile-info:hover {
+  transform: translateY(-2px);
+}
+
+.user-profile-info.show,
+.user-profile-info.show:hover {
+  transform: none;
 }
 
 .user-profile-text {
@@ -1909,12 +1925,14 @@ button.user-profile-info .user-profile-role {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   transform-origin: top right;
-  will-change: opacity, transform;
+  will-change: opacity, clip-path;
+  clip-path: inset(0 0 10px 0 round 16px);
   overflow: hidden;
 }
 
 .top-header .topbar-dropdown.show {
   animation: topbarDropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  clip-path: inset(0 0 0 0 round 16px);
   z-index: 1100;
 }
 
@@ -1980,11 +1998,11 @@ button.user-profile-info .user-profile-role {
 @keyframes topbarDropdownIn {
   from {
     opacity: 0;
-    transform: translate3d(0, -6px, 0) scale(0.985);
+    clip-path: inset(0 0 12px 0 round 16px);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    clip-path: inset(0 0 0 0 round 16px);
   }
 }
 

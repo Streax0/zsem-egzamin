@@ -223,7 +223,9 @@ def test_topbar_dropdown_animation_uses_css_not_display_hack() -> None:
     assert "Double RAF" not in topbar
     assert "topbarDropdownIn" in css
     assert "transform-origin: top right" in css
-    assert "will-change: opacity, transform" in css
+    assert "will-change: opacity, clip-path" in css
+    assert "clip-path: inset(0 0 12px 0 round 16px)" in css
+    assert "transform: translate3d(0, -6px, 0) scale(0.985)" not in css
     assert "body.reduce-motion .top-header .topbar-dropdown.show" in css
 
 
@@ -614,11 +616,12 @@ def test_admin_and_luki_expanded_operational_panels() -> None:
 def test_release_teacher_generator_luki_v17_surface() -> None:
     assert_contains(
         "settings.php",
-        "1.8 BETA",
+        "1.9 BETA",
         "settings-overview-grid",
         "settings-switch-grid",
         "settings-release-grid",
-        "Prywatne loginy i szybsze powiadomienia",
+        "Changelog 1.9 Beta",
+        "Płynniejsze menu powiadomień i profilu",
     )
     assert_contains(
         "includes/topbar.php",

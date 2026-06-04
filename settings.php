@@ -145,6 +145,13 @@ $settingsHealth = [
         .settings-status-meta {
             color: #64748b;
         }
+        .settings-release-title {
+            color: #64748b;
+            font-size: .76rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
         .settings-release-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -217,6 +224,9 @@ $settingsHealth = [
         }
         body.dark-mode .settings-release-grid span i {
             color: #93c5fd;
+        }
+        body.dark-mode .settings-release-title {
+            color: #94a3b8;
         }
         body.dark-mode .settings-status-body {
             color: #f8fafc;
@@ -606,7 +616,7 @@ $settingsHealth = [
                                 <div class="small">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Wersja aplikacji:</span>
-                                        <span class="fw-bold">1.8 BETA</span>
+                                        <span class="fw-bold">1.9 BETA</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">ID Użytkownika:</span>
@@ -617,10 +627,11 @@ $settingsHealth = [
                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                     </div>
                                 </div>
-                                <div class="settings-release-grid mt-3" aria-label="Zmiany wersji 1.8 Beta">
-                                    <span><i class="bi bi-person-lock"></i> Prywatne loginy i szybsze powiadomienia</span>
-                                    <span><i class="bi bi-card-checklist"></i> Poprawki z listy PDF 1-17</span>
-                                    <span><i class="bi bi-shield-check"></i> Scoped hardening sesji i formularzy</span>
+                                <div class="settings-release-title mt-3 mb-2">Changelog 1.9 Beta</div>
+                                <div class="settings-release-grid" aria-label="Changelog wersji 1.9 Beta">
+                                    <span><i class="bi bi-bell"></i> Płynniejsze menu powiadomień i profilu</span>
+                                    <span><i class="bi bi-speedometer2"></i> Stabilniejsze odświeżanie topbara</span>
+                                    <span><i class="bi bi-shield-check"></i> Dalsze poprawki sesji i formularzy</span>
                                 </div>
                             </div>
 
