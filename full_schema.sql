@@ -17,6 +17,8 @@ DROP TABLE IF EXISTS admin_request_replies;
 DROP TABLE IF EXISTS admin_requests;
 DROP TABLE IF EXISTS ranking_events;
 DROP TABLE IF EXISTS ranking_event_templates;
+DROP TABLE IF EXISTS sandbox_element_blocks;
+DROP TABLE IF EXISTS feature_page_blocks;
 DROP TABLE IF EXISTS app_settings;
 DROP TABLE IF EXISTS rank_definitions;
 DROP TABLE IF EXISTS profile_comments;
@@ -175,6 +177,38 @@ CREATE TABLE app_settings (
     setting_key VARCHAR(80) PRIMARY KEY,
     setting_value TEXT DEFAULT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE feature_page_blocks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_key VARCHAR(80) NOT NULL,
+    title VARCHAR(160) NOT NULL,
+    body TEXT NOT NULL,
+    target_roles TEXT NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by INT DEFAULT NULL,
+    disabled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_category_active (category_key, is_active),
+    INDEX idx_active_disabled (is_active, disabled_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE sandbox_element_blocks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    element_key VARCHAR(120) NOT NULL,
+    title VARCHAR(160) NOT NULL,
+    body TEXT NOT NULL,
+    target_roles TEXT NOT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by INT DEFAULT NULL,
+    disabled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_element_active (element_key, is_active),
+    INDEX idx_active_disabled (is_active, disabled_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE ranking_event_templates (

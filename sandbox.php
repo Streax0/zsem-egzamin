@@ -18,6 +18,60 @@ $tools = [
 ];
 $tool = $_GET['tool'] ?? 'home';
 if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
+
+$sandboxRole = function_exists('isGuestMode') && isGuestMode() ? 'guest' : (string)($_SESSION['role'] ?? 'user');
+$sandboxElementAdminNotice = null;
+$sandboxElementBlocksForRole = [];
+$sandboxBlockedElements = [];
+if (isset($pdo) && function_exists('getSandboxElementBlockMapForRole')) {
+    $sandboxElementBlocksForRole = getSandboxElementBlockMapForRole($pdo, $sandboxRole);
+    if (function_exists('roleHasAdminAccess') && roleHasAdminAccess($sandboxRole)) {
+        $sandboxElementAdminNotice = !empty($sandboxElementBlocksForRole) ? reset($sandboxElementBlocksForRole) : null;
+        if (is_array($sandboxElementAdminNotice)) {
+            $_SESSION['sandbox_element_block_notice'] = $sandboxElementAdminNotice;
+        }
+    } else {
+        $sandboxBlockedElements = $sandboxElementBlocksForRole;
+    }
+}
+$sandboxToolBlock = $tool !== 'home' ? ($sandboxBlockedElements['tool.' . $tool] ?? null) : null;
+$sandboxElementBlock = static fn(string $key): ?array => $sandboxBlockedElements[$key] ?? null;
+$sandboxEsc = static fn($value) => htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$sandboxBlockRoleText = static function (array $block): string {
+    $roles = array_filter($block['target_role_labels'] ?? []);
+    return !empty($roles) ? implode(', ', $roles) : 'Wybrane role';
+};
+$sandboxBlockTooltip = static function (array $block, string $fallbackTitle) use ($sandboxBlockRoleText): string {
+    $parts = [
+        (string)($block['title'] ?? $fallbackTitle),
+        (string)($block['body'] ?? ''),
+        'Wyłączył: ' . (string)($block['moderator_label'] ?? 'Administrator'),
+        'Data: ' . (string)($block['disabled_date'] ?? date('d.m.Y H:i')),
+        'Role: ' . $sandboxBlockRoleText($block),
+    ];
+    return implode(' | ', array_filter($parts, static fn($part) => trim($part) !== ''));
+};
+$sandboxBlockMetaList = static function (array $block) use ($sandboxEsc, $sandboxBlockRoleText): string {
+    return '<dl class="sandbox-tool-disabled-meta">'
+        . '<div><dt>Wyłączył</dt><dd>' . $sandboxEsc($block['moderator_label'] ?? 'Administrator') . '</dd></div>'
+        . '<div><dt>Data</dt><dd>' . $sandboxEsc($block['disabled_date'] ?? date('d.m.Y H:i')) . '</dd></div>'
+        . '<div><dt>Role</dt><dd>' . $sandboxEsc($sandboxBlockRoleText($block)) . '</dd></div>'
+        . '</dl>';
+};
+$sandboxRenderLogicButton = static function (string $elementKey, string $label, string $icon, array $dataAttrs) use ($sandboxElementBlock, $sandboxBlockTooltip): void {
+    $block = $sandboxElementBlock($elementKey);
+    $esc = static fn($value) => htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $attrs = ' data-sandbox-element-key="' . $esc($elementKey) . '"';
+    foreach ($dataAttrs as $name => $value) {
+        $attrs .= ' ' . $name . '="' . $esc($value) . '"';
+    }
+    if ($block) {
+        $attrs .= ' disabled data-sandbox-element-blocked="1" title="' . $esc($sandboxBlockTooltip($block, 'Element wyłączony')) . '"';
+        echo '<button type="button"' . $attrs . '><i class="bi bi-lock"></i>' . $esc($label) . '</button>';
+        return;
+    }
+    echo '<button type="button"' . $attrs . ' draggable="true"><i class="bi ' . $esc($icon) . '"></i>' . $esc($label) . '</button>';
+};
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -53,6 +107,16 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                 <?php if ($tool === 'home'): ?>
                     <section class="sandbox-tool-grid">
                         <?php foreach ($tools as $key => $meta): ?>
+                            <?php $toolElementKey = 'tool.' . $key; $toolElementBlock = $sandboxElementBlock($toolElementKey); ?>
+                            <?php if ($toolElementBlock): ?>
+                                <div class="sandbox-tool-tile is-disabled" data-sandbox-element-key="<?= $sandboxEsc($toolElementKey) ?>" data-sandbox-element-blocked="1" title="<?= $sandboxEsc($sandboxBlockTooltip($toolElementBlock, 'Narzędzie wyłączone')) ?>">
+                                    <span class="sandbox-tool-icon"><i class="bi bi-lock"></i></span>
+                                    <strong><?= $sandboxEsc($meta['title']) ?></strong>
+                                    <span><?= $sandboxEsc($toolElementBlock['body'] ?? 'To narzędzie jest obecnie wyłączone dla Twojej roli.') ?></span>
+                                    <?= $sandboxBlockMetaList($toolElementBlock) ?>
+                                    <span class="sandbox-tool-chip">Wyłączone</span>
+                                </div>
+                            <?php else: ?>
                             <a class="sandbox-tool-tile" href="sandbox.php?tool=<?= htmlspecialchars($key) ?>">
                                 <span class="sandbox-tool-icon"><i class="bi <?= htmlspecialchars($meta['icon']) ?>"></i></span>
                                 <strong><?= htmlspecialchars($meta['title']) ?></strong>
@@ -60,39 +124,60 @@ if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
                                 <span class="sandbox-tool-chip">Uruchom narzędzie</span>
                                 <i class="bi bi-arrow-right-short sandbox-arrow"></i>
                             </a>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </section>
                 <?php else: ?>
                     <nav class="sandbox-tabs mb-4" aria-label="Narzędzia sandbox">
                         <?php foreach ($tools as $key => $meta): ?>
-                            <a href="sandbox.php?tool=<?= htmlspecialchars($key) ?>" class="<?= $tool === $key ? 'active' : '' ?>">
+                            <?php $toolElementKey = 'tool.' . $key; $toolElementBlock = $sandboxElementBlock($toolElementKey); ?>
+                            <?php if ($toolElementBlock): ?>
+                                <span class="is-disabled" data-sandbox-element-key="<?= $sandboxEsc($toolElementKey) ?>" data-sandbox-element-blocked="1" title="<?= $sandboxEsc($sandboxBlockTooltip($toolElementBlock, 'Narzędzie wyłączone')) ?>">
+                                    <i class="bi bi-lock"></i><?= $sandboxEsc($meta['title']) ?>
+                                </span>
+                            <?php else: ?>
+                            <a href="sandbox.php?tool=<?= htmlspecialchars($key) ?>" class="<?= $tool === $key ? 'active' : '' ?>" data-sandbox-element-key="<?= htmlspecialchars($toolElementKey) ?>">
                                 <i class="bi <?= htmlspecialchars($meta['icon']) ?>"></i><?= htmlspecialchars($meta['title']) ?>
                             </a>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </nav>
                 <?php endif; ?>
 
-                <?php if ($tool === 'logic'): ?>
+                <?php if ($sandboxToolBlock): ?>
+                    <section class="sandbox-panel" data-sandbox-element-key="<?php echo htmlspecialchars('tool.' . $tool); ?>" data-sandbox-element-blocked="1">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="fs-2 text-warning"><i class="bi bi-lock-fill"></i></div>
+                            <div>
+                                <span class="badge text-bg-warning rounded-pill mb-2">Narzędzie wyłączone</span>
+                                <h3 class="fw-900 mb-2"><?php echo htmlspecialchars($sandboxToolBlock['title'] ?? 'Narzędzie jest wyłączone'); ?></h3>
+                                <p class="text-muted mb-3"><?php echo nl2br(htmlspecialchars($sandboxToolBlock['body'] ?? 'Ten element sandboxa jest obecnie niedostępny dla Twojej roli.')); ?></p>
+                                <p class="small text-muted mb-2"><?php echo htmlspecialchars($sandboxToolBlock['element_label'] ?? ($tools[$tool]['title'] ?? 'Sandbox')); ?></p>
+                                <?= $sandboxBlockMetaList($sandboxToolBlock) ?>
+                            </div>
+                        </div>
+                    </section>
+                <?php elseif ($tool === 'logic'): ?>
                     <section class="sandbox-workbench logic-workbench" data-tool="logic">
                         <aside class="sandbox-rail">
                             <h5 class="fw-800 mb-3">Komponenty</h5>
                             <div class="toolbox-group">
                                 <span>Wejścia</span>
-                                <button type="button" data-logic-input="A" draggable="true"><i class="bi bi-toggle-on"></i>Przełącznik A</button>
-                                <button type="button" data-logic-input="B" draggable="true"><i class="bi bi-toggle-on"></i>Przełącznik B</button>
-                                <button type="button" data-logic-const="1" draggable="true"><i class="bi bi-1-circle"></i>Stała 1</button>
-                                <button type="button" data-logic-const="0" draggable="true"><i class="bi bi-0-circle"></i>Stała 0</button>
+                                <?php $sandboxRenderLogicButton('logic.input_a', 'Przełącznik A', 'bi-toggle-on', ['data-logic-input' => 'A']); ?>
+                                <?php $sandboxRenderLogicButton('logic.input_b', 'Przełącznik B', 'bi-toggle-on', ['data-logic-input' => 'B']); ?>
+                                <?php $sandboxRenderLogicButton('logic.const_1', 'Stała 1', 'bi-1-circle', ['data-logic-const' => '1']); ?>
+                                <?php $sandboxRenderLogicButton('logic.const_0', 'Stała 0', 'bi-0-circle', ['data-logic-const' => '0']); ?>
                             </div>
                             <div class="toolbox-group">
                                 <span>Bramki</span>
                                 <?php foreach (['BUFFER','NOT','AND','NAND','OR','NOR','XOR','XNOR'] as $gate): ?>
-                                    <button type="button" data-gate="<?= $gate ?>" draggable="true"><i class="bi bi-cpu"></i><?= $gate ?></button>
+                                    <?php $sandboxRenderLogicButton('logic.gate_' . strtolower($gate), $gate, 'bi-cpu', ['data-gate' => $gate]); ?>
                                 <?php endforeach; ?>
                             </div>
                             <div class="toolbox-group">
                                 <span>Wyjścia</span>
-                                <button type="button" data-output="LED" draggable="true"><i class="bi bi-lightbulb"></i>LED</button>
-                                <button type="button" data-output="TABLE" draggable="true"><i class="bi bi-table"></i>Tabela prawdy</button>
+                                <?php $sandboxRenderLogicButton('logic.output_led', 'LED', 'bi-lightbulb', ['data-output' => 'LED']); ?>
+                                <?php $sandboxRenderLogicButton('logic.output_table', 'Tabela prawdy', 'bi-table', ['data-output' => 'TABLE']); ?>
                             </div>
                         </aside>
                         <div class="logic-canvas-panel">
@@ -311,6 +396,15 @@ button { padding: 10px 16px; border-radius: 8px; }</textarea></label>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
+<script>
+window.sandboxBlockedElements = <?php echo json_encode(array_map(static function (array $block): array {
+    return [
+        'title' => (string)($block['title'] ?? 'Element wyłączony'),
+        'body' => (string)($block['body'] ?? ''),
+        'label' => (string)($block['element_label'] ?? ($block['element_key'] ?? 'Element sandboxa')),
+    ];
+}, $sandboxBlockedElements), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+</script>
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/sandbox.js')); ?>"></script>
 </body>
 </html>

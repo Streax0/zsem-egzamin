@@ -516,7 +516,7 @@ $settingsHealth = [
 
                                 <div class="mb-4">
                                     <label class="form-label d-block" for="dashboardView">Widok dashboardu</label>
-                                    <select class="form-select" id="dashboardView" onchange="setPreferenceCookie('dashboard_view', this.value)">
+                                    <select class="form-select" id="dashboardView" onchange="updateDashboardViewSetting(this.value)">
                                         <option value="balanced" <?php echo $dashboardView === 'balanced' ? 'selected' : ''; ?>>Zbalansowany</option>
                                         <option value="learning" <?php echo $dashboardView === 'learning' ? 'selected' : ''; ?>>Nauka i misje</option>
                                         <option value="compact" <?php echo $dashboardView === 'compact' ? 'selected' : ''; ?>>Kompaktowy</option>
@@ -525,7 +525,7 @@ $settingsHealth = [
 
                                 <div class="mb-4">
                                     <label class="form-label d-block" for="defaultTestMode">Domyślny tryb testu</label>
-                                    <select class="form-select" id="defaultTestMode" onchange="setPreferenceCookie('default_test_mode', this.value)">
+                                    <select class="form-select" id="defaultTestMode" onchange="updateDefaultTestModeSetting(this.value)">
                                         <option value="exam" <?php echo $defaultTestMode === 'exam' ? 'selected' : ''; ?>>Egzamin</option>
                                         <option value="practice" <?php echo $defaultTestMode === 'practice' ? 'selected' : ''; ?>>Ćwiczenia</option>
                                         <option value="single" <?php echo $defaultTestMode === 'single' ? 'selected' : ''; ?>>Pojedyncze pytanie</option>
@@ -534,12 +534,12 @@ $settingsHealth = [
 
                                 <div class="settings-switch-grid mb-4">
                                 <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="notifySwitch" onchange="localStorage.setItem('notify_new_tests', this.checked ? '1' : '0'); testPreferenceFeedback('Alerty o aktywnościach zapisane.');">
+                                    <input class="form-check-input" type="checkbox" id="notifySwitch" onchange="updateNotifyActivitySetting(this.checked)">
                                     <label class="form-check-label" for="notifySwitch">Alerty o aktywnościach</label>
                                 </div>
                                 
                                 <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="soundsSwitch" onchange="localStorage.setItem('ui_sounds', this.checked ? '1' : '0'); testPreferenceFeedback('Efekty dźwiękowe zapisane.');">
+                                    <input class="form-check-input" type="checkbox" id="soundsSwitch" onchange="updateUiSoundsSetting(this.checked)">
                                     <label class="form-check-label" for="soundsSwitch">Efekty dźwiękowe</label>
                                 </div>
 
@@ -549,12 +549,12 @@ $settingsHealth = [
                                 </div>
 
                                 <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="externalTabSwitch" <?php echo $openExternalNewTab ? 'checked' : ''; ?> onchange="setPreferenceCookie('external_new_tab', this.checked ? '1' : '0'); applyUiPreferences();">
+                                    <input class="form-check-input" type="checkbox" id="externalTabSwitch" <?php echo $openExternalNewTab ? 'checked' : ''; ?> onchange="updateExternalNewTabSetting(this.checked)">
                                     <label class="form-check-label" for="externalTabSwitch">Otwieraj linki zewnętrzne w nowej karcie</label>
                                 </div>
                                 
                                 <div class="form-check form-switch mb-3">
-                                     <input class="form-check-input" type="checkbox" id="helpCenterSwitch" <?php echo $hideHelpCenter ? 'checked' : ''; ?> onchange="setPreferenceCookie('hide_help_center', this.checked ? '1' : '0'); applyUiPreferences();">
+                                     <input class="form-check-input" type="checkbox" id="helpCenterSwitch" <?php echo $hideHelpCenter ? 'checked' : ''; ?> onchange="updateHelpCenterSetting(this.checked)">
                                      <label class="form-check-label" for="helpCenterSwitch">Ukryj Centrum Pomocy (pływający przycisk)</label>
                                 </div>
 

@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/session.php';
+require_once 'includes/functions.php';
 startSecureSession();
 ?>
 <!doctype html>
@@ -20,7 +21,7 @@ startSecureSession();
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/landing.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/landing.css')); ?>">
 </head>
 <body>
 <main class="landing-page">

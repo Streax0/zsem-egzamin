@@ -427,6 +427,11 @@ if (!function_exists('requireLogin')) {
             header('Location: ' . $prefix . 'mfa.php');
             exit();
         }
+
+        global $pdo;
+        if ($pdo instanceof PDO && function_exists('enforceFeaturePageBlockForCurrentRequest')) {
+            enforceFeaturePageBlockForCurrentRequest($pdo);
+        }
     }
 }
 

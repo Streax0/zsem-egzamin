@@ -14,6 +14,14 @@ def assert_contains(path: str, *needles: str) -> None:
     assert not missing, f"{path}: missing {missing}"
 
 
+def extract_between(path: str, start: str, end: str) -> str:
+    content = read(path)
+    assert start in content, f"{path}: missing start marker {start!r}"
+    after_start = content.split(start, 1)[1]
+    assert end in after_start, f"{path}: missing end marker {end!r}"
+    return after_start.split(end, 1)[0]
+
+
 def test_cookie_consent_controls() -> None:
     assert_contains(
         "includes/cookie_consent.php",
@@ -103,6 +111,149 @@ def test_admin_temporary_bans_and_safe_modals() -> None:
     )
     assert_contains("includes/functions.php", "ban_expires_at", "idx_ban_expiry")
     assert_contains("full_schema.sql", "ban_expires_at DATETIME DEFAULT NULL", "idx_ban_expiry")
+
+
+def test_page_category_blocks_admin_guard_and_schema() -> None:
+    assert_contains(
+        "includes/functions.php",
+        "feature_page_blocks",
+        "getFeaturePageBlockCategories",
+        "createFeaturePageBlock",
+        "endFeaturePageBlock",
+        "resolveFeaturePageBlockForRequest",
+        "enforceFeaturePageBlockForCurrentRequest",
+        "renderFeaturePageBlockScreen",
+        "sandbox_element_blocks",
+        "getSandboxBlockableElements",
+        "createSandboxElementBlock",
+        "endSandboxElementBlock",
+        "resolveSandboxElementBlock",
+        "getSandboxElementBlockMapForRole",
+    )
+    assert_contains("includes/auth.php", "enforceFeaturePageBlockForCurrentRequest")
+    assert_contains(
+        "includes/topbar.php",
+        "feature_block_notice",
+        "pageBlockAdminNotice",
+        "sandboxElementAdminNotice",
+    )
+    assert_contains(
+        "admin.php",
+        "create_feature_page_block",
+        "end_feature_page_block",
+        "create_sandbox_element_block",
+        "end_sandbox_element_block",
+        "admin-page-blocks",
+        "admin-sandbox-blocks",
+    )
+    assert_contains(
+        "sandbox.php",
+        "getSandboxElementBlockMapForRole",
+        "data-sandbox-element-key",
+        "sandboxElementAdminNotice",
+    )
+    assert_contains("full_schema.sql", "feature_page_blocks", "sandbox_element_blocks")
+
+
+def test_blocked_page_screen_is_single_safe_return_card() -> None:
+    screen = extract_between(
+        "includes/functions.php",
+        "function renderFeaturePageBlockScreen",
+        "function enforceFeaturePageBlockForCurrentRequest",
+    )
+
+    assert "featureBlockModal" not in screen
+    assert "bootstrap.Modal" not in screen
+    assert "actions/logout.php" not in screen
+    assert "Wyloguj" not in screen
+    assert "Ustawienia" not in screen
+    assert "Kategoria wyłączona" in screen
+    assert "Wyłączył" in screen
+    assert "Powrót" in screen
+    assert "featureBlockSafeReturnUrl" in read("includes/functions.php")
+    assert "parse_url($referer" in read("includes/functions.php")
+    assert "parse_url('http://' . $requestAuthority)" in read("includes/functions.php")
+
+
+def test_sandbox_disabled_tools_and_logic_elements_render_server_side() -> None:
+    sandbox = read("sandbox.php")
+    disabled_tile = extract_between(
+        "sandbox.php",
+        "<?php if ($toolElementBlock): ?>",
+        "<?php else: ?>",
+    )
+
+    assert "Uruchom narzędzie" not in disabled_tile
+    assert "sandbox-arrow" not in disabled_tile
+    assert "$sandboxBlockMetaList($toolElementBlock)" in disabled_tile
+    assert "sandbox-tool-disabled-meta" in sandbox
+    assert "Wyłączył" in sandbox
+    assert "Role" in sandbox
+
+    assert "$sandboxRenderLogicButton('logic.input_a'" in sandbox
+    assert "$sandboxRenderLogicButton('logic.input_b'" in sandbox
+    assert "$sandboxRenderLogicButton('logic.const_1'" in sandbox
+    assert "$sandboxRenderLogicButton('logic.const_0'" in sandbox
+    assert "$sandboxRenderLogicButton('logic.output_led'" in sandbox
+    assert "$sandboxRenderLogicButton('logic.output_table'" in sandbox
+    assert "$sandboxRenderLogicButton('logic.gate_' . strtolower($gate)" in sandbox
+    assert '<button type="button" data-logic-input="A" draggable="true">' not in sandbox
+
+
+def test_local_css_assets_are_versioned_sitewide_and_on_landing() -> None:
+    assert_contains(
+        "includes/session.php",
+        "appVersionLocalStylesheetHrefs",
+        "appVersionLocalStylesheetHref",
+        "filemtime($absolute)",
+        "assets/css/",
+    )
+    assert_contains(
+        "landing.php",
+        "require_once 'includes/functions.php'",
+        "assetUrl('assets/css/landing.css')",
+    )
+    assert 'href="assets/css/landing.css"' not in read("landing.php")
+
+
+def test_topbar_dropdown_animation_uses_css_not_display_hack() -> None:
+    topbar = read("includes/topbar.php")
+    css = read("assets/css/dashboard-new.css")
+    assert "menu.style.display = 'none'" not in topbar
+    assert "Double RAF" not in topbar
+    assert "topbarDropdownIn" in css
+    assert "transform-origin: top right" in css
+    assert "will-change: opacity, transform" in css
+    assert "body.reduce-motion .top-header .topbar-dropdown.show" in css
+
+
+def test_settings_controls_call_real_preference_handlers() -> None:
+    settings = read("settings.php")
+    handler = read("assets/js/theme-handler.js")
+    assert_contains(
+        "settings.php",
+        "updateDashboardViewSetting(this.value)",
+        "updateDefaultTestModeSetting(this.value)",
+        "updateNotifyActivitySetting(this.checked)",
+        "updateUiSoundsSetting(this.checked)",
+        "updateExternalNewTabSetting(this.checked)",
+        "updateHelpCenterSetting(this.checked)",
+    )
+    assert_contains(
+        "assets/js/theme-handler.js",
+        "window.updateDashboardViewSetting",
+        "window.updateDefaultTestModeSetting",
+        "window.updateNotifyActivitySetting",
+        "window.updateUiSoundsSetting",
+        "window.updateExternalNewTabSetting",
+        "window.updateHelpCenterSetting",
+        "applyDashboardViewPreference();",
+        "applyDefaultTestModePreference();",
+        "applyHelpCenterPreference();",
+        "applyExternalLinkPreference();",
+    )
+    assert "localStorage.setItem('notify_new_tests'" not in settings
+    assert "localStorage.setItem('ui_sounds'" not in settings
 
 
 def test_guest_navigation_and_sandbox_access() -> None:
@@ -230,7 +381,8 @@ def test_sidebar_topbar_animation_polish() -> None:
         "sidebarBrandPulse",
         "topbarIconGlow",
         "notificationBadgePulse",
-        "topbarDropdownIn 0.24s cubic-bezier",
+        "topbarDropdownIn 0.18s cubic-bezier",
+        "body.reduce-motion .top-header .topbar-dropdown.show",
         ".sidebar-overlay",
         "visibility: hidden",
         ".sidebar.show .sidebar-item",

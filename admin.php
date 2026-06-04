@@ -361,6 +361,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('admin.php#admin-system');
             break;
 
+        case 'create_feature_page_block':
+            $categoryKey = trim((string)($_POST['category_key'] ?? ''));
+            $targetRoles = isset($_POST['target_roles']) && is_array($_POST['target_roles']) ? $_POST['target_roles'] : [];
+            $title = trim((string)($_POST['block_title'] ?? ''));
+            $body = trim((string)($_POST['block_body'] ?? ''));
+            $blockId = createFeaturePageBlock($pdo, $categoryKey, $targetRoles, $title, $body, (int)$_SESSION['user_id']);
+            if ($blockId > 0) {
+                logAdminAction($pdo, $_SESSION['user_id'], 'create_feature_page_block', 'feature_page_block', $blockId, $categoryKey . ': ' . implode(',', featureBlockNormalizeRoles($targetRoles)));
+                setSessionMessage('success', 'Blokada kategorii została włączona.');
+            } else {
+                setSessionMessage('error', 'Nie udało się włączyć blokady. Sprawdź kategorię, role, tytuł i opis.');
+            }
+            redirect('admin.php#admin-page-blocks');
+            break;
+
+        case 'end_feature_page_block':
+            $blockId = (int)($_POST['block_id'] ?? 0);
+            if (endFeaturePageBlock($pdo, $blockId, (int)$_SESSION['user_id'])) {
+                logAdminAction($pdo, $_SESSION['user_id'], 'end_feature_page_block', 'feature_page_block', $blockId);
+                setSessionMessage('success', 'Blokada kategorii została wyłączona.');
+            } else {
+                setSessionMessage('error', 'Nie udało się wyłączyć blokady kategorii.');
+            }
+            redirect('admin.php#admin-page-blocks');
+            break;
+
+        case 'create_sandbox_element_block':
+            $elementKey = trim((string)($_POST['element_key'] ?? ''));
+            $targetRoles = isset($_POST['target_roles']) && is_array($_POST['target_roles']) ? $_POST['target_roles'] : [];
+            $title = trim((string)($_POST['block_title'] ?? ''));
+            $body = trim((string)($_POST['block_body'] ?? ''));
+            $blockId = createSandboxElementBlock($pdo, $elementKey, $targetRoles, $title, $body, (int)$_SESSION['user_id']);
+            if ($blockId > 0) {
+                logAdminAction($pdo, $_SESSION['user_id'], 'create_sandbox_element_block', 'sandbox_element_block', $blockId, $elementKey . ': ' . implode(',', featureBlockNormalizeRoles($targetRoles)));
+                setSessionMessage('success', 'Blokada elementu sandboxa została włączona.');
+            } else {
+                setSessionMessage('error', 'Nie udało się włączyć blokady elementu. Sprawdź element, role, tytuł i opis.');
+            }
+            redirect('admin.php#admin-sandbox-blocks');
+            break;
+
+        case 'end_sandbox_element_block':
+            $blockId = (int)($_POST['block_id'] ?? 0);
+            if (endSandboxElementBlock($pdo, $blockId, (int)$_SESSION['user_id'])) {
+                logAdminAction($pdo, $_SESSION['user_id'], 'end_sandbox_element_block', 'sandbox_element_block', $blockId);
+                setSessionMessage('success', 'Blokada elementu sandboxa została wyłączona.');
+            } else {
+                setSessionMessage('error', 'Nie udało się wyłączyć blokady elementu sandboxa.');
+            }
+            redirect('admin.php#admin-sandbox-blocks');
+            break;
+
         case 'update_system_limits':
             $allInLimit = max(1, min(20, (int)($_POST['all_in_daily_limit'] ?? 3)));
             setAppSetting($pdo, 'all_in_daily_limit', $allInLimit);
@@ -601,6 +653,12 @@ $rankingEvents = getRankingEvents($pdo, 8);
 $appStatuses = getAppStatuses($pdo, false, 10);
 $activeAppStatuses = array_values(array_filter($appStatuses, static fn($s) => !empty($s['is_active'])));
 $archivedAppStatuses = array_values(array_filter($appStatuses, static fn($s) => empty($s['is_active'])));
+$featureBlockCategories = getFeaturePageBlockCategories();
+$featureBlockRoleOptions = featureBlockRoleLabels();
+$featureBlockTargetRoles = featureBlockTargetRoleValues();
+$activeFeaturePageBlocks = getActiveFeaturePageBlocks($pdo, 80);
+$sandboxBlockableElements = getSandboxBlockableElements();
+$activeSandboxElementBlocks = getActiveSandboxElementBlocks($pdo, 120);
 $rankingTemplates = [];
 try {
     ensurePlatformEnhancements($pdo);
@@ -1997,6 +2055,111 @@ if (is_array($rawFlash)) {
                                         <textarea name="message" class="form-control" rows="3" maxlength="500" style="resize:none;" placeholder="Treść komunikatu..." required></textarea>
                                         <button class="btn btn-primary rounded-pill">Wyślij powiadomienie</button>
                                     </form>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4" id="admin-page-blocks">
+                                <div class="admin-tool-card p-3 h-100">
+                                    <h6 class="fw-bold"><i class="bi bi-lock-fill me-2 text-danger"></i>Blokady stron</h6>
+                                    <p class="small text-muted mb-3">Wyłącz całą kategorię dla wybranych ról. Admin i dyrektor zobaczą tylko ostrzeżenie.</p>
+                                    <form method="POST" class="vstack gap-2 mb-3">
+                                        <?php echo csrfTokenField('admin'); ?>
+                                        <input type="hidden" name="action" value="create_feature_page_block">
+                                        <label class="form-label small fw-bold mb-0">Kategoria</label>
+                                        <select name="category_key" class="form-select" required>
+                                            <?php foreach ($featureBlockCategories as $key => $meta): ?>
+                                                <option value="<?php echo htmlspecialchars($key); ?>"><?php echo htmlspecialchars($meta['label']); ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <div class="small fw-bold">Role</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <?php foreach ($featureBlockTargetRoles as $roleKey): ?>
+                                                <label class="form-check form-check-inline small mb-0">
+                                                    <input class="form-check-input" type="checkbox" name="target_roles[]" value="<?php echo htmlspecialchars($roleKey); ?>" <?php echo $roleKey === 'user' ? 'checked' : ''; ?>>
+                                                    <span class="form-check-label"><?php echo htmlspecialchars($featureBlockRoleOptions[$roleKey] ?? $roleKey); ?></span>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <input name="block_title" class="form-control" maxlength="160" placeholder="Tytuł popupu" required>
+                                        <textarea name="block_body" class="form-control" rows="3" maxlength="1200" placeholder="Opis dla użytkownika" required></textarea>
+                                        <button class="btn btn-danger rounded-pill fw-bold"><i class="bi bi-lock me-1"></i>Wyłącz kategorię</button>
+                                    </form>
+                                    <div class="vstack gap-2">
+                                        <?php foreach ($activeFeaturePageBlocks as $block): ?>
+                                            <div class="border rounded-3 p-2 small">
+                                                <div class="d-flex justify-content-between gap-2">
+                                                    <strong><?php echo htmlspecialchars($block['category_label'] ?? $block['category_key']); ?></strong>
+                                                    <span class="badge text-bg-danger">aktywna</span>
+                                                </div>
+                                                <div class="text-muted"><?php echo htmlspecialchars($block['disabled_date']); ?> · <?php echo htmlspecialchars($block['moderator_label']); ?></div>
+                                                <div class="text-muted">Role: <?php echo htmlspecialchars(implode(', ', $block['target_role_labels'] ?? [])); ?></div>
+                                                <form method="POST" class="mt-2" data-admin-confirm="Wyłączyć tę blokadę kategorii?">
+                                                    <?php echo csrfTokenField('admin'); ?>
+                                                    <input type="hidden" name="action" value="end_feature_page_block">
+                                                    <input type="hidden" name="block_id" value="<?php echo (int)$block['id']; ?>">
+                                                    <button class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-unlock me-1"></i>Zdejmij</button>
+                                                </form>
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($activeFeaturePageBlocks)): ?><p class="small text-muted mb-0">Brak aktywnych blokad stron.</p><?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-4" id="admin-sandbox-blocks">
+                                <div class="admin-tool-card p-3 h-100">
+                                    <h6 class="fw-bold"><i class="bi bi-cpu me-2 text-warning"></i>Elementy sandboxa</h6>
+                                    <p class="small text-muted mb-3">Wyłącz konkretne narzędzie albo element, np. pojedynczą bramkę logiczną.</p>
+                                    <form method="POST" class="vstack gap-2 mb-3">
+                                        <?php echo csrfTokenField('admin'); ?>
+                                        <input type="hidden" name="action" value="create_sandbox_element_block">
+                                        <label class="form-label small fw-bold mb-0">Element</label>
+                                        <select name="element_key" class="form-select" required>
+                                            <?php
+                                                $lastSandboxGroup = null;
+                                                foreach ($sandboxBlockableElements as $key => $meta):
+                                                    $group = (string)($meta['group'] ?? 'Sandbox');
+                                                    if ($lastSandboxGroup !== $group):
+                                                        if ($lastSandboxGroup !== null) echo '</optgroup>';
+                                                        echo '<optgroup label="' . htmlspecialchars($group) . '">';
+                                                        $lastSandboxGroup = $group;
+                                                    endif;
+                                            ?>
+                                                <option value="<?php echo htmlspecialchars($key); ?>"><?php echo htmlspecialchars($meta['label']); ?></option>
+                                            <?php endforeach; if ($lastSandboxGroup !== null) echo '</optgroup>'; ?>
+                                        </select>
+                                        <div class="small fw-bold">Role</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <?php foreach ($featureBlockTargetRoles as $roleKey): ?>
+                                                <label class="form-check form-check-inline small mb-0">
+                                                    <input class="form-check-input" type="checkbox" name="target_roles[]" value="<?php echo htmlspecialchars($roleKey); ?>" <?php echo $roleKey === 'user' ? 'checked' : ''; ?>>
+                                                    <span class="form-check-label"><?php echo htmlspecialchars($featureBlockRoleOptions[$roleKey] ?? $roleKey); ?></span>
+                                                </label>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <input name="block_title" class="form-control" maxlength="160" placeholder="Tytuł blokady" required>
+                                        <textarea name="block_body" class="form-control" rows="3" maxlength="1200" placeholder="Opis dla użytkownika" required></textarea>
+                                        <button class="btn btn-warning rounded-pill fw-bold"><i class="bi bi-slash-circle me-1"></i>Wyłącz element</button>
+                                    </form>
+                                    <div class="vstack gap-2">
+                                        <?php foreach ($activeSandboxElementBlocks as $block): ?>
+                                            <div class="border rounded-3 p-2 small">
+                                                <div class="d-flex justify-content-between gap-2">
+                                                    <strong><?php echo htmlspecialchars($block['element_label'] ?? $block['element_key']); ?></strong>
+                                                    <span class="badge text-bg-warning">aktywny</span>
+                                                </div>
+                                                <div class="text-muted"><?php echo htmlspecialchars($block['disabled_date']); ?> · <?php echo htmlspecialchars($block['moderator_label']); ?></div>
+                                                <div class="text-muted">Role: <?php echo htmlspecialchars(implode(', ', $block['target_role_labels'] ?? [])); ?></div>
+                                                <form method="POST" class="mt-2" data-admin-confirm="Wyłączyć tę blokadę elementu sandboxa?">
+                                                    <?php echo csrfTokenField('admin'); ?>
+                                                    <input type="hidden" name="action" value="end_sandbox_element_block">
+                                                    <input type="hidden" name="block_id" value="<?php echo (int)$block['id']; ?>">
+                                                    <button class="btn btn-sm btn-outline-warning rounded-pill"><i class="bi bi-unlock me-1"></i>Zdejmij</button>
+                                                </form>
+                                            </div>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($activeSandboxElementBlocks)): ?><p class="small text-muted mb-0">Brak aktywnych blokad elementów.</p><?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
 

@@ -570,6 +570,46 @@ function ensurePlatformEnhancements(PDO $pdo): void {
 
     // 11. Rate limit events table
     try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS feature_page_blocks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            category_key VARCHAR(80) NOT NULL,
+            title VARCHAR(160) NOT NULL,
+            body TEXT NOT NULL,
+            target_roles TEXT NOT NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_by INT DEFAULT NULL,
+            disabled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            ended_at DATETIME DEFAULT NULL,
+            INDEX idx_category_active (category_key, is_active),
+            INDEX idx_active_disabled (is_active, disabled_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('Feature page blocks table creation failed: ' . $e->getMessage());
+    }
+
+    // 11b. Sandbox element blocks table
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS sandbox_element_blocks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            element_key VARCHAR(120) NOT NULL,
+            title VARCHAR(160) NOT NULL,
+            body TEXT NOT NULL,
+            target_roles TEXT NOT NULL,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
+            created_by INT DEFAULT NULL,
+            disabled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            ended_at DATETIME DEFAULT NULL,
+            INDEX idx_element_active (element_key, is_active),
+            INDEX idx_active_disabled (is_active, disabled_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('Sandbox element blocks table creation failed: ' . $e->getMessage());
+    }
+
+    // 12. Rate limit events table
+    try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS rate_limit_events (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
             bucket VARCHAR(80) NOT NULL,
@@ -1048,6 +1088,412 @@ function notifyUsersAboutAppStatus(PDO $pdo, int $statusId, string $title): int 
         error_log('Notify app status failed: ' . $e->getMessage());
         return 0;
     }
+}
+
+function featureBlockTargetRoleValues(): array {
+    return ['user', 'teacher', 'wujek_luki'];
+}
+
+function featureBlockRoleLabels(): array {
+    return [
+        'user' => 'Uczniowie',
+        'teacher' => 'Nauczyciele',
+        'wujek_luki' => 'Wujek Luki',
+        'admin' => 'Administratorzy',
+        'dyrektor' => 'Dyrektorzy',
+    ];
+}
+
+function featureBlockRoleLabel(string $role): string {
+    $labels = featureBlockRoleLabels();
+    return $labels[$role] ?? $role;
+}
+
+function featureBlockNormalizeRoles(array $roles): array {
+    $allowed = featureBlockTargetRoleValues();
+    $normalized = [];
+    foreach ($roles as $role) {
+        $role = trim((string)$role);
+        if (in_array($role, $allowed, true) && !in_array($role, $normalized, true)) {
+            $normalized[] = $role;
+        }
+    }
+    return $normalized;
+}
+
+function featureBlockDecodeRoles($value): array {
+    if (is_array($value)) {
+        return featureBlockNormalizeRoles($value);
+    }
+    $decoded = json_decode((string)$value, true);
+    return is_array($decoded) ? featureBlockNormalizeRoles($decoded) : [];
+}
+
+function featureBlockModeratorLabel(array $block): string {
+    $role = (string)($block['role'] ?? 'admin');
+    $roleBadge = function_exists('getUserRoleBadge') ? getUserRoleBadge($role) : ['label' => featureBlockRoleLabel($role)];
+    $label = trim(userDisplayName($block) . ' ' . userHandle($block));
+    if ($label === '') {
+        $label = 'Administrator';
+    }
+    return trim($label . ' (' . ($roleBadge['label'] ?? featureBlockRoleLabel($role)) . ')');
+}
+
+function featureBlockFormatRow(array $row, string $labelKey, string $labelValue): array {
+    $roles = featureBlockDecodeRoles($row['target_roles'] ?? '[]');
+    $row['target_roles_array'] = $roles;
+    $row['target_role_labels'] = array_map('featureBlockRoleLabel', $roles);
+    $row[$labelKey] = $labelValue;
+    $row['moderator_label'] = featureBlockModeratorLabel($row);
+    $row['disabled_date'] = !empty($row['disabled_at']) ? date('d.m.Y H:i', strtotime((string)$row['disabled_at'])) : date('d.m.Y H:i');
+    return $row;
+}
+
+function getFeaturePageBlockCategories(): array {
+    return [
+        'dashboard' => ['label' => 'Dashboard', 'icon' => 'bi-grid-1x2-fill'],
+        'tests' => ['label' => 'Testy', 'icon' => 'bi-journal-text'],
+        'categories' => ['label' => 'Kategorie', 'icon' => 'bi-tags'],
+        'practice' => ['label' => 'Praktyka', 'icon' => 'bi-tools'],
+        'lessons' => ['label' => 'Lekcje', 'icon' => 'bi-easel2'],
+        'ranking' => ['label' => 'Ranking', 'icon' => 'bi-trophy'],
+        'dictionary' => ['label' => 'Słownik pojęć', 'icon' => 'bi-book'],
+        'flashcards' => ['label' => 'Fiszki', 'icon' => 'bi-card-text'],
+        'sandbox' => ['label' => 'Sandbox', 'icon' => 'bi-cpu'],
+        'social' => ['label' => 'Społeczność', 'icon' => 'bi-people'],
+        'progress' => ['label' => 'Statystyki', 'icon' => 'bi-bar-chart-line'],
+        'missions' => ['label' => 'Misje', 'icon' => 'bi-lightning-charge'],
+        'history' => ['label' => 'Historia', 'icon' => 'bi-clock-history'],
+        'exam' => ['label' => 'Sprawdzian', 'icon' => 'bi-qr-code-scan'],
+        'teacher' => ['label' => 'Panel nauczyciela', 'icon' => 'bi-clipboard2-pulse-fill'],
+    ];
+}
+
+function resolveFeaturePageCategoryForPath(?string $path = null): ?string {
+    $path = str_replace('\\', '/', (string)($path ?? ($_SERVER['SCRIPT_NAME'] ?? ($_SERVER['PHP_SELF'] ?? ''))));
+    $path = parse_url($path, PHP_URL_PATH) ?: $path;
+    $path = trim($path, '/');
+
+    $ends = static fn(string $suffix): bool => $path === $suffix || str_ends_with($path, '/' . $suffix);
+
+    if (str_contains($path, '/teacher/') || str_starts_with($path, 'teacher/')) return 'teacher';
+    if (str_contains($path, '/exam/') || str_starts_with($path, 'exam/')) return 'exam';
+    if (str_contains($path, '/duels/') || str_starts_with($path, 'duels/')) return 'social';
+    if ($ends('index.php')) return 'dashboard';
+    if ($ends('test.php')) return 'tests';
+    if ($ends('categories.php')) return 'categories';
+    if ($ends('practice.php')) return 'practice';
+    if ($ends('lessons.php') || $ends('lesson_pdf.php')) return 'lessons';
+    if ($ends('ranking.php')) return 'ranking';
+    if ($ends('dictionary.php')) return 'dictionary';
+    if ($ends('flashcards.php')) return 'flashcards';
+    if ($ends('sandbox.php')) return 'sandbox';
+    if ($ends('social.php') || $ends('profile.php') || $ends('search_users.php')) return 'social';
+    if ($ends('progress.php')) return 'progress';
+    if ($ends('goals.php')) return 'missions';
+    if ($ends('history.php') || $ends('result.php')) return 'history';
+    return null;
+}
+
+function getActiveFeaturePageBlocks(PDO $pdo, int $limit = 80): array {
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("
+            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            FROM feature_page_blocks b
+            LEFT JOIN users u ON u.id = b.created_by
+            WHERE b.is_active = 1
+            ORDER BY b.disabled_at DESC, b.id DESC
+            LIMIT ?
+        ");
+        $stmt->bindValue(1, max(1, min(200, $limit)), PDO::PARAM_INT);
+        $stmt->execute();
+        $categories = getFeaturePageBlockCategories();
+        return array_map(static function (array $row) use ($categories): array {
+            $category = (string)($row['category_key'] ?? '');
+            return featureBlockFormatRow($row, 'category_label', $categories[$category]['label'] ?? $category);
+        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (PDOException $e) {
+        error_log('Get feature page blocks failed: ' . $e->getMessage());
+        return [];
+    }
+}
+
+function getActiveFeaturePageBlockByCategory(PDO $pdo, string $categoryKey): ?array {
+    $categories = getFeaturePageBlockCategories();
+    if (!isset($categories[$categoryKey])) return null;
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("
+            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            FROM feature_page_blocks b
+            LEFT JOIN users u ON u.id = b.created_by
+            WHERE b.category_key = ? AND b.is_active = 1
+            ORDER BY b.disabled_at DESC, b.id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$categoryKey]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? featureBlockFormatRow($row, 'category_label', $categories[$categoryKey]['label']) : null;
+    } catch (PDOException $e) {
+        error_log('Get feature page block failed: ' . $e->getMessage());
+        return null;
+    }
+}
+
+function createFeaturePageBlock(PDO $pdo, string $categoryKey, array $targetRoles, string $title, string $body, int $adminId): int {
+    $categories = getFeaturePageBlockCategories();
+    $roles = featureBlockNormalizeRoles($targetRoles);
+    $title = mb_substr(trim($title), 0, 160);
+    $body = mb_substr(trim($body), 0, 1200);
+    if (!isset($categories[$categoryKey]) || empty($roles) || $title === '' || $body === '') return 0;
+
+    try {
+        ensurePlatformEnhancements($pdo);
+        $pdo->beginTransaction();
+        $pdo->prepare("UPDATE feature_page_blocks SET is_active = 0, ended_at = NOW(), updated_at = NOW() WHERE category_key = ? AND is_active = 1")
+            ->execute([$categoryKey]);
+        $stmt = $pdo->prepare("INSERT INTO feature_page_blocks (category_key, title, body, target_roles, created_by) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$categoryKey, $title, $body, json_encode($roles, JSON_UNESCAPED_UNICODE), $adminId > 0 ? $adminId : null]);
+        $id = (int)$pdo->lastInsertId();
+        $pdo->commit();
+        return $id;
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log('Create feature page block failed: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+function endFeaturePageBlock(PDO $pdo, int $blockId, int $adminId): bool {
+    if ($blockId <= 0) return false;
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("UPDATE feature_page_blocks SET is_active = 0, ended_at = NOW(), updated_at = NOW() WHERE id = ? AND is_active = 1");
+        $stmt->execute([$blockId]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        error_log('End feature page block failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function resolveFeaturePageBlockForRequest(PDO $pdo, ?string $path = null, ?string $role = null): ?array {
+    $category = resolveFeaturePageCategoryForPath($path);
+    if (!$category) return null;
+    return getActiveFeaturePageBlockByCategory($pdo, $category);
+}
+
+function featureBlockSafeReturnUrl(string $fallback = 'index.php'): string {
+    $fallback = trim($fallback) !== '' ? $fallback : 'index.php';
+    $referer = trim((string)($_SERVER['HTTP_REFERER'] ?? ''));
+    if ($referer === '' || str_starts_with($referer, '//')) {
+        return $fallback;
+    }
+
+    $parts = parse_url($referer);
+    if (!is_array($parts)) {
+        return $fallback;
+    }
+
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    if ($scheme !== '' && !in_array($scheme, ['http', 'https'], true)) {
+        return $fallback;
+    }
+
+    $requestAuthority = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+    $requestParts = $requestAuthority !== '' ? parse_url('http://' . $requestAuthority) : [];
+    $requestHost = is_array($requestParts) ? strtolower((string)($requestParts['host'] ?? '')) : '';
+    $refererHost = strtolower((string)($parts['host'] ?? ''));
+    if ($refererHost !== '' && ($requestHost === '' || $refererHost !== $requestHost)) {
+        return $fallback;
+    }
+
+    $path = (string)($parts['path'] ?? '');
+    if ($path === '' || str_starts_with($path, '//')) {
+        return $fallback;
+    }
+
+    $currentUri = (string)($_SERVER['REQUEST_URI'] ?? ($_SERVER['PHP_SELF'] ?? ''));
+    $currentPath = (string)(parse_url($currentUri, PHP_URL_PATH) ?: $currentUri);
+    if ($currentPath !== '' && rtrim($path, '/') === rtrim($currentPath, '/')) {
+        return $fallback;
+    }
+
+    $query = isset($parts['query']) && $parts['query'] !== '' ? '?' . $parts['query'] : '';
+    return $path . $query;
+}
+
+function renderFeaturePageBlockScreen(array $block): void {
+    $esc = static fn($value) => htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $title = (string)($block['title'] ?? 'Strona jest czasowo wyłączona');
+    $body = (string)($block['body'] ?? 'Ta kategoria jest obecnie niedostępna.');
+    $category = (string)($block['category_label'] ?? ($block['category_key'] ?? 'Kategoria'));
+    $moderator = (string)($block['moderator_label'] ?? 'Administrator');
+    $date = (string)($block['disabled_date'] ?? date('d.m.Y H:i'));
+    $roles = implode(', ', $block['target_role_labels'] ?? []);
+    $script = $_SERVER['PHP_SELF'] ?? '';
+    $base = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false) ? '../' : '';
+    $returnUrl = featureBlockSafeReturnUrl($base . 'index.php');
+    http_response_code(403);
+    echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
+    echo '<title>' . $esc($title) . ' - ZSEM Tech</title>';
+    echo '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">';
+    echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">';
+    echo '<style>body{min-height:100vh;display:grid;place-items:center;padding:1rem;background:linear-gradient(180deg,#f8fafc,#eef4fb);color:#0f172a;font-family:Inter,system-ui,sans-serif}.blocked-card{width:min(760px,94vw);border:1px solid rgba(148,163,184,.32);border-radius:8px;background:#fff;box-shadow:0 28px 80px rgba(15,23,42,.16);padding:clamp(1.35rem,3vw,2.25rem)}.blocked-lock{width:56px;height:56px;border-radius:8px;display:grid;place-items:center;background:#fff7d6;color:#d97706;font-size:1.8rem;flex:0 0 auto}.blocked-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .65rem;border-radius:999px;background:#facc15;color:#172033;font-weight:900;font-size:.78rem}.blocked-meta{display:grid;gap:.65rem;margin-top:1.25rem}.blocked-meta div{padding:.8rem .95rem;border:1px solid rgba(148,163,184,.28);border-radius:8px;background:#f8fafc}.blocked-meta span{display:block;color:#64748b;font-size:.78rem;font-weight:800;text-transform:uppercase}.blocked-card .btn{font-weight:800}@media (max-width:560px){.blocked-card{padding:1.1rem}.blocked-heading{flex-direction:column}.blocked-lock{width:48px;height:48px}}</style>';
+    echo '</head><body><main class="blocked-card" role="main">';
+    echo '<div class="blocked-heading d-flex align-items-start gap-3"><div class="blocked-lock"><i class="bi bi-lock-fill"></i></div><div><p class="blocked-badge mb-2">Kategoria wyłączona</p><h1 class="h3 fw-bold mb-2">' . $esc($title) . '</h1><p class="text-muted mb-0">' . nl2br($esc($body)) . '</p></div></div>';
+    echo '<div class="blocked-meta"><div><span>Kategoria</span><strong>' . $esc($category) . '</strong></div><div><span>Wyłączył</span><strong>' . $esc($moderator) . '</strong></div><div><span>Data</span><strong>' . $esc($date) . '</strong></div><div><span>Role</span><strong>' . $esc($roles ?: 'Wybrane role') . '</strong></div></div>';
+    echo '<div class="mt-4 d-flex gap-2 flex-wrap"><a class="btn btn-primary rounded-pill px-4" href="' . $esc($returnUrl) . '"><i class="bi bi-arrow-left me-1"></i>Powrót</a></div>';
+    echo '</main>';
+    echo '</body></html>';
+}
+
+function enforceFeaturePageBlockForCurrentRequest(PDO $pdo): void {
+    $role = (string)($_SESSION['role'] ?? 'user');
+    $block = resolveFeaturePageBlockForRequest($pdo, null, $role);
+    if (!$block) return;
+
+    if (roleHasAdminAccess($role)) {
+        $_SESSION['feature_block_notice'] = [
+            'title' => $block['title'] ?? 'Kategoria wyłączona',
+            'category_label' => $block['category_label'] ?? ($block['category_key'] ?? ''),
+            'moderator_label' => $block['moderator_label'] ?? 'Administrator',
+            'disabled_date' => $block['disabled_date'] ?? date('d.m.Y H:i'),
+            'target_role_labels' => $block['target_role_labels'] ?? [],
+        ];
+        return;
+    }
+
+    if (in_array($role, $block['target_roles_array'] ?? [], true)) {
+        renderFeaturePageBlockScreen($block);
+        exit;
+    }
+}
+
+function getSandboxBlockableElements(): array {
+    $elements = [
+        'tool.logic' => ['label' => 'Sandbox: Bramki logiczne', 'group' => 'Narzędzia'],
+        'tool.psu' => ['label' => 'Sandbox: Kalkulator PSU', 'group' => 'Narzędzia'],
+        'tool.subnet' => ['label' => 'Sandbox: Podsieci IP', 'group' => 'Narzędzia'],
+        'tool.router' => ['label' => 'Sandbox: Laboratorium sieci', 'group' => 'Narzędzia'],
+        'tool.numbers' => ['label' => 'Sandbox: Systemy liczbowe', 'group' => 'Narzędzia'],
+        'tool.ohm' => ['label' => 'Sandbox: Prawo Ohma', 'group' => 'Narzędzia'],
+        'tool.live' => ['label' => 'Sandbox: Live HTML/CSS/JS', 'group' => 'Narzędzia'],
+        'logic.input_a' => ['label' => 'Bramki: Przełącznik A', 'group' => 'Bramki logiczne'],
+        'logic.input_b' => ['label' => 'Bramki: Przełącznik B', 'group' => 'Bramki logiczne'],
+        'logic.const_1' => ['label' => 'Bramki: Stała 1', 'group' => 'Bramki logiczne'],
+        'logic.const_0' => ['label' => 'Bramki: Stała 0', 'group' => 'Bramki logiczne'],
+        'logic.output_led' => ['label' => 'Bramki: LED', 'group' => 'Bramki logiczne'],
+        'logic.output_table' => ['label' => 'Bramki: Tabela prawdy', 'group' => 'Bramki logiczne'],
+    ];
+    foreach (['BUFFER', 'NOT', 'AND', 'NAND', 'OR', 'NOR', 'XOR', 'XNOR'] as $gate) {
+        $elements['logic.gate_' . strtolower($gate)] = ['label' => 'Bramka ' . $gate, 'group' => 'Bramki logiczne'];
+    }
+    return $elements;
+}
+
+function getActiveSandboxElementBlocks(PDO $pdo, int $limit = 120): array {
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("
+            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            FROM sandbox_element_blocks b
+            LEFT JOIN users u ON u.id = b.created_by
+            WHERE b.is_active = 1
+            ORDER BY b.disabled_at DESC, b.id DESC
+            LIMIT ?
+        ");
+        $stmt->bindValue(1, max(1, min(300, $limit)), PDO::PARAM_INT);
+        $stmt->execute();
+        $elements = getSandboxBlockableElements();
+        return array_map(static function (array $row) use ($elements): array {
+            $key = (string)($row['element_key'] ?? '');
+            return featureBlockFormatRow($row, 'element_label', $elements[$key]['label'] ?? $key);
+        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    } catch (PDOException $e) {
+        error_log('Get sandbox element blocks failed: ' . $e->getMessage());
+        return [];
+    }
+}
+
+function getActiveSandboxElementBlockByKey(PDO $pdo, string $elementKey): ?array {
+    $elements = getSandboxBlockableElements();
+    if (!isset($elements[$elementKey])) return null;
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("
+            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            FROM sandbox_element_blocks b
+            LEFT JOIN users u ON u.id = b.created_by
+            WHERE b.element_key = ? AND b.is_active = 1
+            ORDER BY b.disabled_at DESC, b.id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$elementKey]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? featureBlockFormatRow($row, 'element_label', $elements[$elementKey]['label']) : null;
+    } catch (PDOException $e) {
+        error_log('Get sandbox element block failed: ' . $e->getMessage());
+        return null;
+    }
+}
+
+function createSandboxElementBlock(PDO $pdo, string $elementKey, array $targetRoles, string $title, string $body, int $adminId): int {
+    $elements = getSandboxBlockableElements();
+    $roles = featureBlockNormalizeRoles($targetRoles);
+    $title = mb_substr(trim($title), 0, 160);
+    $body = mb_substr(trim($body), 0, 1200);
+    if (!isset($elements[$elementKey]) || empty($roles) || $title === '' || $body === '') return 0;
+
+    try {
+        ensurePlatformEnhancements($pdo);
+        $pdo->beginTransaction();
+        $pdo->prepare("UPDATE sandbox_element_blocks SET is_active = 0, ended_at = NOW(), updated_at = NOW() WHERE element_key = ? AND is_active = 1")
+            ->execute([$elementKey]);
+        $stmt = $pdo->prepare("INSERT INTO sandbox_element_blocks (element_key, title, body, target_roles, created_by) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$elementKey, $title, $body, json_encode($roles, JSON_UNESCAPED_UNICODE), $adminId > 0 ? $adminId : null]);
+        $id = (int)$pdo->lastInsertId();
+        $pdo->commit();
+        return $id;
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log('Create sandbox element block failed: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+function endSandboxElementBlock(PDO $pdo, int $blockId, int $adminId): bool {
+    if ($blockId <= 0) return false;
+    try {
+        ensurePlatformEnhancements($pdo);
+        $stmt = $pdo->prepare("UPDATE sandbox_element_blocks SET is_active = 0, ended_at = NOW(), updated_at = NOW() WHERE id = ? AND is_active = 1");
+        $stmt->execute([$blockId]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        error_log('End sandbox element block failed: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function resolveSandboxElementBlock(PDO $pdo, string $elementKey, ?string $role = null): ?array {
+    $role = $role ?? (string)($_SESSION['role'] ?? 'user');
+    $block = getActiveSandboxElementBlockByKey($pdo, $elementKey);
+    if (!$block) return null;
+    if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true)) {
+        return $block;
+    }
+    return null;
+}
+
+function getSandboxElementBlockMapForRole(PDO $pdo, string $role): array {
+    $map = [];
+    foreach (getActiveSandboxElementBlocks($pdo, 200) as $block) {
+        if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true)) {
+            $map[(string)$block['element_key']] = $block;
+        }
+    }
+    return $map;
 }
 
 function logAdminAction(PDO $pdo, $adminId, string $action, ?string $targetType = null, $targetId = null, ?string $details = null): void {

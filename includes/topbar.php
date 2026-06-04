@@ -6,6 +6,10 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
 // Determine base path by looking for a root-level file
 $base_url = file_exists('config/db.php') ? '' : '../';
 $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
+$pageBlockAdminNotice = $_SESSION['feature_block_notice'] ?? null;
+unset($_SESSION['feature_block_notice']);
+$sandboxElementAdminNotice = $_SESSION['sandbox_element_block_notice'] ?? null;
+unset($_SESSION['sandbox_element_block_notice']);
 ?>
 <script src="<?php echo htmlspecialchars($base_url); ?>assets/js/theme-handler.js?v=<?php echo (int)@filemtime(__DIR__ . '/../assets/js/theme-handler.js'); ?>"></script>
 <header class="top-header" role="banner">
@@ -155,6 +159,50 @@ $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
     </div>
 </header>
 
+<?php if (is_array($pageBlockAdminNotice)): ?>
+<div class="container-fluid px-4 pt-3 feature-block-notice">
+    <div class="alert alert-warning border-0 shadow-sm mb-0" role="status">
+        <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-lock-fill mt-1"></i>
+            <div>
+                <strong>Kategoria jest obecnie wyłączona dla wybranych ról.</strong>
+                <div class="small">
+                    <?php echo htmlspecialchars((string)($pageBlockAdminNotice['category_label'] ?? 'Kategoria')); ?>
+                    · <?php echo htmlspecialchars((string)($pageBlockAdminNotice['moderator_label'] ?? 'Administrator')); ?>
+                    · <?php echo htmlspecialchars((string)($pageBlockAdminNotice['disabled_date'] ?? date('d.m.Y H:i'))); ?>
+                    <?php $noticeRoles = $pageBlockAdminNotice['target_role_labels'] ?? []; ?>
+                    <?php if (is_array($noticeRoles) && $noticeRoles): ?>
+                        · role: <?php echo htmlspecialchars(implode(', ', array_map('strval', $noticeRoles))); ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if (is_array($sandboxElementAdminNotice)): ?>
+<div class="container-fluid px-4 pt-3 sandbox-element-block-notice">
+    <div class="alert alert-info border-0 shadow-sm mb-0" role="status">
+        <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-unlock-fill mt-1"></i>
+            <div>
+                <strong>Element sandboxa jest wyłączony dla wybranych ról, ale masz dostęp administracyjny.</strong>
+                <div class="small">
+                    <?php echo htmlspecialchars((string)($sandboxElementAdminNotice['element_label'] ?? 'Element sandboxa')); ?>
+                    · <?php echo htmlspecialchars((string)($sandboxElementAdminNotice['moderator_label'] ?? 'Administrator')); ?>
+                    · <?php echo htmlspecialchars((string)($sandboxElementAdminNotice['disabled_date'] ?? date('d.m.Y H:i'))); ?>
+                    <?php $sandboxNoticeRoles = $sandboxElementAdminNotice['target_role_labels'] ?? []; ?>
+                    <?php if (is_array($sandboxNoticeRoles) && $sandboxNoticeRoles): ?>
+                        · role: <?php echo htmlspecialchars(implode(', ', array_map('strval', $sandboxNoticeRoles))); ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php
 $isTeacherAreaTopbar = !$isGuestTopbar
     && isset($_SESSION['user_id'])
@@ -170,40 +218,6 @@ $teacherOpsLinks = [
     ['href' => 'teacher/requests.php', 'icon' => 'bi-inbox', 'label' => 'Zgłoszenia', 'files' => ['requests.php']],
 ];
 ?>
-<script>
-(function() {
-    const initDropdowns = function() {
-        if (typeof bootstrap === 'undefined') {
-            window.requestAnimationFrame(initDropdowns);
-            return;
-        }
-
-        document.querySelectorAll('.dropdown').forEach(function(drop) {
-            const menu = drop.querySelector('.dropdown-menu');
-            if (!menu) return;
-
-            drop.addEventListener('show.bs.dropdown', function() {
-                menu.style.display = 'none';
-            });
-
-            drop.addEventListener('shown.bs.dropdown', function() {
-                // Double RAF: wait for Popper to fully position
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(function() {
-                        menu.style.display = '';
-                    });
-                });
-            });
-
-            drop.addEventListener('hide.bs.dropdown', function() {
-                menu.style.display = 'none';
-            });
-        });
-    };
-
-    document.addEventListener('DOMContentLoaded', initDropdowns);
-})();
-</script>
 <nav class="teacher-ops-strip" aria-label="Narzędzia sprawdzianów nauczyciela" data-teacher-ops-strip="1">
     <?php foreach ($teacherOpsLinks as $link): ?>
         <?php $isCurrentTeacherOp = in_array($teacherOpsCurrent, $link['files'], true); ?>

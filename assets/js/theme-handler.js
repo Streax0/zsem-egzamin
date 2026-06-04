@@ -94,6 +94,10 @@
         }
     }
 
+    function setLocalPreference(name, value) {
+        try { window.localStorage.setItem(name, value); } catch (error) {}
+    }
+
     function bodyReady() {
         return !!document.body;
     }
@@ -260,6 +264,50 @@
         setPreference('reduce_motion', enabled ? '1' : '0');
         applySettings();
         window.testPreferenceFeedback?.('Preferencja animacji zapisana.');
+    };
+
+    window.updateDashboardViewSetting = function(view) {
+        const allowed = ['balanced', 'learning', 'compact'];
+        setPreference('dashboard_view', allowed.includes(view) ? view : 'balanced');
+        applyDashboardViewPreference();
+        applySettings();
+        window.testPreferenceFeedback?.('Widok dashboardu zapisany.');
+    };
+
+    window.updateDefaultTestModeSetting = function(mode) {
+        const allowed = ['exam', 'practice', 'single'];
+        setPreference('default_test_mode', allowed.includes(mode) ? mode : 'exam');
+        applyDefaultTestModePreference();
+        applySettings();
+        window.testPreferenceFeedback?.('Domyślny tryb testu zapisany.');
+    };
+
+    window.updateNotifyActivitySetting = function(enabled) {
+        setLocalPreference('notify_new_tests', enabled ? '1' : '0');
+        window.syncSettingsPreferencePanel?.();
+        window.appNotice?.(enabled ? 'Alerty o aktywnościach włączone.' : 'Alerty o aktywnościach wyłączone.', 'success');
+        playUiPreferenceChime();
+    };
+
+    window.updateUiSoundsSetting = function(enabled) {
+        setLocalPreference('ui_sounds', enabled ? '1' : '0');
+        window.syncSettingsPreferencePanel?.();
+        window.appNotice?.(enabled ? 'Efekty dźwiękowe włączone.' : 'Efekty dźwiękowe wyłączone.', 'success');
+        if (enabled) playUiPreferenceChime(true);
+    };
+
+    window.updateExternalNewTabSetting = function(enabled) {
+        setPreference('external_new_tab', enabled ? '1' : '0');
+        applyExternalLinkPreference();
+        applySettings();
+        window.testPreferenceFeedback?.('Preferencja linków zapisana.');
+    };
+
+    window.updateHelpCenterSetting = function(hidden) {
+        setPreference('hide_help_center', hidden ? '1' : '0');
+        applyHelpCenterPreference();
+        applySettings();
+        window.testPreferenceFeedback?.('Preferencja centrum pomocy zapisana.');
     };
 
     window.getUiPreference = getPreference;

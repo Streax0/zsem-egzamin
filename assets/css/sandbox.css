@@ -48,6 +48,62 @@
   box-shadow: 0 22px 44px rgba(37,99,235,.12);
 }
 
+.sandbox-tool-tile.is-disabled,
+.sandbox-tabs span.is-disabled {
+  cursor: not-allowed;
+  opacity: 1;
+  filter: none;
+}
+
+.sandbox-tool-tile.is-disabled {
+  border-color: rgba(245,158,11,.42);
+  background: #fffbeb;
+}
+
+.sandbox-tool-tile.is-disabled:hover {
+  transform: none;
+  border-color: rgba(245,158,11,.42);
+  box-shadow: 0 14px 34px rgba(15,23,42,.06);
+}
+
+.sandbox-tool-tile.is-disabled .sandbox-tool-icon {
+  color: #b45309;
+  background: #fde68a;
+}
+
+.sandbox-tool-disabled-meta {
+  display: grid;
+  gap: .45rem;
+  margin: .15rem 0 .2rem;
+}
+
+.sandbox-tool-disabled-meta div {
+  display: grid;
+  gap: .08rem;
+  padding: .55rem .65rem;
+  border: 1px solid rgba(245,158,11,.26);
+  border-radius: 8px;
+  background: rgba(255,255,255,.68);
+}
+
+.sandbox-tool-disabled-meta dt,
+.sandbox-tool-disabled-meta dd {
+  margin: 0;
+}
+
+.sandbox-tool-disabled-meta dt {
+  color: #92400e;
+  font-size: .68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sandbox-tool-disabled-meta dd {
+  color: #334155;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
 .sandbox-tool-icon {
   width: 48px;
   height: 48px;
@@ -98,6 +154,20 @@
   border: 1px solid rgba(148,163,184,.25);
   color: #334155;
   background: #fff;
+  font-weight: 800;
+  font-size: .86rem;
+}
+
+.sandbox-tabs span.is-disabled {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .65rem .9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,.25);
+  color: #92400e;
+  background: #fffbeb;
+  border-color: rgba(245,158,11,.36);
   font-weight: 800;
   font-size: .86rem;
 }
@@ -198,6 +268,19 @@
   border-color: #1d4ed8;
   background: rgba(37,99,235,.1);
   color: #1d4ed8;
+}
+
+.toolbox-group button[disabled],
+.toolbox-group button[data-sandbox-element-blocked="1"] {
+  cursor: not-allowed;
+  border-color: rgba(245,158,11,.42);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.toolbox-group button[disabled] i,
+.toolbox-group button[data-sandbox-element-blocked="1"] i {
+  color: #b45309;
 }
 
 .logic-toolbar {
@@ -800,6 +883,35 @@ body.dark-mode .router-config-card label,
 body.dark-mode .router-web-top p,
 body.dark-mode .router-summary {
   color: #cbd5e1;
+}
+
+body.dark-mode .sandbox-tool-tile.is-disabled,
+body.dark-mode .sandbox-tabs span.is-disabled,
+body.dark-mode .toolbox-group button[disabled],
+body.dark-mode .toolbox-group button[data-sandbox-element-blocked="1"] {
+  background: #422006;
+  color: #fde68a;
+  border-color: rgba(245,158,11,.48);
+}
+
+body.dark-mode .sandbox-tool-tile.is-disabled .sandbox-tool-icon,
+body.dark-mode .toolbox-group button[disabled] i,
+body.dark-mode .toolbox-group button[data-sandbox-element-blocked="1"] i {
+  background: #78350f;
+  color: #fde68a;
+}
+
+body.dark-mode .sandbox-tool-disabled-meta div {
+  background: rgba(15,23,42,.5);
+  border-color: rgba(245,158,11,.32);
+}
+
+body.dark-mode .sandbox-tool-disabled-meta dt {
+  color: #fbbf24;
+}
+
+body.dark-mode .sandbox-tool-disabled-meta dd {
+  color: #fde68a;
 }
 
 @media (max-width: 1100px) {

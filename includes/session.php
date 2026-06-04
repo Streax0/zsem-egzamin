@@ -28,6 +28,57 @@ function appCspNonce(): string {
     return $nonce;
 }
 
+function appVersionLocalStylesheetHref(string $href): string {
+    $decodedHref = html_entity_decode($href, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $parts = parse_url($decodedHref);
+    if (!is_array($parts)) {
+        return $href;
+    }
+
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    if ($scheme !== '' && !in_array($scheme, ['http', 'https'], true)) {
+        return $href;
+    }
+
+    $host = strtolower((string)($parts['host'] ?? ''));
+    if ($host !== '') {
+        $requestAuthority = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+        $requestParts = $requestAuthority !== '' ? parse_url('http://' . $requestAuthority) : [];
+        $requestHost = is_array($requestParts) ? strtolower((string)($requestParts['host'] ?? '')) : '';
+        if ($requestHost === '' || $host !== $requestHost) {
+            return $href;
+        }
+    }
+
+    $path = (string)($parts['path'] ?? '');
+    $assetPos = strpos($path, 'assets/css/');
+    if ($assetPos === false) {
+        return $href;
+    }
+
+    $assetPath = substr($path, $assetPos);
+    $absolute = dirname(__DIR__) . '/' . $assetPath;
+    if (!is_file($absolute)) {
+        return $href;
+    }
+
+    $query = [];
+    if (!empty($parts['query'])) {
+        parse_str(str_replace('&amp;', '&', (string)$parts['query']), $query);
+    }
+    $query['v'] = (string)filemtime($absolute);
+    $queryString = str_replace('&', '&amp;', http_build_query($query, '', '&', PHP_QUERY_RFC3986));
+    $baseHref = preg_replace('/[?#].*$/', '', $href) ?: $href;
+    $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+    return $baseHref . '?' . $queryString . $fragment;
+}
+
+function appVersionLocalStylesheetHrefs(string $buffer): string {
+    return preg_replace_callback('/\bhref=(["\'])([^"\']*assets\/css\/[^"\']+\.css(?:\?[^"\']*)?(?:#[^"\']*)?)\1/i', static function ($matches): string {
+        return 'href=' . $matches[1] . appVersionLocalStylesheetHref($matches[2]) . $matches[1];
+    }, $buffer) ?? $buffer;
+}
+
 function appStartCspNonceBuffer(string $nonce): void {
     if (!empty($GLOBALS['app_csp_nonce_buffer_started'])) {
         return;
@@ -35,8 +86,9 @@ function appStartCspNonceBuffer(string $nonce): void {
     $GLOBALS['app_csp_nonce_buffer_started'] = true;
     ob_start(static function ($buffer) use ($nonce) {
         if (stripos($buffer, '<script') === false && stripos($buffer, '<style') === false) {
-            return $buffer;
+            return appVersionLocalStylesheetHrefs($buffer);
         }
+        $buffer = appVersionLocalStylesheetHrefs($buffer);
         $attr = ' nonce="' . htmlspecialchars($nonce, ENT_QUOTES, 'UTF-8') . '"';
         $buffer = preg_replace('/<script(?![^>]*\bnonce\s*=)/i', '<script' . $attr, $buffer);
         return preg_replace('/<style(?![^>]*\bnonce\s*=)/i', '<style' . $attr, $buffer);

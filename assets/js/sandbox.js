@@ -1,6 +1,7 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   const blockedWords = ['kurw', 'chuj', 'huj', 'pierd', 'jeb', 'spier', 'wypier', 'cwel', 'dziwk', 'kutas', 'skurw', 'zjeb', 'debil', 'idiot', 'szmata', 'dupa', 'ruchac', 'fuck', 'shit', 'bitch', 'cunt', 'asshole', 'bastard', 'retard', 'whore', 'slut', 'nigg', 'nazi', 'hitler', 'puta', 'puto', 'mierda', 'cabron', 'scheisse', 'arschloch', 'putain', 'merde', 'blyat', 'pidor'];
+  const sandboxBlockedElements = window.sandboxBlockedElements || {};
 
   function normalizeText(value) {
     return String(value || '')
@@ -68,11 +69,33 @@
       hint.className = `small text-${tone}`;
     };
     const componentFromButton = (button) => {
+      if (button.disabled || button.dataset.sandboxElementBlocked === '1') return null;
       if (button.dataset.logicInput) return { type: 'INPUT', label: button.dataset.logicInput };
       if (button.dataset.logicConst) return { type: button.dataset.logicConst === '1' ? 'CONST1' : 'CONST0', label: button.dataset.logicConst };
       if (button.dataset.gate) return { type: button.dataset.gate, label: button.dataset.gate };
       if (button.dataset.output) return { type: button.dataset.output, label: button.dataset.output };
       return null;
+    };
+    const logicElementKeyFromButton = (button) => {
+      if (button.dataset.logicInput) return `logic.input_${String(button.dataset.logicInput).toLowerCase()}`;
+      if (button.dataset.logicConst) return `logic.const_${button.dataset.logicConst === '1' ? '1' : '0'}`;
+      if (button.dataset.gate) return `logic.gate_${String(button.dataset.gate).toLowerCase()}`;
+      if (button.dataset.output) return `logic.output_${String(button.dataset.output).toLowerCase() === 'table' ? 'table' : 'led'}`;
+      return '';
+    };
+    const disableBlockedLogicButton = (button) => {
+      const key = logicElementKeyFromButton(button);
+      if (!key) return false;
+      button.dataset.sandboxElementKey = key;
+      const block = sandboxBlockedElements[key];
+      if (!block) return false;
+      button.disabled = true;
+      button.draggable = false;
+      button.dataset.sandboxElementBlocked = '1';
+      button.title = `${block.title || 'Element wyłączony'}${block.body ? ' - ' + block.body : ''}`;
+      const label = button.textContent.trim();
+      button.innerHTML = `<i class="bi bi-lock"></i>${escapeHtml(label)}`;
+      return true;
     };
     const syncBoardSize = () => {
       const extra = Math.max(0, state.nodes.length - 10);
@@ -275,6 +298,11 @@
     };
 
     const seedDemo = () => {
+      const demoBlocked = ['logic.input_a', 'logic.input_b', 'logic.gate_and', 'logic.output_led'].some((key) => sandboxBlockedElements[key]);
+      if (demoBlocked) {
+        setHint('Demo używa elementu wyłączonego przez administrację.', 'warning');
+        return;
+      }
       state.nodes = [];
       state.wires = [];
       state.pending = null;
@@ -380,6 +408,7 @@
     });
 
     document.querySelectorAll('[data-logic-input], [data-logic-const], [data-gate], [data-output]').forEach((button) => {
+      if (disableBlockedLogicButton(button)) return;
       button.draggable = true;
       button.addEventListener('click', () => {
         const component = componentFromButton(button);
