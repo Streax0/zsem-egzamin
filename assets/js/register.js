@@ -4,11 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const usernameInput = document.getElementById('regUsername');
   const usernameFeedback = document.getElementById('usernameFeedback');
   const generatedUsernamePreview = document.getElementById('generatedUsernamePreview');
-  const firstNameInput = document.getElementById('first_name');
-  const lastNameInput = document.getElementById('last_name');
   const emailInput = document.getElementById('email');
   const emailFeedback = document.getElementById('emailFeedback');
-  const classYear = document.getElementById('classYear');
   const classSuffix = document.getElementById('classSuffix');
   const applyTeacher = document.getElementById('applyTeacher');
   const teacherWrap = document.getElementById('teacherMotivationWrap');
@@ -47,34 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
     syncPasswordRules();
   }
 
-  const usernameSlug = (value, fallback = 'uczen') => {
-    const polish = {
-      ą: 'a', ć: 'c', ę: 'e', ł: 'l', ń: 'n', ó: 'o', ś: 's', ź: 'z', ż: 'z',
-      Ą: 'a', Ć: 'c', Ę: 'e', Ł: 'l', Ń: 'n', Ó: 'o', Ś: 's', Ź: 'z', Ż: 'z'
-    };
-    const mapped = String(value || '').replace(/[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g, (char) => polish[char] || char);
-    const normalized = mapped.normalize ? mapped.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : mapped;
-    const slug = normalized.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    return slug.length >= 2 ? slug : fallback;
-  };
-
   const previewGeneratedUsername = () => {
     if (!generatedUsernamePreview || !usernameInput) return;
-    if (usernameInput.value.trim()) {
-      generatedUsernamePreview.textContent = 'Użyjemy wpisanej nazwy, jeśli jest dostępna.';
-      return;
-    }
-    const first = usernameSlug(firstNameInput?.value || '', 'uczen');
-    const lastInitial = usernameSlug(lastNameInput?.value || '', 'x').slice(0, 1) || 'x';
-    const classLabel = `${classYear?.value || ''}${(classSuffix?.value || '').toLowerCase()}`.replace(/[^a-z0-9]+/g, '');
-    const tail = [lastInitial, classLabel].filter(Boolean).join('-');
-    const suffix = '482';
-    const reserved = tail.length + suffix.length + 2;
-    const maxFirstLength = Math.max(3, 16 - reserved);
-    const firstPart = first.slice(0, maxFirstLength);
-    const maxBaseLength = 16 - suffix.length - 1;
-    const base = `${firstPart}-${tail}`.replace(/^-|-$/g, '').slice(0, maxBaseLength).replace(/-$/g, '') || 'uczen';
-    generatedUsernamePreview.textContent = `Nie wpisujesz loginu? Przykład: ${base}-${suffix}. Dokładny numer dobierze serwer.`;
+    generatedUsernamePreview.textContent = usernameInput.value.trim()
+      ? 'Sprawdzimy dostępność tego nicku.'
+      : 'Wpisz nick. Jeśli jest zajęty, pokażemy wolne propozycje.';
   };
 
   const renderUsernameSuggestions = (target, suggestions = []) => {
@@ -108,8 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(timers.get(type));
       if (!target) return;
       if (!value) {
-        target.textContent = type === 'username' ? 'Puste pole = login wygenerowany automatycznie.' : '';
-        target.className = 'small mt-1 text-muted';
+        target.textContent = type === 'username' ? 'Nazwa użytkownika jest wymagana.' : '';
+        target.className = type === 'username' ? 'small mt-1 feedback-error' : 'small mt-1 text-muted';
         return;
       }
       if (!localOk) {
@@ -142,10 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
       previewGeneratedUsername();
       const ok = /^[A-Za-z0-9_.-]{3,16}$/.test(username);
       checkAvailability('username', username, usernameFeedback, ok, 'Login: 3-16 znaków, litery, cyfry, kropka, myślnik lub podkreślenie.');
-    });
-    [firstNameInput, lastNameInput, classYear, classSuffix].forEach((input) => {
-      input?.addEventListener('input', previewGeneratedUsername);
-      input?.addEventListener('change', previewGeneratedUsername);
     });
     usernameInput.dispatchEvent(new Event('input'));
   }

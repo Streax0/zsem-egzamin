@@ -842,7 +842,7 @@ $socialPlatforms = [
                                 <input type="file" name="avatar" id="profileAvatarInput" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp" required>
                                 <button class="btn btn-sm btn-outline-primary rounded-pill px-3" type="submit"><i class="bi bi-image me-1"></i>Zmień zdjęcie</button>
                             </div>
-                            <div class="form-text">JPG, PNG, GIF albo WebP. Zapis automatycznie do WebP, maks. 2 MB.</div>
+                            <div class="form-text">JPG, PNG albo WebP. Maks. 2 MB przed wysłaniem; zapis WebP na serwerze nie przekracza 25 KB.</div>
                         </form>
                         <?php if ($avatarSrc): ?>
                         <form action="actions/update_profile.php" method="POST" class="mt-2 profile-edit-tools" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć zdjęcie profilowe?')">
@@ -1188,7 +1188,7 @@ $socialPlatforms = [
                                 ? ($result['label'] ?? $result['mode'] ?? $result['test_mode'] ?? 'exam')
                                 : ($result['label'] ?? $resultKind);
                             $modeLabels = [
-                                'exam' => ['name' => 'Egzaminacyjny', 'color' => 'indigo'],
+                                'exam' => ['name' => 'Test', 'color' => 'indigo'],
                                 'practice' => ['name' => 'Ćwiczenia', 'color' => 'emerald'],
                                 'single' => ['name' => 'Pojedyncze', 'color' => 'sky'],
                                 'duel' => ['name' => $resultLabel, 'color' => 'rose'],

@@ -146,7 +146,7 @@
         const isHarvest = !!data.isHarvest;
         const accent = isHarvest ? '#fb923c' : (passed ? '#34d399' : '#f87171');
         const accentDeep = isHarvest ? '#ea580c' : (passed ? '#059669' : '#dc2626');
-        const modeName = data.modeName || 'Tryb CKE';
+        const modeName = data.modeName || 'Egzamin';
 
         const bg = ctx.createLinearGradient(0, 0, W, H);
         bg.addColorStop(0, '#0b1220');
@@ -237,7 +237,7 @@
         const startX = 56;
         const row1Y = 418;
         const row2Y = row1Y + tileH + gap;
-        drawInfoTile(ctx, startX, row1Y, tileW, tileH, 'Tryb CKE', modeName, '#60a5fa');
+        drawInfoTile(ctx, startX, row1Y, tileW, tileH, 'Tryb', modeName, '#60a5fa');
         drawInfoTile(ctx, startX + tileW + gap, row1Y, tileW, tileH, 'Poprawne', `${data.correctAnswers} / ${data.totalQuestions}`, '#34d399');
         drawInfoTile(ctx, startX + (tileW + gap) * 2, row1Y, tileW, tileH, 'Czas trwania', data.timeSpent, '#a78bfa');
         drawInfoTile(ctx, startX, row2Y, tileW, tileH, 'Data wykonania', data.testDate, '#38bdf8');

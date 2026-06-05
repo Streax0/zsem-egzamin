@@ -122,19 +122,26 @@ var currentSessionKey = '2025-cze';
    PDF PANEL
 ══════════════════════════════════════════ */
 var PDF_URLS = {
-  'cke': 'data/pdfs/inf02_cke_2026.pdf',
-  '2025-cze': 'data/pdfs/inf02_2025_cze.pdf',
-  '2024-cze': 'data/pdfs/inf02_2024_cze.pdf',
-  '2024-sty': 'data/pdfs/inf02_2024_sty.pdf',
-  '2023-cze': 'data/pdfs/inf02_2023_cze.pdf',
-  '2023-sty': 'data/pdfs/inf02_2023_sty.pdf',
-  '2022-cze': 'data/pdfs/inf02_2022_cze.pdf',
-  '2022-sty': 'data/pdfs/inf02_2022_sty.pdf',
-  '2021-cze': 'data/pdfs/inf02_2021_cze.pdf'
+  'cke': 'sandbox_network_pdf.php?session=cke',
+  '2025-cze': 'sandbox_network_pdf.php?session=2025-cze',
+  '2024-cze': 'sandbox_network_pdf.php?session=2024-cze',
+  '2024-sty': 'sandbox_network_pdf.php?session=2024-sty',
+  '2023-cze': 'sandbox_network_pdf.php?session=2023-cze',
+  '2023-sty': 'sandbox_network_pdf.php?session=2023-sty',
+  '2022-cze': 'sandbox_network_pdf.php?session=2022-cze',
+  '2022-sty': 'sandbox_network_pdf.php?session=2022-sty',
+  '2021-cze': 'sandbox_network_pdf.php?session=2021-cze'
 };
+function resolveLabAssetUrl(path) {
+  try {
+    return new URL(path, window.location.href).href;
+  } catch(e) {
+    return path;
+  }
+}
 function loadPDF(key) {
   currentSessionKey = key;
-  var url = PDF_URLS[key] || PDF_URLS['2025-cze'];
+  var url = resolveLabAssetUrl(PDF_URLS[key] || PDF_URLS['2025-cze']);
   document.getElementById('pdf-loading').classList.remove('hidden');
   var frame = document.getElementById('pdf-frame');
   if (frame) {
@@ -213,7 +220,6 @@ function simulatedActionMessage(label) {
   var text = label.toLowerCase();
   if (/help|pomoc/.test(text)) return 'Pomoc tej funkcji jest częścią symulatora.';
   if (/about|informacje/.test(text)) return 'Informacje o urządzeniu są widoczne w nagłówku panelu.';
-  if (/log ?out|logout|wylog/.test(text)) return 'Wylogowanie zasymulowane. Sesja labu zostaje aktywna.';
   if (/refresh|odświe/.test(text)) return 'Widok odświeżony.';
   if (/detect|wykry/.test(text)) return 'Automatyczne wykrywanie zasymulowane.';
   if (/generate|generuj/.test(text)) return 'Wartość wygenerowana w symulatorze.';
@@ -222,6 +228,56 @@ function simulatedActionMessage(label) {
   if (/load/.test(text)) return 'Dane wczytane do symulowanego widoku.';
   if (/save|apply|ok/.test(text)) return 'Ustawienia zapisane w symulatorze.';
   return 'Symulacja: ' + label;
+}
+function isStaticLogoutAction(label) {
+  return /^(log\s*out|logout|wyloguj|wylogowanie)$/i.test(String(label || '').trim());
+}
+function dynamicFieldStorageKey(el) {
+  var key = '';
+  if (el) {
+    key = el.id || (el.type === 'radio' && el.name ? el.name + ':' + el.value : el.name);
+  }
+  if (!key) return '';
+  return 'inf02_field_' + currentSessionKey + '_' + key;
+}
+function rememberDynamicField(el) {
+  var key = dynamicFieldStorageKey(el);
+  if (!key || el.readOnly || el.disabled) return;
+  try {
+    localStorage.setItem(key, (el.type === 'checkbox' || el.type === 'radio') ? (el.checked ? '1' : '0') : el.value);
+  } catch(e) {}
+}
+function restoreDynamicFields(scope) {
+  if (!scope) return;
+  scope.querySelectorAll('input, select, textarea').forEach(function(el) {
+    var key = dynamicFieldStorageKey(el);
+    if (!key || el.readOnly) return;
+    try {
+      var saved = localStorage.getItem(key);
+      if (saved == null) return;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        el.checked = saved === '1';
+      } else {
+        el.value = saved;
+      }
+    } catch(e) {}
+  });
+}
+function bindDynamicFieldMemory() {
+  var handle = function(e) {
+    if (e.target && e.target.matches && e.target.matches('input, select, textarea')) {
+      rememberDynamicField(e.target);
+    }
+  };
+  document.addEventListener('input', handle);
+  document.addEventListener('change', handle);
+  ['ccontent-router','ccontent-switch','tpcontent','mt-wb-content','mt-wf-content'].forEach(function(id) {
+    var root = document.getElementById(id);
+    if (!root || !window.MutationObserver) return;
+    new MutationObserver(function() {
+      window.requestAnimationFrame(function() { restoreDynamicFields(root); });
+    }).observe(root, {childList:true, subtree:true});
+  });
 }
 function bindNetworkLabFallbackActions() {
   document.addEventListener('click', function(e) {
@@ -232,8 +288,11 @@ function bindNetworkLabFallbackActions() {
     var href = el.getAttribute('href');
     if (el.tagName === 'A' && href && href !== '#') return;
     if (el.classList.contains('dev-tab')) return;
-    e.preventDefault();
     var label = actionText(el);
+    if (isStaticLogoutAction(label)) return;
+    e.preventDefault();
+    var form = el.closest('form');
+    if (form) form.querySelectorAll('input, select, textarea').forEach(rememberDynamicField);
     el.setAttribute('data-sim-action', label);
     toast(simulatedActionMessage(label));
   });
@@ -622,7 +681,7 @@ function renderRouterPage(page) {
     case 'adm_backup':     el.innerHTML = pageAdmBackup(); break;
     case 'adm_upgrade':    el.innerHTML = pageAdmUpgrade(); break;
     case 'adm_reboot':     el.innerHTML = pageAdmReboot(); break;
-    default: el.innerHTML = '<h2 class="cisco-pg-title">'+page+'</h2>';
+    default: el.innerHTML = '<h2 class="cisco-pg-title">'+labEsc(page)+'</h2>';
   }
 }
 
@@ -1469,7 +1528,7 @@ function renderSwitchPage(page) {
     case 'sw_portmirror':    el.innerHTML = pageSWportmirror(); break;
     case 'sw_loop':          el.innerHTML = pageSWloop(); break;
     case 'sw_cable':         el.innerHTML = pageSWcable(); attachSWcable(); break;
-    default: el.innerHTML = '<h2 class="cisco-pg-title">'+page+'</h2>';
+    default: el.innerHTML = '<h2 class="cisco-pg-title">'+labEsc(page)+'</h2>';
   }
 }
 
@@ -2739,7 +2798,7 @@ function tpPageImbARP(hp) {
     +'<div style="padding:8px 14px 4px;font-family:Arial;font-size:12px">'
     +'<table class="tp-tbl">'
     +'<tr><th>ID</th><th>MAC Address</th><th>IP Address</th><th>Bound</th><th>Load</th></tr>'
-    +'<tr><td>1</td><td>A4-2B-8C-12-34-55</td><td>'+(TPRS.lan.ip||'192.168.0.1')+'</td><td>No</td><td><a href="#" style="color:#4CAF50;font-family:Arial;font-size:12px" onclick="return false">Load</a></td></tr>'
+    +'<tr><td>1</td><td>A4-2B-8C-12-34-55</td><td>'+(TPRS.lan.ip||'192.168.0.1')+'</td><td>No</td><td><a href="#" style="color:#4CAF50;font-family:Arial;font-size:12px">Load</a></td></tr>'
     +'</table>'
     +'<button class="tp-save-btn" style="display:inline-block;margin-top:8px;padding:3px 16px" onclick="renderTpPage(\'tp_imb_arp\')">Refresh</button>'
     +'</div>';
@@ -2992,9 +3051,15 @@ function tpPageSysStats(hp) {
 
 /* ── Generic fallback ── */
 function tpPageGeneric(page, hp) {
-  tpHelp(hp, page, '<p>No help available for this page.</p>');
-  return tpTitle(page)
-    +'<div style="padding:16px 14px;font-family:Arial;font-size:12px;color:#888">Page not found.</div>';
+  var title = String(page || 'Page').replace(/^tp_/, '').replace(/_/g, ' ');
+  var safeId = String(page || 'page').replace(/[^a-z0-9_-]/gi, '_');
+  tpHelp(hp, labEsc(title), '<p>This simulated TP-Link page accepts local configuration changes and stores them in this lab session.</p>');
+  return tpTitle(labEsc(title))
+    +'<div class="tp-form"><table>'
+    +'<tr><td class="lbl">Status:</td><td><select id="tp-generic-status-'+safeId+'"><option>Enabled</option><option>Disabled</option></select></td></tr>'
+    +'<tr><td class="lbl">Name:</td><td><input id="tp-generic-name-'+safeId+'" type="text" value="'+labEsc(title)+'"></td></tr>'
+    +'<tr><td class="lbl">Value:</td><td><input id="tp-generic-value-'+safeId+'" type="text" value=""></td></tr>'
+    +'</table><button class="tp-save-btn">Save</button></div>';
 }
 
 /* ── Update resetAll to also reset TPRS ── */
@@ -3021,7 +3086,7 @@ resetAll = function() {
 var _origLoadPDF = loadPDF;
 loadPDF = function(key) {
   currentSessionKey = key;
-  var url = PDF_URLS[key] || PDF_URLS['2025-cze'];
+  var url = resolveLabAssetUrl(PDF_URLS[key] || PDF_URLS['2025-cze']);
   document.getElementById('pdf-loading').classList.remove('hidden');
   var frame = document.getElementById('pdf-frame');
   if (frame) {
@@ -3038,6 +3103,7 @@ loadPDF = function(key) {
 /* ══════════════════════════════════════════
    INIT
 ══════════════════════════════════════════ */
+bindDynamicFieldMemory();
 buildNav(RMENU, document.getElementById('cnav-router'), renderRouterPage, 'getstart');
 buildNav(SMENU, document.getElementById('cnav-switch'), renderSwitchPage, 'sw_sysinfo');
 buildTpNav(TPMENU, document.getElementById('tpnav'), renderTpPage, 'tp_status');
@@ -3974,7 +4040,7 @@ function mtRunPing(wf) {
   var res = document.getElementById(resId);
   if (!res) return;
   if (!dst.trim()) { res.innerHTML = 'Wprowadź adres docelowy.'; return; }
-  res.innerHTML = 'Pingowanie ' + dst + '...';
+  res.innerHTML = 'Pingowanie ' + labEsc(dst) + '...';
   var lines = [];
   var i = 0;
   var t = setInterval(function() {
@@ -4700,10 +4766,11 @@ function mtToolOutput(id, html) {
 window.mtRunTrace = function(isWf) {
   var target = document.getElementById(isWf ? 'mt-wf-trace-dst' : 'mt-wb-trace-dst');
   var host = (target && target.value.trim()) || '8.8.8.8';
+  var safeHost = labEsc(host);
   var rows = [
     ' 1  192.168.88.1  1ms  1ms  1ms',
     ' 2  10.0.0.1      5ms  5ms  6ms',
-    ' 3  ' + host + '  18ms 19ms 18ms'
+    ' 3  ' + safeHost + '  18ms 19ms 18ms'
   ];
   mtToolOutput(isWf ? 'mt-wf-trace-result' : 'mt-trace-result', rows.join('<br>'));
   toast('Traceroute zakończony');

@@ -66,45 +66,6 @@ function registrationUsernameSlug(string $value, string $fallback = 'uczen'): st
     return $slug !== '' ? $slug : 'uczen';
 }
 
-function registrationGeneratedUsername(PDO $pdo, string $firstName, string $lastName, ?array $classParts = null): string {
-    // Format: imie-inicjal-klasa-numer, for example jan-k-3ti-482.
-    $first = registrationUsernameSlug($firstName, 'uczen');
-    $lastSlug = registrationUsernameSlug($lastName, 'x');
-    $lastInitial = substr($lastSlug, 0, 1) ?: 'x';
-    $classLabel = strtolower((string)($classParts['label'] ?? ''));
-    $classLabel = preg_replace('/[^a-z0-9]+/', '', $classLabel) ?: '';
-
-    for ($i = 0; $i < 70; $i++) {
-        $suffix = $i < 55 ? (string)random_int(100, 999) : bin2hex(secureRandomBytes(2));
-        $tailParts = array_values(array_filter([$lastInitial, $classLabel], fn($part) => $part !== ''));
-        $tail = implode('-', $tailParts);
-        $reserved = strlen($tail) + strlen($suffix) + 2;
-        $maxFirstLength = max(3, 16 - $reserved);
-        $firstPart = substr($first, 0, $maxFirstLength);
-        $base = trim($firstPart . '-' . $tail, '-');
-        $maxBaseLength = 16 - strlen($suffix) - 1;
-        $base = trim(substr($base, 0, $maxBaseLength), '-');
-        if (strlen($base) < 3 || (function_exists('containsProfanity') && containsProfanity($base))) {
-            $base = 'uczen';
-        }
-
-        $candidate = $base . '-' . $suffix;
-        if (!preg_match('/^[A-Za-z0-9_.-]{3,16}$/', $candidate)) {
-            continue;
-        }
-        if (function_exists('containsProfanity') && containsProfanity($candidate)) {
-            continue;
-        }
-        $stmt = $pdo->prepare('SELECT 1 FROM users WHERE username = ? LIMIT 1');
-        $stmt->execute([$candidate]);
-        if (!$stmt->fetchColumn()) {
-            return $candidate;
-        }
-    }
-
-    return 'uczen-' . bin2hex(secureRandomBytes(4));
-}
-
 function registrationUsernameSuggestions(PDO $pdo, string $seed, int $count = 2): array {
     $count = max(1, min(5, $count));
     $raw = trim($seed);
@@ -2507,10 +2468,10 @@ function normalizeHistoryMode($mode, array $row = []): string {
 function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
     $items = [];
     $modeLabels = [
-        'exam' => 'Egzamin',
+        'exam' => 'Test',
         'practice' => 'Ćwiczenia',
         'single' => 'Jedno pytanie',
-        'exam_simulator' => 'Tryb CKE',
+        'exam_simulator' => 'Egzamin',
     ];
     foreach (getTestResults($pdo, $userId, $limit) as $row) {
         $mode = normalizeHistoryMode($row['mode'] ?? $row['test_type'] ?? 'exam', $row);
@@ -3531,10 +3492,10 @@ function getActiveTestSummary(?array $test): array {
         return [];
     }
     $modeLabels = [
-        'exam' => 'Egzamin',
+        'exam' => 'Test',
         'practice' => 'Ćwiczenia',
         'single' => 'Jedno pytanie',
-        'exam_simulator' => 'Tryb CKE',
+        'exam_simulator' => 'Egzamin',
     ];
     $mode = (string)($test['mode'] ?? 'exam');
     $config = is_array($test['config'] ?? null) ? $test['config'] : [];

@@ -317,7 +317,7 @@ $settingsHealth = [
                                         <div class="col-12">
                                             <label class="form-label">Zdjęcie profilowe</label>
                                             <input type="file" name="avatar" class="form-control" accept="image/jpeg,image/png,image/webp">
-                                            <div class="form-text">JPG/PNG/WebP, maks. 2 MB. Zmiana raz na miesiąc; obraz jest filtrowany i zapisywany jako WebP.</div>
+                                            <div class="form-text">JPG/PNG/WebP, maks. 2 MB przed wysłaniem. Na serwerze avatar jest filtrowany, kompresowany do WebP i nie przekracza 25 KB.</div>
                                         </div>
                                         <div class="col-12 mt-4">
                                             <button type="submit" class="btn btn-primary px-4">

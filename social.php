@@ -851,7 +851,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php endif; ?>
                         </div>
 
-                        <!-- Right: Invites & Suggestions -->
+                        <!-- Right: Invites -->
                         <div class="col-lg-4 social-sidebar">
                             <!-- Pending Invites (Received) -->
                             <div class="dashboard-panel mb-5">
@@ -940,6 +940,9 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             <?php endif; ?>
 
+                        </div>
+
+                        <div class="col-lg-8 social-insights-main">
                             <div class="social-insights-grid mb-5">
                             <div class="dashboard-panel mb-5 social-activity-card">
                                 <h5 class="fw-800 mb-4"><i class="bi bi-activity text-success me-2"></i>Ostatnia aktywność znajomych</h5>

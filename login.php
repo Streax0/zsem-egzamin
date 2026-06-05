@@ -223,8 +223,8 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
             <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             
             <div class="mb-4">
-                <label class="form-label" for="login_username">Użytkownik lub E-mail</label>
-                <input type="text" name="username" id="login_username" class="form-control" placeholder="Twój login" value="<?= htmlspecialchars($username) ?>" required autofocus>
+                <label class="form-label" for="login_username">Login lub e-mail</label>
+                <input type="text" name="username" id="login_username" class="form-control" placeholder="login albo adres e-mail" value="<?= htmlspecialchars($username) ?>" required autofocus>
             </div>
 
             <div class="mb-4 position-relative">

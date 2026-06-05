@@ -518,7 +518,7 @@ if ($test) {
     <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $mode === 'exam' ? 'Egzamin' : 'Test' ?> – System Edukacyjny INF.02</title>
+    <title><?= $mode === 'exam_simulator' ? 'Egzamin' : ($mode === 'exam' ? 'Test' : 'Test') ?> – System Edukacyjny INF.02</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1743,7 +1743,7 @@ if ($test) {
     <div class="dashboard-panel animate-in premium-setup-container">
         <div class="panel-header border-bottom pb-3 mb-4">
             <h3 class="mb-2 fw-extrabold text-primary d-flex align-items-center gap-2">
-                <i class="bi bi-pc-display-horizontal"></i>Tryb CKE
+                <i class="bi bi-pc-display-horizontal"></i>Egzamin
             </h3>
             <p class="text-muted mb-0">Oficjalny tryb: 40 pytań, 60 minut, próg 20 poprawnych odpowiedzi.</p>
         </div>
@@ -1848,7 +1848,7 @@ if ($test) {
                     <a href="test.php?mode=exam_simulator&setup=1&new=1" class="exam-sim-launch-card">
                         <span>
                             <span class="d-flex align-items-center gap-2 fw-bold fs-5">
-                                Tryb testu CKE - symulator egzaminu
+                                Egzamin - symulator CKE
                                 <i class="bi bi-info-circle-fill fs-6"></i>
                             </span>
                             <span class="d-block text-muted mt-1">

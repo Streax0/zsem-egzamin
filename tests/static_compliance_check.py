@@ -545,10 +545,11 @@ def test_cke_mode_labels_and_no_ckz_copy() -> None:
         and not path.relative_to(ROOT).as_posix().startswith(("tests/", "scratch/"))
     )
     assert "CKZ" not in combined and "ckz" not in combined.lower(), "CKZ copy remains in app code"
-    assert_contains("includes/functions.php", "'exam_simulator' => 'Tryb CKE'")
-    assert_contains("result.php", "'exam_simulator' => ['name' => 'Tryb CKE'")
-    assert_contains("index.php", "'exam_simulator' => ['label' => 'Tryb CKE'")
-    assert_contains("test.php", "Tryb testu CKE", "Tryb CKE")
+    assert "Tryb CKE" not in combined, "old CKE mode label remains in app code"
+    assert_contains("includes/functions.php", "'exam' => 'Test'", "'exam_simulator' => 'Egzamin'")
+    assert_contains("result.php", "'exam' => ['name' => 'Test'", "'exam_simulator' => ['name' => 'Egzamin'")
+    assert_contains("index.php", "'exam' => ['label' => 'Test'", "'exam_simulator' => ['label' => 'Egzamin'")
+    assert_contains("test.php", "Egzamin - symulator CKE", ">Egzamin")
 
 
 def test_external_cdn_resources_have_sri() -> None:
@@ -644,6 +645,11 @@ def test_release_teacher_generator_luki_v17_surface() -> None:
         "body.dark-mode .generator-preset",
         "body.dark-mode.pdf-generator-page .form-control",
         "Próbny egzamin zawodowy",
+        "worksheet-student-header",
+        "worksheet-question-number",
+        "worksheet-points-total",
+        "worksheetTotalPoints",
+        "background-size:18px 18px",
     )
     assert_contains(
         "luki_panel.php",
@@ -682,13 +688,21 @@ def test_pdf_final_cke_history_copy_and_launch_card() -> None:
 def test_pdf_final_flashcards_surface_and_teacher_requests() -> None:
     assert_contains(
         "flashcards.php",
+        "assets/css/flashcards.css",
+        "assets/js/flashcards.js",
         "flashcard-request-form",
         "csrfTokenField('flashcard_request')",
         "createAdminRequest($pdo",
         "'flashcard_request'",
-        "qualificationProgress",
         "data-flashcard-progress",
         "flashcard-shortcuts",
+    )
+    assert_contains(
+        "assets/js/flashcards.js",
+        "function qualificationProgress",
+        "window.zsemFlashcards",
+        "zsem.flashcards.progress.v2",
+        "data-flashcard-load-more",
     )
     content = read("flashcards.php")
     assert "customKey" not in content
@@ -736,30 +750,41 @@ def test_pdf_final_explanations_settings_teacher_avatar() -> None:
         "teacher-ops-strip-current",
         "overflow-x: auto",
     )
+    assert_contains(
+        "actions/update_profile.php",
+        "AVATAR_MAX_BYTES = 25600",
+        "saveAvatarWebpWithinLimit",
+        "filesize($dest) <= AVATAR_MAX_BYTES",
+        "25 KB",
+    )
+    assert_contains("settings.php", "25 KB")
+    assert_contains("profile.php", "25 KB")
 
 
 def test_v18_registration_password_autologin_and_suggestions() -> None:
     assert_contains(
         "register.php",
-        "registrationGeneratedUsername($pdo, $first_name, $last_name, $classParts)",
+        "Nazwa użytkownika jest wymagana.",
+        "registrationUsernameSuggestions($pdo, $username, 3)",
         "registerCurrentUserSession($pdo, (int)$newUserId)",
         "header('Location: index.php')",
     )
     assert_contains(
         "includes/functions.php",
         "function registrationUsernameSlug",
-        "function registrationGeneratedUsername",
-        "imie-inicjal-klasa-numer",
-        "$lastInitial",
+        "function registrationUsernameSuggestions",
     )
+    assert "function registrationGeneratedUsername" not in read("includes/functions.php")
     register_content = read("register.php")
+    assert "registrationGeneratedUsername($pdo" not in register_content
     assert "Puste = imię.nazwisko" not in register_content
     assert "registrationUsernameBase($first_name, $last_name)" not in register_content
     assert "'user_' . bin2hex(secureRandomBytes(4))" not in register_content
     assert "Puste = losowy prywatny login" not in register_content
+    assert "Puste pole = login wygenerowany automatycznie" not in register_content
     assert_contains(
         "ajax/check_registration_availability.php",
-        "registrationUsernameSuggestions",
+        "registrationUsernameSuggestions($pdo, $value, 3)",
         "'suggestions'",
     )
     assert_contains(
@@ -768,6 +793,7 @@ def test_v18_registration_password_autologin_and_suggestions() -> None:
         "generatedUsernamePreview",
         "renderUsernameSuggestions",
         "suggestions.forEach",
+        "Nazwa użytkownika jest wymagana.",
         "Znak specjalny zwiększa siłę hasła, ale nie jest wymagany.",
     )
     assert "Hasło musi zawierać znak specjalny." not in read("includes/functions.php")
@@ -821,7 +847,7 @@ def test_v18_pdf_remaining_auth_and_performance_surface() -> None:
     )
     assert_contains(
         "assets/js/result-share-card.js",
-        "Tryb CKE",
+        "Egzamin",
         "data.modeName",
     )
     assert_contains(
@@ -855,6 +881,8 @@ def test_v18_router_flashcards_social_license() -> None:
     )
     assert_contains(
         "flashcards.php",
+        "assets/css/flashcards.css",
+        "assets/js/flashcards.js",
         "flashcard-qualification-grid",
         "data-flashcard-load-more",
         "flashcard-study-builder",
@@ -863,10 +891,18 @@ def test_v18_router_flashcards_social_license() -> None:
     )
     assert_contains(
         "social.php",
+        "social-insights-main",
+        "Right: Invites",
         "social-insights-grid",
         "suggested-users-card",
         "social-activity-card",
     )
+    assert_contains(
+        "assets/css/style.css",
+        ".exam-setup-compact-col .time-slider-panel.open",
+        'input[type="range"].custom-range-slider',
+    )
+    assert_contains("test.php", 'class="custom-range-slider"', "time-slider-panel")
     assert_contains(
         "LICENSE",
         "non-profit",
@@ -906,19 +942,20 @@ def test_network_lab_inf02_scope_and_local_assets() -> None:
     )
     assert_contains(
         "assets/js/network-lab.js",
-        "'2025-cze': 'data/pdfs/inf02_2025_cze.pdf'",
-        "'2024-cze': 'data/pdfs/inf02_2024_cze.pdf'",
-        "'2024-sty': 'data/pdfs/inf02_2024_sty.pdf'",
-        "'2023-cze': 'data/pdfs/inf02_2023_cze.pdf'",
-        "'2023-sty': 'data/pdfs/inf02_2023_sty.pdf'",
-        "'2022-cze': 'data/pdfs/inf02_2022_cze.pdf'",
-        "'2022-sty': 'data/pdfs/inf02_2022_sty.pdf'",
-        "'2021-cze': 'data/pdfs/inf02_2021_cze.pdf'",
-        "'cke': 'data/pdfs/inf02_cke_2026.pdf'",
+        "'2025-cze': 'sandbox_network_pdf.php?session=2025-cze'",
+        "'2024-cze': 'sandbox_network_pdf.php?session=2024-cze'",
+        "'2024-sty': 'sandbox_network_pdf.php?session=2024-sty'",
+        "'2023-cze': 'sandbox_network_pdf.php?session=2023-cze'",
+        "'2023-sty': 'sandbox_network_pdf.php?session=2023-sty'",
+        "'2022-cze': 'sandbox_network_pdf.php?session=2022-cze'",
+        "'2022-sty': 'sandbox_network_pdf.php?session=2022-sty'",
+        "'2021-cze': 'sandbox_network_pdf.php?session=2021-cze'",
+        "'cke': 'sandbox_network_pdf.php?session=cke'",
         "TL-SG108E",
         "runVerify",
         "resetAll",
     )
+    assert "data/pdfs/" not in read("assets/js/network-lab.js")
     lab = read("sandbox_network_lab.php") + read("assets/js/network-lab.js")
     assert "firebase" not in lab.lower()
     assert "auth.js" not in lab
@@ -960,9 +997,43 @@ def test_network_lab_has_fallback_for_static_device_actions() -> None:
     assert_contains(
         "assets/js/network-lab.js",
         "function bindNetworkLabFallbackActions",
+        "function bindDynamicFieldMemory",
+        "function restoreDynamicFields",
         "data-sim-action",
         "Symulacja",
         "addEventListener('click', function(e)",
+    )
+    js = read("assets/js/network-lab.js")
+    assert 'onclick="return false"' not in js
+    assert "Page not found" not in js
+
+
+def test_network_lab_pdf_urls_and_logout_static_guard() -> None:
+    assert_contains(
+        "assets/js/network-lab.js",
+        "function resolveLabAssetUrl",
+        "window.location.href",
+        "resolveLabAssetUrl(PDF_URLS[key] || PDF_URLS['2025-cze'])",
+        "sandbox_network_pdf.php?session=",
+        "function isStaticLogoutAction",
+        "if (isStaticLogoutAction(label)) return;",
+    )
+
+
+def test_network_lab_pdf_proxy_is_authenticated_and_whitelisted() -> None:
+    assert_contains(
+        "sandbox_network_pdf.php",
+        "requireLogin(true)",
+        "$pdfFiles",
+        "'2025-cze' => 'inf02_2025_cze.pdf'",
+        "'2023-cze' => 'inf02_2023_cze.pdf'",
+        "'cke' => 'inf02_cke_2026.pdf'",
+        "realpath(__DIR__ . '/data/pdfs')",
+        "strncmp($filePath, $basePrefix, strlen($basePrefix))",
+        "Content-Type: application/pdf",
+        "Content-Disposition: inline",
+        "X-Content-Type-Options: nosniff",
+        "readfile($filePath)",
     )
 
 

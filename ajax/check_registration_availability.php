@@ -33,7 +33,7 @@ try {
                 'ok' => true,
                 'available' => !$taken,
                 'message' => $taken ? 'Ta nazwa użytkownika jest już zajęta.' : 'Ta nazwa użytkownika jest dostępna.',
-                'suggestions' => $taken ? registrationUsernameSuggestions($pdo, $value, 2) : []
+                'suggestions' => $taken ? registrationUsernameSuggestions($pdo, $value, 3) : []
             ];
         }
     } elseif ($type === 'email') {

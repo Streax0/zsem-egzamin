@@ -42,6 +42,44 @@ $errors = [];
 $avatarUploaded = false;
 $avatarPath = null;
 
+const AVATAR_MAX_BYTES = 25600;
+
+function saveAvatarWebpWithinLimit($source, int $width, int $height, string $dest): bool {
+    $sizes = [512, 384, 320, 256, 192, 160, 128];
+    $qualities = [82, 74, 66, 58, 50, 42, 34, 28];
+
+    foreach ($sizes as $maxSide) {
+        $scale = min(1, $maxSide / max(1, $width), $maxSide / max(1, $height));
+        $targetW = max(1, (int)round($width * $scale));
+        $targetH = max(1, (int)round($height * $scale));
+        $target = imagecreatetruecolor($targetW, $targetH);
+        imagealphablending($target, false);
+        imagesavealpha($target, true);
+        imagecopyresampled($target, $source, 0, 0, 0, 0, $targetW, $targetH, $width, $height);
+
+        foreach ($qualities as $quality) {
+            if (is_file($dest)) {
+                @unlink($dest);
+            }
+            if (!imagewebp($target, $dest, $quality)) {
+                continue;
+            }
+            clearstatcache(true, $dest);
+            if (is_file($dest) && filesize($dest) <= AVATAR_MAX_BYTES) {
+                imagedestroy($target);
+                return true;
+            }
+        }
+
+        imagedestroy($target);
+    }
+
+    if (is_file($dest)) {
+        @unlink($dest);
+    }
+    return false;
+}
+
 if (mb_strlen($username, 'UTF-8') < 3 || mb_strlen($username, 'UTF-8') > 16) {
     $errors[] = 'Nazwa użytkownika musi mieć od 3 do 16 znaków.';
 }
@@ -123,29 +161,19 @@ if (empty($errors) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ??
                     $errors[] = $safety['message'] ?? 'Zdjęcie profilowe nie przeszło kontroli treści.';
                     imagedestroy($source);
                 } else {
-                $maxSide = 512;
-                $scale = min(1, $maxSide / max(1, $width), $maxSide / max(1, $height));
-                $targetW = max(1, (int)round($width * $scale));
-                $targetH = max(1, (int)round($height * $scale));
-                $target = imagecreatetruecolor($targetW, $targetH);
-                imagealphablending($target, false);
-                imagesavealpha($target, true);
-                imagecopyresampled($target, $source, 0, 0, 0, 0, $targetW, $targetH, $width, $height);
-
                 $uploadDir = dirname(__DIR__) . '/uploads/avatars';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
                 $filename = 'user_' . $userId . '_' . bin2hex(secureRandomBytes(6)) . '.webp';
                 $dest = $uploadDir . '/' . $filename;
-                if (!imagewebp($target, $dest, 82)) {
-                    $errors[] = 'Nie udało się zapisać zdjęcia jako WebP.';
+                if (!saveAvatarWebpWithinLimit($source, $width, $height, $dest)) {
+                    $errors[] = 'Nie udało się skompresować zdjęcia profilowego poniżej 25 KB. Wybierz prostszy lub mniejszy kadr.';
                 } else {
                     $avatarPath = 'uploads/avatars/' . $filename;
                     $avatarUploaded = true;
                 }
                 imagedestroy($source);
-                imagedestroy($target);
                 }
             }
         }
