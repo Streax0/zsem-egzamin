@@ -629,6 +629,7 @@ $settingsHealth = [
                                 </div>
                                 <div class="settings-release-title mt-3 mb-2">Changelog 1.9 Beta</div>
                                 <div class="settings-release-grid" aria-label="Changelog wersji 1.9 Beta">
+                                    <span><i class="bi bi-patch-question"></i> TESTS UPDATE</span>
                                     <span><i class="bi bi-bell"></i> Płynniejsze menu powiadomień i profilu</span>
                                     <span><i class="bi bi-speedometer2"></i> Stabilniejsze odświeżanie topbara</span>
                                     <span><i class="bi bi-shield-check"></i> Dalsze poprawki sesji i formularzy</span>

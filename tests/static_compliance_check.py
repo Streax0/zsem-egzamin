@@ -14,6 +14,12 @@ def assert_contains(path: str, *needles: str) -> None:
     assert not missing, f"{path}: missing {missing}"
 
 
+def assert_not_contains(path: str, *needles: str) -> None:
+    content = read(path)
+    present = [needle for needle in needles if needle in content]
+    assert not present, f"{path}: unexpected {present}"
+
+
 def extract_between(path: str, start: str, end: str) -> str:
     content = read(path)
     assert start in content, f"{path}: missing start marker {start!r}"
@@ -279,6 +285,44 @@ def test_pdf_remaining_test_flow_and_modals() -> None:
     assert "confirm(" not in read("test.php")
     assert "alert(" not in read("test.php")
     assert "confirm(" not in read("includes/navbar.php")
+
+
+def test_tests_update_answer_check_surface() -> None:
+    assert_contains(
+        "test.php",
+        "check_answer",
+        "'answer_check_limit' => 3",
+        "answer_check_used",
+        "Sprawdzenia:",
+        "Sprawdź odpowiedź",
+        "prefers-reduced-motion",
+    )
+    assert_contains(
+        "ajax/quiz_action.php",
+        "case 'check_answer'",
+        "applyTestAnswerCheck",
+        "testAnswerCheckPayload",
+    )
+    assert_contains(
+        "assets/js/quiz-engine.js",
+        "checkAnswer()",
+        "check_answer",
+        "syncAnswerCheckControls",
+        "Sprawdź odpowiedź",
+        "cardBody.querySelectorAll('.review-box, .review-next-actions')",
+        "is-updated",
+    )
+    assert_contains(
+        "includes/functions.php",
+        "function applyTestAnswerCheck",
+        "function testAnswerCheckPayload",
+        "revealed_by_check",
+        "['practice', 'single']",
+        "answer_check_attempt_number",
+        "answer_check_used_at",
+    )
+    assert_not_contains("settings.php", "BIG TEST UPDATE")
+    assert_contains("settings.php", "TESTS UPDATE", "settings-release-grid")
 
 
 def test_pdf_remaining_generator_groups_and_filters() -> None:

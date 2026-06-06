@@ -3564,6 +3564,7 @@ function restoreActiveTestFromDb(PDO $pdo, int $userId): ?array {
         if (!isset($test['answers']) || !is_array($test['answers'])) {
             $test['answers'] = [];
         }
+        normalizeTestAnswerChecks($test);
         return $test;
     } catch (PDOException $e) {
         error_log('restoreActiveTestFromDb failed: ' . $e->getMessage());
@@ -3582,6 +3583,7 @@ function restoreActiveTestForUser(?PDO $pdo, ?int $userId): void {
 }
 
 function saveCurrentTest(?PDO $pdo, ?int $userId, array $test): void {
+    normalizeTestAnswerChecks($test);
     $_SESSION['current_test'] = $test;
     if ($pdo && $userId && $userId > 0) {
         persistActiveTestToDb($pdo, $userId, $test);
@@ -3663,6 +3665,158 @@ function getTestQuestionTimeRemaining(array $test, int $perQuestionLimit): int {
         return $perQuestionLimit;
     }
     return max(0, $perQuestionLimit - (time() - $started));
+}
+
+function normalizeTestAnswerChecks(array &$test): void {
+    $limit = array_key_exists('answer_check_limit', $test) ? (int)$test['answer_check_limit'] : 3;
+    $limit = max(0, $limit);
+    $used = array_key_exists('answer_check_used', $test) ? (int)$test['answer_check_used'] : 0;
+    $test['answer_check_limit'] = $limit;
+    $test['answer_check_used'] = max(0, min($limit, $used));
+}
+
+function testAnswerCheckModeAllowed(array $test): bool {
+    return in_array((string)($test['mode'] ?? 'exam'), ['practice', 'single'], true);
+}
+
+function testAnswerCheckPayload(array $test): array {
+    normalizeTestAnswerChecks($test);
+    $limit = (int)$test['answer_check_limit'];
+    $used = (int)$test['answer_check_used'];
+    $remaining = max(0, $limit - $used);
+    $modeAllowed = testAnswerCheckModeAllowed($test);
+    $disabledReason = '';
+    if (!$modeAllowed) {
+        $disabledReason = 'mode';
+    } elseif ($remaining <= 0) {
+        $disabledReason = 'limit';
+    }
+
+    return [
+        'answer_check_limit' => $limit,
+        'answer_check_used' => $used,
+        'answer_check_remaining' => $remaining,
+        'answer_check_available' => $modeAllowed && $remaining > 0,
+        'answer_check_mode_allowed' => $modeAllowed,
+        'answer_check_disabled_reason' => $disabledReason,
+    ];
+}
+
+function testReviewResultFromAnswer(array $test, int $currentIdx): array {
+    normalizeTestAnswerChecks($test);
+    $questions = $test['questions'] ?? [];
+    $question = $questions[$currentIdx] ?? [];
+    $answer = is_array($test['answers'][$currentIdx] ?? null) ? $test['answers'][$currentIdx] : [];
+    $total = count($questions);
+    $mode = (string)($test['mode'] ?? 'exam');
+    $correctAnswer = strtoupper(trim((string)($question['correct_answer'] ?? '')));
+    $userAnswer = strtoupper(trim((string)($answer['user_answer'] ?? '')));
+    $isCorrect = $userAnswer !== '' && $correctAnswer !== '' && $userAnswer === $correctAnswer;
+    $revealedByCheck = !empty($answer['revealed_by_check']);
+
+    $result = [
+        'is_correct' => $isCorrect,
+        'user_answer' => $userAnswer,
+        'user_answer_text' => answerOptionText($question, $userAnswer),
+        'correct_answer' => $correctAnswer,
+        'correct_answer_text' => answerOptionText($question, $correctAnswer),
+        'explanation' => buildQuestionExplanation($question, $userAnswer, $isCorrect),
+        'is_last' => $mode === 'single' ? false : ($currentIdx >= $total - 1),
+        'revealed_by_check' => $revealedByCheck,
+        'checked_before_answer' => !empty($answer['checked_before_answer']),
+        'answer_check_attempt_number' => (int)($answer['answer_check_attempt_number'] ?? 0),
+        'answer_check_used_at' => (int)($answer['answer_check_used_at'] ?? 0),
+    ];
+
+    if ($revealedByCheck) {
+        if ($isCorrect) {
+            $result['review_note'] = 'Sprawdzenie zużyło jedną pomoc, ale zaznaczona odpowiedź była poprawna i została zaliczona.';
+        } elseif ($userAnswer !== '') {
+            $result['review_note'] = 'Sprawdzenie zużyło jedną pomoc. Zaznaczona odpowiedź była błędna, więc pytanie zaliczono jako błędne.';
+        } else {
+            $result['review_note'] = 'Sprawdzenie zużyło jedną pomoc. Brak zaznaczonej odpowiedzi oznacza błędne pytanie.';
+        }
+    }
+
+    return array_merge($result, testAnswerCheckPayload($test));
+}
+
+function restoreCheckedQuestionReview(array &$test): bool {
+    $currentIdx = max(0, (int)($test['current'] ?? 0));
+    $answer = is_array($test['answers'][$currentIdx] ?? null) ? $test['answers'][$currentIdx] : [];
+    if (empty($answer['revealed_by_check'])) {
+        return false;
+    }
+    if (($test['phase'] ?? '') === 'reviewing' && !empty($test['last_result'])) {
+        return false;
+    }
+    $test['phase'] = 'reviewing';
+    $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+    return true;
+}
+
+function applyTestAnswerCheck(array &$test, int $questionId, string $userAnswer, ?PDO $pdo = null, ?int $userId = null, bool $isGuest = false): array {
+    normalizeTestAnswerChecks($test);
+    $currentIdx = max(0, (int)($test['current'] ?? 0));
+    $questions = $test['questions'] ?? [];
+
+    if (!isset($questions[$currentIdx])) {
+        return ['success' => false, 'error' => 'Brak aktywnego pytania.'];
+    }
+    if ((int)($questions[$currentIdx]['id'] ?? 0) !== $questionId) {
+        return ['success' => false, 'error' => 'Nieprawidłowe pytanie.'];
+    }
+    if (!testAnswerCheckModeAllowed($test)) {
+        return ['success' => false, 'error' => 'Sprawdzanie odpowiedzi jest wyłączone w tym trybie.'];
+    }
+
+    $existingAnswer = is_array($test['answers'][$currentIdx] ?? null) ? $test['answers'][$currentIdx] : [];
+    if (!empty($existingAnswer['revealed_by_check'])) {
+        $test['phase'] = 'reviewing';
+        $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+        return ['success' => true, 'result' => $test['last_result'], 'already_checked' => true];
+    }
+
+    $payload = testAnswerCheckPayload($test);
+    if (empty($payload['answer_check_available'])) {
+        return ['success' => false, 'error' => 'Limit sprawdzeń odpowiedzi został wykorzystany.'];
+    }
+
+    $selected = strtoupper(trim($userAnswer));
+    if (!in_array($selected, ['A', 'B', 'C', 'D'], true)) {
+        $selected = '';
+    }
+
+    $question = $questions[$currentIdx];
+    $correctAnswer = strtoupper(trim((string)($question['correct_answer'] ?? '')));
+    $isCorrect = $selected !== '' && $correctAnswer !== '' && $selected === $correctAnswer;
+
+    $nextCheckNumber = (int)$test['answer_check_used'] + 1;
+    $test['answer_check_used'] = min((int)$test['answer_check_limit'], $nextCheckNumber);
+    $test['answers'][$currentIdx] = [
+        'question_id' => $questionId,
+        'user_answer' => $selected,
+        'correct' => $isCorrect,
+        'revealed_by_check' => true,
+        'checked_before_answer' => true,
+        'answer_check_attempt_number' => $nextCheckNumber,
+        'answer_check_used_at' => time(),
+    ];
+
+    if (!$isGuest && $pdo && $userId && $userId > 0) {
+        updateQuestionProgress($pdo, $userId, $questionId, $isCorrect);
+        if (($test['mode'] ?? '') === 'single') {
+            $historyId = saveSingleQuestionResult($pdo, $userId, $question, $selected, $isCorrect);
+            if ($historyId > 0) {
+                $_SESSION['last_result_id'] = $historyId;
+            }
+        }
+    }
+
+    $test['phase'] = 'reviewing';
+    $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+
+    return ['success' => true, 'result' => $test['last_result'], 'already_checked' => false];
 }
 
 function testDisallowsPreviousQuestion(array $test): bool {

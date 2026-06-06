@@ -284,6 +284,8 @@ if ($needNewTest && !$showSetup && $wantsStart) {
         'answers'    => [],
         'phase'      => 'answering',
         'last_result'=> null,
+        'answer_check_limit' => 3,
+        'answer_check_used' => 0,
         'exclude_from_ranking' => $excludeFromRanking,
         'config'     => [
             'category' => $cleanCategory,
@@ -307,6 +309,11 @@ if ($needNewTest && !$showSetup && $wantsStart) {
 $test           = $_SESSION['current_test'] ?? null;
 $questions      = $test['questions'] ?? [];
 $totalQuestions = count($questions);
+if ($test && restoreCheckedQuestionReview($test)) {
+    saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+    $questions = $test['questions'] ?? [];
+    $totalQuestions = count($questions);
+}
 
 // ─── POST handler ──────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -342,6 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['current'] = max(0, min($totalQuestions - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
+        restoreCheckedQuestionReview($test);
         touchTestQuestionStart($test);
         saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
         header('Location: ' . (($test['mode'] ?? '') === 'exam_simulator' ? 'test.php?view=question#sim-question' : 'test.php'));
@@ -389,6 +397,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // ── SUBMIT ANSWER ─────────────────────────────────────────────────────────
+    if ($action === 'check_answer') {
+        $questionId = (int)($_POST['question_id'] ?? 0);
+        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
+        $checkResult = applyTestAnswerCheck($test, $questionId, $userAnswer, $pdo, $userId > 0 ? $userId : null, isGuestMode());
+
+        if (!empty($checkResult['success'])) {
+            saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+        } else {
+            setSessionMessage('error', (string)($checkResult['error'] ?? 'Nie można sprawdzić odpowiedzi.'));
+        }
+        header('Location: test.php');
+        exit;
+    }
+
     if ($action === 'submit_answer') {
         $questionId = (int)($_POST['question_id'] ?? 0);
         $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
@@ -399,6 +421,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $q             = $questions[$currentIdx];
             $correctAnswer = strtoupper(trim((string)($q['correct_answer'] ?? '')));
             $isCorrect     = ($userAnswer === $correctAnswer);
+
+            if (!empty($test['answers'][$currentIdx]['revealed_by_check'])) {
+                $test['phase'] = 'reviewing';
+                $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+                saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+                header('Location: test.php');
+                exit;
+            }
 
             // Record answer
             $test['answers'][$currentIdx] = [
@@ -449,12 +479,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 $test['phase'] = 'reviewing';
-                $test['last_result'] = [
-                    'is_correct'     => $isCorrect,
-                    'user_answer'    => $userAnswer,
-                    'correct_answer' => $correctAnswer,
-                    'is_last'        => ($currentIdx >= $totalQuestions - 1),
-                ];
+                $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
                 saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
             }
         }
@@ -495,6 +520,12 @@ if ($test) {
         $questionTimeLeft = getTestQuestionTimeRemaining($test, $perQuestionLimit);
     }
     $allowPreviousQuestion = !testDisallowsPreviousQuestion($test);
+    $answerCheckState = testAnswerCheckPayload($test);
+    $answerCheckLimit = (int)$answerCheckState['answer_check_limit'];
+    $answerCheckUsed = (int)$answerCheckState['answer_check_used'];
+    $answerCheckRemaining = (int)$answerCheckState['answer_check_remaining'];
+    $answerCheckAvailable = !empty($answerCheckState['answer_check_available']);
+    $answerCheckModeAllowed = !empty($answerCheckState['answer_check_mode_allowed']);
     $totalTimeLeft = !empty($test['time_limit'])
         ? max(0, (int)$test['time_limit'] - (time() - (int)$test['start_time']))
         : 0;
@@ -509,8 +540,14 @@ if ($test) {
     $perQuestionLimit = 0;
     $questionTimeLeft = 0;
     $allowPreviousQuestion = true;
+    $answerCheckLimit = 0;
+    $answerCheckUsed = 0;
+    $answerCheckRemaining = 0;
+    $answerCheckAvailable = false;
+    $answerCheckModeAllowed = false;
     $totalTimeLeft = 0;
 }
+$flashMsg = getSessionMessage();
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -755,6 +792,106 @@ if ($test) {
             background: rgba(96, 165, 250, .08);
             border-color: rgba(96, 165, 250, .18);
             color: #e5e7eb;
+        }
+        .question-card .card-body {
+            transition: opacity .22s ease, transform .22s ease;
+        }
+        .question-card .card-body.fade-out {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        .question-card .card-body.fade-in {
+            animation: test-card-reveal .28s ease both;
+        }
+        @keyframes test-card-reveal {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .test-check-counter {
+            background: rgba(14, 165, 233, .10);
+            color: #0369a1;
+            border: 1px solid rgba(14, 165, 233, .18);
+        }
+        .test-check-counter.is-updated {
+            animation: check-counter-pop .28s ease;
+        }
+        @keyframes check-counter-pop {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+        body.dark-mode .test-check-counter {
+            background: rgba(56, 189, 248, .14);
+            border-color: rgba(125, 211, 252, .24);
+            color: #bae6fd;
+        }
+        .answer-check-btn {
+            border-color: rgba(14, 165, 233, .42);
+            color: #0369a1;
+            background: rgba(14, 165, 233, .06);
+            font-weight: 800;
+        }
+        .answer-check-btn:hover:not(:disabled),
+        .answer-check-btn:focus-visible:not(:disabled) {
+            background: #0ea5e9;
+            border-color: #0ea5e9;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .answer-check-btn:disabled {
+            opacity: .58;
+            cursor: not-allowed;
+        }
+        .answer-check-hint {
+            display: inline-flex;
+            align-items: center;
+            min-height: 48px;
+            color: var(--text-muted, #64748b);
+            font-size: .82rem;
+            font-weight: 700;
+            line-height: 1.25;
+            max-width: 12rem;
+        }
+        .answer-check-review-note {
+            display: flex;
+            gap: .55rem;
+            align-items: flex-start;
+            border: 1px solid rgba(14, 165, 233, .18);
+            border-radius: 10px;
+            padding: .7rem .8rem;
+            background: rgba(14, 165, 233, .08);
+            color: #075985;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+        .answer-check-review-note i {
+            flex: 0 0 auto;
+            margin-top: .12rem;
+        }
+        body.dark-mode .answer-check-review-note {
+            background: rgba(56, 189, 248, .12);
+            border-color: rgba(125, 211, 252, .22);
+            color: #e0f2fe;
+        }
+        body.reduce-motion .question-card .card-body,
+        body.reduce-motion .question-card .card-body.fade-in,
+        body.reduce-motion .answer-check-btn,
+        body.reduce-motion .test-check-counter.is-updated,
+        body.reduce-motion .test-timer-chip.timer-warning {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .question-card .card-body,
+            .question-card .card-body.fade-in,
+            .answer-check-btn,
+            .test-check-counter.is-updated,
+            .test-timer-chip.timer-warning {
+                animation: none !important;
+                transition: none !important;
+                transform: none !important;
+            }
         }
 
         /* ==================== PREMIUM SETUP SYSTEM ==================== */
@@ -1608,6 +1745,16 @@ if ($test) {
                 padding-right: 1rem !important;
                 font-size: 0.9rem;
             }
+            .answer-check-hint {
+                width: 100%;
+                max-width: none;
+                min-height: 0;
+                justify-content: center;
+                text-align: center;
+            }
+            .answer-check-review-note {
+                font-size: .86rem;
+            }
             .quiz-action-bar > a {
                 width: 100%;
             }
@@ -1647,6 +1794,12 @@ if ($test) {
 
             <main role="main" class="content-body">
                 <div class="container-fluid quiz-container p-0">
+    <?php if ($flashMsg): ?>
+    <div class="alert alert-<?= ($flashMsg['type'] ?? '') === 'error' ? 'danger' : htmlspecialchars((string)($flashMsg['type'] ?? 'info')) ?> alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+        <?= htmlspecialchars((string)($flashMsg['message'] ?? '')) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+    </div>
+    <?php endif; ?>
     <?php if ($showTestConflict):
         $activeSummary = getActiveTestSummary($_SESSION['current_test'] ?? null);
         $conflictQuery = $_GET;
@@ -2536,6 +2689,12 @@ if ($test) {
                     <?php if (!$allowPreviousQuestion): ?>
                     <span class="test-progress-badge"><i class="bi bi-lightning-fill"></i> Tryb na czas</span>
                     <?php endif; ?>
+                    <?php if ($answerCheckModeAllowed && $answerCheckLimit > 0): ?>
+                    <span class="test-progress-badge test-check-counter" id="answerCheckCounter">
+                        <i class="bi bi-patch-question-fill"></i>
+                        Sprawdzenia: <span data-answer-check-used><?= $answerCheckUsed ?></span>/<span data-answer-check-limit><?= $answerCheckLimit ?></span>
+                    </span>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="test-progress-controls">
@@ -2621,6 +2780,21 @@ if ($test) {
                         <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn" <?= $savedAnswer === '' ? 'disabled' : '' ?>>
                             <i class="bi bi-check2-circle me-2"></i>Zatwierdź odpowiedź
                         </button>
+                        <?php if ($answerCheckModeAllowed && $answerCheckLimit > 0): ?>
+                        <button type="submit"
+                                name="action"
+                                value="check_answer"
+                                class="btn btn-outline-info btn-lg px-4 answer-check-btn"
+                                id="checkAnswerBtn"
+                                data-answer-check-btn
+                                formnovalidate
+                                <?= $answerCheckAvailable ? '' : 'disabled' ?>>
+                            <i class="bi bi-patch-question me-2"></i>Sprawdź odpowiedź
+                        </button>
+                        <span class="answer-check-hint" id="answerCheckHint">
+                            Pozostało <?= $answerCheckRemaining ?> z <?= $answerCheckLimit ?> sprawdzeń.
+                        </span>
+                        <?php endif; ?>
                         <?php if ($allowPreviousQuestion): ?>
                         <button type="submit" name="action" value="previous_question" class="btn btn-outline-secondary btn-lg px-4" data-question-nav="previous" formnovalidate <?= $currentIdx <= 0 ? 'disabled' : '' ?>>
                             <i class="bi bi-arrow-left me-2"></i>Poprzednie pytanie
@@ -2686,6 +2860,31 @@ if ($test) {
                         – <?= htmlspecialchars($currentQuestion['option_' . strtolower($lr['correct_answer'])] ?? '') ?>
                     </p>
                 <?php endif; ?>
+                <?php if (!empty($lr['review_note'])): ?>
+                    <div class="answer-check-review-note mt-3">
+                        <i class="bi bi-patch-question-fill"></i>
+                        <span><?= htmlspecialchars($lr['review_note']) ?></span>
+                    </div>
+                <?php endif; ?>
+                <div class="review-next-actions d-flex gap-2 mt-3 mb-3 flex-wrap">
+                    <?php if ($lr['is_last']): ?>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                        <input type="hidden" name="action" value="next_question">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            Zakończ test <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                    <?php else: ?>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                        <input type="hidden" name="action" value="next_question">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Następne pytanie <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                </div>
                 <div class="answer-explanation mt-3">
                     <div class="answer-explanation-label">
                         <i class="bi bi-info-circle-fill"></i>
@@ -2695,36 +2894,6 @@ if ($test) {
                 </div>
             </div>
 
-            <!-- Next / Finish buttons -->
-            <div class="d-flex gap-2 mt-4 flex-wrap">
-                <?php if ($lr['is_last']): ?>
-                <form method="POST">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                    <input type="hidden" name="action"     value="next_question">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        Następne pytanie <i class="bi bi-arrow-right ms-2"></i>
-                    </button>
-                </form>
-                <?php else: ?>
-                <form method="POST">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                    <input type="hidden" name="action"     value="next_question">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        Następne pytanie <i class="bi bi-arrow-right ms-2"></i>
-                    </button>
-                </form>
-                <?php endif; ?>
-
-                <?php if ($mode === 'exam' && $answeredCount > 0): ?>
-                <form method="POST" onsubmit="return confirmFinish(this)">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                    <input type="hidden" name="action"     value="finish_early">
-                    <button type="submit" class="btn btn-outline-warning btn-lg">
-                        <i class="bi bi-flag-fill me-2"></i>Zakończ i zobacz wyniki
-                    </button>
-                </form>
-                <?php endif; ?>
-            </div>
             <?php endif; // phase ?>
 
         </div>

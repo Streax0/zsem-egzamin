@@ -38,6 +38,11 @@ const QuizEngine = {
             return false;
         }
         const submitter = e.submitter;
+        if (submitter?.name === 'action' && submitter.value === 'check_answer') {
+            e.preventDefault();
+            this.checkAnswer();
+            return false;
+        }
         if (submitter?.name === 'action' && submitter.value !== 'submit_answer') {
             window.allowQuizNavigation?.();
             return true;
@@ -78,6 +83,7 @@ const QuizEngine = {
         formData.append('answer', selectedInput.value);
         formData.append('csrf_token', csrfToken);
 
+        let keepOptionsLocked = false;
         try {
             const response = await fetch('ajax/quiz_action.php', {
                 method: 'POST',
@@ -98,9 +104,11 @@ const QuizEngine = {
                 } else if (data.phase === 'review') {
                     this.updateProgressPanel(data);
                     this.renderReview(data.result);
+                    keepOptionsLocked = true;
                 }
             } else {
                 this.notify('Błąd: ' + (data.error || 'Nieznany błąd'), 'danger');
+                this.updateProgressPanel(data);
                 if (data.error === 'No active test' || data.error === 'Invalid CSRF token') {
                     window.allowQuizNavigation?.();
                     window.location.reload();
@@ -111,7 +119,54 @@ const QuizEngine = {
             this.notify('Wystąpił błąd połączenia.', 'danger');
         } finally {
             this.setBusy(false);
-            this.lockOptions(false);
+            if (!keepOptionsLocked) this.lockOptions(false);
+        }
+    },
+
+    async checkAnswer() {
+        if (this.state.isBusy) return;
+
+        const selectedInput = document.getElementById('selectedAnswer');
+        const questionIdInput = document.querySelector('input[name="question_id"]');
+        const quizForm = document.getElementById('quizForm');
+        const csrfToken = this.getCsrfToken(quizForm || document);
+
+        if (!csrfToken) {
+            this.notify('Błąd bezpieczeństwa: odśwież stronę i spróbuj ponownie.', 'danger');
+            return;
+        }
+
+        this.setBusy(true, 'check');
+        this.lockOptions(true);
+
+        const formData = new FormData();
+        formData.append('action', 'check_answer');
+        formData.append('question_id', questionIdInput.value);
+        formData.append('answer', selectedInput.value || '');
+        formData.append('csrf_token', csrfToken);
+
+        let keepOptionsLocked = false;
+        try {
+            const response = await fetch('ajax/quiz_action.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success && data.phase === 'review') {
+                this.updateProgressPanel(data);
+                this.renderReview(data.result);
+                keepOptionsLocked = true;
+            } else {
+                this.notify('Błąd: ' + (data.error || 'Nie można sprawdzić odpowiedzi.'), 'danger');
+                this.updateProgressPanel(data);
+            }
+        } catch (error) {
+            console.error('Quiz Error:', error);
+            this.notify('Wystąpił błąd połączenia.', 'danger');
+        } finally {
+            this.setBusy(false);
+            if (!keepOptionsLocked) this.lockOptions(false);
         }
     },
 
@@ -149,6 +204,47 @@ const QuizEngine = {
         }
     },
 
+    syncAnswerCheckControls(data = {}) {
+        const counter = document.getElementById('answerCheckCounter');
+        const checkBtn = document.getElementById('checkAnswerBtn');
+        const hint = document.getElementById('answerCheckHint');
+        if (!counter && !checkBtn && !hint) return;
+
+        const usedNode = counter?.querySelector('[data-answer-check-used]');
+        const limitNode = counter?.querySelector('[data-answer-check-limit]');
+        const currentUsed = Number(usedNode?.textContent || 0);
+        const currentLimit = Number(limitNode?.textContent || 0);
+        const used = data.answer_check_used !== undefined ? Number(data.answer_check_used) : currentUsed;
+        const limit = data.answer_check_limit !== undefined ? Number(data.answer_check_limit) : currentLimit;
+        const remaining = data.answer_check_remaining !== undefined
+            ? Number(data.answer_check_remaining)
+            : Math.max(0, limit - used);
+        const modeAllowed = data.answer_check_mode_allowed !== undefined ? !!data.answer_check_mode_allowed : !!checkBtn;
+        const available = data.answer_check_available !== undefined ? !!data.answer_check_available : (modeAllowed && remaining > 0);
+        const disabledReason = String(data.answer_check_disabled_reason || '');
+
+        if (usedNode) usedNode.textContent = String(Math.max(0, used));
+        if (limitNode) limitNode.textContent = String(Math.max(0, limit));
+        if (counter && used > currentUsed) {
+            counter.classList.remove('is-updated');
+            void counter.offsetWidth;
+            counter.classList.add('is-updated');
+            window.setTimeout(() => counter.classList.remove('is-updated'), 360);
+        }
+        if (hint) {
+            hint.textContent = !modeAllowed || disabledReason === 'mode'
+                ? 'Sprawdzanie jest wyłączone w tym trybie.'
+                : remaining > 0
+                ? `Pozostało ${remaining} z ${limit} sprawdzeń.`
+                : 'Limit sprawdzeń został wykorzystany.';
+        }
+        if (checkBtn) {
+            checkBtn.disabled = !available;
+            checkBtn.classList.toggle('is-exhausted', !available);
+            checkBtn.dataset.answerCheckRemaining = String(Math.max(0, remaining));
+        }
+    },
+
     updateProgressPanel(data = {}) {
         const total = Number(data.total) || 0;
         const current = Number(data.current);
@@ -159,6 +255,8 @@ const QuizEngine = {
         const questionEl = document.getElementById('testProgressQuestion');
         const answeredEl = document.getElementById('testProgressAnswered');
         const progressBar = document.getElementById('progressBar');
+
+        this.syncAnswerCheckControls(data);
 
         if (total <= 0) return;
 
@@ -176,6 +274,7 @@ const QuizEngine = {
     renderQuestion(q, current, total, savedAnswer = '') {
         const cardBody = document.querySelector('.question-card .card-body');
         if (!cardBody) return;
+        cardBody.classList.remove('fade-in');
         cardBody.classList.add('fade-out');
 
         setTimeout(() => {
@@ -222,21 +321,13 @@ const QuizEngine = {
             const badge = document.querySelector('.badge.bg-primary');
             if (badge) badge.textContent = q.category;
 
-            // Remove review box if exists
-            const reviewBox = document.querySelector('.review-box');
-            if (reviewBox) reviewBox.remove();
-            
-            // Remove next button container if exists
-            const nextContainer = document.querySelector('.review-next-actions');
-            if (nextContainer) {
-                // Show original submit button container if hidden
-                const submitActions = document.querySelector('#quizForm .quiz-action-bar');
-                if (submitActions) submitActions.style.display = 'flex';
-                nextContainer.remove();
-            }
+            cardBody.querySelectorAll('.review-box, .review-next-actions').forEach(node => node.remove());
+            const submitActions = document.querySelector('#quizForm .quiz-action-bar');
+            if (submitActions) submitActions.style.display = 'flex';
 
             cardBody.classList.remove('fade-out');
             cardBody.classList.add('fade-in');
+            this.syncAnswerCheckControls();
             this.scrollToQuestionTop();
         }, 300);
     },
@@ -253,7 +344,7 @@ const QuizEngine = {
         const options = document.querySelectorAll('.quiz-option');
         options.forEach(opt => {
             const letter = opt.dataset.answer;
-            opt.classList.remove('selected');
+            opt.classList.remove('selected', 'correct', 'incorrect', 'opacity-75', 'disabled');
             if (letter === result.correct_answer && letter === result.user_answer) {
                 opt.classList.add('correct');
             } else if (letter === result.user_answer) {
@@ -272,6 +363,8 @@ const QuizEngine = {
 
         // Add review feedback and next button
         const cardBody = document.querySelector('.question-card .card-body');
+        if (!cardBody) return;
+        cardBody.querySelectorAll('.review-box, .review-next-actions').forEach(node => node.remove());
         const userAnswerText = String(result.user_answer_text || '').trim();
         const correctAnswerText = String(result.correct_answer_text || '').trim();
         const userLabel = userAnswerText
@@ -288,6 +381,7 @@ const QuizEngine = {
                     : `Wybrana odpowiedź ${userLabel} nie spełnia warunku z pytania albo opisuje inną sytuację.`,
                 correctAnswerText ? `Najważniejsze do zapamiętania: ${correctAnswerText}` : ''
             ].filter(Boolean).join('\n');
+        const reviewNote = String(result.review_note || '').trim();
         
         const reviewHtml = `
             <div class="review-box mt-3 animate-in">
@@ -302,6 +396,15 @@ const QuizEngine = {
                     </div>
                     <p class="mb-0 text-muted">Poprawna odpowiedź: <strong class="text-success">${result.correct_answer}</strong></p>`
                 }
+                ${reviewNote ? `<div class="answer-check-review-note mt-3">
+                    <i class="bi bi-patch-question-fill"></i>
+                    <span>${this.escapeHtml(reviewNote)}</span>
+                </div>` : ''}
+                <div class="review-next-actions d-flex gap-2 mt-3 mb-3 flex-wrap animate-in">
+                    <button type="button" class="btn ${result.is_last ? 'btn-success' : 'btn-primary'} btn-lg" onclick="QuizEngine.nextQuestion()">
+                        ${result.is_last ? 'Zakończ test' : 'Następne pytanie'} <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
                 <div class="answer-explanation mt-3">
                     <div class="answer-explanation-label">
                         <i class="bi bi-info-circle-fill"></i>
@@ -309,11 +412,6 @@ const QuizEngine = {
                     </div>
                     <div>${this.escapeHtml(explanation).replace(/\n/g, '<br>')}</div>
                 </div>
-            </div>
-            <div class="review-next-actions d-flex gap-2 mt-4 flex-wrap animate-in">
-                <button type="button" class="btn ${result.is_last ? 'btn-success' : 'btn-primary'} btn-lg" onclick="QuizEngine.nextQuestion()">
-                    ${result.is_last ? 'Zakończ test' : 'Następne pytanie'} <i class="bi bi-arrow-right ms-2"></i>
-                </button>
             </div>
         `;
         
@@ -346,15 +444,29 @@ const QuizEngine = {
         }
     },
 
-    setBusy(busy) {
+    setBusy(busy, action = 'submit') {
         this.state.isBusy = busy;
         const btn = document.getElementById('submitBtn');
+        const checkBtn = document.getElementById('checkAnswerBtn');
         if (btn) {
             if (busy) {
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Przetwarzanie...';
                 btn.disabled = true;
             } else {
                 btn.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Zatwierdź odpowiedź';
+                const selectedInput = document.getElementById('selectedAnswer');
+                btn.disabled = !selectedInput?.value;
+            }
+        }
+        if (checkBtn) {
+            if (busy) {
+                checkBtn.innerHTML = action === 'check'
+                    ? '<span class="spinner-border spinner-border-sm me-2"></span>Sprawdzanie...'
+                    : '<i class="bi bi-patch-question me-2"></i>Sprawdź odpowiedź';
+                checkBtn.disabled = true;
+            } else {
+                checkBtn.innerHTML = '<i class="bi bi-patch-question me-2"></i>Sprawdź odpowiedź';
+                this.syncAnswerCheckControls();
             }
         }
     },

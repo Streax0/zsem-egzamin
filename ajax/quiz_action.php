@@ -37,11 +37,11 @@ function questionTimerPayload(array $test): array {
 }
 
 function testProgressPayload(array $test): array {
-    return [
+    return array_merge([
         'current' => max(0, (int)($test['current'] ?? 0)),
         'total' => count($test['questions'] ?? []),
         'answered_count' => count($test['answers'] ?? []),
-    ];
+    ], testAnswerCheckPayload($test));
 }
 
 function emitCurrentQuestion($test) {
@@ -87,6 +87,18 @@ switch ($action) {
         if (isset($test['questions'][$currentIdx]) && (int)$test['questions'][$currentIdx]['id'] === $questionId) {
             $q = $test['questions'][$currentIdx];
             $isCorrect = ($userAnswer === $q['correct_answer']);
+
+            if (!empty($test['answers'][$currentIdx]['revealed_by_check'])) {
+                $test['phase'] = 'reviewing';
+                $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+                saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
+                echo json_encode(array_merge([
+                    'success' => true,
+                    'phase' => 'review',
+                    'result' => $test['last_result']
+                ], testProgressPayload($test)));
+                break;
+            }
             
             $test['answers'][$currentIdx] = [
                 'question_id' => $questionId,
@@ -160,6 +172,27 @@ switch ($action) {
         }
         break;
 
+    case 'check_answer':
+        $questionId = (int)($_POST['question_id'] ?? 0);
+        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
+        $checkResult = applyTestAnswerCheck($test, $questionId, $userAnswer, $pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $isGuest);
+
+        if (!empty($checkResult['success'])) {
+            saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
+            echo json_encode(array_merge([
+                'success' => true,
+                'phase' => 'review',
+                'result' => $checkResult['result'],
+                'already_checked' => !empty($checkResult['already_checked']),
+            ], testProgressPayload($test)));
+        } else {
+            echo json_encode(array_merge([
+                'success' => false,
+                'error' => $checkResult['error'] ?? 'Nie można sprawdzić odpowiedzi.',
+            ], testProgressPayload($test)));
+        }
+        break;
+
     case 'previous_question':
         if (testDisallowsPreviousQuestion($test)) {
             echo json_encode(['success' => false, 'error' => 'Cofanie pytań jest wyłączone w tym trybie']);
@@ -168,6 +201,15 @@ switch ($action) {
         $test['current'] = max(0, min(count($test['questions']) - 1, (int)($test['current'] ?? 0) - 1));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
+        if (restoreCheckedQuestionReview($test)) {
+            saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
+            echo json_encode(array_merge([
+                'success' => true,
+                'phase' => 'review',
+                'result' => $test['last_result'],
+            ], testProgressPayload($test)));
+            break;
+        }
         touchTestQuestionStart($test);
         saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
         $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
@@ -212,6 +254,7 @@ switch ($action) {
 
             $test['questions'] = [$newQ];
             $test['current'] = 0;
+            $test['answers'] = [];
             $test['phase'] = 'answering';
             $test['last_result'] = null;
             touchTestQuestionStart($test);
