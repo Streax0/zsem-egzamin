@@ -1996,9 +1996,9 @@ $flashMsg = getSessionMessage();
     <!-- ── Test configuration selector ────────────────────────────────── -->
     <div class="dashboard-panel animate-in premium-setup-container">
         <div class="panel-header d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-            <h3 class="mb-0 fw-extrabold text-primary d-flex align-items-center gap-2">
+            <h1 class="h3 mb-0 fw-extrabold text-primary d-flex align-items-center gap-2">
                 <i class="bi bi-sliders2-vertical"></i>Konfiguracja testu
-            </h3>
+            </h1>
         </div>
         <div class="card-body p-0">
             <form method="GET" class="row g-4 exam-setup-compact" id="premiumSetupForm">
@@ -2085,7 +2085,7 @@ $flashMsg = getSessionMessage();
                 <div class="row exam-setup-compact-row">
                     <div class="col-md-6 mt-3 exam-setup-compact-col">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                            <label class="setup-section-title mb-0"><span><i class="bi bi-question-circle"></i>Liczba pytań</span></label>
+                            <label class="setup-section-title mb-0" for="questionCountInput"><span><i class="bi bi-question-circle"></i>Liczba pytań</span></label>
                             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" id="saveDefaultCountBtn"><i class="bi bi-bookmark-star me-1"></i>Domyślna liczba</button>
                         </div>
                         <div class="d-flex align-items-center gap-3">
@@ -2129,7 +2129,7 @@ $flashMsg = getSessionMessage();
                             <div class="time-display-bubble">
                                 <i class="bi bi-hourglass-split"></i> <span id="timeLimitValue"><?= $timeLimit ?></span> min.
                             </div>
-                            <input type="range" name="time" id="timeLimitInput" class="custom-range-slider" min="1" max="120" value="<?= $timeLimit ?>">
+                            <input type="range" name="time" id="timeLimitInput" class="custom-range-slider" min="1" max="120" value="<?= $timeLimit ?>" aria-label="Własny limit czasu w minutach">
                             <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
                                 <span>1 minuta</span>
                                 <span>60 minut</span>
@@ -2140,7 +2140,7 @@ $flashMsg = getSessionMessage();
                             <div class="time-display-bubble">
                                 <i class="bi bi-stopwatch"></i> <span id="timePerQuestionValue"><?= $timePerQuestion ?></span> sek. / pyt.
                             </div>
-                            <input type="range" name="time_per_question" id="timePerQuestionInput" class="custom-range-slider" min="15" max="600" step="5" value="<?= $timePerQuestion ?>">
+                            <input type="range" name="time_per_question" id="timePerQuestionInput" class="custom-range-slider" min="15" max="600" step="5" value="<?= $timePerQuestion ?>" aria-label="Własny limit czasu na pytanie w sekundach">
                             <div class="d-flex justify-content-between text-muted mt-1" style="font-size: 0.75rem;">
                                 <span>15 sek.</span>
                                 <span>5 minut</span>

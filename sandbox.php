@@ -96,7 +96,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
             <div class="container-fluid p-0 sandbox-shell">
                 <header class="sandbox-hero mb-4">
                     <div>
-                        <h2 class="fw-900 mb-2">Sandbox ZSEM Tech</h2>
+                        <h1 class="h2 fw-900 mb-2">Sandbox ZSEM Tech</h1>
                         <p class="mb-0">Narzędzia do szybkiego ćwiczenia sprzętu, sieci, logiki cyfrowej, kodu i systemów liczbowych.</p>
                     </div>
                     <?php if ($tool !== 'home'): ?>
@@ -160,7 +160,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                 <?php elseif ($tool === 'logic'): ?>
                     <section class="sandbox-workbench logic-workbench" data-tool="logic">
                         <aside class="sandbox-rail">
-                            <h5 class="fw-800 mb-3">Komponenty</h5>
+                            <h2 class="fw-800 mb-3 fs-5">Komponenty</h2>
                             <div class="toolbox-group">
                                 <span>Wejścia</span>
                                 <?php $sandboxRenderLogicButton('logic.input_a', 'Przełącznik A', 'bi-toggle-on', ['data-logic-input' => 'A']); ?>
@@ -198,7 +198,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                 <?php elseif ($tool === 'psu'): ?>
                     <section class="sandbox-workbench psu-workbench" data-tool="psu">
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">Konfiguracja komputera</h5>
+                            <h2 class="fw-800 mb-3 fs-5">Konfiguracja komputera</h2>
                             <div class="component-grid">
                                 <label>CPU TDP (W)<input id="psuCpuTdp" class="form-control" type="number" value="65" min="0" max="350"></label>
                                 <label>GPU TBP (W)<input id="psuGpuTbp" class="form-control" type="number" value="180" min="0" max="700"></label>
@@ -219,7 +219,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                 <?php elseif ($tool === 'subnet'): ?>
                     <section class="sandbox-workbench subnet-workbench" data-tool="subnet">
                         <div class="sandbox-panel subnet-explain-panel">
-                            <h5 class="fw-800 mb-3"><i class="bi bi-question-circle me-2 text-primary"></i>Jak to liczyć</h5>
+                            <h2 class="fw-800 mb-3 fs-5"><i class="bi bi-question-circle me-2 text-primary"></i>Jak to liczyć</h2>
                             <ol class="small text-muted mb-0">
                                 <li>Wpisz adres i prefiks CIDR, np. <strong>/24</strong>.</li>
                                 <li>Prefiks zamienia się na maskę, która odcina część sieciową od hostów.</li>
@@ -228,7 +228,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                             </ol>
                         </div>
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">IPv4</h5>
+                            <h2 class="fw-800 mb-3 fs-5">IPv4</h2>
                             <div class="row g-3">
                                 <div class="col-md-8"><input id="ipv4Input" class="form-control" value="192.168.10.34"></div>
                                 <div class="col-md-4"><input id="ipv4Cidr" class="form-control" type="number" min="1" max="32" value="24"></div>
@@ -236,7 +236,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                             <div id="ipv4Out" class="result-grid mt-3"></div>
                         </div>
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">IPv6</h5>
+                            <h2 class="fw-800 mb-3 fs-5">IPv6</h2>
                             <div class="row g-3">
                                 <div class="col-md-8"><input id="ipv6Input" class="form-control" value="2001:db8:abcd:0012::1"></div>
                                 <div class="col-md-4"><input id="ipv6Prefix" class="form-control" type="number" min="1" max="128" value="64"></div>
@@ -257,7 +257,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                 <?php elseif ($tool === 'numbers'): ?>
                     <section class="sandbox-workbench numbers-workbench" data-tool="numbers">
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">Konwerter</h5>
+                            <h2 class="fw-800 mb-3 fs-5">Konwerter</h2>
                             <div class="row g-3">
                                 <div class="col-md-8"><input id="numInput" class="form-control" value="255"></div>
                                 <div class="col-md-4"><select id="numBase" class="form-select"><option value="10">DEC</option><option value="2">BIN</option><option value="8">OCT</option><option value="16">HEX</option></select></div>
@@ -265,7 +265,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                             <div id="numOut" class="result-grid mt-3"></div>
                         </div>
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">Operacje bitowe</h5>
+                            <h2 class="fw-800 mb-3 fs-5">Operacje bitowe</h2>
                             <div class="row g-3">
                                 <div class="col-md-5"><input id="bitA" class="form-control" value="170"></div>
                                 <div class="col-md-2"><select id="bitOp" class="form-select"><option>AND</option><option>OR</option><option>XOR</option><option>SHL</option><option>SHR</option></select></div>
@@ -277,7 +277,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                 <?php elseif ($tool === 'ohm'): ?>
                     <section class="sandbox-workbench numbers-workbench" data-tool="ohm">
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">Prawo Ohma</h5>
+                            <h2 class="fw-800 mb-3 fs-5">Prawo Ohma</h2>
                             <div class="row g-3">
                                 <div class="col-md-4"><label class="form-label">Napięcie V<input id="ohmVoltage" class="form-control" type="number" step="0.01" value="5"></label></div>
                                 <div class="col-md-4"><label class="form-label">Prąd A<input id="ohmCurrent" class="form-control" type="number" step="0.001" value="0.02"></label></div>
@@ -286,7 +286,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                             <div id="ohmOut" class="result-grid mt-3"></div>
                         </div>
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">Rezystor LED</h5>
+                            <h2 class="fw-800 mb-3 fs-5">Rezystor LED</h2>
                             <div class="row g-3">
                                 <div class="col-md-4"><label class="form-label">Zasilanie V<input id="ledSupply" class="form-control" type="number" step="0.1" value="5"></label></div>
                                 <div class="col-md-4"><label class="form-label">Spadek LED V<input id="ledForward" class="form-control" type="number" step="0.1" value="2"></label></div>
@@ -298,7 +298,7 @@ $sandboxRenderLogicButton = static function (string $elementKey, string $label, 
                 <?php elseif ($tool === 'live'): ?>
                     <section class="sandbox-workbench live-workbench" data-tool="live">
                         <div class="sandbox-panel">
-                            <h5 class="fw-800 mb-3">Edytor</h5>
+                            <h2 class="fw-800 mb-3 fs-5">Edytor</h2>
                             <div class="code-editors">
                                 <label>HTML<textarea id="htmlCode" class="form-control"><h1>ZSEM Tech</h1>
 <button id="btn">Kliknij</button></textarea></label>

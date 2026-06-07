@@ -267,7 +267,7 @@ body.dark-mode input[type="range"].custom-range-slider {
   --kolor-tlo-wtoczne: #ffffff;
   --kolor-ramka: #e2e8f0;
   --kolor-tekst: #1e293b;
-  --kolor-tekst-muted: #64748b;
+  --kolor-tekst-muted: #475569;
   --kolor-tekst-jasny: #94a3b8;
 
   /* Gradienty */
@@ -308,7 +308,7 @@ body.dark-mode input[type="range"].custom-range-slider {
     --kolor-tlo-wtoczne: rgba(30, 41, 59, 0.7);
     --kolor-ramka: rgba(255, 255, 255, 0.1);
     --kolor-tekst: #f8fafc;
-    --kolor-tekst-muted: #94a3b8;
+    --kolor-tekst-muted: #cbd5e1;
     --kolor-tekst-jasny: #64748b;
     --cień-maly: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --cień-sredni: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);

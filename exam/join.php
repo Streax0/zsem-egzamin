@@ -250,7 +250,7 @@ if (!$isGuest && !$savedData) {
                         <div class="join-hero-panel animate-in">
                             <div class="join-hero-icon"><i class="bi bi-qr-code-scan"></i></div>
                             <span class="join-hero-kicker mb-3"><i class="bi bi-lightning-charge"></i> Sprawdzian nauczyciela</span>
-                            <h2 style="color: #fff;">Dołącz bez odświeżania i czekaj w lobby.</h2>
+                            <h1 class="h2" style="color: #fff;">Dołącz bez odświeżania i czekaj w lobby.</h1>
                             <p>Wpisz kod z tablicy albo zeskanuj QR. Po dołączeniu zobaczysz status sesji i start sprawdzianu w czasie rzeczywistym.</p>
                             <div class="join-steps">
                                 <div><span>1</span> Kod lub QR</div>
@@ -264,7 +264,7 @@ if (!$isGuest && !$savedData) {
                                     <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px;height:80px;">
                                         <i class="bi bi-qr-code-scan display-5 text-primary"></i>
                                     </div>
-                                    <h3 class="fw-bold">Dołącz do sprawdzianu</h3>
+                                    <h2 class="h3 fw-bold">Dołącz do sprawdzianu</h2>
                                     <p class="text-muted"><?php echo $isGuest ? 'Tryb gościa: dane służą tylko do udziału w tej sesji sprawdzianu.' : 'Wprowadź kod otrzymany od nauczyciela'; ?></p>
                                 </div>
 
@@ -305,7 +305,7 @@ if (!$isGuest && !$savedData) {
                                     </div>
 
                                     <hr class="my-4">
-                                    <h6 class="fw-bold mb-3"><i class="bi bi-person me-1"></i>Dane uczestnika</h6>
+                                    <h3 class="fs-6 fw-bold mb-3"><i class="bi bi-person me-1"></i>Dane uczestnika</h3>
 
                                     <div class="row g-3 mb-3">
                                         <div class="col-6">

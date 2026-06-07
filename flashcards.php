@@ -205,7 +205,7 @@ if ($flashMessage) {
                         <div class="flashcard-tools mb-3">
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold">Zestaw</label>
+                                    <label class="form-label small fw-bold" for="flashcardSet">Zestaw</label>
                                     <select id="flashcardSet" class="form-select">
                                         <option value="all">Wszystkie</option>
                                         <option value="questions">Baza pytań</option>
@@ -215,7 +215,7 @@ if ($flashMessage) {
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold">Kwalifikacja</label>
+                                    <label class="form-label small fw-bold" for="flashcardQual">Kwalifikacja</label>
                                     <select id="flashcardQual" class="form-select">
                                         <option value="all">Wszystkie</option>
                                         <?php foreach ($qualifications as $qual): ?>
@@ -224,7 +224,7 @@ if ($flashMessage) {
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold">Szukaj</label>
+                                    <label class="form-label small fw-bold" for="flashcardSearch">Szukaj</label>
                                     <input id="flashcardSearch" class="form-control" placeholder="Adres IP, DNS, BIOS...">
                                 </div>
                             </div>
@@ -242,7 +242,7 @@ if ($flashMessage) {
                             <div class="flashcard-progress" data-flashcard-progress aria-live="polite"></div>
                         </div>
                         <div class="flashcard-deck">
-                            <article id="flashcardCard" class="flashcard-card" tabindex="0" role="button" aria-live="polite"></article>
+                            <div id="flashcardCard" class="flashcard-card" tabindex="0" role="button" aria-live="polite"></div>
                         </div>
                         <div class="flashcard-hint-row" aria-hidden="true">
                             <span><i class="bi bi-arrow-left"></i> przesuń w lewo = źle</span>
@@ -255,22 +255,22 @@ if ($flashMessage) {
                         </div>
                         <div class="flashcard-list-panel mt-3">
                             <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-                                <h5 class="fw-bold mb-0">Lista fiszek</h5>
+                                <h3 class="fw-bold mb-0 fs-5">Lista fiszek</h3>
                                 <span id="flashcardListCount" class="small text-muted"></span>
                             </div>
                             <div id="flashcardList" class="flashcard-list"></div>
                             <button type="button" class="btn btn-outline-primary w-100 mt-3" data-flashcard-load-more>Załaduj więcej</button>
                         </div>
                     </div>
-                    <aside class="flashcard-side">
-                        <h5 class="fw-bold mb-3">Propozycja fiszki</h5>
+                    <div class="flashcard-side">
+                        <h3 class="fw-bold mb-3 fs-5">Propozycja fiszki</h3>
                         <?php if ($canRequestFlashcard): ?>
                             <form method="POST" class="flashcard-request-form">
                                 <?php echo csrfTokenField('flashcard_request'); ?>
                                 <input type="hidden" name="action" value="flashcard_request">
-                                <input name="flashcard_front" class="form-control" maxlength="140" placeholder="Przód fiszki" required>
-                                <textarea name="flashcard_back" class="form-control" rows="5" maxlength="1200" placeholder="Tył fiszki" required></textarea>
-                                <input name="flashcard_qualification" class="form-control" maxlength="40" placeholder="Kwalifikacja, np. INF.02">
+                                <input name="flashcard_front" class="form-control" maxlength="140" placeholder="Przód fiszki" aria-label="Przód proponowanej fiszki" required>
+                                <textarea name="flashcard_back" class="form-control" rows="5" maxlength="1200" placeholder="Tył fiszki" aria-label="Tył proponowanej fiszki" required></textarea>
+                                <input name="flashcard_qualification" class="form-control" maxlength="40" placeholder="Kwalifikacja, np. INF.02" aria-label="Kwalifikacja proponowanej fiszki" >
                                 <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Wyślij do admina</button>
                             </form>
                         <?php else: ?>
@@ -287,10 +287,10 @@ if ($flashMessage) {
                             <span>↓: średnie</span>
                         </div>
                         <div class="d-flex gap-2 mt-3">
-                            <a id="flashcardWiki" class="btn btn-sm btn-outline-primary flex-fill" target="_blank" rel="noopener"><i class="bi bi-wikipedia"></i></a>
-                            <a id="flashcardYoutube" class="btn btn-sm btn-outline-danger flex-fill" target="_blank" rel="noopener"><i class="bi bi-youtube"></i></a>
+                            <a id="flashcardWiki" class="btn btn-sm btn-outline-primary flex-fill" target="_blank" rel="noopener" aria-label="Wikipedia"><i class="bi bi-wikipedia" aria-hidden="true"></i></a>
+                            <a id="flashcardYoutube" class="btn btn-sm btn-outline-danger flex-fill" target="_blank" rel="noopener" aria-label="YouTube"><i class="bi bi-youtube" aria-hidden="true"></i></a>
                         </div>
-                    </aside>
+                    </div>
                 </section>
             </div>
         </main>

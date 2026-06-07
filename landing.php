@@ -78,7 +78,7 @@ startSecureSession();
                     <label for="landingAccessCode">Kod sprawdzianu</label>
                     <div>
                         <input id="landingAccessCode" name="access_code" inputmode="latin" maxlength="20" placeholder="A7K9P2">
-                        <button type="submit"><i class="bi bi-arrow-right"></i></button>
+                        <button type="submit" aria-label="Zatwierdź kod sprawdzianu"><i class="bi bi-arrow-right" aria-hidden="true"></i></button>
                     </div>
                 </form>
             </div>

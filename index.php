@@ -183,7 +183,7 @@ try {
                                 <i class="bi bi-stars"></i>
                                 <span><?php echo htmlspecialchars(strtoupper($rankInfo['name'] ?? 'BRONZE')); ?></span>
                             </div>
-                            <h2>Witaj, <?php echo htmlspecialchars($_SESSION['username'] ?? 'admin'); ?>!</h2>
+                            <h1 class="h2">Witaj, <?php echo htmlspecialchars($_SESSION['username'] ?? 'admin'); ?>!</h1>
                             <p class="mb-4">Kontynuuj naukę, domknij dzisiejsze misje i pilnuj progresu do kolejnej rangi.</p>
                             <div class="welcome-actions">
                                 <a href="test.php?mode=exam&setup=1" class="btn-welcome btn-welcome-primary" data-default-test-start>
@@ -268,7 +268,7 @@ try {
                     <!-- Recent Tests -->
                     <div class="dashboard-panel">
                         <div class="panel-header">
-                            <h3 class="panel-title">Ostatnie testy</h3>
+                            <h2 class="panel-title h3">Ostatnie testy</h2>
                             <a href="history.php" class="text-primary text-decoration-none small fw-bold">Zobacz wszystkie</a>
                         </div>
 
@@ -336,7 +336,7 @@ try {
                         <!-- Daily Missions -->
                         <div class="dashboard-panel">
                             <div class="panel-header mb-3">
-                                <h3 class="panel-title">Dzisiejsze misje</h3>
+                                <h2 class="panel-title h3">Dzisiejsze misje</h2>
                                 <span class="badge text-bg-primary rounded-pill"><?php echo $completedMissions; ?>/<?php echo count($dailyMissions); ?></span>
                             </div>
                             <div class="vstack gap-2">
@@ -372,7 +372,7 @@ try {
                         <!-- Duels Panel -->
                         <div class="dashboard-panel animate-in" style="animation-delay: 0.1s; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%); border-left: 4px solid #ef4444;">
                             <div class="panel-header">
-                                <h3 class="panel-title text-danger"><i class="bi bi-fire me-2"></i>Bitwy znajomych</h3>
+                                <h2 class="panel-title text-danger h3"><i class="bi bi-fire me-2"></i>Bitwy znajomych</h2>
                                 <a href="social.php" class="text-danger text-decoration-none small fw-bold">Znajomi</a>
                             </div>
                             <div class="vstack gap-3 mt-2">
@@ -435,7 +435,7 @@ try {
                         <!-- Quick Start -->
                         <div class="dashboard-panel">
                             <div class="panel-header">
-                                <h3 class="panel-title">Szybki start</h3>
+                                <h2 class="panel-title h3">Szybki start</h2>
                             </div>
                             <div class="quick-start-buttons">
                                 <a href="test.php?mode=exam&setup=1" class="btn-qs btn-qs-blue" data-default-test-start>
