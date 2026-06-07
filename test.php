@@ -180,16 +180,8 @@ if ($needNewTest && !$showSetup && $wantsStart) {
 
         // Filter by scope (unseen / incorrect / exclude_correct)
         if ($scope !== 'all' && isset($_SESSION['user_id'])) {
-            $userProgress = [];
-            try {
-                $progressStmt = $pdo->prepare("SELECT question_id, times_seen, times_correct FROM user_question_progress WHERE user_id = ?");
-                $progressStmt->execute([$_SESSION['user_id']]);
-                while ($row = $progressStmt->fetch(PDO::FETCH_ASSOC)) {
-                    $userProgress[(int)$row['question_id']] = $row;
-                }
-            } catch (Exception $e) {
-                error_log("Failed to load user progress in test init: " . $e->getMessage());
-            }
+            $poolQuestionIds = array_map(static fn($q) => (int)($q['id'] ?? 0), $pool);
+            $userProgress = getUserQuestionProgressMap($pdo, (int)$_SESSION['user_id'], $poolQuestionIds);
 
             $pool = array_values(array_filter($pool, function($q) use ($scope, $userProgress) {
                 $qid = (int)$q['id'];
@@ -322,11 +314,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     // CSRF Protection using standardized function
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if (!securityValidateRequestCsrf()) {
+        http_response_code(403);
         die("Błąd bezpieczeństwa (CSRF).");
     }
 
-    $action = $_POST['action'] ?? '';
+    $action = securityInputEnum($_POST['action'] ?? '', ['finish_early', 'previous_question', 'goto_question', 'next_question', 'check_answer', 'submit_answer'], '');
+    $rateLimit = securityConsumeRateLimit('test-post:' . securityActorKey() . ':' . $action, $action === 'check_answer' ? 30 : 100, 60);
+    if ($action === '' || empty($rateLimit['allowed'])) {
+        securityAudit('test_post_blocked', ['action' => $_POST['action'] ?? '', 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+        setSessionMessage('error', 'Zbyt wiele akcji naraz albo nieprawidłowa akcja formularza.');
+        header('Location: test.php');
+        exit;
+    }
 
     // ── FINISH EARLY ──────────────────────────────────────────────────────────
     if ($action === 'finish_early') {
@@ -357,7 +357,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'goto_question') {
-        $targetIdx = (int)($_POST['target'] ?? 0);
+        $targetIdx = securityInputInt($_POST['target'] ?? 0, 0, max(0, $totalQuestions - 1), 0);
         $test['current'] = max(0, min($totalQuestions - 1, $targetIdx));
         $test['phase'] = 'answering';
         $test['last_result'] = null;
@@ -398,8 +398,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── SUBMIT ANSWER ─────────────────────────────────────────────────────────
     if ($action === 'check_answer') {
-        $questionId = (int)($_POST['question_id'] ?? 0);
-        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
+        $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
+        $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
         $checkResult = applyTestAnswerCheck($test, $questionId, $userAnswer, $pdo, $userId > 0 ? $userId : null, isGuestMode());
 
         if (!empty($checkResult['success'])) {
@@ -412,8 +412,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'submit_answer') {
-        $questionId = (int)($_POST['question_id'] ?? 0);
-        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
+        $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
+        $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
 
         // Find current question
         $currentIdx = $test['current'];
@@ -426,6 +426,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $test['phase'] = 'reviewing';
                 $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
                 saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+                header('Location: test.php');
+                exit;
+            }
+            if (($test['phase'] ?? 'answering') !== 'answering') {
+                if (!empty($test['answers'][$currentIdx])) {
+                    $test['phase'] = 'reviewing';
+                    $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+                    saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+                } else {
+                    setSessionMessage('error', 'To pytanie jest juz w trybie podgladu.');
+                }
                 header('Location: test.php');
                 exit;
             }
@@ -564,6 +575,7 @@ $flashMsg = getSessionMessage();
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
     <script src="assets/js/theme-handler.js"></script>
+    <script src="assets/js/api-client.js?v=<?= filemtime(__DIR__ . '/assets/js/api-client.js') ?>" defer></script>
     <script src="assets/js/quiz-engine.js?v=<?= filemtime(__DIR__ . '/assets/js/quiz-engine.js') ?>" defer></script>
     <style>
         @media(max-width:576px) { .answer-option{padding:.9rem 2.5rem .9rem 1rem;} }

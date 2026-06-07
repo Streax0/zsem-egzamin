@@ -4,21 +4,26 @@ require_once '../includes/session.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
-header('Content-Type: application/json');
-
 startSecureSession();
+securityApplyJsonHeaders();
 requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireJsonCsrfToken();
 
-    $participantId = (int)($_POST['participant_id'] ?? 0);
-    $sessionId = (int)($_POST['session_id'] ?? 0);
-    $message = trim($_POST['message'] ?? '');
-    $message = function_exists('mb_substr') ? mb_substr($message, 0, 500) : substr($message, 0, 500);
+    $participantId = securityInputInt($_POST['participant_id'] ?? 0, 0, PHP_INT_MAX, 0);
+    $sessionId = securityInputInt($_POST['session_id'] ?? 0, 0, PHP_INT_MAX, 0);
+    $message = securityInputString($_POST['message'] ?? '', 500);
+
+    $limit = securityConsumeRateLimit('send-warning:' . securityActorKey() . ':' . $sessionId, 30, 60);
+    if (empty($limit['allowed'])) {
+        http_response_code(429);
+        echo securityJsonEncode(['success' => false, 'message' => 'Zbyt wiele ostrzeżeń naraz.', 'retry_after' => (int)($limit['retry_after'] ?? 0)]);
+        exit;
+    }
 
     if (!$participantId || !$sessionId || empty($message)) {
-        echo json_encode(['success' => false, 'message' => 'Missing data']);
+        echo securityJsonEncode(['success' => false, 'message' => 'Missing data']);
         exit;
     }
 
@@ -35,18 +40,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$participantId, $sessionId, $_SESSION['user_id']]);
             if (!$stmt->fetchColumn()) {
                 http_response_code(403);
-                echo json_encode(['success' => false, 'message' => 'Forbidden']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Forbidden']);
                 exit;
             }
         }
 
         $stmt = $pdo->prepare("INSERT INTO exam_warnings (participant_id, session_id, message) VALUES (?, ?, ?)");
         $stmt->execute([$participantId, $sessionId, $message]);
-        echo json_encode(['success' => true]);
+        echo securityJsonEncode(['success' => true]);
     } catch (PDOException $e) {
         error_log('Send warning failed: ' . $e->getMessage());
-        echo json_encode(['success' => false, 'message' => 'Nie udało się wysłać ostrzeżenia.']);
+        securityAudit('send_warning_failed', ['session_id' => $sessionId, 'participant_id' => $participantId], 'error');
+        echo securityJsonEncode(['success' => false, 'message' => 'Nie udało się wysłać ostrzeżenia.']);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Method not allowed']);
 }

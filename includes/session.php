@@ -13,6 +13,8 @@ if (!defined('APP_DEBUG_LOG')) {
     define('APP_DEBUG_LOG', dirname(__DIR__) . '/../logs/zsemtech-debug.log');
 }
 
+require_once dirname(__DIR__) . '/Security/bootstrap.php';
+
 if (!function_exists('app_log')) {
     function app_log($message) {
         $line = '[' . date('Y-m-d H:i:s') . '] ' . trim($message) . PHP_EOL;
@@ -96,7 +98,7 @@ function appStartCspNonceBuffer(string $nonce): void {
 }
 
 function appSecurityPermissionsPolicy(): string {
-    return "accelerometer=(), ambient-light-sensor=(), autoplay=(self), browsing-topics=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()";
+    return "accelerometer=(), ambient-light-sensor=(), autoplay=(self), browsing-topics=(), camera=(self), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()";
 }
 
 function appContentSecurityPolicy(string $nonce): string {
@@ -160,6 +162,7 @@ function startSecureSession() {
         header_remove("X-Powered-By");
         header("Content-Security-Policy: " . appContentSecurityPolicy($cspNonce));
         header("Content-Security-Policy-Report-Only: " . appContentSecurityPolicyReportOnly($cspNonce));
+        securityApplyResponseHeaders($cspNonce);
     }
 
     // Session lifetime: 0 = until browser closes, 10800 = 3 hours
@@ -574,9 +577,9 @@ function validateRequestCsrfToken($action = '') {
  * @return void
  */
 function requireJsonCsrfToken($action = '') {
-    if (!validateRequestCsrfToken($action)) {
+    if (!securityValidateRequestCsrf($action)) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
+        echo securityJsonEncode(['success' => false, 'error' => 'Invalid CSRF token']);
         exit;
     }
 }

@@ -22,6 +22,17 @@ const ExamEngine = {
         return document.querySelector('meta[name="csrf-token"]')?.content || '';
     },
 
+    async postExamAction(formData) {
+        if (window.AppApi?.postForm) {
+            return window.AppApi.postForm('../ajax/exam_action.php', formData);
+        }
+        const response = await fetch('../ajax/exam_action.php', {
+            method: 'POST',
+            body: formData
+        });
+        return response.json();
+    },
+
     setupEventListeners() {
         const form = document.getElementById('answerForm');
         if (form) {
@@ -63,11 +74,7 @@ const ExamEngine = {
         formData.append('csrf_token', csrfToken);
 
         try {
-            const response = await fetch('../ajax/exam_action.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+            const data = await this.postExamAction(formData);
 
             if (data.success) {
                 if (data.finished) {
@@ -104,10 +111,7 @@ const ExamEngine = {
         formData.append('question_id', questionId);
         formData.append('csrf_token', this.getCsrfToken(document.getElementById('answerForm') || document));
 
-        fetch('../ajax/exam_action.php', {
-            method: 'POST',
-            body: formData
-        }).then(r => r.json()).then(data => {
+        this.postExamAction(formData).then(data => {
             if (data.success) {
                 // Update UI counter for student
                 const counter = document.getElementById('violationCount');

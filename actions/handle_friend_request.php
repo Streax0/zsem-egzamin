@@ -8,15 +8,20 @@ startSecureSession();
 requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Nieprawidłowy token CSRF.');
-        header('Location: ../social.php');
-        exit();
+        securityRedirect('../social.php', '../social.php');
     }
 
     $myId = $_SESSION['user_id'];
-    $otherUserId = (int)($_POST['user_id'] ?? 0);
-    $action = $_POST['action'] ?? '';
+    $otherUserId = securityInputInt($_POST['user_id'] ?? 0, 0, PHP_INT_MAX, 0);
+    $action = securityInputEnum($_POST['action'] ?? '', ['accept', 'reject'], '');
+    $rateLimit = securityConsumeRateLimit('social:handle_friend_request:' . securityActorKey(), 40, 60);
+    if (empty($rateLimit['allowed'])) {
+        securityAudit('handle_friend_request_rate_limited', ['other_user_id' => $otherUserId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+        setSessionMessage('error', 'Zbyt wiele akcji naraz. Spróbuj za chwilę.');
+        securityRedirect('../social.php', '../social.php');
+    }
     
     if ($action === 'accept') {
         $stmt = $pdo->prepare("UPDATE friends SET status = 'accepted' WHERE user_id = ? AND friend_id = ?");
@@ -29,5 +34,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-header('Location: ../social.php');
-exit();
+securityRedirect('../social.php', '../social.php');

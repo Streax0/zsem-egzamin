@@ -65,17 +65,18 @@
                         body.set('duel_id', duelId);
                         body.set('action', action);
 
-                        const response = await fetch(resolveUrl(respondUrl), {
-                            method: 'POST',
-                            credentials: 'same-origin',
-                            headers: {
-                                Accept: 'application/json',
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'X-Requested-With': 'XMLHttpRequest',
-                            },
-                            body: body.toString(),
-                        });
-                        const data = await response.json();
+                        const data = window.AppApi?.postForm
+                            ? await window.AppApi.postForm(resolveUrl(respondUrl), body)
+                            : await fetch(resolveUrl(respondUrl), {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    Accept: 'application/json',
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                                body: body.toString(),
+                            }).then(response => response.json());
                         if (!data.success) {
                             window.appNotice?.(data.message || 'Nie udało się przetworzyć wyzwania.', 'danger');
                             button.disabled = false;
@@ -146,19 +147,19 @@
                 url.searchParams.set('limit', refreshOnOpen ? '10' : '3');
                 url.searchParams.set('_', String(Date.now()));
 
-                const response = await fetch(url.toString(), {
-                    credentials: 'same-origin',
-                    cache: 'no-store',
-                    headers: {
-                        Accept: 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                });
-                if (!response.ok) {
-                    failureCount++;
-                    return;
-                }
-                const data = await response.json();
+                const data = window.AppApi?.getJson
+                    ? await window.AppApi.getJson(url.toString())
+                    : await fetch(url.toString(), {
+                        credentials: 'same-origin',
+                        cache: 'no-store',
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    }).then(response => {
+                        if (!response.ok) throw new Error('notifications_feed_http_error');
+                        return response.json();
+                    });
                 if (!data.success) {
                     failureCount++;
                     return;

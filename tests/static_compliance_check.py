@@ -20,6 +20,15 @@ def assert_not_contains(path: str, *needles: str) -> None:
     assert not present, f"{path}: unexpected {present}"
 
 
+def read_tree(*dirs: str) -> str:
+    chunks = []
+    for dirname in dirs:
+        for path in (ROOT / dirname).rglob("*"):
+            if path.suffix.lower() in {".php", ".js"}:
+                chunks.append(path.read_text(encoding="utf-8", errors="ignore"))
+    return "\n".join(chunks)
+
+
 def extract_between(path: str, start: str, end: str) -> str:
     content = read(path)
     assert start in content, f"{path}: missing start marker {start!r}"
@@ -266,7 +275,7 @@ def test_settings_controls_call_real_preference_handlers() -> None:
 
 def test_guest_navigation_and_sandbox_access() -> None:
     assert_contains("login.php", "actions/start_guest.php", "Tryb gościa")
-    assert_contains("actions/start_guest.php", "startGuestSession()")
+    assert_contains("actions/start_guest.php", "securityValidateRequestCsrf('guest_start')", "securityConsumeRateLimit('guest:start:'", "startGuestSession()")
     assert_contains("sandbox.php", "requireLogin(true)")
     assert_contains("includes/sidebar.php", "$isGuestSidebar", "Wyjdź", "sandbox.php")
     assert_contains("includes/topbar.php", "$isGuestTopbar", "Wyjdź")
@@ -293,6 +302,7 @@ def test_tests_update_answer_check_surface() -> None:
         "check_answer",
         "'answer_check_limit' => 3",
         "answer_check_used",
+        "$test['phase'] ?? 'answering'",
         "Sprawdzenia:",
         "Sprawdź odpowiedź",
         "prefers-reduced-motion",
@@ -302,6 +312,7 @@ def test_tests_update_answer_check_surface() -> None:
         "case 'check_answer'",
         "applyTestAnswerCheck",
         "testAnswerCheckPayload",
+        "Question already reviewed",
     )
     assert_contains(
         "assets/js/quiz-engine.js",
@@ -317,12 +328,331 @@ def test_tests_update_answer_check_surface() -> None:
         "function applyTestAnswerCheck",
         "function testAnswerCheckPayload",
         "revealed_by_check",
-        "['practice', 'single']",
+        "['exam', 'practice', 'single']",
+        "$test['phase'] ?? 'answering'",
+        "To pytanie jest juz w trybie podgladu.",
         "answer_check_attempt_number",
         "answer_check_used_at",
     )
     assert_not_contains("settings.php", "BIG TEST UPDATE")
     assert_contains("settings.php", "TESTS UPDATE", "settings-release-grid")
+    teacher_exam_surface = read_tree("teacher", "exam")
+    assert "check_answer" not in teacher_exam_surface
+    assert "Sprawdź odpowiedź" not in teacher_exam_surface
+    assert "answer_check_limit" not in teacher_exam_surface
+
+
+def test_security_layer_and_quiz_api_client() -> None:
+    for path in [
+        "Security/bootstrap.php",
+        "Security/RequestContext.php",
+        "Security/Input.php",
+        "Security/CsrfGuard.php",
+        "Security/RateLimiter.php",
+        "Security/JsonResponse.php",
+        "Security/Audit.php",
+        "Security/Headers.php",
+        "Security/Redirect.php",
+    ]:
+        assert (ROOT / path).is_file(), f"{path} missing"
+
+    assert_contains(
+        "includes/session.php",
+        "Security/bootstrap.php",
+        "securityApplyResponseHeaders",
+        "securityValidateRequestCsrf",
+        "securityJsonEncode",
+    )
+    assert_contains(
+        "Security/Headers.php",
+        "X-Content-Type-Options: nosniff",
+        "X-Frame-Options: SAMEORIGIN",
+        "Referrer-Policy: strict-origin-when-cross-origin",
+        "appSecurityPermissionsPolicy",
+        "camera=(self), microphone=(), geolocation=(), payment=()",
+    )
+    assert_contains(
+        "includes/session.php",
+        "appSecurityPermissionsPolicy",
+        "camera=(self)",
+    )
+    assert_not_contains("Security/Headers.php", "camera=()")
+    assert_not_contains("includes/session.php", "camera=()")
+    assert "Content-Security-Policy" not in read("Security/Headers.php")
+    assert_contains(
+        "Security/JsonResponse.php",
+        "array_key_exists('success', $payload)",
+        "array_key_exists('ok', $payload)",
+        "$payload['success'] = (bool)$payload['ok']",
+        "$payload['ok'] = (bool)$payload['success']",
+        "return array_merge($payload, securityJsonMeta())",
+        '"success":false,"ok":false',
+    )
+    assert_contains(
+        "ajax/quiz_action.php",
+        "securityApplyJsonHeaders",
+        "securityInputEnum",
+        "securityInputAnswerLetter",
+        "securityConsumeRateLimit",
+        "securityJsonEncode",
+    )
+    assert_contains(
+        "ajax/exam_action.php",
+        "securityApplyJsonHeaders",
+        "securityInputEnum",
+        "securityInputAnswerLetter",
+        "securityConsumeRateLimit",
+        "securityJsonEncode",
+    )
+    assert_contains(
+        "exam/take.php",
+        "securityInputInt($_GET['session']",
+        "securityValidateRequestCsrf",
+        "securityInputAnswerLetter",
+        "securityConsumeRateLimit",
+    )
+    assert_contains(
+        "includes/auth.php",
+        "securityJsonEncode",
+        "requireJsonLogin",
+    )
+    assert_contains(
+        "test.php",
+        "assets/js/api-client.js",
+        "securityValidateRequestCsrf",
+        "securityConsumeRateLimit",
+    )
+    assert_contains(
+        "assets/js/api-client.js",
+        "function normalizeResponseShape",
+        "const TIMEOUT_MESSAGE",
+        "data.success = Boolean(data.ok)",
+        "data.ok = Boolean(data.success)",
+        "data.error = data.message",
+        "data.message = data.error",
+        "'Accept': 'application/json'",
+        "credentials: 'same-origin'",
+        "cache: 'no-store'",
+        "X-Client-Request-ID",
+        "AbortController",
+        "postForm",
+        "getJson",
+        "urlEncoded",
+    )
+    assert_contains(
+        "assets/js/quiz-engine.js",
+        "postQuizAction",
+        "window.AppApi?.postForm",
+    )
+    assert_contains(
+        "includes/footer.php",
+        "assets/js/api-client.js",
+        "window.AppApi?.getJson",
+        "window.AppApi?.postForm",
+        "prefers-reduced-motion: reduce",
+        "document.hidden",
+        "stopCtaTimer",
+    )
+    assert_contains(
+        "register.php",
+        "assets/js/api-client.js",
+        "assets/js/register.js",
+    )
+    assert_contains(
+        "assets/js/register.js",
+        "window.AppApi?.getJson",
+        "check_registration_availability.php",
+    )
+    for path in [
+        "ajax/session_status.php",
+        "ajax/extend_session.php",
+        "ajax/notifications_feed.php",
+        "ajax/search_users_live.php",
+        "ajax/check_registration_availability.php",
+        "ajax/check_user.php",
+        "ajax/mark_mastered.php",
+        "ajax/update_bio.php",
+        "ajax/exam_violation.php",
+        "ajax/send_warning.php",
+        "ajax/check_unranked.php",
+        "ajax/exam_status.php",
+        "ajax/get_session_status.php",
+        "ajax/teacher_status.php",
+        "ajax/duel_respond.php",
+    ]:
+        assert_contains(path, "securityApplyJsonHeaders", "securityJsonEncode")
+    assert_contains("Security/Endpoint.php", "function securityRequireMethod", "function securityThrottle")
+    assert_contains("Security/bootstrap.php", "Endpoint.php", "Redirect.php")
+    assert_contains("Security/Input.php", "function securityJsonBody")
+    assert_contains("Security/CsrfGuard.php", "securityJsonBody")
+    assert_contains(
+        "Security/Redirect.php",
+        "function securityFallbackRedirectTarget",
+        "function securityLocalRedirectTarget",
+        "function securityReferrerRedirectTarget",
+        "function securityRedirect",
+        "$safeFallback = securityFallbackRedirectTarget($fallback)",
+        "isset($parts['scheme'])",
+        "isset($parts['host'])",
+    )
+    assert_contains(
+        "includes/functions.php",
+        "securityLocalRedirectTarget((string)$url, 'index.php')",
+    )
+    assert_contains(
+        "exam/take.php",
+        "../assets/js/api-client.js",
+        "../assets/js/exam-engine.js",
+    )
+    assert_contains(
+        "assets/js/exam-engine.js",
+        "postExamAction",
+        "window.AppApi?.postForm",
+    )
+    assert_contains(
+        "assets/js/notifications-poll.js",
+        "window.AppApi?.postForm",
+        "window.AppApi?.getJson",
+    )
+    assert_contains(
+        "includes/topbar.php",
+        "assets/js/api-client.js",
+        "assets/js/notifications-poll.js",
+        "$appApiClientLoaded = true",
+        "window.AppApi.postForm(readUrl",
+    )
+    topbar = read("includes/topbar.php")
+    api_script_lines = [line for line in topbar.splitlines() if "<script" in line and "assets/js/api-client.js" in line]
+    assert len(api_script_lines) == 1
+    assert topbar.index("assets/js/api-client.js") < topbar.index("roleDecisionLayer")
+    assert_contains(
+        "includes/footer.php",
+        "empty($appApiClientLoaded)",
+        "$appApiClientLoaded = true",
+    )
+    assert_contains(
+        "actions/mark_read.php",
+        "securityValidateRequestCsrf('notifications')",
+        "securityInputInt($_POST['notification_id']",
+        "securityThrottle(",
+        "securitySendJson",
+    )
+    for path, csrf_action, rate_bucket in [
+        ("actions/delete_notification.php", "securityValidateRequestCsrf()", "notifications:delete:"),
+        ("actions/delete_test_result.php", "securityValidateRequestCsrf('delete_test_result')", "history:delete_test_result:"),
+        ("actions/delete_duel_history.php", "securityValidateRequestCsrf('delete_duel_history')", "history:delete_duel:"),
+    ]:
+        assert_contains(path, csrf_action, "securityInputInt($_POST", "securityConsumeRateLimit", rate_bucket)
+    assert_contains(
+        "actions/delete_test_result.php",
+        "securityLocalRedirectTarget(",
+        "#^(?:\\.\\./)?(?:history|profile)\\.php(?:\\?id=\\d+)?$#",
+    )
+    assert_contains(
+        "actions/delete_duel_history.php",
+        "securityLocalRedirectTarget(",
+        "#^(?:\\.\\./)?(?:history|profile)\\.php(?:\\?id=\\d+)?$#",
+    )
+    assert_contains(
+        "actions/mark_read.php",
+        "securityRedirect(securityReferrerRedirectTarget('../index.php'), '../index.php')",
+    )
+    assert "HTTP_REFERER" not in read("actions/mark_read.php")
+    assert_contains(
+        "actions/send_friend_request.php",
+        "securityValidateRequestCsrf()",
+        "securityInputInt($_POST['friend_id']",
+        "securityConsumeRateLimit('social:send_friend_request:'",
+        "securityReferrerRedirectTarget('../social.php')",
+    )
+    assert "HTTP_REFERER" not in read("actions/send_friend_request.php")
+    assert_contains(
+        "actions/handle_friend_request.php",
+        "securityValidateRequestCsrf()",
+        "securityInputInt($_POST['user_id']",
+        "securityInputEnum($_POST['action']",
+        "securityConsumeRateLimit('social:handle_friend_request:'",
+        "securityRedirect('../social.php', '../social.php')",
+    )
+    assert_contains(
+        "actions/change_password.php",
+        "securityReferrerRedirectTarget('../settings.php')",
+        "securityLocalRedirectTarget('../' . $_POST['return_to']",
+        "securityValidateRequestCsrf()",
+        "securityConsumeRateLimit('auth:change_password:'",
+        "securityRedirect($returnTo, '../settings.php')",
+    )
+    for path in ["actions/send_friend_request.php", "actions/handle_friend_request.php", "actions/change_password.php"]:
+        assert "validateCsrfToken($_POST['csrf_token']" not in read(path)
+    for path, csrf_action, rate_bucket in [
+        ("actions/update_privacy.php", "securityValidateRequestCsrf()", "settings:update_privacy:"),
+        ("actions/logout_all_sessions.php", "securityValidateRequestCsrf('logout_all')", "auth:logout_all:"),
+        ("actions/reset_progress.php", "securityValidateRequestCsrf()", "settings:reset_progress:"),
+        ("actions/delete_account.php", "securityValidateRequestCsrf()", "settings:delete_account:"),
+    ]:
+        assert_contains(path, csrf_action, "securityConsumeRateLimit", rate_bucket, "securityRedirect")
+        assert "validateCsrfToken($_POST['csrf_token']" not in read(path)
+    assert_contains(
+        "actions/update_profile.php",
+        "securityValidateRequestCsrf()",
+        "securityConsumeRateLimit('profile:' . $profileAction",
+        "securityRedirect($returnTarget, '../settings.php')",
+    )
+    assert "validateCsrfToken($_POST['csrf_token']" not in read("actions/update_profile.php")
+    assert "header('Location: '" not in read("actions/update_profile.php")
+    assert_contains("actions/start_guest.php", "securityRedirect($url, '../landing.php')")
+    assert_contains(
+        "ajax/get_test_details.php",
+        "securityApplyResponseHeaders",
+        "securityConsumeRateLimit",
+        "getQuestionsByIds($pdo, array_values(array_unique($missingQuestionIds)))",
+    )
+    assert "loadQuestions($pdo)" not in read("ajax/get_test_details.php")
+
+
+def test_json_endpoints_use_security_response_helpers() -> None:
+    checked = list((ROOT / "ajax").glob("*.php")) + [ROOT / "actions" / "mark_read.php"]
+    assert checked, "no JSON endpoints checked"
+    offenders = []
+    for path in checked:
+        content = path.read_text(encoding="utf-8", errors="ignore")
+        if "echo json_encode" in content or "Content-Type: application/json" in content:
+            offenders.append(str(path.relative_to(ROOT)))
+    assert not offenders, "manual JSON responses remain: " + ", ".join(offenders)
+
+
+def test_backend_performance_indexes_for_tests_and_exams() -> None:
+    needles = [
+        "idx_user_mode_date",
+        "idx_question_correct",
+        "idx_result_question",
+        "idx_user_mastered_last",
+        "idx_question_mastered",
+        "idx_session_order",
+        "idx_session_user_status",
+        "idx_session_status_joined",
+        "idx_session_participant",
+        "idx_participant_order",
+        "idx_updated_at",
+    ]
+    assert_contains("includes/functions.php", *needles)
+    assert_contains("full_schema.sql", *needles)
+    assert_contains(
+        "includes/functions.php",
+        "function getUserQuestionProgressMap",
+        "array_chunk($ids, 500)",
+        "question_id IN ($placeholders)",
+        "foreach (loadQuestions($pdo, false) as $question)",
+        "function cleanupStaleActiveTests",
+        "max(1, min(90, $maxAgeDays))",
+        "DELETE FROM user_active_tests WHERE updated_at < ?",
+        "cleanupStaleActiveTests($pdo)",
+    )
+    assert_contains(
+        "test.php",
+        "getUserQuestionProgressMap($pdo, (int)$_SESSION['user_id'], $poolQuestionIds)",
+    )
+    assert "SELECT question_id, times_seen, times_correct FROM user_question_progress WHERE user_id = ?" not in read("test.php")
 
 
 def test_pdf_remaining_generator_groups_and_filters() -> None:
@@ -548,7 +878,7 @@ def test_host_exam_pdf_qr_and_participant_refresh() -> None:
         "INITIAL_PARTICIPANTS",
         "remove_participant",
     )
-    assert_contains("ajax/get_session_status.php", "$scope = $_GET['scope'] ?? 'full'", "$scope !== 'participants'")
+    assert_contains("ajax/get_session_status.php", "securityInputEnum($_GET['scope'] ?? 'full'", "$scope !== 'participants'")
     assert_contains("includes/functions.php", "function getPublicQuestionCategories", "return getPublicCategories($pdo)")
     assert "join.php?session=" not in read("teacher/host_exam.php")
 
@@ -557,6 +887,7 @@ def test_join_qr_scanner_extracts_access_code() -> None:
     assert_contains(
         "exam/join.php",
         "jsQR",
+        "getUserMedia",
         "extractAccessCode",
         "searchParams.get('code')",
         "Kod wpisany automatycznie",

@@ -6,18 +6,22 @@ require_once '../includes/functions.php';
 
 startSecureSession();
 if (!isLoggedIn()) {
-    header('Location: ../login.php');
-    exit;
+    securityRedirect('../login.php', '../login.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Nieprawidłowy token CSRF.');
-        header('Location: ../settings.php');
-        exit;
+        securityRedirect('../settings.php', '../settings.php');
     }
 
     $userId = $_SESSION['user_id'];
+    $rateLimit = securityConsumeRateLimit('settings:reset_progress:' . securityActorKey(), 3, 300);
+    if (empty($rateLimit['allowed'])) {
+        securityAudit('reset_progress_rate_limited', ['user_id' => (int)$userId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+        setSessionMessage('error', 'Zbyt wiele prób resetu. Spróbuj za chwilę.');
+        securityRedirect('../settings.php', '../settings.php');
+    }
 
     try {
         $pdo->beginTransaction();
@@ -47,5 +51,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-header('Location: ../settings.php');
-exit;
+securityRedirect('../settings.php', '../settings.php');

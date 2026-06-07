@@ -5,10 +5,22 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json; charset=utf-8');
+securityApplyJsonHeaders();
 
-$type = (string)($_GET['type'] ?? '');
-$value = trim((string)($_GET['value'] ?? ''));
+$type = securityInputEnum($_GET['type'] ?? '', ['username', 'email'], '');
+$value = securityInputString($_GET['value'] ?? '', 100);
+$rateLimit = securityConsumeRateLimit('registration-availability:' . securityActorKey() . ':' . $type, 80, 60);
+if (empty($rateLimit['allowed'])) {
+    http_response_code(429);
+    echo securityJsonEncode([
+        'ok' => false,
+        'available' => false,
+        'message' => 'Zbyt wiele sprawdzeń. Spróbuj za chwilę.',
+        'suggestions' => [],
+        'retry_after' => (int)($rateLimit['retry_after'] ?? 0),
+    ]);
+    exit;
+}
 
 $response = [
     'ok' => false,
@@ -56,7 +68,8 @@ try {
     }
 } catch (Throwable $e) {
     error_log('Registration availability endpoint failed: ' . $e->getMessage());
+    securityAudit('registration_availability_failed', ['type' => $type], 'error');
     $response = ['ok' => false, 'available' => false, 'message' => 'Nie udało się sprawdzić dostępności.', 'suggestions' => []];
 }
 
-echo json_encode($response, JSON_UNESCAPED_UNICODE);
+echo securityJsonEncode($response);

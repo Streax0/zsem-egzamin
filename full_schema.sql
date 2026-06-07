@@ -47,6 +47,7 @@ DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS unranked_usage;
 DROP TABLE IF EXISTS all_in_duel_usage;
 DROP TABLE IF EXISTS login_attempts;
+DROP TABLE IF EXISTS user_active_tests;
 DROP TABLE IF EXISTS test_answers;
 DROP TABLE IF EXISTS user_question_progress;
 DROP TABLE IF EXISTS test_results;
@@ -386,7 +387,8 @@ CREATE TABLE test_results (
     INDEX idx_user_id (user_id),
     INDEX idx_test_date (test_date),
     INDEX idx_user_test_date (user_id, test_date),
-    INDEX idx_ranking_tests (total_questions, exclude_from_ranking)
+    INDEX idx_ranking_tests (total_questions, exclude_from_ranking),
+    INDEX idx_user_mode_date (user_id, mode, test_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -404,7 +406,9 @@ CREATE TABLE user_question_progress (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_question_id (question_id),
-    INDEX idx_mastered (is_mastered)
+    INDEX idx_mastered (is_mastered),
+    INDEX idx_user_mastered_last (user_id, is_mastered, last_seen),
+    INDEX idx_question_mastered (question_id, is_mastered)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -418,7 +422,16 @@ CREATE TABLE test_answers (
     correct_answer CHAR(1) CHARACTER SET ascii NOT NULL,
     is_correct BOOLEAN NOT NULL,
     FOREIGN KEY (result_id) REFERENCES test_results(id) ON DELETE CASCADE,
-    INDEX idx_result_id (result_id)
+    INDEX idx_result_id (result_id),
+    INDEX idx_question_correct (question_id, is_correct),
+    INDEX idx_result_question (result_id, question_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE user_active_tests (
+    user_id INT NOT NULL PRIMARY KEY,
+    payload LONGTEXT NOT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_updated_at (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -518,7 +531,9 @@ CREATE TABLE exam_session_questions (
     override_by INT DEFAULT NULL,
     override_at DATETIME DEFAULT NULL,
     FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
-    INDEX idx_session (session_id)
+    INDEX idx_session (session_id),
+    INDEX idx_session_question (session_id, question_id),
+    INDEX idx_session_order (session_id, question_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -545,7 +560,9 @@ CREATE TABLE exam_participants (
     FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_session (session_id),
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_session_user_status (session_id, user_id, status),
+    INDEX idx_session_status_joined (session_id, status, joined_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -564,7 +581,9 @@ CREATE TABLE exam_answers (
     answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_participant_question (participant_id, question_id),
     FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
-    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
+    INDEX idx_session_participant (session_id, participant_id),
+    INDEX idx_participant_order (participant_id, question_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -956,9 +975,20 @@ ALTER TABLE exam_session_questions ADD COLUMN IF NOT EXISTS override_reason VARC
 ALTER TABLE exam_session_questions ADD COLUMN IF NOT EXISTS override_by INT DEFAULT NULL AFTER override_reason;
 ALTER TABLE exam_session_questions ADD COLUMN IF NOT EXISTS override_at DATETIME DEFAULT NULL AFTER override_by;
 ALTER TABLE exam_session_questions ADD INDEX IF NOT EXISTS idx_session_question (session_id, question_id);
+ALTER TABLE exam_session_questions ADD INDEX IF NOT EXISTS idx_session_order (session_id, question_order);
 ALTER TABLE profile_comments MODIFY comment_text VARCHAR(100) NOT NULL;
 ALTER TABLE test_results ADD INDEX IF NOT EXISTS idx_user_test_date (user_id, test_date);
 ALTER TABLE test_results ADD INDEX IF NOT EXISTS idx_ranking_tests (total_questions, exclude_from_ranking);
+ALTER TABLE test_results ADD INDEX IF NOT EXISTS idx_user_mode_date (user_id, mode, test_date);
+ALTER TABLE test_answers ADD INDEX IF NOT EXISTS idx_question_correct (question_id, is_correct);
+ALTER TABLE test_answers ADD INDEX IF NOT EXISTS idx_result_question (result_id, question_id);
+ALTER TABLE user_question_progress ADD INDEX IF NOT EXISTS idx_user_mastered_last (user_id, is_mastered, last_seen);
+ALTER TABLE user_question_progress ADD INDEX IF NOT EXISTS idx_question_mastered (question_id, is_mastered);
+ALTER TABLE user_active_tests ADD INDEX IF NOT EXISTS idx_updated_at (updated_at);
+ALTER TABLE exam_participants ADD INDEX IF NOT EXISTS idx_session_user_status (session_id, user_id, status);
+ALTER TABLE exam_participants ADD INDEX IF NOT EXISTS idx_session_status_joined (session_id, status, joined_at);
+ALTER TABLE exam_answers ADD INDEX IF NOT EXISTS idx_session_participant (session_id, participant_id);
+ALTER TABLE exam_answers ADD INDEX IF NOT EXISTS idx_participant_order (participant_id, question_order);
 ALTER TABLE notifications ADD INDEX IF NOT EXISTS idx_user_unread_created (user_id, is_read, created_at);
 ALTER TABLE notifications ADD INDEX IF NOT EXISTS idx_user_dedupe (user_id, dedupe_key, created_at);
 ALTER TABLE friends ADD INDEX IF NOT EXISTS idx_friend_lookup (user_id, friend_id, status);

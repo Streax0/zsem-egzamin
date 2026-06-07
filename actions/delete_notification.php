@@ -7,14 +7,20 @@ require_once '../includes/functions.php';
 startSecureSession();
 requireLogin();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? '')) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !securityValidateRequestCsrf()) {
     setSessionMessage('error', 'Nieprawidłowe żądanie.');
     redirect('../notifications.php');
 }
 
 $userId = (int)($_SESSION['user_id'] ?? 0);
-$notificationId = (int)($_POST['notification_id'] ?? 0);
+$notificationId = securityInputInt($_POST['notification_id'] ?? 0, 0, PHP_INT_MAX, 0);
 $deleteAll = ($_POST['delete_all'] ?? '') === '1';
+$rateLimit = securityConsumeRateLimit('notifications:delete:' . securityActorKey(), $deleteAll ? 5 : 40, 60);
+if (empty($rateLimit['allowed'])) {
+    securityAudit('notification_delete_rate_limited', ['delete_all' => $deleteAll, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+    setSessionMessage('error', 'Zbyt wiele akcji naraz. Spróbuj za chwilę.');
+    redirect('../notifications.php');
+}
 
 try {
     if ($deleteAll) {

@@ -3,12 +3,13 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/session.php';
 require_once __DIR__ . '/../includes/auth.php';
 
-header('Content-Type: application/json');
 startSecureSession();
+securityApplyJsonHeaders();
 
 requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 
-$userId = $_SESSION['user_id'];
+$userId = (int)$_SESSION['user_id'];
+securityThrottle('teacher-status:' . securityActorKey(), 80, 60, ['success' => false, 'message' => 'rate_limited']);
 
 try {
     $stmt = $pdo->prepare(
@@ -35,7 +36,7 @@ try {
         $totalParticipants += (int)($exam['participant_count'] ?? 0);
     }
 
-    echo json_encode([
+    echo securityJsonEncode([
         'success' => true,
         'totalExams' => $totalExams,
         'activeExams' => $activeExams,
@@ -43,5 +44,6 @@ try {
         'exams' => $exams,
     ]);
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'db_error']);
+    securityAudit('teacher_status_failed', ['user_id' => $userId], 'error');
+    echo securityJsonEncode(['success' => false, 'message' => 'db_error']);
 }

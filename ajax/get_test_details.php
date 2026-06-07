@@ -8,16 +8,24 @@ header('Content-Type: text/html; charset=utf-8');
 
 // Ensure user is logged in
 startSecureSession();
+securityApplyResponseHeaders();
 if (!isLoggedIn()) {
     echo '<div class="alert alert-danger">Nie jesteś zalogowany.</div>';
     exit;
 }
 
-$userId = $_SESSION['user_id'];
-$testId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$userId = (int)$_SESSION['user_id'];
+$testId = securityInputInt($_GET['id'] ?? 0, 0, PHP_INT_MAX, 0);
 
 if ($testId <= 0) {
     echo '<div class="alert alert-danger">Nieprawidłowy identyfikator testu.</div>';
+    exit;
+}
+
+$limit = securityConsumeRateLimit('test-details:' . securityActorKey(), 80, 60);
+if (empty($limit['allowed'])) {
+    http_response_code(429);
+    echo '<div class="alert alert-warning">Zbyt wiele odświeżeń szczegółów. Spróbuj za chwilę.</div>';
     exit;
 }
 
@@ -54,11 +62,18 @@ try {
     $answersStmt->execute(['result_id' => $testId]);
     $answers = $answersStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fallback dla pytań ładowanych z JSON, gdzie q.question_text może być puste
-    $allQuestions = loadQuestions($pdo);
+    // Fallback tylko dla pytań bez danych z JOIN, bez ładowania całego banku.
     $questionsMap = [];
-    foreach ($allQuestions as $q) {
-        $questionsMap[$q['id']] = $q;
+    $missingQuestionIds = [];
+    foreach ($answers as $ans) {
+        if (empty($ans['question_text'])) {
+            $missingQuestionIds[] = (int)$ans['question_id'];
+        }
+    }
+    if ($missingQuestionIds) {
+        foreach (getQuestionsByIds($pdo, array_values(array_unique($missingQuestionIds))) as $q) {
+            $questionsMap[(int)$q['id']] = $q;
+        }
     }
 
     if (count($answers) > 0) {
@@ -122,5 +137,6 @@ try {
 
 } catch (PDOException $e) {
     error_log("Error in get_test_details.php: " . $e->getMessage());
+    securityAudit('get_test_details_failed', ['test_id' => $testId, 'user_id' => $userId], 'error');
     echo '<div class="alert alert-danger">Wystąpił błąd bazy danych.</div>';
 }

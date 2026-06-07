@@ -3,16 +3,16 @@ require_once '../config/db.php';
 require_once '../includes/session.php';
 require_once '../includes/auth.php';
 
-header('Content-Type: application/json');
 startSecureSession();
+securityApplyJsonHeaders();
 
 if (!isLoggedIn()) {
-    echo json_encode(['used' => 0]);
+    echo securityJsonEncode(['used' => 0]);
     exit;
 }
 requireJsonLogin(false, [], ['used' => 0], ['used' => 0]);
 
-$userId = $_SESSION['user_id'];
+$userId = (int)$_SESSION['user_id'];
 $today = date('Y-m-d');
 
 try {
@@ -25,7 +25,8 @@ try {
     $stmt = $pdo->prepare("SELECT usage_count FROM unranked_usage WHERE user_id = ? AND used_date = ?");
     $stmt->execute([$userId, $today]);
     $row = $stmt->fetch();
-    echo json_encode(['used' => $row ? (int)$row['usage_count'] : 0]);
+    echo securityJsonEncode(['used' => $row ? (int)$row['usage_count'] : 0]);
 } catch (PDOException $e) {
-    echo json_encode(['used' => 0]);
+    securityAudit('check_unranked_failed', ['user_id' => $userId], 'error');
+    echo securityJsonEncode(['used' => 0]);
 }

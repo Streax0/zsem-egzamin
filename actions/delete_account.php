@@ -6,18 +6,22 @@ require_once '../includes/functions.php';
 
 startSecureSession();
 if (!isLoggedIn()) {
-    header('Location: ../login.php');
-    exit;
+    securityRedirect('../login.php', '../login.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Nieprawidłowy token CSRF.');
-        header('Location: ../settings.php');
-        exit;
+        securityRedirect('../settings.php', '../settings.php');
     }
 
     $userId = $_SESSION['user_id'];
+    $rateLimit = securityConsumeRateLimit('settings:delete_account:' . securityActorKey(), 2, 300);
+    if (empty($rateLimit['allowed'])) {
+        securityAudit('delete_account_rate_limited', ['user_id' => (int)$userId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+        setSessionMessage('error', 'Zbyt wiele prób usunięcia konta. Spróbuj za chwilę.');
+        securityRedirect('../settings.php', '../settings.php');
+    }
 
     try {
         // Delete user (cascades to results, progress, friends, notifications etc. based on schema)
@@ -30,15 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_destroy();
         
         // Redirect to login with success message (though session is gone, we can use a GET parameter or just a fresh start)
-        header('Location: ../login.php?account_deleted=1');
-        exit;
+        securityRedirect('../login.php?account_deleted=1', '../login.php');
     } catch (Exception $e) {
         error_log('Delete account failed: ' . $e->getMessage());
         setSessionMessage('error', 'Nie udało się usunąć konta. Spróbuj ponownie za chwilę.');
-        header('Location: ../settings.php');
-        exit;
+        securityRedirect('../settings.php', '../settings.php');
     }
 }
 
-header('Location: ../settings.php');
-exit;
+securityRedirect('../settings.php', '../settings.php');

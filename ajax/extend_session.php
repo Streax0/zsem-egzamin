@@ -5,13 +5,12 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json');
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+securityApplyJsonHeaders();
 
 requireJsonLogin(false, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
-if (!validateRequestCsrfToken('session_keepalive')) {
-    echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);
+if (!securityValidateRequestCsrf('session_keepalive')) {
+    echo securityJsonEncode(['success' => false, 'error' => 'Invalid CSRF token']);
     exit;
 }
 
@@ -21,7 +20,7 @@ if (!isset($_SESSION['session_start'])) {
 }
 
 if (time() - (int)$_SESSION['session_start'] > $maxLifetime) {
-    echo json_encode(['success' => false, 'error' => 'Session expired']);
+    echo securityJsonEncode(['success' => false, 'error' => 'Session expired']);
     exit;
 }
 
@@ -38,7 +37,7 @@ setcookie(
     $params['httponly'] ?? true
 );
 
-echo json_encode([
+echo securityJsonEncode([
     'success' => true,
     'remaining_seconds' => $maxLifetime,
     'extended_until' => date('c', time() + $maxLifetime),

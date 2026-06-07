@@ -9,7 +9,7 @@ requireLogin(true);
 
 $isGuest = isGuestMode();
 $userId = $isGuest ? null : (int)$_SESSION['user_id'];
-$sessionId = (int)($_GET['session'] ?? 0);
+$sessionId = securityInputInt($_GET['session'] ?? 0, 0, PHP_INT_MAX, 0);
 
 // Load session
 $stmt = $pdo->prepare("
@@ -109,18 +109,24 @@ $csrfToken = generateCsrfToken();
 
 // Handle answer submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Nieprawidłowy token CSRF.');
         redirect('../index.php');
     }
 
-    $action = $_POST['action'] ?? '';
+    $action = securityInputEnum($_POST['action'] ?? '', ['submit_answer', 'finish_early'], '');
+    $rateLimit = securityConsumeRateLimit('exam-take:' . securityActorKey() . ':' . $sessionId . ':' . $action, 100, 60);
+    if ($action === '' || empty($rateLimit['allowed'])) {
+        securityAudit('exam_take_post_blocked', ['session_id' => $sessionId, 'action' => $_POST['action'] ?? ''], 'warning');
+        setSessionMessage('error', 'Zbyt wiele akcji naraz albo nieprawidłowa akcja formularza.');
+        redirect('take.php?session=' . $sessionId);
+    }
     
     if ($action === 'submit_answer') {
-        $questionId = (int)($_POST['question_id'] ?? 0);
-        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
-        $questionOrder = (int)($_POST['question_order'] ?? 0);
-        $timeSpent = (int)($_POST['time_spent'] ?? 0);
+        $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
+        $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
+        $questionOrder = securityInputInt($_POST['question_order'] ?? 0, 0, 1000, 0);
+        $timeSpent = securityInputInt($_POST['time_spent'] ?? 0, 0, 86400, 0);
 
         // Find question
         $q = null;
@@ -225,6 +231,7 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+    <script src="../assets/js/api-client.js" defer></script>
     <script src="../assets/js/exam-engine.js" defer></script>
     <style>
         body { font-family: 'Inter', sans-serif; }

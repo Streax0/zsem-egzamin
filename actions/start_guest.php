@@ -5,12 +5,18 @@ require_once __DIR__ . '/../includes/auth.php';
 startSecureSession();
 
 function guestRedirect(string $url): void {
-    header('Location: ' . $url);
-    exit;
+    securityRedirect($url, '../landing.php');
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? '', 'guest_start')) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !securityValidateRequestCsrf('guest_start')) {
     $_SESSION['flash_message'] = ['type' => 'error', 'message' => 'Nieprawidłowe żądanie trybu gościa.'];
+    guestRedirect('../landing.php');
+}
+
+$rateLimit = securityConsumeRateLimit('guest:start:' . securityActorKey(), 12, 60);
+if (empty($rateLimit['allowed'])) {
+    securityAudit('guest_start_rate_limited', ['retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+    $_SESSION['flash_message'] = ['type' => 'error', 'message' => 'Zbyt wiele prob uruchomienia trybu goscia. Sprobuj za chwile.'];
     guestRedirect('../landing.php');
 }
 

@@ -5,22 +5,25 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json; charset=utf-8');
+securityApplyJsonHeaders();
 
 requireJsonLogin(false, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
 $userId = (int)$_SESSION['user_id'];
-$baseUrl = trim((string)($_GET['base'] ?? ''));
+$baseUrl = securityInputString($_GET['base'] ?? '', 120);
+if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $baseUrl) || str_contains($baseUrl, "\0")) {
+    $baseUrl = '';
+}
 if ($baseUrl !== '' && !str_ends_with($baseUrl, '/')) {
     $baseUrl .= '/';
 }
 
-$limit = max(1, min(10, (int)($_GET['limit'] ?? 5)));
+$limit = securityInputInt($_GET['limit'] ?? 5, 1, 10, 5);
 $payload = buildNotificationsDropdownPayload($pdo, $userId, $baseUrl, $limit);
 
-echo json_encode([
+echo securityJsonEncode([
     'success' => true,
     'unread_count' => $payload['unread_count'],
     'has_unread' => $payload['has_unread'],
     'html' => $payload['html'],
-], JSON_UNESCAPED_UNICODE);
+]);

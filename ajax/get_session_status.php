@@ -5,17 +5,18 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json');
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+securityApplyJsonHeaders();
 
 requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
-$sessionId = (int)($_GET['session_id'] ?? 0);
-$scope = $_GET['scope'] ?? 'full';
+$sessionId = securityInputInt($_GET['session_id'] ?? 0, 0, PHP_INT_MAX, 0);
+$scope = securityInputEnum($_GET['scope'] ?? 'full', ['full', 'participants'], 'full');
 if (!$sessionId) {
-    echo json_encode(['success' => false, 'error' => 'Missing session ID']);
+    echo securityJsonEncode(['success' => false, 'error' => 'Missing session ID']);
     exit;
 }
+
+securityThrottle('teacher-session-status:' . securityActorKey() . ':' . $sessionId . ':' . $scope, 120, 60, ['success' => false, 'error' => 'rate_limited']);
 
 try {
     // Check if session belongs to teacher
@@ -28,7 +29,7 @@ try {
     $session = $stmt->fetch();
 
     if (!$session) {
-        echo json_encode(['success' => false, 'error' => 'Session not found']);
+        echo securityJsonEncode(['success' => false, 'error' => 'Session not found']);
         exit;
     }
 
@@ -57,8 +58,9 @@ try {
         $payload['violations'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    echo json_encode($payload);
+    echo securityJsonEncode($payload);
 
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'error' => 'Database error']);
+    securityAudit('get_session_status_failed', ['session_id' => $sessionId], 'error');
+    echo securityJsonEncode(['success' => false, 'error' => 'Database error']);
 }

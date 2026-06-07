@@ -309,9 +309,34 @@ document.addEventListener('DOMContentLoaded', function() {
         index++;
     };
     setCta();
-    setInterval(setCta, 7000);
+    const reduceMotion = document.body?.classList.contains('reduce-motion')
+        || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || items.length < 2) return;
+
+    let ctaTimer = null;
+    const stopCtaTimer = () => {
+        if (!ctaTimer) return;
+        clearInterval(ctaTimer);
+        ctaTimer = null;
+    };
+    const startCtaTimer = () => {
+        if (ctaTimer || document.hidden) return;
+        ctaTimer = setInterval(setCta, 7000);
+    };
+    startCtaTimer();
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopCtaTimer();
+        } else {
+            startCtaTimer();
+        }
+    });
 });
 </script>
+
+<?php if (empty($appApiClientLoaded)): $appApiClientLoaded = true; ?>
+<script src="<?php echo htmlspecialchars(assetUrl('assets/js/api-client.js', rtrim($base_url, '/'))); ?>"></script>
+<?php endif; ?>
 
 <?php if (!empty($_SESSION['user_id'])): ?>
 <script>
@@ -364,14 +389,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function fetchSessionStatus() {
         try {
-            const response = await fetch(base + 'ajax/session_status.php', {
-                method: 'GET',
-                cache: 'no-store',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            const data = await response.json();
+            const data = window.AppApi?.getJson
+                ? await window.AppApi.getJson(base + 'ajax/session_status.php')
+                : await fetch(base + 'ajax/session_status.php', {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' }
+                }).then(response => response.json());
             if (!data.success) {
                 return;
             }
@@ -391,19 +415,21 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmButton.disabled = true;
         statusLabel.textContent = 'Przedłużam sesję...';
         try {
-            const formData = new URLSearchParams();
-            formData.append('csrf_token', keepaliveToken);
-            const response = await fetch(base + 'ajax/extend_session.php', {
-                method: 'POST',
-                cache: 'no-store',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRF-Token': keepaliveToken,
-                    'Accept': 'application/json'
-                },
-                body: formData.toString()
-            });
-            const data = await response.json();
+            const formData = window.AppApi?.urlEncoded
+                ? window.AppApi.urlEncoded({ csrf_token: keepaliveToken })
+                : new URLSearchParams({ csrf_token: keepaliveToken });
+            const data = window.AppApi?.postForm
+                ? await window.AppApi.postForm(base + 'ajax/extend_session.php', formData)
+                : await fetch(base + 'ajax/extend_session.php', {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-Token': keepaliveToken,
+                        'Accept': 'application/json'
+                    },
+                    body: formData.toString()
+                }).then(response => response.json());
             if (data.success) {
                 statusLabel.textContent = 'Sesja została przedłużona o kolejne 3 godziny.';
                 setTimeout(hideModal, 1200);

@@ -3,26 +3,30 @@ require_once '../config/db.php';
 require_once '../includes/session.php';
 require_once '../includes/auth.php';
 
-header('Content-Type: application/json');
 startSecureSession();
+securityApplyJsonHeaders();
 
 requireJsonLogin(true, [], ['error' => 'unauthorized'], ['error' => 'unauthorized']);
 
 requireJsonCsrfToken();
 
 // Get JSON input
-$input = json_decode(file_get_contents('php://input'), true);
-$sessionId = (int)($input['session_id'] ?? 0);
-$participantId = (int)($input['participant_id'] ?? 0);
+$input = securityJsonBody();
+$sessionId = securityInputInt($input['session_id'] ?? 0, 0, PHP_INT_MAX, 0);
+$participantId = securityInputInt($input['participant_id'] ?? 0, 0, PHP_INT_MAX, 0);
 $allowedViolationTypes = ['tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'other'];
-$type = $input['violation_type'] ?? 'other';
-if (!in_array($type, $allowedViolationTypes, true)) {
-    $type = 'other';
-}
-$questionId = (int)($input['question_id'] ?? 0);
+$type = securityInputEnum($input['violation_type'] ?? 'other', $allowedViolationTypes, 'other');
+$questionId = securityInputInt($input['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
 
 if (!$sessionId || !$participantId) {
-    echo json_encode(['error' => 'invalid_request']);
+    echo securityJsonEncode(['error' => 'invalid_request']);
+    exit;
+}
+
+$limit = securityConsumeRateLimit('exam-violation:' . securityActorKey() . ':' . $sessionId, 40, 60);
+if (empty($limit['allowed'])) {
+    http_response_code(429);
+    echo securityJsonEncode(['error' => 'rate_limited', 'retry_after' => (int)($limit['retry_after'] ?? 0)]);
     exit;
 }
 
@@ -38,7 +42,7 @@ try {
     }
     if (!$allowed) {
         http_response_code(403);
-        echo json_encode(['error' => 'forbidden']);
+        echo securityJsonEncode(['error' => 'forbidden']);
         exit;
     }
 
@@ -53,8 +57,9 @@ try {
     $pdo->prepare("UPDATE exam_participants SET violation_count = violation_count + 1 WHERE id = ?")
         ->execute([$participantId]);
 
-    echo json_encode(['success' => true]);
+    echo securityJsonEncode(['success' => true]);
 } catch (PDOException $e) {
     error_log("Violation report error: " . $e->getMessage());
-    echo json_encode(['error' => 'db_error']);
+    securityAudit('exam_violation_failed', ['session_id' => $sessionId, 'participant_id' => $participantId], 'error');
+    echo securityJsonEncode(['error' => 'db_error']);
 }

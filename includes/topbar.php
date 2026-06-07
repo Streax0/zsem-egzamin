@@ -12,6 +12,9 @@ $sandboxElementAdminNotice = $_SESSION['sandbox_element_block_notice'] ?? null;
 unset($_SESSION['sandbox_element_block_notice']);
 ?>
 <script src="<?php echo htmlspecialchars($base_url); ?>assets/js/theme-handler.js?v=<?php echo (int)@filemtime(__DIR__ . '/../assets/js/theme-handler.js'); ?>"></script>
+<?php if (!$isGuestTopbar && isset($_SESSION['user_id'])): $appApiClientLoaded = true; ?>
+<script src="<?php echo htmlspecialchars($base_url); ?>assets/js/api-client.js?v=<?php echo (int)@filemtime(__DIR__ . '/../assets/js/api-client.js'); ?>"></script>
+<?php endif; ?>
 <header class="top-header" role="banner">
     <button type="button" class="topbar-icon me-auto d-md-none" id="sidebarToggle" aria-label="Otwórz menu boczne">
         <i class="bi bi-list fs-3" aria-hidden="true"></i>
@@ -521,16 +524,21 @@ document.addEventListener('DOMContentLoaded', function() {
         body.set('csrf_token', layer.dataset.csrf || '');
         body.set('notification_id', layer.dataset.notificationId || '0');
 
-        fetch(layer.dataset.readUrl || 'actions/mark_read.php', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: body.toString()
-        }).catch(function() {}).finally(function() {
+        const readUrl = layer.dataset.readUrl || 'actions/mark_read.php';
+        const markReadRequest = window.AppApi
+            ? window.AppApi.postForm(readUrl, body, { timeout: 8000 })
+            : fetch(readUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: body.toString()
+            });
+
+        markReadRequest.catch(function() {}).finally(function() {
             if (targetUrl) window.location.href = targetUrl;
         });
     };

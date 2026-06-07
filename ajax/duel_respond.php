@@ -5,28 +5,25 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json; charset=utf-8');
+securityApplyJsonHeaders();
 
 requireJsonLogin(false, [], ['success' => false, 'message' => 'Brak autoryzacji.'], ['success' => false, 'message' => 'Brak autoryzacji.']);
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Nieprawidłowa metoda.']);
-    exit;
-}
+securityRequireMethod('POST', ['success' => false, 'message' => 'Nieprawidłowa metoda.']);
 
-if (!validateCsrfToken($_POST['csrf_token'] ?? '', 'notifications')) {
+if (!securityValidateRequestCsrf('notifications')) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Błąd CSRF.']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Błąd CSRF.']);
     exit;
 }
 
 $myId = (int)$_SESSION['user_id'];
-$duelId = (int)($_POST['duel_id'] ?? 0);
-$action = strtolower(trim((string)($_POST['action'] ?? '')));
+$duelId = securityInputInt($_POST['duel_id'] ?? 0, 0, PHP_INT_MAX, 0);
+$action = securityInputEnum(strtolower((string)($_POST['action'] ?? '')), ['accept', 'decline'], '');
+securityThrottle('duel-respond:' . securityActorKey(), 30, 60, ['success' => false, 'message' => 'Zbyt wiele akcji naraz.']);
 
-if ($duelId <= 0 || !in_array($action, ['accept', 'decline'], true)) {
-    echo json_encode(['success' => false, 'message' => 'Nieprawidłowe żądanie.']);
+if ($duelId <= 0 || $action === '') {
+    echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowe żądanie.']);
     exit;
 }
 
@@ -37,10 +34,10 @@ try {
         $stmt = $pdo->prepare("UPDATE duels SET status = 'declined' WHERE id = ? AND opponent_id = ? AND status = 'pending'");
         $stmt->execute([$duelId, $myId]);
         if ($stmt->rowCount() < 1) {
-            echo json_encode(['success' => false, 'message' => 'Nie można odrzucić tego wyzwania.']);
+            echo securityJsonEncode(['success' => false, 'message' => 'Nie można odrzucić tego wyzwania.']);
             exit;
         }
-        echo json_encode(['success' => true, 'message' => 'Wyzwanie odrzucone.', 'redirect' => publicUrl('index.php')]);
+        echo securityJsonEncode(['success' => true, 'message' => 'Wyzwanie odrzucone.', 'redirect' => publicUrl('index.php')]);
         exit;
     }
 
@@ -49,23 +46,23 @@ try {
     $duel = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$duel) {
-        echo json_encode(['success' => false, 'message' => 'Nieprawidłowe lub wygasłe wyzwanie.']);
+        echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowe lub wygasłe wyzwanie.']);
         exit;
     }
 
     if (($duel['mode'] ?? 'classic') === 'all_in' && (int)($duel['stake_xp'] ?? 0) > 0) {
         if (!canUseAllInDuel($pdo, $myId)) {
-            echo json_encode(['success' => false, 'message' => 'Wykorzystałeś dzienny limit All-In Duel.', 'redirect' => publicUrl('duels/lobby.php?id=' . $duelId)]);
+            echo securityJsonEncode(['success' => false, 'message' => 'Wykorzystałeś dzienny limit All-In Duel.', 'redirect' => publicUrl('duels/lobby.php?id=' . $duelId)]);
             exit;
         }
         $xpStmt = $pdo->prepare('SELECT xp FROM users WHERE id = ?');
         $xpStmt->execute([$myId]);
         if ((int)$xpStmt->fetchColumn() < (int)$duel['stake_xp']) {
-            echo json_encode(['success' => false, 'message' => 'Nie masz wystarczająco XP na tę stawkę.', 'redirect' => publicUrl('duels/lobby.php?id=' . $duelId)]);
+            echo securityJsonEncode(['success' => false, 'message' => 'Nie masz wystarczająco XP na tę stawkę.', 'redirect' => publicUrl('duels/lobby.php?id=' . $duelId)]);
             exit;
         }
         if (!consumeAllInDuelUse($pdo, $myId)) {
-            echo json_encode(['success' => false, 'message' => 'Wykorzystałeś dzienny limit All-In Duel.', 'redirect' => publicUrl('duels/lobby.php?id=' . $duelId)]);
+            echo securityJsonEncode(['success' => false, 'message' => 'Wykorzystałeś dzienny limit All-In Duel.', 'redirect' => publicUrl('duels/lobby.php?id=' . $duelId)]);
             exit;
         }
     }
@@ -79,7 +76,7 @@ try {
         '/duels/take.php?id=' . $duelId
     );
 
-    echo json_encode([
+    echo securityJsonEncode([
         'success' => true,
         'message' => 'Wyzwanie zaakceptowane!',
         'redirect' => publicUrl('duels/take.php?id=' . $duelId),
@@ -87,5 +84,6 @@ try {
 } catch (PDOException $e) {
     error_log('duel_respond error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Nie udało się przetworzyć wyzwania.']);
+    securityAudit('duel_respond_failed', ['duel_id' => $duelId, 'user_id' => $myId], 'error');
+    echo securityJsonEncode(['success' => false, 'message' => 'Nie udało się przetworzyć wyzwania.']);
 }

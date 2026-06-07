@@ -95,8 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
       target.className = 'small mt-1 text-muted';
       timers.set(type, setTimeout(async () => {
         try {
-          const res = await fetch(`ajax/check_registration_availability.php?type=${encodeURIComponent(type)}&value=${encodeURIComponent(value)}`, { headers: { Accept: 'application/json' } });
-          const data = await res.json();
+          const url = `ajax/check_registration_availability.php?type=${encodeURIComponent(type)}&value=${encodeURIComponent(value)}`;
+          const data = window.AppApi?.getJson
+            ? await window.AppApi.getJson(url)
+            : await fetch(url, { headers: { Accept: 'application/json' } }).then((res) => res.json());
           target.textContent = data.message || 'Nie udało się sprawdzić dostępności.';
           target.className = data.ok && data.available ? 'small mt-1 feedback-ok' : 'small mt-1 feedback-error';
           if (type === 'username' && data.ok && !data.available) {

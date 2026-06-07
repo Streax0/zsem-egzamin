@@ -9,13 +9,18 @@ requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF Protection
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Błąd bezpieczeństwa (CSRF).');
-        header('Location: ../settings.php');
-        exit;
+        securityRedirect('../settings.php', '../settings.php');
     }
 
     $userId = $_SESSION['user_id'];
+    $rateLimit = securityConsumeRateLimit('settings:update_privacy:' . securityActorKey(), 30, 60);
+    if (empty($rateLimit['allowed'])) {
+        securityAudit('update_privacy_rate_limited', ['user_id' => (int)$userId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+        setSessionMessage('error', 'Zbyt wiele zmian naraz. Spróbuj za chwilę.');
+        securityRedirect('../settings.php', '../settings.php');
+    }
     
     // Checkboxes are only sent if they are checked
     $profilePublic = isset($_POST['profile_public']) ? 1 : 0;
@@ -63,5 +68,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-header('Location: ../settings.php');
-exit;
+securityRedirect('../settings.php', '../settings.php');

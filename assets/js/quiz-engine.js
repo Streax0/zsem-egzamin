@@ -21,6 +21,17 @@ const QuizEngine = {
         return document.querySelector('meta[name="csrf-token"]')?.content || '';
     },
 
+    async postQuizAction(formData) {
+        if (window.AppApi?.postForm) {
+            return window.AppApi.postForm('ajax/quiz_action.php', formData);
+        }
+        const response = await fetch('ajax/quiz_action.php', {
+            method: 'POST',
+            body: formData
+        });
+        return response.json();
+    },
+
     setupEventListeners() {
         // Intercept form submission
         const quizForm = document.getElementById('quizForm');
@@ -85,11 +96,7 @@ const QuizEngine = {
 
         let keepOptionsLocked = false;
         try {
-            const response = await fetch('ajax/quiz_action.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+            const data = await this.postQuizAction(formData);
 
             if (data.success) {
                 if (data.finished) {
@@ -147,11 +154,7 @@ const QuizEngine = {
 
         let keepOptionsLocked = false;
         try {
-            const response = await fetch('ajax/quiz_action.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+            const data = await this.postQuizAction(formData);
 
             if (data.success && data.phase === 'review') {
                 this.updateProgressPanel(data);
@@ -179,11 +182,7 @@ const QuizEngine = {
         formData.append('csrf_token', this.getCsrfToken(document.getElementById('quizForm') || document));
 
         try {
-            const response = await fetch('ajax/quiz_action.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await response.json();
+            const data = await this.postQuizAction(formData);
 
             if (data.success) {
                 if (data.finished) {

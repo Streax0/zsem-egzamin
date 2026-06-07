@@ -356,7 +356,7 @@ function requireJsonLogin(
 
     if (!isLoggedIn()) {
         http_response_code(401);
-        echo json_encode($unauthorizedPayload);
+        echo function_exists('securityJsonEncode') ? securityJsonEncode($unauthorizedPayload) : json_encode($unauthorizedPayload);
         exit;
     }
 
@@ -375,7 +375,7 @@ function requireJsonLogin(
                     session_destroy();
                 }
                 http_response_code(401);
-                echo json_encode($unauthorizedPayload);
+                echo function_exists('securityJsonEncode') ? securityJsonEncode($unauthorizedPayload) : json_encode($unauthorizedPayload);
                 exit;
             }
 
@@ -390,13 +390,13 @@ function requireJsonLogin(
 
     if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
         http_response_code(403);
-        echo json_encode($forbiddenPayload);
+        echo function_exists('securityJsonEncode') ? securityJsonEncode($forbiddenPayload) : json_encode($forbiddenPayload);
         exit;
     }
 
     if ($roles && !in_array($_SESSION['role'] ?? 'user', $roles, true)) {
         http_response_code(403);
-        echo json_encode($forbiddenPayload);
+        echo function_exists('securityJsonEncode') ? securityJsonEncode($forbiddenPayload) : json_encode($forbiddenPayload);
         exit;
     }
 }

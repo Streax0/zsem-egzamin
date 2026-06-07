@@ -10,20 +10,25 @@ requireLogin();
 $returnTarget = ($_POST['return_to'] ?? '') === 'profile.php' ? '../profile.php' : '../settings.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../settings.php');
-    exit;
+    securityRedirect('../settings.php', '../settings.php');
 }
 
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+if (!securityValidateRequestCsrf()) {
     setSessionMessage('error', 'Nieprawidłowy token CSRF.');
-    header('Location: ' . $returnTarget);
-    exit;
+    securityRedirect($returnTarget, '../settings.php');
 }
 
 $userId = (int)$_SESSION['user_id'];
+$profileAction = securityInputEnum($_POST['action'] ?? 'update_profile', ['update_profile', 'delete_avatar'], 'update_profile');
+$rateLimit = securityConsumeRateLimit('profile:' . $profileAction . ':' . securityActorKey(), $profileAction === 'delete_avatar' ? 20 : 12, 60);
+if (empty($rateLimit['allowed'])) {
+    securityAudit('profile_update_rate_limited', ['action' => $profileAction, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+    setSessionMessage('error', 'Zbyt wiele akcji profilu naraz. Sprobuj za chwile.');
+    securityRedirect($returnTarget, '../settings.php');
+}
 ensurePlatformEnhancements($pdo);
 
-if (($_POST['action'] ?? '') === 'delete_avatar') {
+if ($profileAction === 'delete_avatar') {
     try {
         deleteUserAvatar($pdo, $userId, true);
         setSessionMessage('success', 'Zdjęcie profilowe zostało usunięte.');
@@ -31,8 +36,7 @@ if (($_POST['action'] ?? '') === 'delete_avatar') {
         error_log('Avatar delete error: ' . $e->getMessage());
         setSessionMessage('error', 'Nie udało się usunąć zdjęcia profilowego.');
     }
-    header('Location: ' . $returnTarget);
-    exit;
+    securityRedirect($returnTarget, '../settings.php');
 }
 
 $username = trim($_POST['username'] ?? '');
@@ -182,8 +186,7 @@ if (empty($errors) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ??
 
 if (!empty($errors)) {
     setSessionMessage('error', implode(' ', $errors));
-    header('Location: ' . $returnTarget);
-    exit;
+    securityRedirect($returnTarget, '../settings.php');
 }
 
 try {
@@ -205,5 +208,4 @@ try {
     setSessionMessage('error', 'Nie udało się zapisać danych profilu.');
 }
 
-header('Location: ' . $returnTarget);
-exit;
+securityRedirect($returnTarget, '../settings.php');

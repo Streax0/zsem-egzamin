@@ -5,7 +5,7 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json');
+securityApplyJsonHeaders();
 
 requireJsonLogin(true, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
@@ -16,12 +16,30 @@ if ($ajaxUserId > 0) {
 
 requireJsonCsrfToken();
 
-$action = $_POST['action'] ?? '';
+$action = securityInputEnum($_POST['action'] ?? '', ['submit_answer', 'check_answer', 'previous_question', 'next_question', 'finish_early'], '');
 $test = $_SESSION['current_test'] ?? null;
 $isGuest = isGuestMode();
 
 if (!$test && $action !== 'start_test') {
-    echo json_encode(['success' => false, 'error' => 'No active test']);
+    echo securityJsonEncode(['success' => false, 'error' => 'No active test']);
+    exit;
+}
+
+if ($action === '') {
+    securityAudit('quiz_invalid_action', ['action' => $_POST['action'] ?? ''], 'warning');
+    echo securityJsonEncode(['success' => false, 'error' => 'Unknown action']);
+    exit;
+}
+
+$rateLimit = securityConsumeRateLimit('quiz-action:' . securityActorKey() . ':' . $action, $action === 'check_answer' ? 30 : 120, 60);
+if (empty($rateLimit['allowed'])) {
+    http_response_code(429);
+    securityAudit('quiz_rate_limited', ['action' => $action, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+    echo securityJsonEncode(array_merge([
+        'success' => false,
+        'error' => 'Zbyt wiele akcji naraz. Odczekaj chwilę i spróbuj ponownie.',
+        'retry_after' => (int)($rateLimit['retry_after'] ?? 0),
+    ], is_array($test) ? testProgressPayload($test) : []));
     exit;
 }
 
@@ -48,10 +66,10 @@ function emitCurrentQuestion($test) {
     $current = max(0, (int)($test['current'] ?? 0));
     $total = count($test['questions'] ?? []);
     if ($total < 1 || !isset($test['questions'][$current])) {
-        echo json_encode(['success' => false, 'error' => 'No active question']);
+        echo securityJsonEncode(['success' => false, 'error' => 'No active question']);
         return;
     }
-    echo json_encode(array_merge([
+    echo securityJsonEncode(array_merge([
         'success' => true,
         'finished' => false,
         'next_question' => true,
@@ -63,12 +81,12 @@ function emitCurrentQuestion($test) {
 
 switch ($action) {
     case 'submit_answer':
-        $questionId = (int)($_POST['question_id'] ?? 0);
-        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
+        $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
+        $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
         $currentIdx = $test['current'];
 
         if (!isset($test['questions'][$currentIdx])) {
-            echo json_encode(['success' => false, 'error' => 'No active question']);
+            echo securityJsonEncode(['success' => false, 'error' => 'No active question']);
             break;
         }
 
@@ -80,7 +98,7 @@ switch ($action) {
                 emitCurrentQuestion($test);
                 break;
             }
-            echo json_encode(['success' => false, 'error' => 'Invalid question']);
+            echo securityJsonEncode(['success' => false, 'error' => 'Invalid question']);
             break;
         }
         
@@ -92,11 +110,26 @@ switch ($action) {
                 $test['phase'] = 'reviewing';
                 $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
-                echo json_encode(array_merge([
+                echo securityJsonEncode(array_merge([
                     'success' => true,
                     'phase' => 'review',
                     'result' => $test['last_result']
                 ], testProgressPayload($test)));
+                break;
+            }
+            if (($test['phase'] ?? 'answering') !== 'answering') {
+                if (!empty($test['answers'][$currentIdx])) {
+                    $test['phase'] = 'reviewing';
+                    $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+                    saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
+                    echo securityJsonEncode(array_merge([
+                        'success' => true,
+                        'phase' => 'review',
+                        'result' => $test['last_result']
+                    ], testProgressPayload($test)));
+                } else {
+                    echo securityJsonEncode(['success' => false, 'error' => 'Question already reviewed']);
+                }
                 break;
             }
             
@@ -118,15 +151,15 @@ switch ($action) {
                 if ($test['current'] >= count($test['questions'])) {
                     if ($isGuest) {
                         $resultId = finishGuestTest($test);
-                        echo json_encode(['success' => true, 'finished' => true, 'redirect' => "result.php?guest=" . rawurlencode($resultId)]);
+                        echo securityJsonEncode(['success' => true, 'finished' => true, 'redirect' => "result.php?guest=" . rawurlencode($resultId)]);
                     } else {
                         $resultId = finishTest($pdo, $_SESSION['user_id'], $test);
-                        echo json_encode(['success' => true, 'finished' => true, 'redirect' => "result.php?id=$resultId"]);
+                        echo securityJsonEncode(['success' => true, 'finished' => true, 'redirect' => "result.php?id=$resultId"]);
                     }
                 } else {
                     $nextIdx = $test['current'];
                     $savedAnswer = $test['answers'][$nextIdx]['user_answer'] ?? '';
-                    echo json_encode(array_merge([
+                    echo securityJsonEncode(array_merge([
                         'success' => true, 
                         'finished' => false, 
                         'next_question' => true,
@@ -161,32 +194,32 @@ switch ($action) {
                 }
 
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
-                echo json_encode(array_merge([
+                echo securityJsonEncode(array_merge([
                     'success' => true,
                     'phase' => 'review',
                     'result' => $test['last_result']
                 ], testProgressPayload($test)));
             }
         } else {
-            echo json_encode(['success' => false, 'error' => 'Invalid question']);
+            echo securityJsonEncode(['success' => false, 'error' => 'Invalid question']);
         }
         break;
 
     case 'check_answer':
-        $questionId = (int)($_POST['question_id'] ?? 0);
-        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
+        $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
+        $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
         $checkResult = applyTestAnswerCheck($test, $questionId, $userAnswer, $pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $isGuest);
 
         if (!empty($checkResult['success'])) {
             saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
-            echo json_encode(array_merge([
+            echo securityJsonEncode(array_merge([
                 'success' => true,
                 'phase' => 'review',
                 'result' => $checkResult['result'],
                 'already_checked' => !empty($checkResult['already_checked']),
             ], testProgressPayload($test)));
         } else {
-            echo json_encode(array_merge([
+            echo securityJsonEncode(array_merge([
                 'success' => false,
                 'error' => $checkResult['error'] ?? 'Nie można sprawdzić odpowiedzi.',
             ], testProgressPayload($test)));
@@ -195,7 +228,7 @@ switch ($action) {
 
     case 'previous_question':
         if (testDisallowsPreviousQuestion($test)) {
-            echo json_encode(['success' => false, 'error' => 'Cofanie pytań jest wyłączone w tym trybie']);
+            echo securityJsonEncode(['success' => false, 'error' => 'Cofanie pytań jest wyłączone w tym trybie']);
             break;
         }
         $test['current'] = max(0, min(count($test['questions']) - 1, (int)($test['current'] ?? 0) - 1));
@@ -203,7 +236,7 @@ switch ($action) {
         $test['last_result'] = null;
         if (restoreCheckedQuestionReview($test)) {
             saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
-            echo json_encode(array_merge([
+            echo securityJsonEncode(array_merge([
                 'success' => true,
                 'phase' => 'review',
                 'result' => $test['last_result'],
@@ -213,7 +246,7 @@ switch ($action) {
         touchTestQuestionStart($test);
         saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
         $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
-        echo json_encode(array_merge([
+        echo securityJsonEncode(array_merge([
             'success' => true,
             'current' => $test['current'],
             'total' => count($test['questions']),
@@ -238,7 +271,7 @@ switch ($action) {
                 $pool = array_values(array_filter($allQuestions, function($qq) use ($prevCategory) { return ($qq['category'] ?? '') === $prevCategory; }));
             }
             if (empty($pool)) {
-                echo json_encode(['success' => false, 'error' => 'No questions available in selected category']);
+                echo securityJsonEncode(['success' => false, 'error' => 'No questions available in selected category']);
                 exit;
             }
             if (!$isGuest && !empty($test['smart']) && isset($_SESSION['user_id'])) {
@@ -247,7 +280,7 @@ switch ($action) {
                 $newQset = getRandomQuestions($pool, 1);
             }
             if (empty($newQset)) {
-                echo json_encode(['success' => false, 'error' => 'No questions available in selected category']);
+                echo securityJsonEncode(['success' => false, 'error' => 'No questions available in selected category']);
                 exit;
             }
             $newQ = $newQset[0];
@@ -260,7 +293,7 @@ switch ($action) {
             touchTestQuestionStart($test);
             saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
 
-            echo json_encode(array_merge([
+            echo securityJsonEncode(array_merge([
                 'success' => true,
                 'current' => 0,
                 'total' => 1,
@@ -270,15 +303,15 @@ switch ($action) {
             if ($test['current'] >= count($test['questions'])) {
                 if ($isGuest) {
                     $resultId = finishGuestTest($test);
-                    echo json_encode(['success' => true, 'finished' => true, 'redirect' => "result.php?guest=" . rawurlencode($resultId)]);
+                    echo securityJsonEncode(['success' => true, 'finished' => true, 'redirect' => "result.php?guest=" . rawurlencode($resultId)]);
                 } else {
                     $resultId = finishTest($pdo, $_SESSION['user_id'], $test);
-                    echo json_encode(['success' => true, 'finished' => true, 'redirect' => "result.php?id=$resultId"]);
+                    echo securityJsonEncode(['success' => true, 'finished' => true, 'redirect' => "result.php?id=$resultId"]);
                 }
             } else {
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
                 $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
-                echo json_encode(array_merge([
+                echo securityJsonEncode(array_merge([
                     'success' => true,
                     'current' => $test['current'],
                     'total' => count($test['questions']),
@@ -292,15 +325,15 @@ switch ($action) {
     case 'finish_early':
         if ($isGuest) {
             $resultId = finishGuestTest($test);
-            echo json_encode(['success' => true, 'redirect' => "result.php?guest=" . rawurlencode($resultId)]);
+            echo securityJsonEncode(['success' => true, 'redirect' => "result.php?guest=" . rawurlencode($resultId)]);
         } else {
             $resultId = finishTest($pdo, $_SESSION['user_id'], $test);
-            echo json_encode(['success' => true, 'redirect' => "result.php?id=$resultId"]);
+            echo securityJsonEncode(['success' => true, 'redirect' => "result.php?id=$resultId"]);
         }
         break;
 
     default:
-        echo json_encode(['success' => false, 'error' => 'Unknown action']);
+        echo securityJsonEncode(['success' => false, 'error' => 'Unknown action']);
 }
 
 function formatQuestionForAjax($q) {

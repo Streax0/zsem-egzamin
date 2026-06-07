@@ -5,19 +5,36 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json');
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+securityApplyJsonHeaders();
 
 requireJsonLogin(false, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
 requireJsonCsrfToken();
 
-$action = $_POST['action'] ?? '';
-$userId = $_SESSION['user_id'];
-$sessionId = (int)($_POST['session_id'] ?? 0);
+$action = securityInputEnum($_POST['action'] ?? '', ['submit_answer', 'report_violation'], '');
+$userId = (int)$_SESSION['user_id'];
+$sessionId = securityInputInt($_POST['session_id'] ?? 0, 0, PHP_INT_MAX, 0);
 
 if (!$sessionId) {
-    echo json_encode(['success' => false, 'error' => 'No session ID']);
+    echo securityJsonEncode(['success' => false, 'error' => 'No session ID']);
+    exit;
+}
+
+if ($action === '') {
+    securityAudit('exam_invalid_action', ['action' => $_POST['action'] ?? ''], 'warning');
+    echo securityJsonEncode(['success' => false, 'error' => 'Unknown action']);
+    exit;
+}
+
+$rateLimit = securityConsumeRateLimit('exam-action:' . securityActorKey() . ':' . $sessionId . ':' . $action, $action === 'report_violation' ? 30 : 120, 60);
+if (empty($rateLimit['allowed'])) {
+    http_response_code(429);
+    securityAudit('exam_rate_limited', ['session_id' => $sessionId, 'action' => $action], 'warning');
+    echo securityJsonEncode([
+        'success' => false,
+        'error' => 'Zbyt wiele akcji naraz. Odczekaj chwilę i spróbuj ponownie.',
+        'retry_after' => (int)($rateLimit['retry_after'] ?? 0),
+    ]);
     exit;
 }
 
@@ -27,7 +44,7 @@ $stmt->execute([$sessionId, $userId]);
 $participant = $stmt->fetch();
 
 if (!$participant) {
-    echo json_encode(['success' => false, 'error' => 'Participant not found']);
+    echo securityJsonEncode(['success' => false, 'error' => 'Participant not found']);
     exit;
 }
 
@@ -45,19 +62,19 @@ $sessionStatus = $sessionInfo['status'] ?? null;
 switch ($action) {
     case 'submit_answer':
         if ($sessionStatus !== 'in_progress' || $participant['status'] !== 'taking_exam') {
-            echo json_encode(['success' => false, 'error' => 'Exam is not accepting answers']);
+            echo securityJsonEncode(['success' => false, 'error' => 'Exam is not accepting answers']);
             exit;
         }
 
-        $questionId = (int)($_POST['question_id'] ?? 0);
-        $userAnswer = strtoupper(trim($_POST['answer'] ?? ''));
-        $questionOrder = (int)($_POST['question_order'] ?? 0);
-        $timeSpent = (int)($_POST['time_spent'] ?? 0);
+        $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
+        $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
+        $questionOrder = securityInputInt($_POST['question_order'] ?? 0, 0, 1000, 0);
+        $timeSpent = securityInputInt($_POST['time_spent'] ?? 0, 0, 86400, 0);
         if (empty($sessionInfo['allow_answer_changes'])) {
             $stmt = $pdo->prepare("SELECT 1 FROM exam_answers WHERE participant_id = ? AND question_id = ? LIMIT 1");
             $stmt->execute([(int)$participant['id'], $questionId]);
             if ($stmt->fetchColumn()) {
-                echo json_encode(['success' => false, 'error' => 'Answer changes are disabled']);
+                echo securityJsonEncode(['success' => false, 'error' => 'Answer changes are disabled']);
                 exit;
             }
         }
@@ -66,7 +83,7 @@ switch ($action) {
         $stmt->execute([$sessionId, $questionId, $questionOrder]);
         $sessionQuestion = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$sessionQuestion) {
-            echo json_encode(['success' => false, 'error' => 'Question is not assigned to this session']);
+            echo securityJsonEncode(['success' => false, 'error' => 'Question is not assigned to this session']);
             exit;
         }
 
@@ -74,7 +91,7 @@ switch ($action) {
         $questionRows = getQuestionsByIds($pdo, [$questionId]);
         $question = $questionRows[0] ?? null;
         if (!$question) {
-            echo json_encode(['success' => false, 'error' => 'Question not found']);
+            echo securityJsonEncode(['success' => false, 'error' => 'Question not found']);
             exit;
         }
 
@@ -114,29 +131,27 @@ switch ($action) {
             }
 
             $pdo->commit();
-            echo json_encode($finished
+            echo securityJsonEncode($finished
                 ? ['success' => true, 'finished' => true, 'redirect' => "finished.php?session=$sessionId"]
                 : ['success' => true, 'finished' => false, 'answered' => $answeredCount, 'total' => $totalQuestions]
             );
         } catch (PDOException $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
             error_log('Exam answer save failed: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'error' => 'Answer save failed']);
+            securityAudit('exam_answer_save_failed', ['session_id' => $sessionId, 'participant_id' => $participant['id'] ?? 0], 'error');
+            echo securityJsonEncode(['success' => false, 'error' => 'Answer save failed']);
         }
         break;
 
     case 'report_violation':
         if (!in_array($sessionStatus, ['in_progress', 'paused'], true) || !in_array($participant['status'], ['taking_exam', 'in_lobby'], true)) {
-            echo json_encode(['success' => false, 'error' => 'Exam is not active']);
+            echo securityJsonEncode(['success' => false, 'error' => 'Exam is not active']);
             exit;
         }
 
         $allowedViolationTypes = ['tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'other'];
-        $type = $_POST['violation_type'] ?? 'other';
-        if (!in_array($type, $allowedViolationTypes, true)) {
-            $type = 'other';
-        }
-        $qId = (int)($_POST['question_id'] ?? 0);
+        $type = securityInputEnum($_POST['violation_type'] ?? 'other', $allowedViolationTypes, 'other');
+        $qId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
         
         $stmt = $pdo->prepare("INSERT INTO exam_violations (participant_id, session_id, violation_type, question_id) VALUES (?, ?, ?, ?)");
         $stmt->execute([$participant['id'], $sessionId, $type, $qId]);
@@ -144,9 +159,9 @@ switch ($action) {
         $pdo->prepare("UPDATE exam_participants SET violation_count = violation_count + 1 WHERE id = ?")
             ->execute([$participant['id']]);
             
-        echo json_encode(['success' => true]);
+        echo securityJsonEncode(['success' => true]);
         break;
 
     default:
-        echo json_encode(['success' => false, 'error' => 'Unknown action']);
+        echo securityJsonEncode(['success' => false, 'error' => 'Unknown action']);
 }

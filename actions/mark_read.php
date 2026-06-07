@@ -13,12 +13,9 @@ if ($wantsJson) {
     requireLogin();
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? '', 'notifications')) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !securityValidateRequestCsrf('notifications')) {
     if ($wantsJson) {
-        http_response_code(403);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => 'csrf']);
-        exit;
+        securitySendJson(['success' => false, 'ok' => false, 'error' => 'csrf'], 403);
     }
     setSessionMessage('error', 'Błąd bezpieczeństwa.');
     header('Location: ../notifications.php');
@@ -26,7 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_tok
 }
 
 $userId = $_SESSION['user_id'];
-$notificationId = max(0, (int)($_POST['notification_id'] ?? 0));
+$notificationId = securityInputInt($_POST['notification_id'] ?? 0, 0, PHP_INT_MAX, 0);
+
+if ($wantsJson) {
+    securityThrottle(
+        'notifications:mark_read:' . securityActorKey(),
+        80,
+        60,
+        ['success' => false, 'ok' => false, 'error' => 'rate_limited']
+    );
+}
 
 try {
     if ($notificationId > 0) {
@@ -38,30 +44,13 @@ try {
     }
 } catch (PDOException $e) {
     if ($wantsJson) {
-        http_response_code(500);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => 'db']);
-        exit;
+        securityAudit('notification_mark_read_failed', ['notification_id' => $notificationId], 'error');
+        securitySendJson(['success' => false, 'ok' => false, 'error' => 'db'], 500);
     }
 }
 
 if ($wantsJson) {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => true]);
-    exit;
+    securitySendJson(['success' => true, 'ok' => true, 'notification_id' => $notificationId]);
 }
 
-// Redirect back only inside this site.
-$returnUrl = '../index.php';
-$referrer = $_SERVER['HTTP_REFERER'] ?? '';
-if ($referrer !== '') {
-    $parts = parse_url($referrer);
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    if ($parts && (!isset($parts['host']) || strcasecmp($parts['host'], $host) === 0)) {
-        $path = $parts['path'] ?? '../index.php';
-        $query = isset($parts['query']) ? '?' . $parts['query'] : '';
-        $returnUrl = $path . $query;
-    }
-}
-header('Location: ' . $returnUrl);
-exit;
+securityRedirect(securityReferrerRedirectTarget('../index.php'), '../index.php');

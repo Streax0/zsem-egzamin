@@ -4,18 +4,19 @@ require_once '../includes/session.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
-header('Content-Type: application/json');
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 startSecureSession();
+securityApplyJsonHeaders();
 
 requireJsonLogin(true, [], ['error' => 'unauthorized'], ['error' => 'unauthorized']);
 
-$sessionId = (int)($_GET['session'] ?? 0);
+$sessionId = securityInputInt($_GET['session'] ?? 0, 0, PHP_INT_MAX, 0);
 $lite = ($_GET['lite'] ?? '') === '1';
 if (!$sessionId) {
-    echo json_encode(['error' => 'missing_session']);
+    echo securityJsonEncode(['error' => 'missing_session']);
     exit;
 }
+
+securityThrottle('exam-status:' . securityActorKey() . ':' . $sessionId, 120, 60, ['error' => 'rate_limited']);
 
 try {
     $stmt = $pdo->prepare("
@@ -28,7 +29,7 @@ try {
     $session = $stmt->fetch();
 
     if (!$session) {
-        echo json_encode(['error' => 'not_found']);
+        echo securityJsonEncode(['error' => 'not_found']);
         exit;
     }
 
@@ -59,7 +60,7 @@ try {
 
     if (!$isTeacherOwner && !$participantId) {
         http_response_code(403);
-        echo json_encode(['error' => 'forbidden']);
+        echo securityJsonEncode(['error' => 'forbidden']);
         exit;
     }
 
@@ -106,7 +107,8 @@ try {
         $response['participants'] = $stmtP->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    echo json_encode($response);
+    echo securityJsonEncode($response);
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'db_error']);
+    securityAudit('exam_status_failed', ['session_id' => $sessionId], 'error');
+    echo securityJsonEncode(['error' => 'db_error']);
 }

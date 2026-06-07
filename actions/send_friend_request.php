@@ -9,14 +9,19 @@ requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF Protection
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+    if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Błąd bezpieczeństwa (CSRF).');
-        header('Location: ../social.php');
-        exit;
+        securityRedirect('../social.php', '../social.php');
     }
     
-    $friendId = (int)($_POST['friend_id'] ?? 0);
+    $friendId = securityInputInt($_POST['friend_id'] ?? 0, 0, PHP_INT_MAX, 0);
     $myId = $_SESSION['user_id'];
+    $rateLimit = securityConsumeRateLimit('social:send_friend_request:' . securityActorKey(), 20, 60);
+    if (empty($rateLimit['allowed'])) {
+        securityAudit('send_friend_request_rate_limited', ['friend_id' => $friendId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+        setSessionMessage('error', 'Zbyt wiele akcji naraz. Spróbuj za chwilę.');
+        securityRedirect(securityReferrerRedirectTarget('../social.php'), '../social.php');
+    }
     
     if ($friendId > 0 && $friendId != $myId) {
         // Check roles and target privacy settings.
@@ -52,16 +57,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$returnUrl = '../social.php';
-$referrer = $_SERVER['HTTP_REFERER'] ?? '';
-if ($referrer !== '') {
-    $parts = parse_url($referrer);
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    if ($parts && (!isset($parts['host']) || strcasecmp($parts['host'], $host) === 0)) {
-        $path = $parts['path'] ?? '../social.php';
-        $query = isset($parts['query']) ? '?' . $parts['query'] : '';
-        $returnUrl = $path . $query;
-    }
-}
-header('Location: ' . $returnUrl);
-exit;
+securityRedirect(securityReferrerRedirectTarget('../social.php'), '../social.php');

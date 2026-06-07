@@ -5,22 +5,29 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json; charset=utf-8');
+securityApplyJsonHeaders();
 
 requireJsonLogin(false, [], ['ok' => false, 'results' => []], ['ok' => false, 'results' => []]);
 
 $userId = (int)$_SESSION['user_id'];
 $role = $_SESSION['role'] ?? 'user';
-$query = trim((string)($_GET['q'] ?? ''));
+$query = securityInputString($_GET['q'] ?? '', 64);
+
+$sessionLimit = securityConsumeRateLimit('live-user-search:' . securityActorKey(), 80, 60);
+if (empty($sessionLimit['allowed'])) {
+    http_response_code(429);
+    echo securityJsonEncode(['ok' => false, 'results' => [], 'retry_after' => (int)($sessionLimit['retry_after'] ?? 0)]);
+    exit;
+}
 
 if (!consumeRateLimit($pdo, 'live_user_search', (string)$userId . '|' . clientIpAddress(), 60, 300)) {
     http_response_code(429);
-    echo json_encode(['ok' => false, 'results' => []]);
+    echo securityJsonEncode(['ok' => false, 'results' => []]);
     exit;
 }
 
 if (mb_strlen($query) < 1) {
-    echo json_encode(['ok' => true, 'results' => []]);
+    echo securityJsonEncode(['ok' => true, 'results' => []]);
     exit;
 }
 
@@ -69,9 +76,10 @@ try {
         }
     }
     unset($row);
-    echo json_encode(['ok' => true, 'results' => $rows], JSON_UNESCAPED_UNICODE);
+    echo securityJsonEncode(['ok' => true, 'results' => $rows]);
 } catch (PDOException $e) {
     error_log('Live user search failed: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['ok' => false, 'results' => []]);
+    securityAudit('live_user_search_failed', ['user_id' => $userId], 'error');
+    echo securityJsonEncode(['ok' => false, 'results' => []]);
 }

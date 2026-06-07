@@ -11,25 +11,29 @@ require_once '../includes/functions.php';
 startSecureSession();
 requireLogin();
 
-$returnTo = (str_contains($_SERVER['HTTP_REFERER'] ?? '', 'profile.php')) ? '../profile.php' : '../settings.php';
+$returnTo = str_contains(securityReferrerRedirectTarget('../settings.php'), 'profile.php') ? '../profile.php' : '../settings.php';
 if (!empty($_POST['return_to']) && in_array($_POST['return_to'], ['settings.php', 'profile.php'], true)) {
-    $returnTo = '../' . $_POST['return_to'];
+    $returnTo = securityLocalRedirectTarget('../' . $_POST['return_to'], '../settings.php', ['#^\.\./(?:settings|profile)\.php$#']);
 }
 
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ' . $returnTo);
-    exit;
+    securityRedirect($returnTo, '../settings.php');
 }
 
 // Validate CSRF token
-if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+if (!securityValidateRequestCsrf()) {
     setSessionMessage('error', 'Nieprawidłowy token CSRF. Spróbuj ponownie.');
-    header('Location: ' . $returnTo);
-    exit;
+    securityRedirect($returnTo, '../settings.php');
 }
 
 $userId = $_SESSION['user_id'];
+$rateLimit = securityConsumeRateLimit('auth:change_password:' . securityActorKey(), 8, 60);
+if (empty($rateLimit['allowed'])) {
+    securityAudit('change_password_rate_limited', ['user_id' => (int)$userId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
+    setSessionMessage('error', 'Zbyt wiele prób zmiany hasła. Spróbuj za chwilę.');
+    securityRedirect($returnTo, '../settings.php');
+}
 $currentPassword = $_POST['current_password'] ?? '';
 $newPassword = $_POST['new_password'] ?? '';
 $confirmPassword = $_POST['confirm_password'] ?? '';
@@ -81,5 +85,4 @@ if (empty($errors)) {
     setSessionMessage('error', implode(' ', $errors));
 }
 
-header('Location: ' . $returnTo);
-exit;
+securityRedirect($returnTo, '../settings.php');

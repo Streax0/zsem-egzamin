@@ -396,9 +396,24 @@ function ensurePlatformEnhancements(PDO $pdo): void {
             dbAddColumnIfMissing($pdo, 'test_results', 'exclude_from_ranking', "TINYINT(1) DEFAULT 0 AFTER mode");
             dbAddIndexIfMissing($pdo, 'test_results', 'idx_user_test_date', '(user_id, test_date)');
             dbAddIndexIfMissing($pdo, 'test_results', 'idx_ranking_tests', '(total_questions, exclude_from_ranking)');
+            dbAddIndexIfMissing($pdo, 'test_results', 'idx_user_mode_date', '(user_id, mode, test_date)');
         }
     } catch (Throwable $e) {
         error_log('Test results enhancements failed: ' . $e->getMessage());
+    }
+
+    // 2b. Test answers and progress lookup indexes
+    try {
+        if (dbTableExists($pdo, 'test_answers')) {
+            dbAddIndexIfMissing($pdo, 'test_answers', 'idx_question_correct', '(question_id, is_correct)');
+            dbAddIndexIfMissing($pdo, 'test_answers', 'idx_result_question', '(result_id, question_id)');
+        }
+        if (dbTableExists($pdo, 'user_question_progress')) {
+            dbAddIndexIfMissing($pdo, 'user_question_progress', 'idx_user_mastered_last', '(user_id, is_mastered, last_seen)');
+            dbAddIndexIfMissing($pdo, 'user_question_progress', 'idx_question_mastered', '(question_id, is_mastered)');
+        }
+    } catch (Throwable $e) {
+        error_log('Test answer/progress index enhancements failed: ' . $e->getMessage());
     }
 
     // 3. Notifications table
@@ -467,9 +482,24 @@ function ensurePlatformEnhancements(PDO $pdo): void {
             dbAddColumnIfMissing($pdo, 'exam_session_questions', 'override_by', "INT DEFAULT NULL AFTER override_reason");
             dbAddColumnIfMissing($pdo, 'exam_session_questions', 'override_at', "DATETIME DEFAULT NULL AFTER override_by");
             dbAddIndexIfMissing($pdo, 'exam_session_questions', 'idx_session_question', '(session_id, question_id)');
+            dbAddIndexIfMissing($pdo, 'exam_session_questions', 'idx_session_order', '(session_id, question_order)');
         }
     } catch (Throwable $e) {
         error_log('Exam session questions enhancements failed: ' . $e->getMessage());
+    }
+
+    // 8b. Exam participant and answer lookup indexes
+    try {
+        if (dbTableExists($pdo, 'exam_participants')) {
+            dbAddIndexIfMissing($pdo, 'exam_participants', 'idx_session_user_status', '(session_id, user_id, status)');
+            dbAddIndexIfMissing($pdo, 'exam_participants', 'idx_session_status_joined', '(session_id, status, joined_at)');
+        }
+        if (dbTableExists($pdo, 'exam_answers')) {
+            dbAddIndexIfMissing($pdo, 'exam_answers', 'idx_session_participant', '(session_id, participant_id)');
+            dbAddIndexIfMissing($pdo, 'exam_answers', 'idx_participant_order', '(participant_id, question_order)');
+        }
+    } catch (Throwable $e) {
+        error_log('Exam participant/answer index enhancements failed: ' . $e->getMessage());
     }
 
     // 9. App Settings table and initialization
@@ -1789,10 +1819,9 @@ function escapeHtml($str) {
  * @param string $url URL to redirect to
  */
 function redirect($url) {
-    $url = str_replace(["\r", "\n"], '', (string)$url);
-    if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $url) || str_starts_with($url, '//')) {
-        $url = 'index.php';
-    }
+    $url = function_exists('securityLocalRedirectTarget')
+        ? securityLocalRedirectTarget((string)$url, 'index.php')
+        : str_replace(["\r", "\n"], '', (string)$url);
     if (!headers_sent()) {
         header('Location: ' . $url);
         exit();
@@ -2045,7 +2074,7 @@ function getQuestionsByIds($pdo, array $ids): array {
     if (count($found) < count($ids)) {
         $missing = array_diff($ids, array_keys($found));
         $missingMap = array_fill_keys($missing, true);
-        foreach (loadQuestions($pdo) as $question) {
+        foreach (loadQuestions($pdo, false) as $question) {
             $questionId = (int)($question['id'] ?? 0);
             if (isset($missingMap[$questionId])) {
                 $found[$questionId] = $question;
@@ -2083,6 +2112,35 @@ function getRandomQuestions($questions, $count = 40) {
     return array_slice($questions, 0, $count);
 }
 
+function getUserQuestionProgressMap($pdo, int $userId, array $questionIds): array {
+    if (!$pdo || $userId <= 0 || empty($questionIds)) {
+        return [];
+    }
+
+    $ids = array_values(array_unique(array_filter(array_map('intval', $questionIds), static fn($id) => $id > 0)));
+    if (empty($ids)) {
+        return [];
+    }
+
+    $progress = [];
+    foreach (array_chunk($ids, 500) as $chunk) {
+        $placeholders = implode(',', array_fill(0, count($chunk), '?'));
+        $sql = "SELECT question_id, times_seen, times_correct, is_mastered, UNIX_TIMESTAMP(last_seen) as last_seen_ts FROM user_question_progress WHERE user_id = ? AND question_id IN ($placeholders)";
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_merge([$userId], $chunk));
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $progress[(int)$row['question_id']] = $row;
+            }
+        } catch (Exception $e) {
+            error_log('Failed to load targeted question progress: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    return $progress;
+}
+
 /**
  * Get weighted random questions using user progress to prioritize weaker items
  * New questions and questions answered incorrectly appear more often.
@@ -2106,24 +2164,7 @@ function getWeightedRandomQuestions($pdo, $questions, $count = 40, $userId = 0) 
     // Build id list for a single batch query
     $ids = [];
     foreach ($questions as $q) $ids[] = (int)($q['id'] ?? 0);
-
-    // Prepare placeholders and fetch progress rows
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $sql = "SELECT question_id, times_seen, times_correct, is_mastered, UNIX_TIMESTAMP(last_seen) as last_seen_ts FROM user_question_progress WHERE user_id = ? AND question_id IN ($placeholders)";
-    try {
-        $stmt = $pdo->prepare($sql);
-        $params = array_merge([$userId], $ids);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        // If query fails, fallback to uniform sampling
-        return getRandomQuestions($questions, $count);
-    }
-
-    $progress = [];
-    foreach ($rows as $r) {
-        $progress[(int)$r['question_id']] = $r;
-    }
+    $progress = getUserQuestionProgressMap($pdo, (int)$userId, $ids);
 
     // Compute weights per index
     $weights = [];
@@ -3478,7 +3519,25 @@ function ensureUserActiveTestsTable(PDO $pdo): void {
         payload LONGTEXT NOT NULL,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    dbAddIndexIfMissing($pdo, 'user_active_tests', 'idx_updated_at', '(updated_at)');
     $ensured = true;
+}
+
+function cleanupStaleActiveTests(PDO $pdo, int $maxAgeDays = 14): void {
+    static $cleaned = false;
+    if ($cleaned) {
+        return;
+    }
+    $cleaned = true;
+    $maxAgeDays = max(1, min(90, $maxAgeDays));
+    try {
+        ensureUserActiveTestsTable($pdo);
+        $cutoff = date('Y-m-d H:i:s', time() - ($maxAgeDays * 86400));
+        $stmt = $pdo->prepare('DELETE FROM user_active_tests WHERE updated_at < ?');
+        $stmt->execute([$cutoff]);
+    } catch (PDOException $e) {
+        error_log('cleanupStaleActiveTests failed: ' . $e->getMessage());
+    }
 }
 
 function hasActiveTestInSession(): bool {
@@ -3517,6 +3576,7 @@ function persistActiveTestToDb(PDO $pdo, int $userId, array $test): void {
     }
     try {
         ensureUserActiveTestsTable($pdo);
+        cleanupStaleActiveTests($pdo);
         $payload = json_encode($test, JSON_UNESCAPED_UNICODE);
         if ($payload === false) {
             return;
@@ -3550,6 +3610,7 @@ function restoreActiveTestFromDb(PDO $pdo, int $userId): ?array {
     }
     try {
         ensureUserActiveTestsTable($pdo);
+        cleanupStaleActiveTests($pdo);
         $stmt = $pdo->prepare('SELECT payload FROM user_active_tests WHERE user_id = ? LIMIT 1');
         $stmt->execute([$userId]);
         $payload = $stmt->fetchColumn();
@@ -3676,7 +3737,7 @@ function normalizeTestAnswerChecks(array &$test): void {
 }
 
 function testAnswerCheckModeAllowed(array $test): bool {
-    return in_array((string)($test['mode'] ?? 'exam'), ['practice', 'single'], true);
+    return in_array((string)($test['mode'] ?? 'exam'), ['exam', 'practice', 'single'], true);
 }
 
 function testAnswerCheckPayload(array $test): array {
@@ -3775,6 +3836,9 @@ function applyTestAnswerCheck(array &$test, int $questionId, string $userAnswer,
         $test['phase'] = 'reviewing';
         $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
         return ['success' => true, 'result' => $test['last_result'], 'already_checked' => true];
+    }
+    if (($test['phase'] ?? 'answering') !== 'answering') {
+        return ['success' => false, 'error' => 'To pytanie jest juz w trybie podgladu.'];
     }
 
     $payload = testAnswerCheckPayload($test);
