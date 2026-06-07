@@ -303,6 +303,9 @@ def test_tests_update_answer_check_surface() -> None:
         "'answer_check_limit' => 3",
         "answer_check_used",
         "$test['phase'] ?? 'answering'",
+        "'smart'      => $smart",
+        "'smart' => $smart",
+        "prepareNextSingleQuestion($pdo, $test",
         "Sprawdzenia:",
         "Sprawdź odpowiedź",
         "prefers-reduced-motion",
@@ -311,6 +314,7 @@ def test_tests_update_answer_check_surface() -> None:
         "ajax/quiz_action.php",
         "case 'check_answer'",
         "applyTestAnswerCheck",
+        "prepareNextSingleQuestion",
         "testAnswerCheckPayload",
         "Question already reviewed",
     )
@@ -326,6 +330,7 @@ def test_tests_update_answer_check_surface() -> None:
     assert_contains(
         "includes/functions.php",
         "function applyTestAnswerCheck",
+        "function prepareNextSingleQuestion",
         "function testAnswerCheckPayload",
         "revealed_by_check",
         "['exam', 'practice', 'single']",

@@ -276,6 +276,7 @@ if ($needNewTest && !$showSetup && $wantsStart) {
         'answers'    => [],
         'phase'      => 'answering',
         'last_result'=> null,
+        'smart'      => $smart,
         'answer_check_limit' => 3,
         'answer_check_used' => 0,
         'exclude_from_ranking' => $excludeFromRanking,
@@ -289,6 +290,7 @@ if ($needNewTest && !$showSetup && $wantsStart) {
             'scope' => $scope,
             'time_option' => $timeOption,
             'order' => $order,
+            'smart' => $smart,
         ],
     ];
     saveCurrentTest($pdo, $userId > 0 ? $userId : null, $newTest);
@@ -373,13 +375,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['phase']       = 'answering';
         $test['last_result'] = null;
         touchTestQuestionStart($test);
+
+        if (($test['mode'] ?? $mode) === 'single') {
+            $nextSingle = prepareNextSingleQuestion($pdo, $test, $userId > 0 ? $userId : null, isGuestMode());
+            if (!empty($nextSingle['success'])) {
+                saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+                header('Location: test.php');
+            } else {
+                setSessionMessage('error', (string)($nextSingle['error'] ?? 'Nie znaleziono kolejnego pytania.'));
+                cancelActiveTest($pdo, $userId > 0 ? $userId : null);
+                header('Location: test.php?mode=single&setup=1');
+            }
+            exit;
+        }
         
             if ($test['current'] >= $totalQuestions) {
-                if ($mode === 'single') {
-                    cancelActiveTest($pdo, $userId > 0 ? $userId : null);
-                    header('Location: test.php?mode=single&setup=1');
-                    exit;
-                }
                 if (isGuestMode()) {
                     $resultId = finishGuestTest($test);
                     header('Location: result.php?guest=' . urlencode($resultId));

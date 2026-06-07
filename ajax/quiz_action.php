@@ -263,34 +263,12 @@ switch ($action) {
 
         // If in single-question mode, instead of finishing the test, load a new random question
         if (isset($test['mode']) && $test['mode'] === 'single') {
-            // Determine category preference from previous question (if any)
-            $prevCategory = $test['questions'][0]['category'] ?? '';
-            $allQuestions = loadQuestions($pdo, false);
-            $pool = $allQuestions;
-            if (!empty($prevCategory)) {
-                $pool = array_values(array_filter($allQuestions, function($qq) use ($prevCategory) { return ($qq['category'] ?? '') === $prevCategory; }));
-            }
-            if (empty($pool)) {
-                echo securityJsonEncode(['success' => false, 'error' => 'No questions available in selected category']);
+            $nextSingle = prepareNextSingleQuestion($pdo, $test, $ajaxUserId > 0 ? $ajaxUserId : null, $isGuest);
+            if (empty($nextSingle['success'])) {
+                echo securityJsonEncode(['success' => false, 'error' => $nextSingle['error'] ?? 'No questions available in selected category']);
                 exit;
             }
-            if (!$isGuest && !empty($test['smart']) && isset($_SESSION['user_id'])) {
-                $newQset = getWeightedRandomQuestions($pdo, $pool, 1, $_SESSION['user_id']);
-            } else {
-                $newQset = getRandomQuestions($pool, 1);
-            }
-            if (empty($newQset)) {
-                echo securityJsonEncode(['success' => false, 'error' => 'No questions available in selected category']);
-                exit;
-            }
-            $newQ = $newQset[0];
-
-            $test['questions'] = [$newQ];
-            $test['current'] = 0;
-            $test['answers'] = [];
-            $test['phase'] = 'answering';
-            $test['last_result'] = null;
-            touchTestQuestionStart($test);
+            $newQ = $nextSingle['question'];
             saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
 
             echo securityJsonEncode(array_merge([

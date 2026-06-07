@@ -3692,6 +3692,9 @@ function getActiveTestConfigFromSession(): array {
     if (isset($config['preset'])) {
         $result['preset'] = (string)$config['preset'];
     }
+    if (array_key_exists('smart', $config)) {
+        $result['smart'] = !empty($config['smart']);
+    }
     return $result;
 }
 
@@ -3881,6 +3884,40 @@ function applyTestAnswerCheck(array &$test, int $questionId, string $userAnswer,
     $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
 
     return ['success' => true, 'result' => $test['last_result'], 'already_checked' => false];
+}
+
+function prepareNextSingleQuestion(PDO $pdo, array &$test, ?int $userId, bool $isGuest = false): array {
+    $prevCategory = (string)($test['questions'][0]['category'] ?? '');
+    $allQuestions = loadQuestions($pdo, false);
+    $pool = $allQuestions;
+    if ($prevCategory !== '') {
+        $pool = array_values(array_filter($allQuestions, static function ($question) use ($prevCategory): bool {
+            return (string)($question['category'] ?? '') === $prevCategory;
+        }));
+    }
+    if (empty($pool)) {
+        return ['success' => false, 'error' => 'No questions available in selected category'];
+    }
+
+    $smart = !empty($test['smart']) || !empty($test['config']['smart']);
+    if (!$isGuest && $smart && $userId && $userId > 0) {
+        $newQuestionSet = getWeightedRandomQuestions($pdo, $pool, 1, $userId);
+    } else {
+        $newQuestionSet = getRandomQuestions($pool, 1);
+    }
+    if (empty($newQuestionSet)) {
+        return ['success' => false, 'error' => 'No questions available in selected category'];
+    }
+
+    $newQuestion = $newQuestionSet[0];
+    $test['questions'] = [$newQuestion];
+    $test['current'] = 0;
+    $test['answers'] = [];
+    $test['phase'] = 'answering';
+    $test['last_result'] = null;
+    touchTestQuestionStart($test);
+
+    return ['success' => true, 'question' => $newQuestion];
 }
 
 function testDisallowsPreviousQuestion(array $test): bool {
