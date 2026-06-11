@@ -428,10 +428,19 @@ usort($filteredQuestions, function($a, $b) use ($userProgress) {
                                                                 </div>
                                                             <?php endforeach; ?>
                                                         </div>
-                                                        <?php if (!empty($question['explanation'])): ?>
+                                                        <?php
+                                                            $questionExplanation = trim((string)($question['explanation'] ?? ''));
+                                                            if ($questionExplanation === '') {
+                                                                $questionForExplanation = $question;
+                                                                $questionForExplanation['question_text'] = $question['question_text'] ?? '';
+                                                                $questionForExplanation['correct_answer'] = $question['correct_answer'] ?? '';
+                                                                $questionExplanation = buildQuestionExplanation($questionForExplanation);
+                                                            }
+                                                        ?>
+                                                        <?php if ($questionExplanation !== ''): ?>
                                                             <div class="alert alert-info mb-3">
                                                                 <strong>Wyjaśnienie:</strong><br>
-                                                                <?php echo nl2br(htmlspecialchars($question['explanation'])); ?>
+                                                                <?php echo nl2br(htmlspecialchars($questionExplanation)); ?>
                                                             </div>
                                                         <?php endif; ?>
                                                         <div class="d-flex justify-content-between align-items-center">

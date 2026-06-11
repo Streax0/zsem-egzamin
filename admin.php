@@ -161,7 +161,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($userId === (int)$_SESSION['user_id'] && !in_array($role, ['admin', 'dyrektor'], true)) {
                 setSessionMessage('error', 'Nie możesz odebrać sobie dostępu administracyjnego.');
             } else {
+                $previousRole = null;
+                try {
+                    $roleStmt = $pdo->prepare('SELECT role FROM users WHERE id = ? LIMIT 1');
+                    $roleStmt->execute([$userId]);
+                    $previousRole = $roleStmt->fetchColumn();
+                } catch (PDOException $e) {
+                    $previousRole = null;
+                }
                 if (setUserRole($pdo, $userId, $role)) {
+                    if ($previousRole !== $role) {
+                        notifyOptionalMfaForRole($pdo, $userId, $role);
+                    }
                     logAdminAction($pdo, $_SESSION['user_id'], 'set_role', 'user', $userId, $role);
                     setSessionMessage('success', 'Rola użytkownika zaktualizowana.');
                 } else {
@@ -647,6 +658,8 @@ $rankDefinitions = getRankDefinitions($pdo);
 $abuseReports = getAbuseReports($pdo, 80);
 $abuseReportsRecent = $abuseReports;
 $auditLog = getAdminAuditLog($pdo, 50);
+$auditInitialLimit = 20;
+$auditVisibleCount = min($auditInitialLimit, count($auditLog));
 $allAdminRequests = getAllAdminRequests($pdo);
 $adminRequests = array_slice($allAdminRequests, 0, 8);
 $rankingEvents = getRankingEvents($pdo, 8);
@@ -671,7 +684,7 @@ $systemStats = [
     'reports_new' => count(array_filter($abuseReports, static fn($r) => ($r['status'] ?? '') === 'new')),
     'requests_open' => count(array_filter($allAdminRequests, static fn($r) => in_array(($r['status'] ?? ''), ['sent', 'read', 'replied'], true))),
     'events_active' => count(array_filter($rankingEvents, static fn($r) => ($r['status'] ?? '') === 'active')),
-    'audit_items' => count($auditLog),
+    'audit_items' => $auditVisibleCount,
 ];
 $adminKpis = [
     'users_total' => $totalUsers,
@@ -1486,6 +1499,10 @@ if (is_array($rawFlash)) {
             .admin-hero {
                 padding: 1rem;
             }
+            .admin-nav-pills a {
+                flex: 1 1 100%;
+                justify-content: center;
+            }
             .admin-kpi-grid {
                 grid-template-columns: 1fr;
             }
@@ -1514,6 +1531,92 @@ if (is_array($rawFlash)) {
                 width: 32px;
                 height: 32px;
                 font-size: 0.85rem;
+            }
+        }
+        @media (max-width: 767.98px) {
+            .admin-users-table-panel .table-responsive {
+                overflow-x: visible !important;
+            }
+            .admin-users-table-panel .admin-users-table {
+                min-width: 0 !important;
+                width: 100% !important;
+                border-collapse: separate;
+                border-spacing: 0 .85rem;
+                background: transparent;
+            }
+            .admin-users-table-panel .admin-users-table tbody tr.admin-class-row {
+                margin: .35rem 0 .5rem;
+                padding: 0;
+                background: transparent !important;
+                border: 0 !important;
+                border-radius: 0;
+                box-shadow: none !important;
+            }
+            .admin-users-table-panel .admin-users-table tbody tr.admin-class-row td {
+                display: block;
+                padding: 0 !important;
+                border: 0 !important;
+            }
+            .admin-users-table-panel .admin-users-table tbody tr.admin-class-row td::before {
+                display: none;
+            }
+            .admin-users-table-panel .admin-users-table tbody td {
+                display: grid;
+                grid-template-columns: minmax(6.5rem, 32%) minmax(0, 1fr);
+                gap: .75rem;
+                align-items: start;
+                padding: .6rem 0 !important;
+                border: 0 !important;
+                text-align: left !important;
+                overflow-wrap: anywhere;
+            }
+            .admin-users-table-panel .admin-users-table tbody td::before {
+                content: attr(data-label);
+                color: var(--text-muted, #64748b);
+                font-size: .76rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: .03em;
+            }
+            .admin-users-table-panel .admin-users-table tbody td[data-label="Użytkownik"],
+            .admin-users-table-panel .admin-users-table tbody td[data-label="Akcje"] {
+                display: block;
+            }
+            .admin-users-table-panel .admin-users-table tbody td[data-label="Użytkownik"]::before {
+                display: none;
+            }
+            .admin-users-table-panel .admin-users-table tbody td[data-label="Akcje"]::before {
+                display: block;
+                margin-bottom: .55rem;
+            }
+            .admin-users-table-panel .admin-action-grid {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .55rem !important;
+                width: 100%;
+                justify-content: stretch;
+            }
+            .admin-users-table-panel .admin-action-grid > form,
+            .admin-users-table-panel .admin-action-grid > button {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            .admin-users-table-panel .admin-action-grid .admin-icon-btn {
+                width: 100% !important;
+                min-width: 0 !important;
+                height: 38px;
+            }
+            .admin-users-table-panel .admin-role-form {
+                grid-column: 1 / -1;
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) 42px;
+                width: 100% !important;
+                min-width: 0 !important;
+                padding: .55rem;
+            }
+            .admin-users-table-panel .admin-role-form .admin-icon-btn {
+                width: 42px !important;
+                min-width: 42px !important;
             }
         }
     </style>
@@ -2319,7 +2422,7 @@ if (is_array($rawFlash)) {
                                         <div class="d-flex justify-content-between"><span>Użytkownicy</span><strong><?php echo (int)$totalUsers; ?></strong></div>
                                         <div class="d-flex justify-content-between"><span>Rangi</span><strong><?php echo count($rankDefinitions); ?></strong></div>
                                         <div class="d-flex justify-content-between"><span>Zgłoszenia</span><strong><?php echo count($abuseReports); ?></strong></div>
-                                        <div class="d-flex justify-content-between"><span>Audyt</span><strong><?php echo count($auditLog); ?> ostatnich</strong></div>
+                                        <div class="d-flex justify-content-between"><span>Audyt</span><strong><?php echo $auditVisibleCount; ?> ostatnich</strong></div>
                                     </div>
                                 </div>
                             </div>
@@ -2475,8 +2578,8 @@ if (is_array($rawFlash)) {
                                         <table class="table table-sm align-middle mb-0">
                                             <thead><tr><th>Czas</th><th>Admin</th><th>Akcja</th><th>Cel</th><th>Szczegóły</th><th class="text-end">Akcje</th></tr></thead>
                                             <tbody>
-                                            <?php foreach ($auditLog as $log): ?>
-                                                <tr>
+                                            <?php foreach ($auditLog as $auditIndex => $log): ?>
+                                                <tr data-admin-audit-row data-audit-index="<?php echo (int)$auditIndex; ?>" class="<?php echo $auditIndex >= $auditInitialLimit ? 'd-none admin-audit-extra-row' : ''; ?>">
                                                     <td class="small text-muted"><?php echo htmlspecialchars($log['created_at']); ?></td>
                                                     <td><?php echo htmlspecialchars($log['admin_username'] ?? 'system'); ?></td>
                                                     <td><span class="badge bg-light text-dark border"><?php echo htmlspecialchars($log['action']); ?></span></td>
@@ -2498,6 +2601,13 @@ if (is_array($rawFlash)) {
                                             </tbody>
                                         </table>
                                     </div>
+                                    <?php if (count($auditLog) > $auditInitialLimit): ?>
+                                        <div class="text-center mt-3" id="adminAuditLoadMoreWrap" data-visible="<?php echo (int)$auditInitialLimit; ?>" data-step="20">
+                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="adminAuditLoadMore">
+                                                <i class="bi bi-plus-circle me-1"></i>Załaduj więcej logów
+                                            </button>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -2633,6 +2743,27 @@ if (is_array($rawFlash)) {
         [statusTitleInput, statusBodyInput, statusLevelInput].forEach(el => el?.addEventListener('input', syncAdminStatusPreview));
         statusLevelInput?.addEventListener('change', syncAdminStatusPreview);
         syncAdminStatusPreview();
+
+        const adminAuditWrap = document.getElementById('adminAuditLoadMoreWrap');
+        const adminAuditButton = document.getElementById('adminAuditLoadMore');
+        const adminAuditRows = Array.from(document.querySelectorAll('[data-admin-audit-row]'));
+        function syncAdminAuditRows() {
+            if (!adminAuditWrap || !adminAuditButton) return;
+            const visible = Number(adminAuditWrap.dataset.visible || 20);
+            adminAuditRows.forEach((row, index) => {
+                row.classList.toggle('d-none', index >= visible);
+            });
+            const remaining = Math.max(0, adminAuditRows.length - visible);
+            adminAuditButton.classList.toggle('d-none', remaining === 0);
+            adminAuditButton.innerHTML = `<i class="bi bi-plus-circle me-1"></i>Załaduj więcej logów${remaining ? ` (${remaining})` : ''}`;
+        }
+        adminAuditButton?.addEventListener('click', () => {
+            const visible = Number(adminAuditWrap?.dataset.visible || 20);
+            const step = Number(adminAuditWrap?.dataset.step || 20);
+            if (adminAuditWrap) adminAuditWrap.dataset.visible = String(visible + step);
+            syncAdminAuditRows();
+        });
+        syncAdminAuditRows();
 
     </script>
 </body>

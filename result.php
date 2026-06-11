@@ -94,7 +94,7 @@ foreach ($answers as &$answer) {
     }
 }
 unset($answer);
-$showAnswerQualifications = count($answerQualifications) > 1;
+$showAnswerQualifications = true;
 
 // Mode labels
 $modeLabels = [
@@ -902,22 +902,6 @@ $shareCardData = [
                                         $answer_explanation_main = trim(mb_substr($answer_explanation, 0, $why_pos, 'UTF-8'));
                                         $answer_distractors = trim(mb_substr($answer_explanation, $why_pos, mb_strlen($answer_explanation, 'UTF-8'), 'UTF-8'));
                                     }
-                                    if ($answer_distractors === '') {
-                                        $fallback_distractors = [];
-                                        foreach (['A', 'B', 'C', 'D'] as $letter) {
-                                            if ($letter === $correct_answer) {
-                                                continue;
-                                            }
-                                            $option_text = trim((string)($question_source['option_' . strtolower($letter)] ?? ''));
-                                            if ($option_text === '') {
-                                                continue;
-                                            }
-                                            $fallback_distractors[] = $letter . '. ' . $option_text . ' - ta opcja nie spełnia bezpośrednio warunku z pytania albo opisuje inną warstwę działania.';
-                                        }
-                                        if ($fallback_distractors) {
-                                            $answer_distractors = "Dlaczego nie reszta?\n" . implode("\n", $fallback_distractors);
-                                        }
-                                    }
                                     ?>
                                     <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo (int)$answer['question_id']; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>" style="animation-delay: <?php echo min($index * 0.04, 1.2); ?>s">
                                         <div class="answer-card-header" data-answer-toggle role="button" tabindex="0" aria-expanded="false" onclick="toggleAnswerCard(this)">
@@ -1185,17 +1169,12 @@ $shareCardData = [
             if (!explanation) {
                 const correctLabel = correctText ? `${correctAns}. ${correctText}` : correctAns;
                 const userLabel = userText ? `${userAns}. ${userText}` : userAns;
-                const distractors = Object.entries(options)
-                    .filter(([letter, text]) => letter !== correctAns && String(text || '').trim())
-                    .map(([letter, text]) => `• ${letter}. ${text} - ta opcja nie spełnia bezpośrednio warunku z pytania albo opisuje inną warstwę działania.`);
                 explanation = [
                     'Wyjaśnienie:',
-                    `• ${correctLabel} - to odpowiedź, która bezpośrednio spełnia warunek z pytania.`,
+                    `• Poprawna odpowiedź: ${correctLabel}.`,
                     userAns === correctAns
-                        ? 'Twoja odpowiedź jest zgodna z wymaganiem z pytania.'
-                        : `Wybrano ${userLabel}, ale ta opcja nie spełnia głównego warunku pytania.`,
-                    distractors.length ? '\nDlaczego nie reszta?' : '',
-                    ...distractors
+                        ? 'Wybrano poprawną odpowiedź.'
+                        : `Wybrano: ${userLabel}.`
                 ].filter(Boolean).join('\n');
             }
             explanationBox.innerHTML = '<div class="answer-explanation-label"><i class="bi bi-info-circle-fill"></i>Wyjaśnienie</div>';

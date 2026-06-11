@@ -1029,7 +1029,7 @@ function updateLastLogin($userId, $ip = null) {
 }
 
 function mfaRoleRequiresSetup(string $role): bool {
-    return in_array($role, ['admin', 'dyrektor'], true);
+    return $role === 'admin';
 }
 
 function mfaRoleCanUse(string $role): bool {

@@ -79,9 +79,14 @@ $settingsHealth = [
             display: grid;
             gap: .85rem;
         }
+        .settings-side-stack {
+            display: grid;
+            gap: 1.25rem;
+            align-content: start;
+        }
         .settings-overview-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
             gap: .85rem;
         }
         .settings-overview-card {
@@ -234,6 +239,9 @@ $settingsHealth = [
         @media (max-width: 991.98px) {
             .settings-overview-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .settings-side-stack {
+                margin-top: 1.25rem;
             }
         }
         @media (max-width: 575.98px) {
@@ -478,7 +486,7 @@ $settingsHealth = [
                         </div>
 
                         <!-- App Preferences -->
-                        <div class="col-lg-4">
+                        <div class="col-lg-4 settings-side-stack">
                             <div class="dashboard-panel mb-4 animate-in" style="animation-delay: 0.2s;">
                                 <div class="panel-header mb-4">
                                     <h5 class="panel-title mb-0"><i class="bi bi-sliders me-2 text-success"></i>Preferencje</h5>

@@ -13,6 +13,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const teacherMotivationHelp = document.getElementById('teacherMotivationHelp');
   const passwordPolicy = document.getElementById('passwordPolicy');
   const passwordPolicyMessage = document.getElementById('passwordPolicyMessage');
+  document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+    const input = document.getElementById(button.dataset.passwordToggle || '');
+    const icon = button.querySelector('i');
+    if (!input) return;
+    button.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      button.setAttribute('aria-pressed', show ? 'true' : 'false');
+      button.setAttribute('aria-label', show ? 'Ukryj hasło' : 'Pokaż hasło');
+      if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+      input.focus();
+    });
+  });
 
   if (passInput && bar) {
     const syncPasswordRules = () => {
@@ -46,9 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const previewGeneratedUsername = () => {
     if (!generatedUsernamePreview || !usernameInput) return;
-    generatedUsernamePreview.textContent = usernameInput.value.trim()
-      ? 'Sprawdzimy dostępność tego nicku.'
-      : 'Wpisz nick. Jeśli jest zajęty, pokażemy wolne propozycje.';
+    generatedUsernamePreview.textContent = '';
+    generatedUsernamePreview.hidden = true;
   };
 
   const renderUsernameSuggestions = (target, suggestions = []) => {

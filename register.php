@@ -181,7 +181,7 @@ $csrf_token = generateCsrfToken();
             <div class="mb-3">
                 <label class="form-label" for="regUsername">Nazwa użytkownika</label>
                 <input type="text" name="username" id="regUsername" class="form-control" placeholder="np. test53" value="<?= htmlspecialchars($username) ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_.-]{3,16}" autocomplete="username" aria-describedby="generatedUsernamePreview usernameFeedback" required>
-                <div id="generatedUsernamePreview" class="form-text">Wpisz nick. Jeśli jest zajęty, pokażemy wolne propozycje.</div>
+                <div id="generatedUsernamePreview" class="form-text" hidden></div>
                 <div id="usernameFeedback" class="small mt-1"></div>
             </div>
 
@@ -208,18 +208,20 @@ $csrf_token = generateCsrfToken();
             </div>
 
             <div class="row g-3">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 position-relative password-field">
                     <label class="form-label" for="regPassword">Hasło</label>
                     <input type="password" name="password" id="regPassword" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required aria-describedby="passwordPolicy">
+                    <button type="button" class="auth-password-toggle" data-password-toggle="regPassword" aria-label="Pokaż hasło" aria-pressed="false"><i class="bi bi-eye"></i></button>
                     <div class="strength-meter" role="meter" aria-label="Siła hasła" aria-valuemin="0" aria-valuemax="5"><div id="strengthBar" class="strength-meter-bar"></div></div>
                     <div id="passwordPolicy" class="password-policy-single small mt-2" aria-live="polite">
                         <i class="bi bi-shield-lock"></i>
                         <span id="passwordPolicyMessage">Wpisz hasło, aby sprawdzić wymagania.</span>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6 mb-3 position-relative password-field">
                     <label class="form-label" for="confirm_password">Powtórz hasło</label>
                     <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required>
+                    <button type="button" class="auth-password-toggle" data-password-toggle="confirm_password" aria-label="Pokaż hasło" aria-pressed="false"><i class="bi bi-eye"></i></button>
                 </div>
             </div>
 

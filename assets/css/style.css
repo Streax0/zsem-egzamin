@@ -412,7 +412,7 @@ body > * {
 }
 
 .animate-in {
-  animation: slideUp 0.5s ease-out;
+  animation: none;
 }
 
 @keyframes slideUp {
@@ -2460,9 +2460,10 @@ body.reduce-motion *::after {
   box-shadow: inset 0 0 0 4px rgba(255,255,255,.75);
 }
 
-/* Mobile table cards for admin/question management */
+/* Mobile table cards for admin/question/request management */
 .admin-users-table-panel .table-responsive,
-.questions-table-panel .table-responsive {
+.questions-table-panel .table-responsive,
+.admin-requests-table-panel .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -2482,18 +2483,21 @@ body.reduce-motion *::after {
   }
 
   .admin-users-table-panel,
-  .questions-table-panel {
+  .questions-table-panel,
+  .admin-requests-table-panel {
     padding: .75rem !important;
     overflow: visible !important;
   }
 
   .admin-users-table-panel .table-responsive,
-  .questions-table-panel .table-responsive {
+  .questions-table-panel .table-responsive,
+  .admin-requests-table-panel .table-responsive {
     overflow-x: visible;
   }
 
   .admin-users-table-panel .table,
-  .questions-table-panel .table {
+  .questions-table-panel .table,
+  .admin-requests-table-panel .table {
     min-width: 0 !important;
     width: 100% !important;
     border-collapse: separate;
@@ -2502,7 +2506,8 @@ body.reduce-motion *::after {
   }
 
   .admin-users-table-panel thead,
-  .questions-table-panel thead {
+  .questions-table-panel thead,
+  .admin-requests-table-panel thead {
     display: none;
   }
 
@@ -2511,13 +2516,17 @@ body.reduce-motion *::after {
   .admin-users-table-panel td,
   .questions-table-panel tbody,
   .questions-table-panel tr,
-  .questions-table-panel td {
+  .questions-table-panel td,
+  .admin-requests-table-panel tbody,
+  .admin-requests-table-panel tr,
+  .admin-requests-table-panel td {
     display: block;
     width: 100%;
   }
 
   .admin-users-table-panel tbody tr,
-  .questions-table-panel tbody tr {
+  .questions-table-panel tbody tr,
+  .admin-requests-table-panel tbody tr {
     margin: 0 0 .85rem;
     padding: 1rem;
     background: var(--panel-bg, #fff);
@@ -2527,7 +2536,8 @@ body.reduce-motion *::after {
   }
 
   .admin-users-table-panel tbody td,
-  .questions-table-panel tbody td {
+  .questions-table-panel tbody td,
+  .admin-requests-table-panel tbody td {
     display: grid;
     grid-template-columns: minmax(7rem, 34%) minmax(0, 1fr);
     gap: .75rem;
@@ -2539,7 +2549,8 @@ body.reduce-motion *::after {
   }
 
   .admin-users-table-panel tbody td::before,
-  .questions-table-panel tbody td::before {
+  .questions-table-panel tbody td::before,
+  .admin-requests-table-panel tbody td::before {
     content: attr(data-label);
     color: var(--text-muted, #64748b);
     font-size: .76rem;
@@ -2559,8 +2570,27 @@ body.reduce-motion *::after {
     display: none;
   }
 
+  .admin-users-table-panel tbody tr.admin-class-row {
+    margin: .35rem 0 .5rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .admin-users-table-panel tbody tr.admin-class-row td {
+    display: block;
+    padding: 0 !important;
+  }
+
+  .admin-users-table-panel tbody tr.admin-class-row td::before {
+    display: none;
+  }
+
   .admin-table-actions,
-  .questions-table-actions {
+  .questions-table-actions,
+  .admin-requests-actions {
     width: 100%;
     display: grid !important;
     grid-template-columns: 1fr;
@@ -2572,12 +2602,15 @@ body.reduce-motion *::after {
   .admin-table-actions .btn,
   .admin-table-actions .form-select,
   .questions-table-actions form,
-  .questions-table-actions .btn {
+  .questions-table-actions .btn,
+  .admin-requests-actions form,
+  .admin-requests-actions .btn {
     width: 100% !important;
     min-width: 0 !important;
   }
 
-  .questions-table-actions .btn {
+  .questions-table-actions .btn,
+  .admin-requests-actions .btn {
     border-radius: 12px !important;
     height: 40px !important;
   }

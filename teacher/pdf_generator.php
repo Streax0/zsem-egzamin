@@ -424,10 +424,10 @@ $questionSelectorLimit = min(260, count($allQuestions));
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css', '..')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css', '..')); ?>">
     <style>
-        body.pdf-generator-page { font-family: 'Inter', system-ui, sans-serif; }
+        body.pdf-generator-page { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         .generator-shell { max-width: 1480px; margin: 0 auto; }
         .generator-title-row {
             display:flex;
@@ -547,23 +547,42 @@ $questionSelectorLimit = min(260, count($allQuestions));
             flex-wrap:wrap;
         }
         .worksheet-page {
-            max-width: 900px;
+            max-width: 880px;
             margin: 0 auto;
             background:#fff;
             color:#111827;
             border:1px solid #e5e7eb;
             border-radius:8px;
-            padding:2rem;
+            padding:2.25rem;
             box-shadow:0 14px 36px rgba(15,23,42,.07);
         }
-        .worksheet-cover { padding-bottom:1rem; margin-bottom:1.15rem; }
+        .worksheet-cover {
+            padding-bottom:1.25rem;
+            margin-bottom:1.15rem;
+            border-bottom:2px solid #111827;
+        }
+        .worksheet-title-row {
+            align-items:flex-start;
+            padding-top:.9rem;
+        }
+        .worksheet-title-row h1 {
+            line-height:1.16;
+        }
+        .worksheet-title-meta {
+            color:#475569;
+            max-width:720px;
+        }
         .worksheet-student-header {
             display:grid;
             grid-template-columns:minmax(0,1fr) auto;
             gap:1rem;
-            color:#6b7280;
+            color:#374151;
             font-size:.92rem;
-            margin-bottom:1.35rem;
+            margin-bottom:1.15rem;
+            padding:.85rem 1rem;
+            border:1px solid #d1d5db;
+            border-radius:8px;
+            background:#f8fafc;
         }
         .worksheet-student-lines { display:grid; gap:.35rem; }
         .worksheet-group-chip {
@@ -594,10 +613,10 @@ $questionSelectorLimit = min(260, count($allQuestions));
         .worksheet-question {
             break-inside:avoid;
             page-break-inside:avoid;
-            border:0;
+            border-bottom:1px solid #e5e7eb;
             border-radius:0;
-            padding:.25rem 0 .75rem;
-            margin-bottom:.35rem;
+            padding:.65rem 0 .95rem;
+            margin-bottom:.15rem;
         }
         .worksheet-group-label {
             display:inline-flex;
@@ -648,7 +667,27 @@ $questionSelectorLimit = min(260, count($allQuestions));
             gap:.5rem 1rem;
             margin-top:.75rem;
         }
-        .worksheet-option { border:0; border-radius:0; padding:.2rem 0; min-height:24px; }
+        .worksheet-option {
+            display:flex;
+            align-items:flex-start;
+            gap:.45rem;
+            border:0;
+            border-radius:0;
+            padding:.25rem 0;
+            min-height:24px;
+            line-height:1.38;
+        }
+        .worksheet-option strong {
+            display:inline-grid;
+            place-items:center;
+            width:1.35rem;
+            height:1.35rem;
+            border:1px solid #111827;
+            border-radius:4px;
+            font-size:.8rem;
+            line-height:1;
+            flex:0 0 auto;
+        }
         .worksheet-open-space {
             height:128px;
             border:1px solid #d1d5db;
@@ -665,7 +704,13 @@ $questionSelectorLimit = min(260, count($allQuestions));
             break-before:page;
             margin-top:2rem;
         }
-        .answer-key { columns:4 140px; }
+        .answer-key {
+            columns:4 140px;
+            border:1px solid #d1d5db;
+            border-radius:8px;
+            padding:.75rem 1rem;
+            background:#f8fafc;
+        }
         .answer-key div { break-inside:avoid; padding:.25rem 0; }
         .worksheet-footer { margin-top:2rem; padding-top:.7rem; border-top:1px solid #9ca3af; font-size:.8rem; color:#4b5563; display:flex; justify-content:space-between; gap:1rem; align-items:center; }
         .txt-format-box {
@@ -814,9 +859,14 @@ $questionSelectorLimit = min(260, count($allQuestions));
             border-color:#d1d5db !important;
         }
         @media (max-width: 767.98px) {
-            .generator-title-row { align-items:flex-start; }
+            .generator-title-row,
+            .worksheet-title-row {
+                align-items:flex-start;
+                flex-direction:column;
+            }
             .source-method-grid { grid-template-columns:1fr; }
-            .option-grid, .worksheet-options, .worksheet-meta { grid-template-columns:1fr; }
+            .option-grid, .worksheet-options, .worksheet-meta, .worksheet-student-header { grid-template-columns:1fr; }
+            .worksheet-points-total { justify-self:start; }
             .worksheet-page { padding:1rem; }
         }
         @media print {
@@ -859,19 +909,21 @@ $questionSelectorLimit = min(260, count($allQuestions));
         .mb-2 { margin-bottom:8px; }
         .mt-4 { margin-top:24px; }
         .worksheet-page { width:100%; margin:0; background:#fff; color:#111827; }
-        .worksheet-cover { padding-bottom:10px; margin-bottom:14px; }
+        .worksheet-cover { padding-bottom:12px; margin-bottom:14px; border-bottom:2px solid #111827; }
         .worksheet-brand-strip { display:none; }
         .worksheet-brand-mark { width:34px; height:34px; border-radius:7px; display:grid; place-items:center; background:rgba(255,255,255,.16); font-weight:900; }
         .worksheet-cover h1 { margin:0 0 4px; font-size:20pt; }
         .worksheet-cover p { margin:4px 0; }
         .text-muted, .small { color:#64748b; }
-        .worksheet-student-header { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; color:#4b5563; font-size:10pt; margin-bottom:14px; }
+        .worksheet-title-row { align-items:flex-start; padding-top:8px; }
+        .worksheet-title-meta { color:#475569; }
+        .worksheet-student-header { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; color:#374151; font-size:10pt; margin-bottom:14px; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; background:#f8fafc; }
         .worksheet-student-lines { display:grid; gap:4px; }
         .worksheet-group-chip { display:inline-grid; place-items:center; min-width:20px; height:20px; margin:0 4px; border-radius:3px; background:#111827; color:#fff; font-weight:900; }
         .worksheet-points-total { justify-self:end; font-weight:700; color:#4b5563; white-space:nowrap; }
         .worksheet-meta { display:none; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:12px; font-size:10pt; }
         .worksheet-meta div { border:1px solid #dbe4f0; border-radius:6px; padding:7px 8px; min-height:32px; }
-        .worksheet-question { break-inside:avoid; page-break-inside:avoid; border:0; border-radius:0; padding:3px 0 9px; margin-bottom:4px; }
+        .worksheet-question { break-inside:avoid; page-break-inside:avoid; border-bottom:1px solid #e5e7eb; border-radius:0; padding:6px 0 10px; margin-bottom:2px; }
         .worksheet-group-page { page-break-before:always; break-before:page; }
         .worksheet-cover + .worksheet-group-page { page-break-before:auto; break-before:auto; }
         .worksheet-group-label { display:inline-block; border-radius:999px; padding:4px 9px; background:#dbeafe; color:#1d4ed8; font-weight:800; margin:12px 0 8px; }
@@ -879,10 +931,11 @@ $questionSelectorLimit = min(260, count($allQuestions));
         .worksheet-question-number { display:inline-grid; place-items:center; min-width:18px; height:18px; border-radius:3px; background:#111827; color:#fff; font-size:9pt; font-weight:900; line-height:1; margin-top:1px; }
         .worksheet-question-points { color:#64748b; font-size:9pt; font-weight:700; white-space:nowrap; }
         .worksheet-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px 12px; margin-top:8px; }
-        .worksheet-option { border:0; border-radius:0; padding:2px 0; min-height:24px; }
+        .worksheet-option { display:flex; align-items:flex-start; gap:5px; border:0; border-radius:0; padding:2px 0; min-height:24px; line-height:1.35; }
+        .worksheet-option strong { display:inline-grid; place-items:center; width:18px; height:18px; border:1px solid #111827; border-radius:3px; font-size:8.5pt; line-height:1; flex:0 0 auto; }
         .worksheet-open-space { height:112px; border:1px solid #d1d5db; border-radius:0; margin-top:8px; background-color:#fff; background-image:linear-gradient(#d8dce2 1px, transparent 1px), linear-gradient(90deg, #d8dce2 1px, transparent 1px); background-size:18px 18px; }
         .answer-key-page { page-break-before:always; break-before:page; margin-top:24px; }
-        .answer-key { columns:4 120px; }
+        .answer-key { columns:4 120px; border:1px solid #d1d5db; border-radius:6px; padding:8px 10px; background:#f8fafc; }
         .answer-key div { break-inside:avoid; padding:3px 0; }
         .worksheet-footer { margin-top:24px; padding-top:10px; border-top:1px solid #9ca3af; font-size:9pt; color:#4b5563; display:flex; justify-content:space-between; gap:12px; align-items:center; }
         img { max-width:100%; max-height:220px; height:auto; }
@@ -1182,13 +1235,13 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                 </div>
                                 <div class="worksheet-points-total">Liczba punktów ........ / <?php echo (int)$worksheetTotalPoints; ?></div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div class="d-flex justify-content-between gap-3 worksheet-title-row">
                                 <div>
                                     <h1 class="h3 fw-bold mb-1"><?php echo htmlspecialchars($title); ?></h1>
                                     <?php if ($description !== ''): ?>
                                         <p class="mb-1"><?php echo htmlspecialchars($description); ?></p>
                                     <?php endif; ?>
-                                    <p class="text-muted small mb-0">
+                                    <p class="worksheet-title-meta small mb-0">
                                         Źródło: <?php echo htmlspecialchars($generationSourceLabel); ?> ·
                                         Poziom: <?php echo htmlspecialchars($difficultyLabels[$difficultyLevel]); ?> ·
                                         Grup: <?php echo (int)$groupCount; ?> ·

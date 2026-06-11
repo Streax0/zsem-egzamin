@@ -1,4 +1,5 @@
 body.auth-page {
+  font-family: var(--czcionka-glowna, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   background:
     radial-gradient(circle at 18% 12%, rgba(59, 130, 246, .22), transparent 28%),
     radial-gradient(circle at 82% 18%, rgba(34, 197, 94, .16), transparent 28%),
@@ -126,6 +127,17 @@ body.auth-page::before {
 
 .auth-form-panel .form-control:focus {
   background: #fff;
+}
+
+.auth-form-panel .password-field .form-control {
+  padding-right: 3.1rem;
+}
+
+.auth-form-panel .password-field .auth-password-toggle {
+  position: absolute;
+  right: .75rem;
+  top: 2.35rem;
+  z-index: 3;
 }
 
 .auth-form-panel .btn-primary {

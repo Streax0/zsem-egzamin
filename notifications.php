@@ -207,6 +207,7 @@ $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?")->execute
                                         case 'weekly_missions_refresh':
                                         case 'monthly_missions_refresh': $icon = 'bi-arrow-repeat'; $tone = 'warning'; $group = 'missions'; $label = 'Misje'; break;
                                         case 'mission_complete': $icon = 'bi-trophy'; $tone = 'success'; $group = 'missions'; $label = 'Misje'; break;
+                                        case 'mfa_optional_prompt': $icon = 'bi-shield-lock'; $tone = 'warning'; $group = 'system'; $label = 'Bezpieczeństwo'; break;
                                         case 'app_status': $icon = 'bi-broadcast'; $tone = 'info'; $group = 'system'; $label = 'Status'; break;
                                     }
                                     $appStatusPayload = resolveAppStatusNotification($pdo, $notif);

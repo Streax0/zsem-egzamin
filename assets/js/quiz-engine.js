@@ -376,8 +376,8 @@ const QuizEngine = {
             || [
                 `Poprawna odpowiedź to ${correctLabel}.`,
                 result.is_correct
-                    ? 'Twoja odpowiedź spełnia warunek z pytania.'
-                    : `Wybrana odpowiedź ${userLabel} nie spełnia warunku z pytania albo opisuje inną sytuację.`,
+                    ? 'Wybrano poprawną odpowiedź.'
+                    : `Wybrano ${userLabel}.`,
                 correctAnswerText ? `Najważniejsze do zapamiętania: ${correctAnswerText}` : ''
             ].filter(Boolean).join('\n');
         const reviewNote = String(result.review_note || '').trim();

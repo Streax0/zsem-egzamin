@@ -101,7 +101,10 @@ def test_admin_mobile_table_cards() -> None:
     assert_contains("admin.php", "admin-users-table-panel", 'data-label="Użytkownik"', 'data-label="Akcje"')
     assert_contains("admin.php", "admin-hero", "admin-kpi-card", "admin-tool-card", 'id="admin-ranks"')
     assert_contains("manage_questions.php", "questions-table-panel", 'data-label="Treść pytania"', "question-editor-modal")
-    assert_contains("assets/css/style.css", ".admin-users-table-panel", ".questions-table-panel", "overflow-x: auto")
+    assert_contains("admin_requests.php", "admin-requests-table-panel", 'data-label="Użytkownik"', 'data-label="Akcje"', "admin-requests-actions")
+    assert_contains("assets/css/style.css", ".admin-users-table-panel", ".questions-table-panel", ".admin-requests-table-panel", "overflow-x: auto")
+    assert_contains("index.php", "recent-tests-table-wrap", "recent-tests-table")
+    assert_not_contains("assets/css/dashboard-new.css", ".dashboard-panel table.table tbody tr")
 
 
 def test_admin_temporary_bans_and_safe_modals() -> None:
@@ -220,8 +223,11 @@ def test_local_css_assets_are_versioned_sitewide_and_on_landing() -> None:
         "includes/session.php",
         "appVersionLocalStylesheetHrefs",
         "appVersionLocalStylesheetHref",
+        "appVersionLocalScriptSrcs",
+        "appVersionLocalScriptHref",
         "filemtime($absolute)",
         "assets/css/",
+        "assets/js/",
     )
     assert_contains(
         "landing.php",
@@ -305,7 +311,10 @@ def test_tests_update_answer_check_surface() -> None:
         "$test['phase'] ?? 'answering'",
         "'smart'      => $smart",
         "'smart' => $smart",
+        "filterQuestionPoolForTest($pdo, $allQuestions",
+        "selectQuestionsForTest($pdo, $pool",
         "prepareNextSingleQuestion($pdo, $test",
+        "answer-check-counter",
         "Sprawdzenia:",
         "Sprawdź odpowiedź",
         "prefers-reduced-motion",
@@ -331,6 +340,10 @@ def test_tests_update_answer_check_surface() -> None:
         "includes/functions.php",
         "function applyTestAnswerCheck",
         "function prepareNextSingleQuestion",
+        "function normalizeTestCategoryFilter",
+        "function getQuestionDifficultyBucket",
+        "function filterQuestionPoolForTest",
+        "function selectQuestionsForTest",
         "function testAnswerCheckPayload",
         "revealed_by_check",
         "['exam', 'practice', 'single']",
@@ -338,6 +351,9 @@ def test_tests_update_answer_check_surface() -> None:
         "To pytanie jest juz w trybie podgladu.",
         "answer_check_attempt_number",
         "answer_check_used_at",
+        "$previousQuestionId",
+        "$difficulty = (string)($config['difficulty'] ?? 'all')",
+        "$scope = (string)($config['scope'] ?? 'all')",
     )
     assert_not_contains("settings.php", "BIG TEST UPDATE")
     assert_contains("settings.php", "TESTS UPDATE", "settings-release-grid")
@@ -655,7 +671,13 @@ def test_backend_performance_indexes_for_tests_and_exams() -> None:
     )
     assert_contains(
         "test.php",
-        "getUserQuestionProgressMap($pdo, (int)$_SESSION['user_id'], $poolQuestionIds)",
+        "filterQuestionPoolForTest($pdo, $allQuestions",
+        "selectQuestionsForTest($pdo, $pool",
+    )
+    assert_contains(
+        "includes/functions.php",
+        "getUserQuestionProgressMap($pdo, $userId, $poolQuestionIds)",
+        "function filterQuestionPoolForTest",
     )
     assert "SELECT question_id, times_seen, times_correct FROM user_question_progress WHERE user_id = ?" not in read("test.php")
 
@@ -810,7 +832,9 @@ def test_duel_integrity_guards() -> None:
 
 def test_password_reset_and_mfa_exist() -> None:
     assert_contains("forgot_password.php", "createPasswordResetToken", "resetPasswordWithToken", "forgot_password")
-    assert_contains("includes/auth.php", "totpCode", "verifyTotpCode", "session_version", "mfaAccessRequired")
+    assert_contains("includes/auth.php", "totpCode", "verifyTotpCode", "session_version", "mfaAccessRequired", "return $role === 'admin'")
+    assert_contains("includes/functions.php", "notifyOptionalMfaForRole", "mfa_optional_prompt", "Czy włączyć 2 etapowe uwierzytelnianie?")
+    assert_contains("admin.php", "notifyOptionalMfaForRole($pdo, $userId, $role)")
     assert_contains("mfa.php", "getOrCreateMfaSecret", "enableMfaForUser", "recovery_code", "totpQrCode", "QRCode.toCanvas")
     assert_contains("full_schema.sql", "password_resets", "user_mfa", "rate_limit_events")
 
@@ -929,7 +953,8 @@ def test_cke_mode_labels_and_no_ckz_copy() -> None:
     assert_contains("includes/functions.php", "'exam' => 'Test'", "'exam_simulator' => 'Egzamin'")
     assert_contains("result.php", "'exam' => ['name' => 'Test'", "'exam_simulator' => ['name' => 'Egzamin'")
     assert_contains("index.php", "'exam' => ['label' => 'Test'", "'exam_simulator' => ['label' => 'Egzamin'")
-    assert_contains("test.php", "Egzamin - symulator CKE", ">Egzamin")
+    assert_contains("test.php", ">Egzamin")
+    assert "Egzamin - symulator CKE" not in read("test.php")
 
 
 def test_external_cdn_resources_have_sri() -> None:
@@ -1173,10 +1198,47 @@ def test_v18_registration_password_autologin_and_suggestions() -> None:
         "generatedUsernamePreview",
         "renderUsernameSuggestions",
         "suggestions.forEach",
+        "[data-password-toggle]",
+        "Ukryj hasło",
         "Nazwa użytkownika jest wymagana.",
         "Znak specjalny zwiększa siłę hasła, ale nie jest wymagany.",
     )
+    assert_contains("register.php", 'data-password-toggle="regPassword"', 'data-password-toggle="confirm_password"', "generatedUsernamePreview")
+    assert "Wpisz nick. Jeśli jest zajęty, pokażemy wolne propozycje." not in register_content
+    assert "Wpisz nick. Jeśli jest zajęty, pokażemy wolne propozycje." not in read("assets/js/register.js")
     assert "Hasło musi zawierać znak specjalny." not in read("includes/functions.php")
+
+
+def test_fact_based_question_explanations_and_stats_labels() -> None:
+    for rel in ("includes/functions.php", "result.php", "assets/js/quiz-engine.js"):
+        content = read(rel)
+        assert "nie spełnia bezpośrednio warunku z pytania" not in content
+        assert "opisuje inną warstwę działania" not in content
+        assert "nie spełnia głównego warunku pytania" not in content
+    assert_contains("includes/functions.php", "return '';", "Poprawna odpowiedź:", "Wybrano:")
+    assert_contains("result.php", "$showAnswerQualifications = true", "qualification_label", "Poprawna odpowiedź:")
+    assert_contains("progress.php", "buildQuestionExplanation($questionForExplanation)", "$questionExplanation")
+
+
+def test_admin_audit_is_capped_and_lazy_loaded() -> None:
+    assert_contains(
+        "includes/functions.php",
+        "LIMIT 50) keep_rows",
+        "max(1, min(50, $limit))",
+    )
+    assert_contains(
+        "admin.php",
+        "$auditInitialLimit = 20",
+        "data-admin-audit-row",
+        "adminAuditLoadMore",
+        "Załaduj więcej logów",
+    )
+
+
+def test_refresh_animation_reduced_and_settings_spacing_fixed() -> None:
+    assert_contains("assets/css/dashboard-new.css", "animation: none", ".settings-active-preferences")
+    assert_contains("assets/css/style.css", ".animate-in", "animation: none")
+    assert_contains("settings.php", "settings-side-stack", "grid-template-columns: repeat(auto-fit, minmax(210px, 1fr))")
 
 
 def test_v19_settings_preferences_are_effective() -> None:

@@ -1502,7 +1502,7 @@ function logAdminAction(PDO $pdo, $adminId, string $action, ?string $targetType 
             $details ? mb_substr($details, 0, 2000) : null,
             clientIpAddress()
         ]);
-        $pdo->exec('DELETE FROM admin_audit_log WHERE id NOT IN (SELECT id FROM (SELECT id FROM admin_audit_log ORDER BY created_at DESC, id DESC LIMIT 200) keep_rows)');
+        $pdo->exec('DELETE FROM admin_audit_log WHERE id NOT IN (SELECT id FROM (SELECT id FROM admin_audit_log ORDER BY created_at DESC, id DESC LIMIT 50) keep_rows)');
     } catch (PDOException $e) {
         error_log('Admin audit log failed: ' . $e->getMessage());
     }
@@ -1518,7 +1518,7 @@ function getAdminAuditLog(PDO $pdo, int $limit = 50): array {
             ORDER BY a.created_at DESC, a.id DESC
             LIMIT ?
         ');
-        $stmt->bindValue(1, max(1, min(200, $limit)), PDO::PARAM_INT);
+        $stmt->bindValue(1, max(1, min(50, $limit)), PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -2139,6 +2139,106 @@ function getUserQuestionProgressMap($pdo, int $userId, array $questionIds): arra
     }
 
     return $progress;
+}
+
+function normalizeTestCategoryFilter($category): array {
+    $items = is_array($category) ? $category : explode(',', (string)$category);
+    $normalized = [];
+    foreach ($items as $item) {
+        $value = trim((string)$item);
+        if ($value !== '') {
+            $normalized[$value] = true;
+        }
+    }
+    return array_keys($normalized);
+}
+
+function getQuestionDifficultyBucket(array $question): string {
+    static $cache = [];
+    $qid = (int)($question['id'] ?? 0);
+    $text = (string)($question['question_text'] ?? '');
+    $key = $qid . ':' . md5($text);
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+
+    $hashVal = hexdec(substr(md5($text . $qid), 0, 4));
+    $difficulty = 'medium';
+    if (strlen($text) < 100 && ($hashVal % 3 === 0)) {
+        $difficulty = 'easy';
+    } elseif (strlen($text) > 180 || ($hashVal % 3 === 2)) {
+        $difficulty = 'hard';
+    }
+
+    $cache[$key] = $difficulty;
+    return $difficulty;
+}
+
+function filterQuestionPoolForTest($pdo, array $questions, $category, string $difficulty = 'all', string $scope = 'all', int $userId = 0): array {
+    if (empty($questions)) {
+        return [];
+    }
+
+    $categories = normalizeTestCategoryFilter($category);
+    $hasCategoryFilter = !empty($categories);
+    $categoryMap = $hasCategoryFilter ? array_fill_keys($categories, true) : [];
+    $difficulty = in_array($difficulty, ['easy', 'medium', 'hard'], true) ? $difficulty : 'all';
+    $scope = in_array($scope, ['unseen', 'incorrect', 'exclude_correct'], true) ? $scope : 'all';
+
+    $pool = [];
+    foreach ($questions as $question) {
+        if ($hasCategoryFilter && !isset($categoryMap[(string)($question['category'] ?? '')])) {
+            continue;
+        }
+        if ($difficulty !== 'all' && getQuestionDifficultyBucket($question) !== $difficulty) {
+            continue;
+        }
+        $pool[] = $question;
+    }
+
+    if ($scope === 'all' || $userId <= 0 || empty($pool)) {
+        return array_values($pool);
+    }
+
+    $poolQuestionIds = array_map(static fn($q) => (int)($q['id'] ?? 0), $pool);
+    $userProgress = getUserQuestionProgressMap($pdo, $userId, $poolQuestionIds);
+
+    return array_values(array_filter($pool, static function($question) use ($scope, $userProgress): bool {
+        $qid = (int)($question['id'] ?? 0);
+        $progress = $userProgress[$qid] ?? null;
+
+        if ($scope === 'unseen') {
+            return !$progress || (int)($progress['times_seen'] ?? 0) === 0;
+        }
+        if ($scope === 'incorrect') {
+            return $progress && (int)($progress['times_correct'] ?? 0) < (int)($progress['times_seen'] ?? 0);
+        }
+        if ($scope === 'exclude_correct') {
+            return !$progress || (int)($progress['times_correct'] ?? 0) === 0;
+        }
+        return true;
+    }));
+}
+
+function selectQuestionsForTest($pdo, array $pool, string $mode, int $count, string $order = 'random', bool $smart = false, int $userId = 0, bool $isGuest = false): array {
+    if (empty($pool)) {
+        return [];
+    }
+
+    $count = max(1, min($count, count($pool)));
+    $canUseSmart = !$isGuest && $smart && $userId > 0;
+
+    if ($mode === 'exam_simulator') {
+        return getRandomQuestions($pool, min(40, count($pool)));
+    }
+    if ($mode === 'single') {
+        return $canUseSmart ? getWeightedRandomQuestions($pdo, $pool, 1, $userId) : getRandomQuestions($pool, 1);
+    }
+    if ($mode === 'practice' && $order === 'sequential') {
+        return array_slice($pool, 0, $count);
+    }
+
+    return $canUseSmart ? getWeightedRandomQuestions($pdo, $pool, $count, $userId) : getRandomQuestions($pool, $count);
 }
 
 /**
@@ -2881,7 +2981,7 @@ function answerOptionText(array $question, string $letter): string {
 function buildDistractorExplanation(array $question, string $letter, string $optionText, string $questionText = ''): string {
     $text = mb_strtolower(trim($optionText), 'UTF-8');
     if ($text === '') {
-        return 'ta opcja nie ma pełnego opisu w bazie pytania.';
+        return '';
     }
     if (str_contains($text, 'modem analog')) {
         return 'modem analogowy służy głównie do transmisji danych przez linię telefoniczną, a nie do zamiany połączenia PSTN na rozmowę VoIP.';
@@ -2910,10 +3010,7 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
     if (str_contains($text, 'mask')) {
         return 'maska podsieci opisuje część sieciową adresu, ale sama nie wykonuje akcji wymaganej w pytaniu.';
     }
-    if ($questionText !== '') {
-        return 'nie spełnia bezpośrednio warunku z pytania albo opisuje inną warstwę działania.';
-    }
-    return 'nie jest najlepszą odpowiedzią dla tego pytania.';
+    return '';
 }
 
 function buildQuestionExplanation(array $question, string $userAnswer = '', ?bool $isCorrect = null): string {
@@ -2928,26 +3025,26 @@ function buildQuestionExplanation(array $question, string $userAnswer = '', ?boo
 
     $correctLabel = $correctText !== '' ? "{$correct}. {$correctText}" : $correct;
     $parts = ["Wyjaśnienie:"];
-    if ($correctText !== '') {
-        $parts[] = "• {$correctLabel} - to odpowiedź, która bezpośrednio spełnia warunek z pytania.";
-    } else {
-        $parts[] = "• Poprawna odpowiedź to {$correct}.";
-    }
+    $parts[] = $correctText !== ''
+        ? "• Poprawna odpowiedź: {$correctLabel}."
+        : "• Poprawna odpowiedź: {$correct}.";
     if ($questionText !== '') {
-        $parts[] = "Klucz pytania: {$questionText}";
+        $parts[] = "Treść pytania: {$questionText}";
     }
     if ($user !== '' && $user !== '-' && $user !== $correct) {
         $userLabel = $userText !== '' ? "{$user}. {$userText}" : $user;
-        $parts[] = "Wybrano {$userLabel}, ale ta opcja nie spełnia głównego warunku pytania.";
+        $parts[] = "Wybrano: {$userLabel}.";
     } elseif ($isCorrect === true || ($user !== '' && $user === $correct)) {
-        $parts[] = "Twoja odpowiedź jest zgodna z wymaganiem z pytania.";
+        $parts[] = "Wybrano poprawną odpowiedź.";
     }
     $distractors = [];
     foreach (['A', 'B', 'C', 'D'] as $letter) {
         if ($letter === $correct) continue;
         $option = answerOptionText($question, $letter);
         if ($option === '') continue;
-        $distractors[] = "• {$letter}. {$option} - " . buildDistractorExplanation($question, $letter, $option, $questionText);
+        $reason = buildDistractorExplanation($question, $letter, $option, $questionText);
+        if ($reason === '') continue;
+        $distractors[] = "• {$letter}. {$option} - " . $reason;
     }
     if (!empty($distractors)) {
         $parts[] = "";
@@ -3039,6 +3136,24 @@ function setUserRole($pdo, $userId, $role) {
         error_log("Error setting user role: " . $e->getMessage());
         return false;
     }
+}
+
+function notifyOptionalMfaForRole(PDO $pdo, int $userId, string $role): bool {
+    if ($userId <= 0 || !in_array($role, ['teacher', 'dyrektor'], true)) {
+        return false;
+    }
+    if (function_exists('mfaUserHasEnabled') && mfaUserHasEnabled($pdo, $userId)) {
+        return false;
+    }
+
+    return addNotification(
+        $pdo,
+        $userId,
+        'mfa_optional_prompt',
+        'Czy włączyć 2 etapowe uwierzytelnianie?',
+        'mfa.php',
+        'mfa_optional_prompt:' . $userId . ':' . $role
+    );
 }
 
 /**
@@ -3887,24 +4002,24 @@ function applyTestAnswerCheck(array &$test, int $questionId, string $userAnswer,
 }
 
 function prepareNextSingleQuestion(PDO $pdo, array &$test, ?int $userId, bool $isGuest = false): array {
-    $prevCategory = (string)($test['questions'][0]['category'] ?? '');
+    $previousQuestionId = (int)($test['questions'][0]['id'] ?? 0);
+    $prevCategory = (string)($test['questions'][0]['category'] ?? ($test['config']['category'] ?? ''));
+    $config = is_array($test['config'] ?? null) ? $test['config'] : [];
+    $difficulty = (string)($config['difficulty'] ?? 'all');
+    $scope = (string)($config['scope'] ?? 'all');
     $allQuestions = loadQuestions($pdo, false);
-    $pool = $allQuestions;
-    if ($prevCategory !== '') {
-        $pool = array_values(array_filter($allQuestions, static function ($question) use ($prevCategory): bool {
-            return (string)($question['category'] ?? '') === $prevCategory;
-        }));
-    }
+    $pool = filterQuestionPoolForTest($pdo, $allQuestions, $prevCategory, $difficulty, $scope, $userId ?? 0);
     if (empty($pool)) {
         return ['success' => false, 'error' => 'No questions available in selected category'];
     }
+    if ($previousQuestionId > 0 && count($pool) > 1) {
+        $pool = array_values(array_filter($pool, static function ($question) use ($previousQuestionId): bool {
+            return (int)($question['id'] ?? 0) !== $previousQuestionId;
+        }));
+    }
 
     $smart = !empty($test['smart']) || !empty($test['config']['smart']);
-    if (!$isGuest && $smart && $userId && $userId > 0) {
-        $newQuestionSet = getWeightedRandomQuestions($pdo, $pool, 1, $userId);
-    } else {
-        $newQuestionSet = getRandomQuestions($pool, 1);
-    }
+    $newQuestionSet = selectQuestionsForTest($pdo, $pool, 'single', 1, 'random', $smart, $userId ?? 0, $isGuest);
     if (empty($newQuestionSet)) {
         return ['success' => false, 'error' => 'No questions available in selected category'];
     }
@@ -4652,6 +4767,11 @@ function getNotificationPresentationMeta(array $notif): array {
             $tone = 'primary';
             $label = 'Rola';
             break;
+        case 'mfa_optional_prompt':
+            $icon = 'bi-shield-lock';
+            $tone = 'warning';
+            $label = 'Bezpieczeństwo';
+            break;
         case 'app_status':
             $icon = 'bi-broadcast';
             $tone = 'info';
@@ -5058,6 +5178,9 @@ function resolveTeacherApplication(PDO $pdo, int $requestId, int $adminId, strin
 
         clearTeacherApplicationNotifications($pdo, $requestId);
         addNotification($pdo, (int)$request['teacher_id'], $notificationType, $message, $decision === 'approve' ? 'teacher/index.php' : 'notifications.php');
+        if ($decision === 'approve') {
+            notifyOptionalMfaForRole($pdo, (int)$request['teacher_id'], 'teacher');
+        }
         logAdminAction($pdo, $adminId, 'teacher_application_' . $decision, 'admin_request', $requestId, $request['username'] ?? '');
         return true;
     } catch (PDOException $e) {

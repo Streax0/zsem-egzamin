@@ -288,8 +288,8 @@ try {
                                 <p>Brak przeprowadzonych testów. Rozpocznij naukę!</p>
                             </div>
                         <?php else: ?>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
+                            <div class="table-responsive recent-tests-table-wrap">
+                                <table class="table table-hover align-middle recent-tests-table">
                                     <thead>
                                         <tr class="text-muted small">
                                             <th>TYP TESTU</th>

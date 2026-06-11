@@ -30,7 +30,7 @@ function appCspNonce(): string {
     return $nonce;
 }
 
-function appVersionLocalStylesheetHref(string $href): string {
+function appVersionLocalAssetHref(string $href, string $assetFolder): string {
     $decodedHref = html_entity_decode($href, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $parts = parse_url($decodedHref);
     if (!is_array($parts)) {
@@ -53,7 +53,7 @@ function appVersionLocalStylesheetHref(string $href): string {
     }
 
     $path = (string)($parts['path'] ?? '');
-    $assetPos = strpos($path, 'assets/css/');
+    $assetPos = strpos($path, $assetFolder);
     if ($assetPos === false) {
         return $href;
     }
@@ -75,9 +75,23 @@ function appVersionLocalStylesheetHref(string $href): string {
     return $baseHref . '?' . $queryString . $fragment;
 }
 
+function appVersionLocalStylesheetHref(string $href): string {
+    return appVersionLocalAssetHref($href, 'assets/css/');
+}
+
+function appVersionLocalScriptHref(string $src): string {
+    return appVersionLocalAssetHref($src, 'assets/js/');
+}
+
 function appVersionLocalStylesheetHrefs(string $buffer): string {
     return preg_replace_callback('/\bhref=(["\'])([^"\']*assets\/css\/[^"\']+\.css(?:\?[^"\']*)?(?:#[^"\']*)?)\1/i', static function ($matches): string {
         return 'href=' . $matches[1] . appVersionLocalStylesheetHref($matches[2]) . $matches[1];
+    }, $buffer) ?? $buffer;
+}
+
+function appVersionLocalScriptSrcs(string $buffer): string {
+    return preg_replace_callback('/\bsrc=(["\'])([^"\']*assets\/js\/[^"\']+\.js(?:\?[^"\']*)?(?:#[^"\']*)?)\1/i', static function ($matches): string {
+        return 'src=' . $matches[1] . appVersionLocalScriptHref($matches[2]) . $matches[1];
     }, $buffer) ?? $buffer;
 }
 
@@ -88,9 +102,10 @@ function appStartCspNonceBuffer(string $nonce): void {
     $GLOBALS['app_csp_nonce_buffer_started'] = true;
     ob_start(static function ($buffer) use ($nonce) {
         if (stripos($buffer, '<script') === false && stripos($buffer, '<style') === false) {
-            return appVersionLocalStylesheetHrefs($buffer);
+            return appVersionLocalScriptSrcs(appVersionLocalStylesheetHrefs($buffer));
         }
         $buffer = appVersionLocalStylesheetHrefs($buffer);
+        $buffer = appVersionLocalScriptSrcs($buffer);
         $attr = ' nonce="' . htmlspecialchars($nonce, ENT_QUOTES, 'UTF-8') . '"';
         $buffer = preg_replace('/<script(?![^>]*\bnonce\s*=)/i', '<script' . $attr, $buffer);
         return preg_replace('/<style(?![^>]*\bnonce\s*=)/i', '<style' . $attr, $buffer);

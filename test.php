@@ -148,91 +148,8 @@ if ($needNewTest && !$showSetup && $wantsStart) {
     if (empty($allQuestions)) {
         $selectedQuestions = [];
     } else {
-        $pool = $allQuestions;
-        
-        // Filter questions by multiple categories if selected (comma-separated or array)
-        if (!empty($category)) {
-            $categoriesToFilter = is_array($category) ? $category : explode(',', $category);
-            $categoriesToFilter = array_filter(array_map('trim', $categoriesToFilter));
-            if (!empty($categoriesToFilter)) {
-                $pool = array_values(array_filter($allQuestions, function($q) use ($categoriesToFilter) {
-                    return in_array($q['category'] ?? '', $categoriesToFilter, true);
-                }));
-            }
-        }
-
-        // Filter by difficulty (Easy / Medium / Hard)
-        if ($difficulty !== 'all') {
-            $pool = array_values(array_filter($pool, function($q) use ($difficulty) {
-                // Classify difficulty on-the-fly deterministically
-                $qid = (int)($q['id'] ?? 0);
-                $text = $q['question_text'] ?? '';
-                $hashVal = hexdec(substr(md5($text . $qid), 0, 4));
-                $qDiff = 'medium';
-                if (strlen($text) < 100 && ($hashVal % 3 === 0)) {
-                    $qDiff = 'easy';
-                } elseif (strlen($text) > 180 || ($hashVal % 3 === 2)) {
-                    $qDiff = 'hard';
-                }
-                return $qDiff === $difficulty;
-            }));
-        }
-
-        // Filter by scope (unseen / incorrect / exclude_correct)
-        if ($scope !== 'all' && isset($_SESSION['user_id'])) {
-            $poolQuestionIds = array_map(static fn($q) => (int)($q['id'] ?? 0), $pool);
-            $userProgress = getUserQuestionProgressMap($pdo, (int)$_SESSION['user_id'], $poolQuestionIds);
-
-            $pool = array_values(array_filter($pool, function($q) use ($scope, $userProgress) {
-                $qid = (int)$q['id'];
-                if ($scope === 'unseen') {
-                    return !isset($userProgress[$qid]) || (int)$userProgress[$qid]['times_seen'] === 0;
-                } elseif ($scope === 'incorrect') {
-                    return isset($userProgress[$qid]) && (int)$userProgress[$qid]['times_correct'] < (int)$userProgress[$qid]['times_seen'];
-                } elseif ($scope === 'exclude_correct') {
-                    return !isset($userProgress[$qid]) || (int)$userProgress[$qid]['times_correct'] === 0;
-                }
-                return true;
-            }));
-        }
-
-        if (empty($pool)) {
-            $selectedQuestions = [];
-        } else {
-            switch ($mode) {
-                case 'exam_simulator':
-                    $selectedQuestions = getRandomQuestions($pool, min(40, count($pool)));
-                    break;
-                case 'single':
-                    if ($smart && isset($_SESSION['user_id'])) {
-                        $selectedQuestions = getWeightedRandomQuestions($pdo, $pool, 1, $_SESSION['user_id']);
-                    } else {
-                        $selectedQuestions = getRandomQuestions($pool, 1);
-                    }
-                    break;
-                case 'exam':
-                    $examCount = min($count, count($pool));
-                    if ($smart && isset($_SESSION['user_id'])) {
-                        $selectedQuestions = getWeightedRandomQuestions($pdo, $pool, $examCount, $_SESSION['user_id']);
-                    } else {
-                        $selectedQuestions = getRandomQuestions($pool, $examCount);
-                    }
-                    break;
-                case 'practice':
-                default:
-                    $pracCount = min($count, count($pool));
-                    if ($order === 'sequential') {
-                        $selectedQuestions = array_slice($pool, 0, $pracCount);
-                    } else {
-                        if ($smart && isset($_SESSION['user_id'])) {
-                            $selectedQuestions = getWeightedRandomQuestions($pdo, $pool, $pracCount, $_SESSION['user_id']);
-                        } else {
-                            $selectedQuestions = getRandomQuestions($pool, $pracCount);
-                        }
-                    }
-                    break;
-            }
-        }
+        $pool = filterQuestionPoolForTest($pdo, $allQuestions, $category, $difficulty, $scope, $userId);
+        $selectedQuestions = selectQuestionsForTest($pdo, $pool, $mode, $count, $order, $smart, $userId, $isGuest);
     }
     
     // Calculate final time limit in seconds
@@ -2023,7 +1940,7 @@ $flashMsg = getSessionMessage();
                     <a href="test.php?mode=exam_simulator&setup=1&new=1" class="exam-sim-launch-card">
                         <span>
                             <span class="d-flex align-items-center gap-2 fw-bold fs-5">
-                                Egzamin - symulator CKE
+                                Egzamin
                                 <i class="bi bi-info-circle-fill fs-6"></i>
                             </span>
                             <span class="d-block text-muted mt-1">
@@ -2712,7 +2629,7 @@ $flashMsg = getSessionMessage();
                     <span class="test-progress-badge"><i class="bi bi-lightning-fill"></i> Tryb na czas</span>
                     <?php endif; ?>
                     <?php if ($answerCheckModeAllowed && $answerCheckLimit > 0): ?>
-                    <span class="test-progress-badge test-check-counter" id="answerCheckCounter">
+                    <span class="test-progress-badge test-check-counter answer-check-counter" id="answerCheckCounter">
                         <i class="bi bi-patch-question-fill"></i>
                         Sprawdzenia: <span data-answer-check-used><?= $answerCheckUsed ?></span>/<span data-answer-check-limit><?= $answerCheckLimit ?></span>
                     </span>

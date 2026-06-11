@@ -101,7 +101,7 @@ $csrf = generateCsrfToken('mfa');
         <div>
             <div class="auth-brand"><i class="bi bi-shield-check"></i> ZSEM Tech</div>
             <h1>Weryfikacja 2FA</h1>
-            <p class="text-muted fs-5 mb-0"><?= $mfaRequired ? 'Konta administratora i dyrektora wymagają kodu TOTP przed dostępem do panelu.' : '2FA jest opcjonalne i można je włączyć jako dodatkową ochronę konta.' ?></p>
+            <p class="text-muted fs-5 mb-0"><?= $mfaRequired ? 'Konta administratora wymagają kodu TOTP przed dostępem do panelu.' : '2FA jest opcjonalne i można je włączyć jako dodatkową ochronę konta.' ?></p>
         </div>
         <div class="auth-feature-grid mt-4">
             <div class="auth-feature-card"><strong>TOTP</strong><br><span class="small text-muted">Google/Microsoft/Authy</span></div>

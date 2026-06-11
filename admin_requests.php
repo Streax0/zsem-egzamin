@@ -104,7 +104,7 @@ $flash = getSessionMessage();
                         </div>
                     <?php endif; ?>
 
-                    <div class="dashboard-panel p-0 overflow-hidden mb-4">
+                    <div class="dashboard-panel p-0 overflow-hidden mb-4 admin-requests-table-panel">
                         <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div>
                                 <h5 class="fw-bold mb-1"><i class="bi bi-person-badge text-warning me-2"></i>Aplikacje ról</h5>
@@ -135,7 +135,7 @@ $flash = getSessionMessage();
                                         $handle = userHandle($rUser);
                                     ?>
                                     <tr id="request-<?php echo (int)$r['id']; ?>">
-                                        <td class="fw-bold">
+                                        <td class="fw-bold" data-label="Imię i nazwisko">
                                             <?php echo htmlspecialchars($displayName); ?>
                                             <?php if (($r['trust_status'] ?? 'trusted') === 'untrusted'): ?>
                                                 <div class="mt-1">
@@ -144,24 +144,24 @@ $flash = getSessionMessage();
                                                 </div>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="small text-muted">
+                                        <td class="small text-muted" data-label="Login / e-mail">
                                             <div><?php echo htmlspecialchars($handle); ?></div>
                                             <div><?php echo htmlspecialchars($r['email'] ?? ''); ?></div>
                                         </td>
-                                        <td style="max-width:420px; white-space:pre-wrap">
+                                        <td data-label="Powód" style="max-width:420px; white-space:pre-wrap">
                                             <?php echo nl2br(htmlspecialchars(($r['message'] ?? '') === 'Brak podanej przyczyny.' ? 'Brak podanej przyczyny' : ($r['message'] ?? ''))); ?>
                                             <?php if (!empty($r['risk_flags'])): ?>
                                                 <div class="small text-danger fw-bold mt-2"><?php echo nl2br(htmlspecialchars($r['risk_flags'])); ?></div>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td data-label="Status">
                                             <span class="badge bg-<?php echo ($r['status'] ?? '') === 'closed' ? 'dark' : (($r['status'] ?? '') === 'read' ? 'secondary' : 'primary'); ?> bg-opacity-10 text-<?php echo ($r['status'] ?? '') === 'closed' ? 'dark' : (($r['status'] ?? '') === 'read' ? 'secondary' : 'primary'); ?> rounded-pill px-3">
                                                 <?php echo ($r['status'] ?? '') === 'closed' ? 'Zamknięta' : (($r['status'] ?? '') === 'read' ? 'Przeczytana' : 'Nowa'); ?>
                                             </span>
                                         </td>
-                                        <td class="text-muted small"><?php echo date('d.m.Y H:i', strtotime($r['created_at'])); ?></td>
-                                        <td class="text-end">
-                                            <div class="d-flex justify-content-end gap-2 flex-wrap">
+                                        <td class="text-muted small" data-label="Czas"><?php echo date('d.m.Y H:i', strtotime($r['created_at'])); ?></td>
+                                        <td class="text-end" data-label="Decyzja">
+                                            <div class="d-flex justify-content-end gap-2 flex-wrap admin-requests-actions">
                                                 <?php if (($r['status'] ?? '') !== 'closed'): ?>
                                                 <form method="POST">
                                                     <?= csrfTokenField('admin_requests'); ?>
@@ -189,7 +189,7 @@ $flash = getSessionMessage();
                         <?php endif; ?>
                     </div>
 
-                    <div class="dashboard-panel p-0 overflow-hidden">
+                    <div class="dashboard-panel p-0 overflow-hidden admin-requests-table-panel">
                         <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div>
                                 <h5 class="fw-bold mb-1"><i class="bi bi-envelope-open text-primary me-2"></i>Wnioski</h5>
@@ -218,26 +218,26 @@ $flash = getSessionMessage();
                                         $generalHandle = userHandle($rUser);
                                     ?>
                                     <tr id="request-<?php echo (int)$r['id']; ?>">
-                                        <td class="fw-bold">
+                                        <td class="fw-bold" data-label="Użytkownik">
                                             <?= htmlspecialchars($generalDisplayName); ?>
                                             <?php if ($generalHandle): ?><div class="small text-muted"><?= htmlspecialchars($generalHandle); ?></div><?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td data-label="Typ">
                                             <?php $isTeacherApplication = ($r['type'] ?? 'general') === 'teacher_application'; ?>
                                             <span class="badge <?= $isTeacherApplication ? 'bg-warning text-dark' : 'bg-light text-dark border'; ?>">
                                                 <?= $isTeacherApplication ? 'Aplikacja nauczyciela' : 'Wniosek'; ?>
                                             </span>
                                         </td>
-                                        <td><?= htmlspecialchars($r['subject']); ?></td>
-                                        <td style="max-width:380px; white-space:pre-wrap"><?= nl2br(htmlspecialchars($r['message'])); ?></td>
-                                        <td>
+                                        <td data-label="Temat"><?= htmlspecialchars($r['subject']); ?></td>
+                                        <td data-label="Treść" style="max-width:380px; white-space:pre-wrap"><?= nl2br(htmlspecialchars($r['message'])); ?></td>
+                                        <td data-label="Status">
                                             <span class="badge bg-<?= $r['status'] === 'closed' ? 'dark' : ($r['status'] === 'replied' ? 'success' : ($r['status'] === 'read' ? 'secondary' : 'primary')); ?> bg-opacity-10 text-<?= $r['status'] === 'closed' ? 'dark' : ($r['status'] === 'replied' ? 'success' : ($r['status'] === 'read' ? 'secondary' : 'primary')); ?> rounded-pill px-3">
                                                 <?= $r['status'] === 'closed' ? 'Zamknięty' : ($r['status'] === 'replied' ? 'Odpowiedziano' : ($r['status'] === 'read' ? 'Przeczytano' : 'Nowy')); ?>
                                             </span>
                                         </td>
-                                        <td class="text-muted small"><?= date('d.m.Y H:i', strtotime($r['created_at'])); ?></td>
-                                        <td class="text-end">
-                                            <div class="d-flex justify-content-end gap-2">
+                                        <td class="text-muted small" data-label="Wysłano"><?= date('d.m.Y H:i', strtotime($r['created_at'])); ?></td>
+                                        <td class="text-end" data-label="Akcje">
+                                            <div class="d-flex justify-content-end gap-2 flex-wrap admin-requests-actions">
                                                 <?php if (!in_array($r['status'] ?? '', ['read', 'replied', 'closed'], true)): ?>
                                                 <form method="POST">
                                                     <?= csrfTokenField('admin_requests'); ?>
