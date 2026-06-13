@@ -16,8 +16,7 @@
         'reduce_motion',
         'dashboard_view',
         'default_test_mode',
-        'external_new_tab',
-        'hide_help_center'
+        'external_new_tab'
     ];
 
     function setCookie(name, value, days) {
@@ -102,25 +101,12 @@
         return !!document.body;
     }
 
-    function applyHelpCenterPreference() {
-        if (!bodyReady()) return;
-        const hidden = getPreference('hide_help_center', '0') === '1';
-        document.querySelectorAll('.help-fab, #helpCenterOffcanvas').forEach((node) => {
-            node.classList.toggle('d-none', hidden);
-            if (hidden) {
-                node.setAttribute('aria-hidden', 'true');
-            } else {
-                node.removeAttribute('aria-hidden');
-            }
-        });
-    }
-
     function applyDefaultTestModePreference() {
         const mode = getPreference('default_test_mode', 'exam');
         const targets = {
             exam: { href: 'test.php?mode=exam&setup=1', label: 'Rozpocznij test' },
             practice: { href: 'test.php?mode=practice&setup=1', label: 'Ćwiczenia' },
-            single: { href: 'test.php?mode=single&start=1&new=1', label: 'Jedno pytanie' }
+            single: { href: 'test.php?mode=single&setup=1&new=1', label: 'Jedno pytanie' }
         };
         const target = targets[mode] || targets.exam;
         document.querySelectorAll('[data-default-test-start]').forEach((quickStart) => {
@@ -181,13 +167,14 @@
         const reduceMotion = getPreference('reduce_motion', '0') === '1';
 
         document.body.classList.toggle('dark-mode', theme === 'dark');
+        document.body.classList.toggle('light-mode', theme !== 'dark');
+        document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
         document.documentElement.style.fontSize = (/^(14|16|18)$/.test(fontSize) ? fontSize : '16') + 'px';
         document.documentElement.style.setProperty('--primary-color', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
         document.documentElement.style.setProperty('--kolor-glowy', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
         document.body.classList.toggle('ui-compact', density === 'compact');
         document.body.classList.toggle('reduce-motion', reduceMotion);
 
-        applyHelpCenterPreference();
         applyDefaultTestModePreference();
         applyDashboardViewPreference();
         applyExternalLinkPreference();
@@ -304,13 +291,6 @@
         applyExternalLinkPreference();
         applySettings();
         window.testPreferenceFeedback?.('Preferencja linków zapisana.');
-    };
-
-    window.updateHelpCenterSetting = function(hidden) {
-        setPreference('hide_help_center', hidden ? '1' : '0');
-        applyHelpCenterPreference();
-        applySettings();
-        window.testPreferenceFeedback?.('Preferencja centrum pomocy zapisana.');
     };
 
     window.getUiPreference = getPreference;

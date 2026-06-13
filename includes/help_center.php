@@ -181,7 +181,7 @@ if (!isset($base_url)) {
     </div>
 </div>
 
-<button class="help-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#helpCenterOffcanvas" aria-controls="helpCenterOffcanvas" aria-label="Otwórz centrum pomocy" title="Centrum Pomocy">
+<button class="help-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#helpCenterOffcanvas" data-help-center-trigger aria-controls="helpCenterOffcanvas" aria-expanded="false" aria-label="Otwórz centrum pomocy" title="Centrum Pomocy">
     <i class="bi bi-question-lg"></i>
 </button>
 
@@ -209,8 +209,60 @@ if (!isset($base_url)) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const panel = document.getElementById('helpCenterOffcanvas');
+    const fab = document.querySelector('[data-help-center-trigger]');
+
+    // Avoid clipping by transformed or overflow-hidden layout containers.
+    if (panel && panel.parentElement !== document.body) document.body.appendChild(panel);
+    if (fab && fab.parentElement !== document.body) document.body.appendChild(fab);
+    panel?.classList.remove('d-none');
+    fab?.classList.remove('d-none');
+    fab?.removeAttribute('aria-hidden');
+
+    let fallbackBackdrop = null;
+    const setFallbackOpen = (open) => {
+        if (!panel || !fab) return;
+        panel.classList.toggle('show', open);
+        panel.style.visibility = open ? 'visible' : '';
+        panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+        fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.body.style.overflow = open ? 'hidden' : '';
+
+        if (open && !fallbackBackdrop) {
+            fallbackBackdrop = document.createElement('div');
+            fallbackBackdrop.className = 'offcanvas-backdrop fade show';
+            fallbackBackdrop.addEventListener('click', () => setFallbackOpen(false));
+            document.body.appendChild(fallbackBackdrop);
+        } else if (!open && fallbackBackdrop) {
+            fallbackBackdrop.remove();
+            fallbackBackdrop = null;
+        }
+    };
+
+    fab?.addEventListener('click', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (window.bootstrap?.Offcanvas && panel) {
+            window.bootstrap.Offcanvas.getOrCreateInstance(panel).show();
+            fab.setAttribute('aria-expanded', 'true');
+            return;
+        }
+        setFallbackOpen(true);
+    });
+
+    panel?.addEventListener('hidden.bs.offcanvas', () => fab?.setAttribute('aria-expanded', 'false'));
+    panel?.querySelector('[data-bs-dismiss="offcanvas"]')?.addEventListener('click', function(event) {
+        if (window.bootstrap?.Offcanvas) return;
+        event.preventDefault();
+        setFallbackOpen(false);
+    });
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && panel?.classList.contains('show') && !window.bootstrap?.Offcanvas) {
+            setFallbackOpen(false);
+        }
+    });
+
     // Dynamic FAB visibility to avoid overlapping with footer
-    const fab = document.querySelector('.help-fab');
     const footer = document.querySelector('.main-footer');
     if (fab && footer) {
         const adjustFabPosition = () => {

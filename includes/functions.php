@@ -19,8 +19,8 @@ function sanitize($data) {
 
 function validatePasswordPolicy(string $password): array {
     $errors = [];
-    if (mb_strlen($password, '8bit') < 6) {
-        $errors[] = 'Hasło musi mieć minimum 6 znaków.';
+    if (mb_strlen($password, '8bit') < 10) {
+        $errors[] = 'Hasło musi mieć minimum 10 znaków.';
     }
     if (!preg_match('/[a-z]/', $password)) {
         $errors[] = 'Hasło musi zawierać małą literę.';
@@ -249,20 +249,13 @@ function dbAddIndexIfMissing(PDO $pdo, string $table, string $index, string $def
 }
 
 function clientIpAddress(): string {
-    $remote = trim((string)($_SERVER['REMOTE_ADDR'] ?? ''));
-    $fallback = filter_var($remote, FILTER_VALIDATE_IP) ? $remote : 'unknown';
-    $trustProxy = strtolower((string)(getenv('APP_TRUST_PROXY_HEADERS') ?: ($_ENV['APP_TRUST_PROXY_HEADERS'] ?? '')));
-    if (!in_array($trustProxy, ['1', 'true', 'yes', 'on'], true)) {
-        return $fallback;
+    if (function_exists('securityClientIp')) {
+        $ip = securityClientIp();
+        return $ip === '0.0.0.0' ? 'unknown' : $ip;
     }
 
-    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR'] as $key) {
-        $value = trim((string)($_SERVER[$key] ?? ''));
-        if ($value === '') continue;
-        $ip = trim(explode(',', $value)[0]);
-        if (filter_var($ip, FILTER_VALIDATE_IP)) return $ip;
-    }
-    return $fallback;
+    $remote = trim((string)($_SERVER['REMOTE_ADDR'] ?? ''));
+    return filter_var($remote, FILTER_VALIDATE_IP) ? $remote : 'unknown';
 }
 
 function consumeRateLimit(PDO $pdo, string $bucket, string $identity, int $maxAttempts, int $windowSeconds): bool {
@@ -1706,8 +1699,8 @@ function getRankInfoByXp($xp) {
 
     return [
         'name' => $current['name'],
-        'icon' => $current['icon'],
-        'color' => $current['color'] ?? 'var(--primary-color)',
+        'icon' => normalizeRankIcon($current['icon'] ?? ''),
+        'color' => normalizeRankColor($current['color'] ?? ''),
         'description' => $current['description'] ?? null,
         'min_xp' => $current['min_xp'],
         'next_name' => $next['name'] ?? null,
@@ -1715,6 +1708,16 @@ function getRankInfoByXp($xp) {
         'xp_to_next' => $next ? max(0, $nextXp - $xp) : 0,
         'progress' => $progress
     ];
+}
+
+function normalizeRankColor($color, string $fallback = '#3b82f6'): string {
+    $color = strtolower(trim((string)$color));
+    return preg_match('/^#[0-9a-f]{6}$/i', $color) ? $color : $fallback;
+}
+
+function normalizeRankIcon($icon, string $fallback = 'bi-shield-fill'): string {
+    $icon = trim((string)$icon);
+    return preg_match('/^bi-[a-z0-9-]{1,64}$/i', $icon) ? $icon : $fallback;
 }
 
 function getRankDefinitions($pdo) {
@@ -1729,7 +1732,7 @@ function getRankDefinitions($pdo) {
 function createRankDefinition($pdo, $name, $minXp, $icon, $color, $description) {
     try {
         $stmt = $pdo->prepare("INSERT INTO rank_definitions (name, min_xp, icon, color, description) VALUES (?, ?, ?, ?, ?)");
-        return $stmt->execute([trim($name), (int)$minXp, trim($icon) ?: 'bi-shield-fill', trim($color) ?: 'var(--primary-color)', trim($description) ?: null]);
+        return $stmt->execute([trim($name), max(0, (int)$minXp), normalizeRankIcon($icon), normalizeRankColor($color), trim($description) ?: null]);
     } catch (PDOException $e) {
         error_log('Create rank failed: ' . $e->getMessage());
         return false;
@@ -1746,8 +1749,8 @@ function updateRankDefinition($pdo, $id, $name, $minXp, $icon, $color, $descript
         return $stmt->execute([
             trim($name),
             max(0, (int)$minXp),
-            trim($icon) ?: 'bi-shield-fill',
-            trim($color) ?: '#3b82f6',
+            normalizeRankIcon($icon),
+            normalizeRankColor($color),
             trim($description) ?: null,
             (int)$id
         ]);
@@ -3855,7 +3858,7 @@ function normalizeTestAnswerChecks(array &$test): void {
 }
 
 function testAnswerCheckModeAllowed(array $test): bool {
-    return in_array((string)($test['mode'] ?? 'exam'), ['exam', 'practice', 'single'], true);
+    return in_array((string)($test['mode'] ?? 'exam'), ['exam', 'practice'], true);
 }
 
 function testAnswerCheckPayload(array $test): array {
@@ -4449,7 +4452,8 @@ function getUserOfDay($pdo) {
             SELECT u.id, u.username, u.role, u.xp, u.is_verified, SUM(x.amount) as today_xp
             FROM xp_events x
             JOIN users u ON u.id = x.user_id
-            WHERE DATE(x.created_at) = CURDATE()
+            WHERE x.created_at >= CURDATE()
+              AND x.created_at < CURDATE() + INTERVAL 1 DAY
               AND x.amount > 0
               AND u.role IN ('user','wujek_luki')
             GROUP BY u.id, u.username, u.role, u.xp, u.is_verified

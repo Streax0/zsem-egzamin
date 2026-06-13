@@ -267,6 +267,7 @@ body.dark-mode input[type="range"].custom-range-slider {
   --kolor-tlo-wtoczne: #ffffff;
   --kolor-ramka: #e2e8f0;
   --kolor-tekst: #1e293b;
+  --kolor-tekst-ciemny: #0f172a;
   --kolor-tekst-muted: #475569;
   --kolor-tekst-jasny: #94a3b8;
 
@@ -302,14 +303,13 @@ body.dark-mode input[type="range"].custom-range-slider {
 }
 
 /* ==================== CIEMNY MOTYW ==================== */
-@media (prefers-color-scheme: dark) {
-  :root {
+body.dark-mode {
     --kolor-tlo: #0f172a;
     --kolor-tlo-wtoczne: rgba(30, 41, 59, 0.7);
     --kolor-ramka: rgba(255, 255, 255, 0.1);
     --kolor-tekst: #f8fafc;
     --kolor-tekst-muted: #cbd5e1;
-    --kolor-tekst-jasny: #64748b;
+    --kolor-tekst-jasny: #94a3b8;
     --cień-maly: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --cień-sredni: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --cień-duzy: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -319,7 +319,6 @@ body.dark-mode input[type="range"].custom-range-slider {
     --bg-color: var(--kolor-tlo-wtoczne);
     --border-color: var(--kolor-ramka);
     --primary-color: #3b82f6;
-  }
 }
 
 /* ==================== OGOLNE ==================== */
@@ -873,11 +872,9 @@ body.dark-mode .table > :not(caption) > * > * {
   z-index: 2;
 }
 
-@media (prefers-color-scheme: dark) {
-  .dropdown-menu {
-    background-color: rgba(30, 41, 59, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
+body.dark-mode .dropdown-menu {
+  background-color: rgba(30, 41, 59, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dropdown-item {
@@ -1013,17 +1010,15 @@ body.dark-mode .table > :not(caption) > * > * {
 }
 
 .glass-card {
-  background-color: rgba(255, 255, 255, 0.03) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(102, 126, 234, 0.1) !important;
 }
 
-@media (prefers-color-scheme: light) {
-  .glass-card {
-    background-color: rgba(255, 255, 255, 0.7) !important;
-    border: 1px solid rgba(102, 126, 234, 0.1) !important;
-  }
+body.dark-mode .glass-card {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .card-header {

@@ -13,6 +13,7 @@ if (!in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'])) {
 
 $userId = $_SESSION['user_id'];
 $sessionId = (int)($_GET['session'] ?? 0);
+$hasAdminAccess = roleHasAdminAccess($_SESSION['role'] ?? '');
 
 // Load session + exam
 $stmt = $pdo->prepare("
@@ -21,12 +22,14 @@ $stmt = $pdo->prepare("
     FROM exam_sessions es
     JOIN exams e ON es.exam_id = e.id
     JOIN users u ON e.teacher_id = u.id
-    WHERE es.id = ? AND e.teacher_id = ?
+    WHERE es.id = ?
 ");
-$stmt->execute([$sessionId, $userId]);
+$stmt->execute([$sessionId]);
 $session = $stmt->fetch();
 
-if (!$session) { redirect('index.php'); }
+if (!$session || !($hasAdminAccess || (int)$session['teacher_id'] === (int)$userId)) {
+    redirect('index.php');
+}
 
 // Participants
 $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? ORDER BY score_percent DESC, time_spent ASC");

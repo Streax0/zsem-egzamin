@@ -7,7 +7,7 @@ Platforma edukacyjna wspierająca przygotowanie do egzaminu zawodowego INF.02. S
 
 ### Serwer i baza danych
 - **PHP 8.0 lub nowszy**
-- Włączone rozszerzenia PHP: **PDO**, **JSON**, **session**
+- Włączone rozszerzenia PHP: **PDO MySQL**, **JSON**, **session**, **mbstring**, **fileinfo**, **GD z WebP**
 - **MySQL 5.7+** lub **MariaDB 10.3+**
 - **Apache** z modułem `mod_rewrite` (zalecane)
 
@@ -69,19 +69,17 @@ MYSQL_DATABASE=inf02_platform
 MYSQL_USER=root
 MYSQL_PASSWORD=
 APP_ENV=local
+APP_BASE_URL=http://localhost/public_html
+APP_TRUST_PROXY_HEADERS=false
+APP_TRUSTED_PROXY_IPS=
 ```
 
-#### Opcja B: plik `config/db.php`
-Skopiuj `config.example.php` do `config/db.php` i uzupełnij dane:
+Pełny, bezpieczny szablon znajduje się w `.env.example`. `APP_BASE_URL` musi wskazywać kanoniczny publiczny adres aplikacji. Nagłówki proxy wolno włączyć tylko razem z `APP_TRUSTED_PROXY_IPS` zawierającym dokładne adresy lub zakresy CIDR zaufanych proxy.
 
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'inf02_platform');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-```
+Przy terminacji TLS na reverse proxy ustaw po stronie Apache/PHP zaufany stan HTTPS (`HTTPS=on` lub równoważną konfigurację vhosta). Aplikacja i `.htaccess` celowo nie uznają samego nagłówka klienta `X-Forwarded-Proto` za dowód bezpiecznego połączenia.
 
-> `config/db.php` najpierw próbuje odczytać zmienne środowiskowe z `.env`, a następnie używa wartości zdefiniowanych w pliku.
+#### Opcja B: zmienne środowiskowe serwera
+W produkcji ustaw te same klucze bezpośrednio w konfiguracji hostingu, kontenera lub serwera WWW. Nie zastępuj pliku `config/db.php`: zawiera on loader konfiguracji i inicjalizację bezpiecznego połączenia PDO.
 
 ### 5. Uprawnienia
 - Upewnij się, że dane i pliki konfiguracji mają odpowiednie prawa dostępu.

@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_tok
 
 // Optionally clear remember me cookie if implemented
 if (isset($_COOKIE['remember_me'])) {
-    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    $secure = securityRequestIsSecure();
     setcookie('remember_me', '', [
         'expires' => time() - 3600,
         'path' => '/',

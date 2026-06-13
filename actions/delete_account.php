@@ -5,9 +5,7 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-if (!isLoggedIn()) {
-    securityRedirect('../login.php', '../login.php');
-}
+requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!securityValidateRequestCsrf()) {

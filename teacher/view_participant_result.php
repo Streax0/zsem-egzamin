@@ -58,13 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('view_participant_result.php?id=' . $participantId);
 }
 
-// Load all session questions to get text for answered and unanswered
-$allQuestionsMap = [];
-$allQuestions = loadQuestions($pdo);
-foreach ($allQuestions as $q) {
-    $allQuestionsMap[$q['id']] = $q;
-}
-
 // Load answers
 $stmt = $pdo->prepare("SELECT * FROM exam_answers WHERE participant_id = ? ORDER BY question_order");
 $stmt->execute([$participantId]);
@@ -74,6 +67,11 @@ $answers = $stmt->fetchAll();
 $stmt = $pdo->prepare("SELECT question_id, question_order, correct_answer_override FROM exam_session_questions WHERE session_id = ? ORDER BY question_order");
 $stmt->execute([$participant['session_id']]);
 $sessionQuestions = $stmt->fetchAll();
+$sessionQuestionIds = array_map('intval', array_column($sessionQuestions, 'question_id'));
+$allQuestionsMap = [];
+foreach (getQuestionsByIds($pdo, $sessionQuestionIds) as $question) {
+    $allQuestionsMap[(int)$question['id']] = $question;
+}
 $flashMsg = getSessionMessage();
 
 ?>

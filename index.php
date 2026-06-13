@@ -442,7 +442,7 @@ try {
                                     <i class="bi bi-lightning-fill"></i>
                                     <span data-default-test-label>Rozpocznij test</span>
                                 </a>
-                                <a href="test.php?mode=single&start=1&new=1" class="btn-qs" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;">
+                                <a href="test.php?mode=single&setup=1&new=1" class="btn-qs" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;">
                                     <i class="bi bi-patch-question"></i>
                                     Jedno pytanie
                                 </a>

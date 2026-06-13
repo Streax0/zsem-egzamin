@@ -1,5 +1,7 @@
 from pathlib import Path
 import re
+import shutil
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -260,7 +262,6 @@ def test_settings_controls_call_real_preference_handlers() -> None:
         "updateNotifyActivitySetting(this.checked)",
         "updateUiSoundsSetting(this.checked)",
         "updateExternalNewTabSetting(this.checked)",
-        "updateHelpCenterSetting(this.checked)",
     )
     assert_contains(
         "assets/js/theme-handler.js",
@@ -269,10 +270,8 @@ def test_settings_controls_call_real_preference_handlers() -> None:
         "window.updateNotifyActivitySetting",
         "window.updateUiSoundsSetting",
         "window.updateExternalNewTabSetting",
-        "window.updateHelpCenterSetting",
         "applyDashboardViewPreference();",
         "applyDefaultTestModePreference();",
-        "applyHelpCenterPreference();",
         "applyExternalLinkPreference();",
     )
     assert "localStorage.setItem('notify_new_tests'" not in settings
@@ -306,7 +305,7 @@ def test_tests_update_answer_check_surface() -> None:
     assert_contains(
         "test.php",
         "check_answer",
-        "'answer_check_limit' => 3",
+        "'answer_check_limit' => $mode === 'single' ? 0 : 3",
         "answer_check_used",
         "$test['phase'] ?? 'answering'",
         "'smart'      => $smart",
@@ -346,7 +345,7 @@ def test_tests_update_answer_check_surface() -> None:
         "function selectQuestionsForTest",
         "function testAnswerCheckPayload",
         "revealed_by_check",
-        "['exam', 'practice', 'single']",
+        "['exam', 'practice']",
         "$test['phase'] ?? 'answering'",
         "To pytanie jest juz w trybie podgladu.",
         "answer_check_attempt_number",
@@ -1022,11 +1021,11 @@ def test_admin_and_luki_expanded_operational_panels() -> None:
 def test_release_teacher_generator_luki_v17_surface() -> None:
     assert_contains(
         "settings.php",
-        "1.9 BETA",
+        "1.9.1 HOTFIX",
         "settings-overview-grid",
         "settings-switch-grid",
         "settings-release-grid",
-        "Changelog 1.9 Beta",
+        "Changelog 1.9.1 Hotfix",
         "Płynniejsze menu powiadomień i profilu",
     )
     assert_contains(
@@ -1477,6 +1476,329 @@ def test_network_lab_pdf_proxy_is_authenticated_and_whitelisted() -> None:
         "X-Content-Type-Options: nosniff",
         "readfile($filePath)",
     )
+
+
+def test_help_center_has_reliable_opening_path() -> None:
+    assert_contains(
+        "includes/help_center.php",
+        "data-help-center-trigger",
+        "document.body.appendChild(panel)",
+        "fab?.classList.remove('d-none')",
+        "Offcanvas.getOrCreateInstance(panel).show()",
+        "setFallbackOpen(true)",
+    )
+    assert_not_contains(
+        "assets/js/theme-handler.js",
+        "hide_help_center",
+        "applyHelpCenterPreference",
+        "updateHelpCenterSetting",
+    )
+    assert_not_contains("settings.php", "hide_help_center", "helpCenterSwitch")
+
+    missing_bootstrap = []
+    footer_pattern = re.compile(r"include\s+['\"](?:\.\./)?includes/footer\.php['\"]")
+    for path in ROOT.rglob("*.php"):
+        content = path.read_text(encoding="utf-8", errors="ignore")
+        if footer_pattern.search(content) and "bootstrap.bundle.min.js" not in content:
+            missing_bootstrap.append(str(path.relative_to(ROOT)))
+    assert not missing_bootstrap, f"footer pages without Bootstrap bundle: {missing_bootstrap}"
+
+
+def test_theme_colors_follow_app_preference_only() -> None:
+    css = read("assets/css/style.css")
+    handler = read("assets/js/theme-handler.js")
+    assert "prefers-color-scheme" not in css
+    assert "body.dark-mode" in css
+    assert "--kolor-tekst-ciemny: #0f172a" in css
+    assert "classList.toggle('light-mode', theme !== 'dark')" in handler
+    assert "style.colorScheme = theme === 'dark' ? 'dark' : 'light'" in handler
+
+
+def test_admin_search_uses_unique_pdo_placeholders() -> None:
+    admin = read("admin.php")
+    search_block = admin.split("if ($search !== '') {", 1)[1].split("} else {", 1)[0]
+    assert "LIKE :q OR" not in search_block
+    for placeholder in [":q_username", ":q_email", ":q_first_name", ":q_last_name", ":q_class"]:
+        assert placeholder in search_block
+
+
+def test_single_question_mode_has_category_setup_without_time_or_answer_check() -> None:
+    test_page = read("test.php")
+    functions = read("includes/functions.php")
+    index = read("index.php")
+    theme_handler = read("assets/js/theme-handler.js")
+
+    assert "test.php?mode=single&setup=1&new=1" in index
+    assert "test.php?mode=single&setup=1&new=1" in theme_handler
+    assert "$categoryExplicitlySelected" in test_page
+    assert "$mode === 'single' && (!$wantsStart || !$categoryExplicitlySelected)" in test_page
+    assert "$timeLimit = 0;" in test_page
+    assert "$timeOption = 'unlimited';" in test_page
+    assert "$timeLimitSeconds = 0;" in test_page
+    assert "'answer_check_limit' => $mode === 'single' ? 0 : 3" in test_page
+    assert "<?php if ($mode !== 'single'): ?>\n                <div class=\"row exam-setup-compact-row\">" in test_page
+    assert "<?= $mode === 'single' ? 'show' : '' ?>" in test_page
+    assert "['exam', 'practice']" in functions
+    assert "['exam', 'practice', 'single']" not in functions.split("function testAnswerCheckModeAllowed", 1)[1].split("}", 1)[0]
+
+
+def test_security_request_context_does_not_trust_proxy_headers_by_default() -> None:
+    request_context = read("Security/RequestContext.php")
+    session = read("includes/session.php")
+    auth = read("includes/auth.php")
+    functions = read("includes/functions.php")
+
+    assert "function securityTrustProxyHeaders(): bool" in request_context
+    assert "function securityRequestIsSecure(): bool" in request_context
+    assert "if (!securityTrustProxyHeaders())" in request_context
+    assert "securityRequestIsSecure()" in session
+    assert "HTTP_X_FORWARDED_PROTO" not in session.split("function startSecureSession", 1)[1].split("// Set session cookie", 1)[0]
+
+    auth_ip = auth.split("function authClientIpAddress", 1)[1].split("function enforceUserSessionLimit", 1)[0]
+    shared_ip = functions.split("function clientIpAddress", 1)[1].split("function consumeRateLimit", 1)[0]
+    assert "securityClientIp()" in auth_ip
+    assert "securityClientIp()" in shared_ip
+    assert "HTTP_X_FORWARDED_FOR" not in auth_ip
+    assert "HTTP_X_FORWARDED_FOR" not in shared_ip
+
+
+def test_security_helpers_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.is_file() else None
+    assert php is not None, "PHP CLI is required for security helper runtime tests"
+
+    result = subprocess.run(
+        [php, str(ROOT / "tests/security_helpers_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "security helper runtime OK" in result.stdout
+
+
+def test_password_reset_links_use_configured_public_origin() -> None:
+    auth = read("includes/auth.php")
+    public_url = read("Security/PublicUrl.php")
+
+    reset_block = auth.split("function sendPasswordResetEmail", 1)[1].split("function getPasswordResetUser", 1)[0]
+    assert "securityPasswordResetUrl($token)" in reset_block
+    assert "HTTP_HOST" not in reset_block
+    assert "SCRIPT_NAME" not in reset_block
+    assert "|| true" not in reset_block
+    assert "function securityPublicBaseUrl" in public_url
+    assert "APP_BASE_URL" in public_url
+    assert "https://zsem-egzamin.online" in public_url
+
+
+def test_password_policy_and_duel_question_lookup_are_hardened() -> None:
+    functions = read("includes/functions.php")
+    duel_save = read("duels/save_answer.php")
+
+    policy = functions.split("function validatePasswordPolicy", 1)[1].split("function registrationUsernameSlug", 1)[0]
+    assert "< 10" in policy
+    assert "minimum 10" in policy
+    assert "getQuestionsByIds($pdo, [$questionId])" in duel_save
+    assert "loadQuestions($pdo)" not in duel_save
+
+
+def test_auth_guards_fail_closed_and_rate_limits_are_process_shared() -> None:
+    auth = read("includes/auth.php")
+    limiter = read("Security/RateLimiter.php")
+
+    validation = auth.split("function validateCurrentUserSession", 1)[1].split("function forgetCurrentUserSession", 1)[0]
+    assert "catch (Throwable $e)" in validation
+    assert "return false;" in validation.split("catch (Throwable $e)", 1)[1]
+
+    json_guard = auth.split("function requireJsonLogin", 1)[1].split("function requireLogin", 1)[0]
+    json_catch = json_guard.split("catch (Throwable $e)", 1)[1]
+    assert "http_response_code(503);" in json_catch
+    assert "exit;" in json_catch
+
+    assert "APP_RATE_LIMIT_DIR" in limiter
+    assert "flock($handle, LOCK_EX)" in limiter
+    assert "$_SESSION['security_rate_limits']" not in limiter
+
+
+def test_html_auth_reset_privacy_and_limiter_writes_are_hardened() -> None:
+    auth = read("includes/auth.php")
+    forgot_password = read("forgot_password.php")
+    limiter = read("Security/RateLimiter.php")
+    functions = read("includes/functions.php")
+
+    sync_guard = auth.split("function syncSessionUserRole", 1)[1].split("function requireJsonLogin", 1)[0]
+    sync_catch = sync_guard.split("catch (Throwable $e)", 1)[1]
+    assert "http_response_code(503);" in sync_catch
+    assert "exit;" in sync_catch
+
+    assert "Cache-Control: no-store, private" in forgot_password
+    assert "Pragma: no-cache" in forgot_password
+    assert "Referrer-Policy: no-referrer" in forgot_password
+
+    assert "if (!ftruncate($handle, 0))" in limiter
+    assert "if ($payload === false || fwrite($handle, $payload) !== strlen($payload) || !fflush($handle))" in limiter
+
+    user_of_day = functions.split("function getUserOfDay", 1)[1].split("function ", 1)[0]
+    assert "DATE(x.created_at)" not in user_of_day
+    assert "x.created_at >= CURDATE()" in user_of_day
+    assert "x.created_at < CURDATE() + INTERVAL 1 DAY" in user_of_day
+
+
+def test_session_duel_and_teacher_result_hot_paths_are_bounded() -> None:
+    auth = read("includes/auth.php")
+    duel_save = read("duels/save_answer.php")
+    participant_result = read("teacher/view_participant_result.php")
+    exam_details = read("teacher/exam_details.php")
+
+    validation = auth.split("function validateCurrentUserSession", 1)[1].split("function forgetCurrentUserSession", 1)[0]
+    assert "UNIX_TIMESTAMP(last_seen)" in validation
+    assert "active_session_cleanup_at" in validation
+    assert "INTERVAL 5 MINUTE" in validation
+    assert "enforceUserSessionLimit" not in validation
+    assert "SELECT COUNT(*) FROM active_user_sessions" not in validation
+    assert "registerCurrentUserSession($pdo, $userId)" not in validation
+
+    sync_guard = auth.split("function syncSessionUserRole", 1)[1].split("function requireJsonLogin", 1)[0]
+    assert "if (!$pdo instanceof PDO)" in sync_guard
+    assert "http_response_code(503);" in sync_guard
+
+    json_guard = auth.split("function requireJsonLogin", 1)[1].split("function requireLogin", 1)[0]
+    assert "if (!$pdo instanceof PDO)" in json_guard
+    assert "Authentication service unavailable" in json_guard
+
+    assert "ON DUPLICATE KEY UPDATE id = id" in duel_save
+    assert "SELECT user_answer FROM duel_answers" in duel_save
+
+    assert "getQuestionsByIds($pdo, $sessionQuestionIds)" in participant_result
+    assert "loadQuestions($pdo)" not in participant_result
+
+    assert "$hasAdminAccess = roleHasAdminAccess" in exam_details
+    assert "($hasAdminAccess || (int)$session['teacher_id'] === (int)$userId)" in exam_details
+
+
+def test_rank_style_values_and_failed_avatar_uploads_are_contained() -> None:
+    functions = read("includes/functions.php")
+    profile_action = read("actions/update_profile.php")
+
+    assert "function normalizeRankColor" in functions
+    assert "function normalizeRankIcon" in functions
+    assert "preg_match('/^#[0-9a-f]{6}$/i'" in functions
+    assert "preg_match('/^bi-[a-z0-9-]{1,64}$/i'" in functions
+
+    create_rank = functions.split("function createRankDefinition", 1)[1].split("function updateRankDefinition", 1)[0]
+    update_rank = functions.split("function updateRankDefinition", 1)[1].split("function awardXp", 1)[0]
+    assert "normalizeRankColor($color)" in create_rank
+    assert "normalizeRankIcon($icon)" in create_rank
+    assert "normalizeRankColor($color)" in update_rank
+    assert "normalizeRankIcon($icon)" in update_rank
+
+    assert "$avatarDestination = null;" in profile_action
+    assert "if ($avatarUploaded && $avatarDestination && is_file($avatarDestination))" in profile_action
+
+
+def test_destructive_actions_and_public_exam_links_use_hardened_context() -> None:
+    delete_account = read("actions/delete_account.php")
+    reset_progress = read("actions/reset_progress.php")
+    test_details = read("ajax/get_test_details.php")
+    logout = read("actions/logout.php")
+    host_exam = read("teacher/host_exam.php")
+
+    assert "requireLogin();" in delete_account
+    assert "requireLogin();" in reset_progress
+    assert "syncSessionUserRole();" in test_details
+    assert "mfaAccessRequired()" in test_details
+
+    assert "securityRequestIsSecure()" in logout
+    assert "HTTP_X_FORWARDED_PROTO" not in logout
+
+    join_url = host_exam.split("$joinUrl = '';", 1)[1].split("?>", 1)[0]
+    assert "securityPublicBaseUrl()" in join_url
+    assert "HTTP_HOST" not in join_url
+    assert "HTTP_X_FORWARDED_PROTO" not in join_url
+
+
+def test_login_and_registration_have_database_independent_rate_limits() -> None:
+    auth = read("includes/auth.php")
+
+    registration_limit = auth.split("function checkRegistrationRateLimit", 1)[1].split("function recordRegistrationAttempt", 1)[0]
+    login_limit = auth.split("function checkRateLimit", 1)[1].split("function getFailedLoginAttemptCount", 1)[0]
+
+    assert "securityConsumeRateLimit('auth:register:ip:'" in registration_limit
+    assert "securityConsumeRateLimit('auth:register:identity:'" in registration_limit
+    assert "5, 3600" in registration_limit
+    assert "securityConsumeRateLimit('auth:login:ip:'" in login_limit
+    assert "securityConsumeRateLimit('auth:login:identity:'" in login_limit
+    assert "20, 600" in login_limit
+    assert "empty($ipLimit['allowed']) || empty($identityLimit['allowed'])" in registration_limit
+    assert "empty($ipLimit['allowed']) || empty($identityLimit['allowed'])" in login_limit
+
+
+def test_proxy_allowlist_public_url_fallback_and_limiter_cleanup_exist() -> None:
+    request_context = read("Security/RequestContext.php")
+    public_url = read("Security/PublicUrl.php")
+    limiter = read("Security/RateLimiter.php")
+
+    assert "APP_TRUSTED_PROXY_IPS" in request_context
+    assert "function securityRequestComesFromTrustedProxy" in request_context
+    assert "securityRequestComesFromTrustedProxy()" in request_context
+    assert "function securityIpMatchesTrustedRange" in request_context
+
+    assert "CLIENT_URL" in public_url
+    assert "APP_BASE_URL" in public_url
+
+    assert "function securityPruneRateLimitFiles" in limiter
+    assert "DirectoryIterator" in limiter
+    assert "securityPruneRateLimitFiles($directory, $now)" in limiter
+    assert "$deleted >= 500" in limiter
+    assert "$scanned >= 500" not in limiter
+
+
+def test_server_config_and_turnstile_do_not_trust_spoofable_host_headers() -> None:
+    htaccess = read(".htaccess")
+    auth = read("includes/auth.php")
+    exam_take = read("exam/take.php")
+
+    https_redirect = htaccess.split("# Redirect production traffic to HTTPS", 1)[1].split("# Block internal", 1)[0]
+    assert "X-Forwarded-Proto" not in https_redirect
+
+    turnstile = auth.split("function verifyTurnstile", 1)[1].split("function ", 1)[0]
+    assert "HTTP_HOST" not in turnstile
+    assert "securityClientIp()" in turnstile
+
+    debug_block = exam_take.split("$debugInfo = '';", 1)[1].split("$csrfToken", 1)[0]
+    assert "HTTP_HOST" not in debug_block
+
+
+def test_ci_runs_all_static_and_runtime_quality_gates() -> None:
+    workflow = read(".github/workflows/quality.yml")
+    assert "shivammathur/setup-php" in workflow
+    assert "python tests/static_compliance_check.py" in workflow
+    assert "php -l" in workflow
+    assert "node --check" in workflow
+
+
+def test_password_hashes_upgrade_and_secure_randomness_fails_closed() -> None:
+    auth = read("includes/auth.php")
+    session = read("includes/session.php")
+
+    assert "PASSWORD_BCRYPT" not in auth
+    login_block = auth.split("function login", 1)[1].split("function register", 1)[0]
+    rehash_block = auth.split("function upgradePasswordHashIfNeeded", 1)[1].split("// =============================================================================", 1)[0]
+    assert "upgradePasswordHashIfNeeded($pdo, $user, $password);" in login_block
+    assert "password_needs_rehash($currentHash, PASSWORD_DEFAULT)" in rehash_block
+    assert "SET password_hash = :password_hash WHERE id = :user_id AND password_hash = :current_hash" in rehash_block
+    assert "'current_hash' => $currentHash" in rehash_block
+    assert "$stmt->rowCount() === 1" in rehash_block
+    assert "session_version" not in rehash_block
+
+    random_bytes_helper = session.split("function secureRandomBytes", 1)[1].split("function getCsrfTokenMaxAge", 1)[0]
+    assert "return random_bytes($length);" in random_bytes_helper
+    assert "mt_rand" not in random_bytes_helper
+    assert "openssl_random_pseudo_bytes" not in random_bytes_helper
 
 
 if __name__ == "__main__":

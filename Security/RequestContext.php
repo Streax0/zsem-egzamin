@@ -1,5 +1,97 @@
 <?php
 
+function securityTrustProxyHeaders(): bool {
+    $value = getenv('APP_TRUST_PROXY_HEADERS');
+    if ($value === false || $value === '') {
+        $value = $_ENV['APP_TRUST_PROXY_HEADERS'] ?? '';
+    }
+    return in_array(strtolower(trim((string)$value)), ['1', 'true', 'yes', 'on'], true);
+}
+
+function securityIpMatchesTrustedRange(string $ip, string $range): bool {
+    $ipBinary = @inet_pton(trim($ip));
+    $range = trim($range);
+    if ($ipBinary === false || $range === '') {
+        return false;
+    }
+
+    if (!str_contains($range, '/')) {
+        $rangeBinary = @inet_pton($range);
+        return $rangeBinary !== false && hash_equals($rangeBinary, $ipBinary);
+    }
+
+    [$network, $prefixRaw] = array_map('trim', explode('/', $range, 2));
+    if ($prefixRaw === '' || !ctype_digit($prefixRaw)) {
+        return false;
+    }
+    $networkBinary = @inet_pton($network);
+    if ($networkBinary === false || strlen($networkBinary) !== strlen($ipBinary)) {
+        return false;
+    }
+
+    $prefix = (int)$prefixRaw;
+    $maxBits = strlen($ipBinary) * 8;
+    if ($prefix < 0 || $prefix > $maxBits) {
+        return false;
+    }
+
+    $fullBytes = intdiv($prefix, 8);
+    if ($fullBytes > 0 && !hash_equals(substr($networkBinary, 0, $fullBytes), substr($ipBinary, 0, $fullBytes))) {
+        return false;
+    }
+    $remainingBits = $prefix % 8;
+    if ($remainingBits === 0) {
+        return true;
+    }
+
+    $mask = (0xFF << (8 - $remainingBits)) & 0xFF;
+    return (ord($networkBinary[$fullBytes]) & $mask) === (ord($ipBinary[$fullBytes]) & $mask);
+}
+
+function securityRequestComesFromTrustedProxy(): bool {
+    if (!securityTrustProxyHeaders()) {
+        return false;
+    }
+
+    $remote = trim((string)($_SERVER['REMOTE_ADDR'] ?? ''));
+    if (!filter_var($remote, FILTER_VALIDATE_IP)) {
+        return false;
+    }
+
+    $configured = getenv('APP_TRUSTED_PROXY_IPS');
+    if ($configured === false || trim((string)$configured) === '') {
+        $configured = $_ENV['APP_TRUSTED_PROXY_IPS'] ?? '';
+    }
+    $ranges = preg_split('/[\s,;]+/', trim((string)$configured), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    foreach ($ranges as $range) {
+        if (securityIpMatchesTrustedRange($remote, $range)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function securityRequestIsSecure(): bool {
+    if (!empty($_SERVER['HTTPS']) && in_array(strtolower((string)$_SERVER['HTTPS']), ['on', '1'], true)) {
+        return true;
+    }
+    if ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443) {
+        return true;
+    }
+    if (!securityRequestComesFromTrustedProxy()) {
+        return false;
+    }
+
+    $forwardedProto = strtolower(trim(explode(',', (string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+    if ($forwardedProto === 'https') {
+        return true;
+    }
+    if (strtolower(trim((string)($_SERVER['HTTP_X_SCHEME'] ?? ''))) === 'https') {
+        return true;
+    }
+    return strtolower(trim((string)($_SERVER['HTTP_FRONT_END_HTTPS'] ?? ''))) === 'on';
+}
+
 function securityRequestId(): string {
     if (!empty($GLOBALS['security_request_id'])) {
         return (string)$GLOBALS['security_request_id'];
@@ -21,10 +113,16 @@ function securityRequestId(): string {
 }
 
 function securityClientIp(): string {
+    $remote = trim((string)($_SERVER['REMOTE_ADDR'] ?? ''));
+    $fallback = filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '0.0.0.0';
+    if (!securityRequestComesFromTrustedProxy()) {
+        return $fallback;
+    }
+
     $candidates = [
         (string)($_SERVER['HTTP_CF_CONNECTING_IP'] ?? ''),
         (string)($_SERVER['HTTP_X_REAL_IP'] ?? ''),
-        (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+        (string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''),
     ];
 
     foreach ($candidates as $candidate) {
@@ -34,7 +132,7 @@ function securityClientIp(): string {
         }
     }
 
-    return '0.0.0.0';
+    return $fallback;
 }
 
 function securityActorKey(): string {

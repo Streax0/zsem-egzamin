@@ -1,4 +1,8 @@
 <?php
+header('Cache-Control: no-store, private');
+header('Pragma: no-cache');
+header('Referrer-Policy: no-referrer');
+
 require_once 'config/db.php';
 require_once 'includes/session.php';
 require_once 'includes/auth.php';

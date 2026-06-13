@@ -14,6 +14,13 @@ if (!isLoggedIn()) {
     exit;
 }
 
+syncSessionUserRole();
+if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
+    http_response_code(403);
+    echo '<div class="alert alert-warning">Dokończ weryfikację MFA.</div>';
+    exit;
+}
+
 $userId = (int)$_SESSION['user_id'];
 $testId = securityInputInt($_GET['id'] ?? 0, 0, PHP_INT_MAX, 0);
 

@@ -223,13 +223,7 @@ $joinUrl = '';
 $visibleParticipantCount = 0;
 if ($session) {
     $visibleParticipantCount = count(array_filter($participants, static fn($p) => ($p['status'] ?? '') !== 'removed'));
-    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-    $scheme = $isHttps ? 'https' : 'http';
-    $host = preg_replace('/[^A-Za-z0-9.:\-\[\]]/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost'));
-    if ($host === '') $host = 'localhost';
-    $scriptDir = str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/teacher/host_exam.php')));
-    $basePath = $scriptDir === '/' ? '' : rtrim($scriptDir, '/');
-    $joinUrl = $scheme . '://' . $host . $basePath . '/exam/join.php?code=' . rawurlencode((string)$session['access_code']);
+    $joinUrl = securityPublicBaseUrl() . '/exam/join.php?code=' . rawurlencode((string)$session['access_code']);
 }
 ?>
 <!DOCTYPE html>

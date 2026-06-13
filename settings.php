@@ -22,7 +22,6 @@ $reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
 $dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
 $defaultTestMode = $_COOKIE['default_test_mode'] ?? 'exam';
 $openExternalNewTab = ($_COOKIE['external_new_tab'] ?? '1') === '1';
-$hideHelpCenter = ($_COOKIE['hide_help_center'] ?? '0') === '1';
 $activeAppStatuses = getAppStatuses($pdo, true, 2);
 
 $flashMsg = getSessionMessage();
@@ -571,11 +570,6 @@ $settingsHealth = [
                                     <label class="form-check-label" for="externalTabSwitch">Otwieraj linki zewnętrzne w nowej karcie</label>
                                 </div>
                                 
-                                <div class="form-check form-switch mb-3">
-                                     <input class="form-check-input" type="checkbox" id="helpCenterSwitch" <?php echo $hideHelpCenter ? 'checked' : ''; ?> onchange="updateHelpCenterSetting(this.checked)">
-                                     <label class="form-check-label" for="helpCenterSwitch">Ukryj Centrum Pomocy (pływający przycisk)</label>
-                                </div>
-
                                 </div>
 
                                 <div class="settings-mini-grid mb-4">
@@ -608,7 +602,6 @@ $settingsHealth = [
                                         <span>Układ <strong data-preference-status="dashboard">--</strong></span>
                                         <span>Start testu <strong data-preference-status="defaultMode">--</strong></span>
                                         <span>Linki <strong data-preference-status="external">--</strong></span>
-                                        <span>Pomoc <strong data-preference-status="help">--</strong></span>
                                         <span>Alerty <strong data-preference-status="notify">--</strong></span>
                                         <span>Dźwięki <strong data-preference-status="sounds">--</strong></span>
                                     </div>
@@ -624,7 +617,7 @@ $settingsHealth = [
                                 <div class="small">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Wersja aplikacji:</span>
-                                        <span class="fw-bold">1.9 BETA</span>
+                                        <span class="fw-bold">1.9.1 HOTFIX</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">ID Użytkownika:</span>
@@ -635,7 +628,7 @@ $settingsHealth = [
                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                     </div>
                                 </div>
-                                <div class="settings-release-title mt-3 mb-2">Changelog 1.9 Beta</div>
+                                <div class="settings-release-title mt-3 mb-2">Changelog 1.9.1 Hotfix</div>
                                 <div class="settings-release-grid" aria-label="Changelog wersji 1.9 Beta">
                                     <span><i class="bi bi-patch-question"></i> TESTS UPDATE</span>
                                     <span><i class="bi bi-bell"></i> Płynniejsze menu powiadomień i profilu</span>
@@ -729,7 +722,6 @@ $settingsHealth = [
         const dashboard = document.getElementById('dashboardView')?.value || readPreference('dashboard_view', 'balanced');
         const defaultMode = document.getElementById('defaultTestMode')?.value || readPreference('default_test_mode', 'exam');
         const external = document.getElementById('externalTabSwitch')?.checked;
-        const helpHidden = document.getElementById('helpCenterSwitch')?.checked;
         const themeValue = document.body.classList.contains('dark-mode') ? 'Ciemny' : 'Jasny';
         if (notify) notify.textContent = notifyEnabled ? 'Włączone' : 'Wyłączone';
         if (layout) layout.textContent = dashboardLabels[dashboard] || 'Zbalansowany';
@@ -738,7 +730,6 @@ $settingsHealth = [
         setPreferenceStatus('dashboard', dashboardLabels[dashboard] || dashboard);
         setPreferenceStatus('defaultMode', defaultModeLabels[defaultMode] || defaultMode);
         setPreferenceStatus('external', external ? 'Nowa karta' : 'Ta sama karta');
-        setPreferenceStatus('help', helpHidden ? 'Ukryta' : 'Widoczna');
         setPreferenceStatus('notify', notifyEnabled ? 'Włączone' : 'Wyłączone');
         setPreferenceStatus('sounds', soundsEnabled ? 'Włączone' : 'Wyłączone');
     }
@@ -756,7 +747,7 @@ $settingsHealth = [
     document.addEventListener('DOMContentLoaded', () => {
         syncSettingsMiniCards();
         syncSettingsOverviewCards();
-        document.querySelectorAll('#dashboardView, #defaultTestMode, #themeSelect, #densitySelect, #notifySwitch, #soundsSwitch, #externalTabSwitch, #helpCenterSwitch, #motionSwitch').forEach((el) => {
+        document.querySelectorAll('#dashboardView, #defaultTestMode, #themeSelect, #densitySelect, #notifySwitch, #soundsSwitch, #externalTabSwitch, #motionSwitch').forEach((el) => {
             el.addEventListener('change', () => setTimeout(() => {
                 applyUiPreferences();
                 syncSettingsMiniCards();
@@ -798,7 +789,7 @@ $settingsHealth = [
         applyUiPreferences();
     }
     function resetUiPrefs() {
-        ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','hide_help_center'].forEach(n => {
+        ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab'].forEach(n => {
             const secure = location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = `${n}=; path=/; max-age=0; SameSite=Lax${secure}`;
             try { localStorage.removeItem(n); } catch (error) {}
@@ -838,8 +829,6 @@ $settingsHealth = [
         if (motion) motion.checked = readPreference('reduce_motion', '0') === '1';
         const external = document.getElementById('externalTabSwitch');
         if (external) external.checked = readPreference('external_new_tab', '1') === '1';
-        const help = document.getElementById('helpCenterSwitch');
-        if (help) help.checked = readPreference('hide_help_center', '0') === '1';
     }
     document.addEventListener('DOMContentLoaded', () => {
         syncPreferenceControls();

@@ -54,13 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $correct = '';
-    foreach (loadQuestions($pdo) as $question) {
-        if ((int)($question['id'] ?? 0) === $questionId) {
-            $correct = strtoupper($question['correct_answer'] ?? '');
-            break;
-        }
-    }
+    $question = getQuestionsByIds($pdo, [$questionId])[0] ?? null;
+    $correct = strtoupper((string)($question['correct_answer'] ?? ''));
     if ($correct === '') {
         echo json_encode(['success' => false, 'message' => 'Question not found']);
         exit;
@@ -69,19 +64,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isCorrect = ($answer === $correct) ? 1 : 0;
 
     try {
+        $stmt = $pdo->prepare("
+            INSERT INTO duel_answers (duel_id, user_id, question_id, user_answer, is_correct, time_spent)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE id = id
+        ");
+        $stmt->execute([$duelId, $userId, $questionId, $answer, $isCorrect, max(0, min(86400, $timeSpent))]);
+
         $stmt = $pdo->prepare("SELECT user_answer FROM duel_answers WHERE duel_id = ? AND user_id = ? AND question_id = ?");
         $stmt->execute([$duelId, $userId, $questionId]);
         $existingAnswer = $stmt->fetchColumn();
-
-        if ($existingAnswer !== false) {
-            if ($existingAnswer !== $answer) {
-                http_response_code(409);
-                echo json_encode(['success' => false, 'message' => 'Answer already saved']);
-                exit;
-            }
-        } else {
-            $stmt = $pdo->prepare("INSERT INTO duel_answers (duel_id, user_id, question_id, user_answer, is_correct, time_spent) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$duelId, $userId, $questionId, $answer, $isCorrect, max(0, min(86400, $timeSpent))]);
+        if ($existingAnswer === false || $existingAnswer !== $answer) {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'message' => 'Answer already saved']);
+            exit;
         }
 
         echo json_encode(['success' => true]);

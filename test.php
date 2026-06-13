@@ -45,6 +45,7 @@ $allowedTestModes = ['exam', 'practice', 'single', 'exam_simulator'];
 if (!in_array($mode, $allowedTestModes, true)) {
     $mode = 'exam';
 }
+$categoryExplicitlySelected = isset($_GET['category']) && trim((string)$_GET['category']) !== '';
 $category = $_GET['category'] ?? '';
 $defaultCategoryCookie = trim(urldecode($_COOKIE['default_test_categories'] ?? ''));
 if (!isset($_GET['category']) && $defaultCategoryCookie !== '') {
@@ -96,8 +97,8 @@ if ($timePerQuestion < 15) $timePerQuestion = 15;
 if ($timePerQuestion > 600) $timePerQuestion = 600;
 if ($mode === 'single') {
     $count = 1;
-    $timeLimit = 2;
-    $timeOption = 'custom';
+    $timeLimit = 0;
+    $timeOption = 'unlimited';
 } elseif ($mode === 'exam_simulator') {
     $count = 40;
     $timeLimit = 60;
@@ -138,6 +139,7 @@ if ($hasActiveTest && ($wantsStart || $wantsSetup || $wantsFreshSetup)) {
 $showSetup = !$hasActiveTest && (
     $wantsSetup
     || ($mode === 'practice' && empty($category) && !$wantsStart)
+    || ($mode === 'single' && (!$wantsStart || !$categoryExplicitlySelected))
     || ($mode === 'exam_simulator' && (!$wantsStart || empty($category)))
 );
 
@@ -157,7 +159,7 @@ if ($needNewTest && !$showSetup && $wantsStart) {
     if ($mode === 'exam_simulator') {
         $timeLimitSeconds = 3600;
     } elseif ($mode === 'single') {
-        $timeLimitSeconds = 120;
+        $timeLimitSeconds = 0;
     } elseif ($timeOption === 'unlimited') {
         $timeLimitSeconds = 0;
     } elseif ($timeOption === '30s') {
@@ -194,7 +196,7 @@ if ($needNewTest && !$showSetup && $wantsStart) {
         'phase'      => 'answering',
         'last_result'=> null,
         'smart'      => $smart,
-        'answer_check_limit' => 3,
+        'answer_check_limit' => $mode === 'single' ? 0 : 3,
         'answer_check_used' => 0,
         'exclude_from_ranking' => $excludeFromRanking,
         'config'     => [
@@ -218,6 +220,25 @@ if ($needNewTest && !$showSetup && $wantsStart) {
 }
 
 $test           = $_SESSION['current_test'] ?? null;
+if (is_array($test) && ($test['mode'] ?? '') === 'single') {
+    $singleConfig = is_array($test['config'] ?? null) ? $test['config'] : [];
+    $singleNeedsNormalization = !empty($test['time_limit'])
+        || !empty($test['question_time_limit'])
+        || (int)($test['answer_check_limit'] ?? 0) !== 0
+        || (string)($singleConfig['time_option'] ?? '') !== 'unlimited';
+    if ($singleNeedsNormalization) {
+        $test['time_limit'] = 0;
+        $test['question_time_limit'] = 0;
+        $test['answer_check_limit'] = 0;
+        $test['answer_check_used'] = 0;
+        $test['config'] = array_merge($singleConfig, [
+            'count' => 1,
+            'time' => 0,
+            'time_option' => 'unlimited',
+        ]);
+        saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
+    }
+}
 $questions      = $test['questions'] ?? [];
 $totalQuestions = count($questions);
 if ($test && restoreCheckedQuestionReview($test)) {
@@ -1957,11 +1978,11 @@ $flashMsg = getSessionMessage();
                     <div class="accordion" id="categoryAccordion">
                         <div class="accordion-item border-0">
                             <h2 class="accordion-header" id="categoryHeading">
-                                <button class="accordion-button collapsed d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#categoryCollapse" aria-expanded="false" aria-controls="categoryCollapse">
+                                <button class="accordion-button <?= $mode === 'single' ? '' : 'collapsed' ?> d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#categoryCollapse" aria-expanded="<?= $mode === 'single' ? 'true' : 'false' ?>" aria-controls="categoryCollapse">
                                     <i class="bi bi-collection-fill me-2"></i>Kategorie pytań
                                 </button>
                             </h2>
-                            <div id="categoryCollapse" class="accordion-collapse collapse" aria-labelledby="categoryHeading" data-bs-parent="#categoryAccordion">
+                            <div id="categoryCollapse" class="accordion-collapse collapse <?= $mode === 'single' ? 'show' : '' ?>" aria-labelledby="categoryHeading" data-bs-parent="#categoryAccordion">
                                 <div class="accordion-body px-3 pt-3 pb-2">
                                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 border-bottom pb-2">
                                         <span class="text-muted small">Wybierz kategorie do wylosowania pytań:</span>
@@ -1999,6 +2020,7 @@ $flashMsg = getSessionMessage();
                 </div>
 
                 <!-- Liczba pytań i czas -->
+                <?php if ($mode !== 'single'): ?>
                 <div class="row exam-setup-compact-row">
                     <div class="col-md-6 mt-3 exam-setup-compact-col">
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
@@ -2071,6 +2093,8 @@ $flashMsg = getSessionMessage();
                         </div>
                     </div>
                 </div>
+
+                <?php endif; ?>
 
                 <!-- Accordion: Pozostałe opcje -->
                 <div class="col-12">

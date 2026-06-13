@@ -591,15 +591,19 @@ $offset = ($page - 1) * $limit;
 
 if ($search !== '') {
     $like = '%' . $search . '%';
-    $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users WHERE username LIKE :q OR email LIKE :q OR first_name LIKE :q OR last_name LIKE :q OR class LIKE :q ORDER BY CASE role WHEN 'admin' THEN 'Administratorzy' WHEN 'dyrektor' THEN 'Dyrekcja' WHEN 'teacher' THEN 'Nauczyciele' WHEN 'wujek_luki' THEN 'Wujek Luki' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
-    $stmt->bindValue(':q', $like, PDO::PARAM_STR);
+    $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users WHERE username LIKE :q_username OR email LIKE :q_email OR first_name LIKE :q_first_name OR last_name LIKE :q_last_name OR class LIKE :q_class ORDER BY CASE role WHEN 'admin' THEN 'Administratorzy' WHEN 'dyrektor' THEN 'Dyrekcja' WHEN 'teacher' THEN 'Nauczyciele' WHEN 'wujek_luki' THEN 'Wujek Luki' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
+    foreach ([':q_username', ':q_email', ':q_first_name', ':q_last_name', ':q_class'] as $placeholder) {
+        $stmt->bindValue($placeholder, $like, PDO::PARAM_STR);
+    }
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username LIKE :q OR email LIKE :q OR first_name LIKE :q OR last_name LIKE :q OR class LIKE :q");
-    $countStmt->bindValue(':q', $like, PDO::PARAM_STR);
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username LIKE :q_username OR email LIKE :q_email OR first_name LIKE :q_first_name OR last_name LIKE :q_last_name OR class LIKE :q_class");
+    foreach ([':q_username', ':q_email', ':q_first_name', ':q_last_name', ':q_class'] as $placeholder) {
+        $countStmt->bindValue($placeholder, $like, PDO::PARAM_STR);
+    }
     $countStmt->execute();
     $totalUsers = (int)$countStmt->fetchColumn();
 } else {
@@ -1321,6 +1325,16 @@ if (is_array($rawFlash)) {
         body.dark-mode .admin-search-card {
             background: #111827 !important;
         }
+        body.dark-mode .admin-status-preview {
+            background: rgba(30, 41, 59, .92);
+            border-color: rgba(96, 165, 250, .38);
+        }
+        body.dark-mode .admin-status-preview-title {
+            color: #f8fafc;
+        }
+        body.dark-mode .admin-status-preview-body {
+            color: #cbd5e1;
+        }
         body.dark-mode .admin-table-title {
             background: linear-gradient(90deg, #111827, #172033);
         }
@@ -1364,6 +1378,12 @@ if (is_array($rawFlash)) {
             color: #374151 !important;
             border-color: rgba(209, 213, 219, .4) !important;
         }
+        body.dark-mode .badge.bg-primary { color: #bfdbfe !important; }
+        body.dark-mode .badge.bg-success { color: #bbf7d0 !important; }
+        body.dark-mode .badge.bg-danger { color: #fecaca !important; }
+        body.dark-mode .badge.bg-warning { color: #fde68a !important; }
+        body.dark-mode .badge.bg-info { color: #cffafe !important; }
+        body.dark-mode .badge.bg-light { color: #f8fafc !important; }
         .admin-search-card {
             border: 1px solid rgba(148, 163, 184, .12) !important;
             background: #ffffff !important;

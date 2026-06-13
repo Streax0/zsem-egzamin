@@ -28,10 +28,8 @@ function verifyTurnstile($token) {
     if (empty($token)) return false;
 
     $secret = getenv('TURNSTILE_SECRET') ?: ($_ENV['TURNSTILE_SECRET'] ?? '');
-    $host = $_SERVER['HTTP_HOST'] ?? '';
     $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
-    $isLocal = in_array($remoteAddr, ['127.0.0.1', '::1'], true)
-        || preg_match('/^(localhost|127\.0\.0\.1)(:\d+)?$/', $host);
+    $isLocal = in_array($remoteAddr, ['127.0.0.1', '::1'], true);
 
     if ($secret === '') {
         if ($isLocal && (defined('APP_ENV') ? APP_ENV : 'local') === 'local') {
@@ -47,7 +45,7 @@ function verifyTurnstile($token) {
     $data = [
         'secret' => $secret,
         'response' => $token,
-        'remoteip' => $_SERVER['REMOTE_ADDR']
+        'remoteip' => securityClientIp()
     ];
     
     $options = [
@@ -151,24 +149,8 @@ function currentSessionHash(): string {
 }
 
 function authClientIpAddress(): string {
-    $remote = trim((string)($_SERVER['REMOTE_ADDR'] ?? ''));
-    $fallback = filter_var($remote, FILTER_VALIDATE_IP) ? $remote : 'unknown';
-    $trustProxy = strtolower((string)(getenv('APP_TRUST_PROXY_HEADERS') ?: ($_ENV['APP_TRUST_PROXY_HEADERS'] ?? '')));
-    if (!in_array($trustProxy, ['1', 'true', 'yes', 'on'], true)) {
-        return $fallback;
-    }
-
-    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR'] as $key) {
-        $value = trim((string)($_SERVER[$key] ?? ''));
-        if ($value === '') {
-            continue;
-        }
-        $ip = trim(explode(',', $value)[0]);
-        if (filter_var($ip, FILTER_VALIDATE_IP)) {
-            return $ip;
-        }
-    }
-    return $fallback;
+    $ip = securityClientIp();
+    return $ip === '0.0.0.0' ? 'unknown' : $ip;
 }
 
 function enforceUserSessionLimit(PDO $pdo, int $userId, int $maxSessions = 2): void {
@@ -242,27 +224,27 @@ function validateCurrentUserSession(PDO $pdo, int $userId): bool {
 
     try {
         ensureActiveSessionTable($pdo);
-        $pdo->prepare('DELETE FROM active_user_sessions WHERE last_seen < DATE_SUB(NOW(), INTERVAL 2 DAY)')->execute();
-        $count = $pdo->prepare('SELECT COUNT(*) FROM active_user_sessions WHERE user_id = ?');
-        $count->execute([$userId]);
-        if ((int)$count->fetchColumn() === 0) {
-            registerCurrentUserSession($pdo, $userId);
-            return true;
+        $lastCleanup = (int)($_SESSION['active_session_cleanup_at'] ?? 0);
+        if ($lastCleanup < time() - 3600) {
+            $pdo->prepare('DELETE FROM active_user_sessions WHERE last_seen < DATE_SUB(NOW(), INTERVAL 2 DAY)')->execute();
+            $_SESSION['active_session_cleanup_at'] = time();
         }
 
-        $stmt = $pdo->prepare('SELECT 1 FROM active_user_sessions WHERE user_id = ? AND session_hash = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT UNIX_TIMESTAMP(last_seen) FROM active_user_sessions WHERE user_id = ? AND session_hash = ? LIMIT 1');
         $stmt->execute([$userId, $sessionHash]);
-        if (!$stmt->fetchColumn()) {
+        $lastSeen = $stmt->fetchColumn();
+        if ($lastSeen === false) {
             return false;
         }
 
-        $touch = $pdo->prepare('UPDATE active_user_sessions SET last_seen = NOW() WHERE user_id = ? AND session_hash = ?');
-        $touch->execute([$userId, $sessionHash]);
-        enforceUserSessionLimit($pdo, $userId);
+        if ((int)$lastSeen < time() - 300) {
+            $touch = $pdo->prepare('UPDATE active_user_sessions SET last_seen = NOW() WHERE user_id = ? AND session_hash = ? AND last_seen < DATE_SUB(NOW(), INTERVAL 5 MINUTE)');
+            $touch->execute([$userId, $sessionHash]);
+        }
         return true;
     } catch (Throwable $e) {
         error_log('Failed to validate active session: ' . $e->getMessage());
-        return true;
+        return false;
     }
 }
 
@@ -308,7 +290,10 @@ function syncSessionUserRole() {
 
     global $pdo;
     if (!$pdo instanceof PDO) {
-        return;
+        error_log('Session role sync has no database connection.');
+        http_response_code(503);
+        echo 'Usługa uwierzytelniania jest chwilowo niedostępna.';
+        exit;
     }
 
     try {
@@ -336,8 +321,11 @@ function syncSessionUserRole() {
                 destroySession(true, '/login.php?session_expired=1');
             }
         }
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         error_log('Failed to sync session role: ' . $e->getMessage());
+        http_response_code(503);
+        echo 'Usługa uwierzytelniania jest chwilowo niedostępna.';
+        exit;
     }
 }
 
@@ -361,31 +349,39 @@ function requireJsonLogin(
     }
 
     global $pdo;
-    if ($pdo instanceof PDO) {
-        try {
-            $stmt = $pdo->prepare('SELECT role, session_version FROM users WHERE id = ? LIMIT 1');
-            $stmt->execute([$_SESSION['user_id']]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $dbVersion = (int)($row['session_version'] ?? 0);
-            $sessionVersion = (int)($_SESSION['session_version'] ?? $dbVersion);
+    if (!$pdo instanceof PDO) {
+        http_response_code(503);
+        $payload = ['success' => false, 'error' => 'Authentication service unavailable'];
+        echo function_exists('securityJsonEncode') ? securityJsonEncode($payload) : json_encode($payload);
+        exit;
+    }
+    try {
+        $stmt = $pdo->prepare('SELECT role, session_version FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$_SESSION['user_id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $dbVersion = (int)($row['session_version'] ?? 0);
+        $sessionVersion = (int)($_SESSION['session_version'] ?? $dbVersion);
 
-            if (!$row || ($dbVersion > 0 && $sessionVersion !== $dbVersion) || !validateCurrentUserSession($pdo, (int)$_SESSION['user_id'])) {
-                $_SESSION = [];
-                if (session_status() === PHP_SESSION_ACTIVE) {
-                    session_destroy();
-                }
-                http_response_code(401);
-                echo function_exists('securityJsonEncode') ? securityJsonEncode($unauthorizedPayload) : json_encode($unauthorizedPayload);
-                exit;
+        if (!$row || ($dbVersion > 0 && $sessionVersion !== $dbVersion) || !validateCurrentUserSession($pdo, (int)$_SESSION['user_id'])) {
+            $_SESSION = [];
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
             }
-
-            $_SESSION['role'] = $row['role'] ?? ($_SESSION['role'] ?? 'user');
-            if ($dbVersion > 0) {
-                $_SESSION['session_version'] = $dbVersion;
-            }
-        } catch (Throwable $e) {
-            error_log('JSON auth guard failed: ' . $e->getMessage());
+            http_response_code(401);
+            echo function_exists('securityJsonEncode') ? securityJsonEncode($unauthorizedPayload) : json_encode($unauthorizedPayload);
+            exit;
         }
+
+        $_SESSION['role'] = $row['role'] ?? ($_SESSION['role'] ?? 'user');
+        if ($dbVersion > 0) {
+            $_SESSION['session_version'] = $dbVersion;
+        }
+    } catch (Throwable $e) {
+        error_log('JSON auth guard failed: ' . $e->getMessage());
+        http_response_code(503);
+        $payload = ['success' => false, 'error' => 'Authentication service unavailable'];
+        echo function_exists('securityJsonEncode') ? securityJsonEncode($payload) : json_encode($payload);
+        exit;
     }
 
     if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
@@ -485,6 +481,8 @@ function login($username, $password, $remember = false) {
         }
         */
 
+        upgradePasswordHashIfNeeded($pdo, $user, $password);
+
         // Clear any previous failed login attempts on successful login
         clearLoginAttempts($ip);
 
@@ -556,8 +554,7 @@ function register($username, $email, $password, $firstName = null, $lastName = n
     }
 
     try {
-        // Hash password with BCRYPT algorithm
-        $password_hash = password_hash($password, PASSWORD_BCRYPT);
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
         
         // Default role is 'user'
         $role = 'user';
@@ -653,6 +650,13 @@ function registrationIpAccountLimitReached(PDO $pdo, string $ip, int $limit = 2)
 function checkRegistrationRateLimit(string $ip, string $email = ''): bool {
     global $pdo;
 
+    $identity = hash('sha256', mb_strtolower(trim($email), 'UTF-8'));
+    $ipLimit = securityConsumeRateLimit('auth:register:ip:' . hash('sha256', $ip), 5, 3600);
+    $identityLimit = securityConsumeRateLimit('auth:register:identity:' . $identity, 5, 3600);
+    if (empty($ipLimit['allowed']) || empty($identityLimit['allowed'])) {
+        return true;
+    }
+
     try {
         createRegistrationAttemptsTable();
         $cutoff = date('Y-m-d H:i:s', time() - 3600);
@@ -743,6 +747,32 @@ function verifyPassword($password, $hash) {
     return password_verify($password, $hash);
 }
 
+function upgradePasswordHashIfNeeded(PDO $pdo, array &$user, string $password): void {
+    $currentHash = (string)($user['password_hash'] ?? '');
+    if ($currentHash === '' || !password_needs_rehash($currentHash, PASSWORD_DEFAULT)) {
+        return;
+    }
+
+    $replacementHash = password_hash($password, PASSWORD_DEFAULT);
+    if (!is_string($replacementHash) || $replacementHash === '') {
+        return;
+    }
+
+    try {
+        $stmt = $pdo->prepare('UPDATE users SET password_hash = :password_hash WHERE id = :user_id AND password_hash = :current_hash');
+        $stmt->execute([
+            'password_hash' => $replacementHash,
+            'user_id' => (int)$user['id'],
+            'current_hash' => $currentHash,
+        ]);
+        if ($stmt->rowCount() === 1) {
+            $user['password_hash'] = $replacementHash;
+        }
+    } catch (PDOException $e) {
+        error_log('Password hash upgrade failed for user ID ' . (int)$user['id'] . '.');
+    }
+}
+
 
 // =============================================================================
 // Rate Limiting Functions
@@ -758,6 +788,13 @@ function verifyPassword($password, $hash) {
  */
 function checkRateLimit($ip, string $username = '') {
     global $pdo;
+
+    $identity = hash('sha256', mb_strtolower(trim($username), 'UTF-8'));
+    $ipLimit = securityConsumeRateLimit('auth:login:ip:' . hash('sha256', $ip), 40, 600);
+    $identityLimit = securityConsumeRateLimit('auth:login:identity:' . $identity, 20, 600);
+    if (empty($ipLimit['allowed']) || empty($identityLimit['allowed'])) {
+        return true;
+    }
 
     try {
         createLoginAttemptsTable();
@@ -1152,7 +1189,7 @@ function generateRecoveryCodes(int $count = 8): array {
 }
 
 function hashRecoveryCodes(array $codes): string {
-    return json_encode(array_map(static fn($code) => password_hash(strtoupper(trim($code)), PASSWORD_BCRYPT), $codes));
+    return json_encode(array_map(static fn($code) => password_hash(strtoupper(trim($code)), PASSWORD_DEFAULT), $codes));
 }
 
 function verifyAndConsumeRecoveryCode(PDO $pdo, int $userId, string $code): bool {
@@ -1228,13 +1265,14 @@ function createPasswordResetToken(PDO $pdo, string $email): ?string {
 }
 
 function sendPasswordResetEmail(string $email, string $token): bool {
-    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $base = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/forgot_password.php'), '/\\');
-    $url = $scheme . '://' . $host . ($base === '/' ? '' : $base) . '/forgot_password.php?token=' . urlencode($token);
+    $url = securityPasswordResetUrl($token);
     $subject = 'Reset hasła - ZSEM Tech';
     $message = "Aby zresetować hasło, otwórz link ważny 30 minut:\n\n{$url}\n\nJeśli to nie Ty, zignoruj wiadomość.";
-    return @mail($email, $subject, $message, "From: no-reply@zsemtech.local\r\n") || true;
+    $sent = @mail($email, $subject, $message, "From: no-reply@zsemtech.local\r\n");
+    if (!$sent) {
+        error_log('Password reset email delivery failed.');
+    }
+    return $sent;
 }
 
 function getPasswordResetUser(PDO $pdo, string $token): ?array {
@@ -1256,7 +1294,7 @@ function resetPasswordWithToken(PDO $pdo, string $token, string $password): bool
     if (!$row || (function_exists('validatePasswordPolicy') && validatePasswordPolicy($password) !== [])) return false;
     $pdo->beginTransaction();
     try {
-        $hash = password_hash($password, PASSWORD_BCRYPT);
+        $hash = password_hash($password, PASSWORD_DEFAULT);
         $pdo->prepare('UPDATE users SET password_hash = ?, session_version = COALESCE(session_version, 1) + 1 WHERE id = ?')
             ->execute([$hash, (int)$row['user_id']]);
         $pdo->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?')

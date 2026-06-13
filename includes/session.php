@@ -196,19 +196,7 @@ function startSecureSession() {
         return;
     }
 
-    // Detect if connection is secure (HTTPS)
-    $isSecure = false;
-    if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1)) {
-        $isSecure = true;
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
-        $isSecure = true;
-    } elseif (!empty($_SERVER['HTTP_X_SCHEME']) && strtolower($_SERVER['HTTP_X_SCHEME']) === 'https') {
-        $isSecure = true;
-    } elseif (!empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) === 'on') {
-        $isSecure = true;
-    } elseif (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) {
-        $isSecure = true;
-    }
+    $isSecure = securityRequestIsSecure();
 
     if (!headers_sent() && $isSecure) {
         header("Strict-Transport-Security: max-age=63072000; includeSubDomains; preload");
@@ -462,29 +450,7 @@ function secureRandomBytes($length = 32) {
         return '';
     }
 
-    if (function_exists('random_bytes')) {
-        try {
-            return random_bytes($length);
-        } catch (Exception $e) {
-            // Continue to fallback
-        }
-    }
-
-    if (function_exists('openssl_random_pseudo_bytes')) {
-        $strong = false;
-        $bytes = openssl_random_pseudo_bytes($length, $strong);
-        if ($bytes !== false && $strong === true) {
-            return $bytes;
-        }
-    }
-
-    // Fallback pseudo-random bytes (less secure, but avoids fatal crash on old PHP)
-    $bytes = '';
-    for ($i = 0; $i < $length; $i++) {
-        $bytes .= chr(mt_rand(0, 255));
-    }
-
-    return $bytes;
+    return random_bytes($length);
 }
 
 function getCsrfTokenMaxAge($action = '') {

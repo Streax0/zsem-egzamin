@@ -45,6 +45,7 @@ $classParts = normalizeClassParts($_POST['class_year'] ?? null, $_POST['class_su
 $errors = [];
 $avatarUploaded = false;
 $avatarPath = null;
+$avatarDestination = null;
 
 const AVATAR_MAX_BYTES = 25600;
 
@@ -175,6 +176,7 @@ if (empty($errors) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ??
                     $errors[] = 'Nie udało się skompresować zdjęcia profilowego poniżej 25 KB. Wybierz prostszy lub mniejszy kadr.';
                 } else {
                     $avatarPath = 'uploads/avatars/' . $filename;
+                    $avatarDestination = $dest;
                     $avatarUploaded = true;
                 }
                 imagedestroy($source);
@@ -204,6 +206,9 @@ try {
     $_SESSION['username'] = $username;
     setSessionMessage('success', $avatarUploaded ? 'Dane profilu i zdjęcie zostały zaktualizowane.' : 'Dane profilu zostały zaktualizowane.');
 } catch (PDOException $e) {
+    if ($avatarUploaded && $avatarDestination && is_file($avatarDestination)) {
+        @unlink($avatarDestination);
+    }
     error_log('Profile update error: ' . $e->getMessage());
     setSessionMessage('error', 'Nie udało się zapisać danych profilu.');
 }
