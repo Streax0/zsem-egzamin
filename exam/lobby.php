@@ -327,5 +327,6 @@ $participants = $stmt->fetchAll();
      }
      setInterval(checkStatus, 1000);
     </script>
+    <?php include '../includes/help_center.php'; ?>
 </body>
 </html>

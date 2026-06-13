@@ -588,24 +588,13 @@ $search = mb_substr(trim((string)($_GET['q'] ?? '')), 0, 100);
 $page = max(1, intval($_GET['page'] ?? 1));
 $limit = 20;
 $offset = ($page - 1) * $limit;
+$adminSearchFailed = false;
 
 if ($search !== '') {
-    $like = '%' . $search . '%';
-    $stmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, role, class, avatar_path, xp, profile_public, stats_public, allow_friend_requests, searchable, is_verified, ranking_visible, created_at, last_login, is_banned, ban_expires_at FROM users WHERE username LIKE :q_username OR email LIKE :q_email OR first_name LIKE :q_first_name OR last_name LIKE :q_last_name OR class LIKE :q_class ORDER BY CASE role WHEN 'admin' THEN 'Administratorzy' WHEN 'dyrektor' THEN 'Dyrekcja' WHEN 'teacher' THEN 'Nauczyciele' WHEN 'wujek_luki' THEN 'Wujek Luki' ELSE COALESCE(NULLIF(class, ''), 'ZZZ') END, id DESC LIMIT :limit OFFSET :offset");
-    foreach ([':q_username', ':q_email', ':q_first_name', ':q_last_name', ':q_class'] as $placeholder) {
-        $stmt->bindValue($placeholder, $like, PDO::PARAM_STR);
-    }
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $stmt->execute();
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username LIKE :q_username OR email LIKE :q_email OR first_name LIKE :q_first_name OR last_name LIKE :q_last_name OR class LIKE :q_class");
-    foreach ([':q_username', ':q_email', ':q_first_name', ':q_last_name', ':q_class'] as $placeholder) {
-        $countStmt->bindValue($placeholder, $like, PDO::PARAM_STR);
-    }
-    $countStmt->execute();
-    $totalUsers = (int)$countStmt->fetchColumn();
+    $searchResult = searchAdminUsers($pdo, $search, $limit, $offset);
+    $users = $searchResult['users'];
+    $totalUsers = $searchResult['total'];
+    $adminSearchFailed = !empty($searchResult['error']);
 } else {
     $users = getUsers($pdo, $limit, $offset);
     $totalUsers = getUsersCount($pdo);
@@ -1350,27 +1339,27 @@ if (is_array($rawFlash)) {
         }
         .badge.bg-primary {
             background: rgba(59, 130, 246, .12) !important;
-            color: #3b82f6 !important;
+            color: #1d4ed8 !important;
             border-color: rgba(59, 130, 246, .3) !important;
         }
         .badge.bg-success {
             background: rgba(34, 197, 94, .12) !important;
-            color: #22c55e !important;
+            color: #047857 !important;
             border-color: rgba(34, 197, 94, .3) !important;
         }
         .badge.bg-danger {
             background: rgba(239, 68, 68, .12) !important;
-            color: #ef4444 !important;
+            color: #b91c1c !important;
             border-color: rgba(239, 68, 68, .3) !important;
         }
         .badge.bg-warning {
             background: rgba(234, 179, 8, .12) !important;
-            color: #b45309 !important;
+            color: #92400e !important;
             border-color: rgba(234, 179, 8, .3) !important;
         }
         .badge.bg-info {
             background: rgba(6, 182, 212, .12) !important;
-            color: #06b6d4 !important;
+            color: #0e7490 !important;
             border-color: rgba(6, 182, 212, .3) !important;
         }
         .badge.bg-light {
@@ -1436,7 +1425,7 @@ if (is_array($rawFlash)) {
         }
         .admin-icon-btn.btn-outline-secondary {
             background: transparent !important;
-            color: #6366f1 !important;
+            color: #4338ca !important;
             border: 1.5px solid rgba(99, 102, 241, .3) !important;
         }
         .admin-icon-btn.btn-outline-secondary:hover {
@@ -1445,12 +1434,21 @@ if (is_array($rawFlash)) {
         }
         .admin-icon-btn.btn-outline-success {
             background: transparent !important;
-            color: #22c55e !important;
+            color: #047857 !important;
             border: 1.5px solid rgba(34, 197, 94, .3) !important;
         }
         .admin-icon-btn.btn-outline-success:hover {
             background: rgba(34, 197, 94, .1) !important;
             border-color: rgba(34, 197, 94, .6) !important;
+        }
+        body.dark-mode .admin-icon-btn.btn-outline-success {
+            color: #6ee7b7 !important;
+            border-color: rgba(110, 231, 183, .55) !important;
+        }
+        body.dark-mode .admin-icon-btn.btn-outline-success:hover {
+            background: rgba(16, 185, 129, .18) !important;
+            color: #d1fae5 !important;
+            border-color: #6ee7b7 !important;
         }
         body.dark-mode .admin-users-table tbody td,
         body.dark-mode .admin-user-name {
@@ -1462,7 +1460,7 @@ if (is_array($rawFlash)) {
             border-color: rgba(148, 163, 184, .24);
         }
         body.dark-mode .admin-user-email {
-            color: #cbd5e1;
+            color: #cbd5e1 !important;
         }
         body.dark-mode .admin-tool-card.bg-light {
             background: #111827 !important;
@@ -1709,6 +1707,11 @@ if (is_array($rawFlash)) {
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($adminSearchFailed): ?>
+                    <div class="alert alert-danger border-0 shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Nie udało się wykonać wyszukiwania użytkowników. Spróbuj ponownie.
+                    </div>
+                    <?php endif; ?>
                     <div class="dashboard-panel mb-4 animate-in admin-panel admin-search-card">
                         <form method="GET" class="row g-3 admin-search-form align-items-end p-4">
                             <div class="col-12 col-md-8 col-lg-6">
@@ -1778,7 +1781,7 @@ if (is_array($rawFlash)) {
                                                 </div>
                                                 <div class="min-w-0" style="flex: 1;">
                                                     <div class="admin-user-name fw-600" style="font-size: .95rem; margin-bottom: .25rem;"><?php echo htmlspecialchars($adminDisplayName); ?></div>
-                                                    <div class="admin-user-email" style="font-size: .8rem; color: #6b7280;"><?php echo htmlspecialchars(trim($adminHandle . ' ' . $u['email'])); ?></div>
+                                                    <div class="admin-user-email" style="font-size: .8rem;"><?php echo htmlspecialchars(trim($adminHandle . ' ' . $u['email'])); ?></div>
                                                 </div>
                                             </div>
                                         </td>

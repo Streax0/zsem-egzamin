@@ -220,24 +220,8 @@ if ($needNewTest && !$showSetup && $wantsStart) {
 }
 
 $test           = $_SESSION['current_test'] ?? null;
-if (is_array($test) && ($test['mode'] ?? '') === 'single') {
-    $singleConfig = is_array($test['config'] ?? null) ? $test['config'] : [];
-    $singleNeedsNormalization = !empty($test['time_limit'])
-        || !empty($test['question_time_limit'])
-        || (int)($test['answer_check_limit'] ?? 0) !== 0
-        || (string)($singleConfig['time_option'] ?? '') !== 'unlimited';
-    if ($singleNeedsNormalization) {
-        $test['time_limit'] = 0;
-        $test['question_time_limit'] = 0;
-        $test['answer_check_limit'] = 0;
-        $test['answer_check_used'] = 0;
-        $test['config'] = array_merge($singleConfig, [
-            'count' => 1,
-            'time' => 0,
-            'time_option' => 'unlimited',
-        ]);
-        saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
-    }
+if (is_array($test) && normalizeSingleQuestionTestState($test)) {
+    saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
 }
 $questions      = $test['questions'] ?? [];
 $totalQuestions = count($questions);
@@ -270,6 +254,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── FINISH EARLY ──────────────────────────────────────────────────────────
     if ($action === 'finish_early') {
+        if (($test['mode'] ?? '') === 'single' && !isGuestMode()) {
+            if (testHasReviewedCurrentAnswer($test)) {
+                $resultId = ensureSingleQuestionResultSaved($pdo, $test, $userId);
+                if ($resultId <= 0) {
+                    setSessionMessage('error', 'Nie udało się zapisać wyniku. Spróbuj ponownie.');
+                    header('Location: test.php');
+                    exit;
+                }
+            } else {
+                $resultId = 0;
+            }
+            cancelActiveTest($pdo, $userId > 0 ? $userId : null);
+            header('Location: ' . ($resultId > 0 ? 'result.php?id=' . $resultId : 'test.php?mode=single&setup=1'));
+            exit;
+        }
         if (isGuestMode()) {
             $resultId = finishGuestTest($test);
             header('Location: result.php?guest=' . urlencode($resultId));
@@ -309,6 +308,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── ADVANCE TO NEXT QUESTION (from review phase) ──────────────────────────
     if ($action === 'next_question') {
+        if (!testCanAdvanceFromReview($test)) {
+            setSessionMessage('error', 'Najpierw odpowiedz na bieżące pytanie.');
+            header('Location: test.php');
+            exit;
+        }
+        $singleResultId = 0;
+        if (($test['mode'] ?? '') === 'single' && !isGuestMode()) {
+            $singleResultId = ensureSingleQuestionResultSaved($pdo, $test, $userId);
+            if ($singleResultId <= 0) {
+                setSessionMessage('error', 'Nie udało się zapisać wyniku. Spróbuj ponownie.');
+                header('Location: test.php');
+                exit;
+            }
+        }
         $test['current']++;
         $test['phase']       = 'answering';
         $test['last_result'] = null;
@@ -320,9 +333,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
                 header('Location: test.php');
             } else {
-                setSessionMessage('error', (string)($nextSingle['error'] ?? 'Nie znaleziono kolejnego pytania.'));
-                cancelActiveTest($pdo, $userId > 0 ? $userId : null);
-                header('Location: test.php?mode=single&setup=1');
+                if (isGuestMode()) {
+                    $resultId = finishGuestTest($test);
+                    header('Location: result.php?guest=' . urlencode($resultId));
+                } else {
+                    $resultId = $singleResultId;
+                    cancelActiveTest($pdo, $userId > 0 ? $userId : null);
+                    header('Location: ' . ($resultId > 0 ? 'result.php?id=' . $resultId : 'test.php?mode=single&setup=1'));
+                }
             }
             exit;
         }
@@ -431,6 +449,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             } else {
                 // In practice/single mode, show review info
+                $singleResultId = 0;
                 if ($mode === 'single' && !isGuestMode() && isset($_SESSION['user_id'])) {
                     $singleResultId = saveSingleQuestionResult($pdo, $_SESSION['user_id'], $q, $userAnswer, $isCorrect);
                     if ($singleResultId > 0) {
@@ -439,6 +458,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $test['phase'] = 'reviewing';
                 $test['last_result'] = testReviewResultFromAnswer($test, $currentIdx);
+                if ($singleResultId > 0) {
+                    recordSingleQuestionResultId($test, $singleResultId);
+                }
                 saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
             }
         }

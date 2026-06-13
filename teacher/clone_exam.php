@@ -107,6 +107,7 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $newId = (int)$pdo->lastInsertId();
+    setExamAiCopyGuard($pdo, $newId, examAiCopyGuardEnabled($pdo, $examId));
 
     try {
         $stmt = $pdo->prepare("SELECT question_id FROM exam_questions WHERE exam_id = ?");

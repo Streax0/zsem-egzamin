@@ -7,12 +7,12 @@ require_once '../includes/functions.php';
 startSecureSession();
 securityApplyJsonHeaders();
 
-requireJsonLogin(false, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
+requireJsonLogin(true, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
 requireJsonCsrfToken();
 
 $action = securityInputEnum($_POST['action'] ?? '', ['submit_answer', 'report_violation'], '');
-$userId = (int)$_SESSION['user_id'];
+$userId = isGuestMode() ? 0 : (int)$_SESSION['user_id'];
 $sessionId = securityInputInt($_POST['session_id'] ?? 0, 0, PHP_INT_MAX, 0);
 
 if (!$sessionId) {
@@ -39,8 +39,10 @@ if (empty($rateLimit['allowed'])) {
 }
 
 // Get participant
-$stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
-$stmt->execute([$sessionId, $userId]);
+$stmt = isGuestMode()
+    ? $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1")
+    : $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
+$stmt->execute(isGuestMode() ? [$sessionId, guestExamParticipantId($sessionId)] : [$sessionId, $userId]);
 $participant = $stmt->fetch();
 
 if (!$participant) {
@@ -49,7 +51,7 @@ if (!$participant) {
 }
 
 $stmt = $pdo->prepare("
-    SELECT es.status, e.allow_answer_changes
+    SELECT es.status, es.exam_id, e.allow_answer_changes, e.teacher_id, e.title AS exam_title
     FROM exam_sessions es
     JOIN exams e ON e.id = es.exam_id
     WHERE es.id = ?
@@ -149,7 +151,7 @@ switch ($action) {
             exit;
         }
 
-        $allowedViolationTypes = ['tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'other'];
+        $allowedViolationTypes = ['tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'screenshot_attempt', 'other'];
         $type = securityInputEnum($_POST['violation_type'] ?? 'other', $allowedViolationTypes, 'other');
         $qId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
         
@@ -158,6 +160,11 @@ switch ($action) {
         
         $pdo->prepare("UPDATE exam_participants SET violation_count = violation_count + 1 WHERE id = ?")
             ->execute([$participant['id']]);
+
+        if (in_array($type, ['copy_paste', 'screenshot_attempt'], true)
+            && examAiCopyGuardEnabled($pdo, (int)($sessionInfo['exam_id'] ?? 0))) {
+            notifyTeacherAboutExamAiGuard($pdo, $sessionInfo, $participant, $type);
+        }
             
         echo securityJsonEncode(['success' => true]);
         break;

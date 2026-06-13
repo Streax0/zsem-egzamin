@@ -275,5 +275,6 @@ $flashMsg = getSessionMessage();
     })();
     </script>
     <?php endif; ?>
+    <?php include '../includes/help_center.php'; ?>
 </body>
 </html>

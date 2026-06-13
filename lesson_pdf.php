@@ -96,6 +96,22 @@ if (file_exists($pdfFile) && is_file($pdfFile)) {
     }
 }
 
+// Never serve a path outside the dedicated PDF directory, including symlinks
+// or legacy database values containing traversal segments.
+$pdfRoot = realpath($pdfDir);
+$resolvedPdfFile = realpath($pdfFile);
+$pdfPrefix = $pdfRoot !== false ? rtrim($pdfRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : '';
+if (
+    $pdfRoot === false
+    || $resolvedPdfFile === false
+    || strncmp($resolvedPdfFile, $pdfPrefix, strlen($pdfPrefix)) !== 0
+    || !is_file($resolvedPdfFile)
+) {
+    http_response_code(404);
+    exit('Plik PDF nie zostaÅ‚ znaleziony.');
+}
+$pdfFile = $resolvedPdfFile;
+
 // Block download if not allowed
 if ($downloadRequested && !$downloadAllowed) {
     http_response_code(403);

@@ -37,6 +37,7 @@ $currentCategories = $exam['categories'] ? json_decode($exam['categories'], true
 $selectedSpecific = $exam['selected_questions'] ? json_decode($exam['selected_questions'], true) : [];
 $privateSelectedIds = array_values(array_diff(array_map('intval', $selectedSpecific), $publicQuestionIds));
 $gradeThresholds = $exam['grade_thresholds'] ? json_decode($exam['grade_thresholds'], true) : ['6'=>95, '5'=>85, '4'=>70, '3'=>50, '2'=>30];
+$aiCopyGuard = examAiCopyGuardEnabled($pdo, $examId);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -59,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $autoFinish = isset($_POST['auto_finish']) ? 1 : 0;
     $allowRejoin = isset($_POST['allow_rejoin']) ? 1 : 0;
     $antiCheat = isset($_POST['anti_cheat']) ? 1 : 0;
+    $aiCopyGuard = isset($_POST['ai_copy_guard']);
     $blockTabSwitch = isset($_POST['block_tab_switch']) ? 1 : 0;
     $requireFullscreen = isset($_POST['require_fullscreen']) ? 1 : 0;
     $lobbyEnabled = isset($_POST['lobby_enabled']) ? 1 : 0;
@@ -119,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $resultsAvailableAt, $printIncludeAnswerKey, $newGradeThresholds, $examId, $userId
         ]);
         
+        setExamAiCopyGuard($pdo, $examId, $aiCopyGuard);
         setSessionMessage('success', "Zmiany w sprawdzianie \"$title\" zostały zapisane.");
         redirect('index.php');
     } catch (PDOException $e) {
@@ -264,6 +267,30 @@ $flashMsg = getSessionMessage();
                             </div>
 
                             <div class="col-lg-4">
+                                <div class="dashboard-panel mb-4 animate-in" style="animation-delay:0.12s">
+                                    <div class="config-section">
+                                        <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock me-2 text-danger"></i>Zabezpieczenia</h5>
+                                        <div class="d-flex flex-column gap-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="anti_cheat" id="antiCheat" <?= !empty($exam['anti_cheat_enabled']) ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="antiCheat">Włącz zabezpieczenia anty-oszustw</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="block_tab_switch" id="blockTab" <?= !empty($exam['block_tab_switch']) ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="blockTab">Blokada zmiany zakładki</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="require_fullscreen" id="reqFs" <?= !empty($exam['require_fullscreen']) ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="reqFs">Wymagaj pełnego ekranu</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="ai_copy_guard" id="aiCopyGuard" <?= $aiCopyGuard ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="aiCopyGuard">Blokuj kopiowanie pytań do AI</label>
+                                                <div class="form-text">Blokuje kopiowanie, podmienia schowek na komunikat dla AI i zgłasza próbę kopiowania lub wykryty klawisz PrintScreen. Zrzutów z telefonu lub systemu nie da się wykryć niezawodnie.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="dashboard-panel mb-4 animate-in" style="animation-delay:0.15s">
                                     <div class="config-section">
                                         <h5 class="fw-bold mb-3"><i class="bi bi-sliders me-2"></i>Opcje testu</h5>

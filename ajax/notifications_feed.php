@@ -11,11 +11,8 @@ requireJsonLogin(false, [], ['success' => false, 'error' => 'Unauthorized'], ['s
 
 $userId = (int)$_SESSION['user_id'];
 $baseUrl = securityInputString($_GET['base'] ?? '', 120);
-if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $baseUrl) || str_contains($baseUrl, "\0")) {
+if (!in_array($baseUrl, ['', '../'], true)) {
     $baseUrl = '';
-}
-if ($baseUrl !== '' && !str_ends_with($baseUrl, '/')) {
-    $baseUrl .= '/';
 }
 
 $limit = securityInputInt($_GET['limit'] ?? 5, 1, 10, 5);

@@ -211,7 +211,7 @@ $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?")->execute
                                         case 'app_status': $icon = 'bi-broadcast'; $tone = 'info'; $group = 'system'; $label = 'Status'; break;
                                     }
                                     $appStatusPayload = resolveAppStatusNotification($pdo, $notif);
-                                    $actionUrl = !empty($notif['action_url']) ? normalizeNotificationActionUrl($notif['action_url']) : null;
+                                    $actionUrl = !empty($notif['action_url']) ? notificationActionHref($notif['action_url']) : null;
                                     ?>
                                     <div class="notification-card" data-group="<?php echo htmlspecialchars($group); ?>">
                                         <div class="notification-icon text-<?php echo $tone; ?>">

@@ -214,6 +214,7 @@ if ($session['total_time']) {
 
 $violationCount = $participant['violation_count'];
 $antiCheat = $session['anti_cheat_enabled'];
+$aiCopyGuard = examAiCopyGuardEnabled($pdo, (int)$session['exam_id']);
 $blockTab = $session['block_tab_switch'];
 $requireFs = $session['require_fullscreen'];
 $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session['time_per_question']) : null;
@@ -244,6 +245,14 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
             padding: 1.25rem;
             border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.03);
+        }
+        .ai-copy-guard {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .ai-copy-guard img {
+            -webkit-user-drag: none;
+            user-drag: none;
         }
 
         /* Answer option contrast improvements */
@@ -367,7 +376,7 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
 
         <?php elseif ($currentQuestion): ?>
         <!-- Question -->
-        <div class="dashboard-panel mb-4">
+        <div class="dashboard-panel mb-4<?= $aiCopyGuard ? ' ai-copy-guard' : '' ?>">
             <?php $examQuestionImage = questionImageSrc($currentQuestion['image_url'] ?? '', '../'); ?>
             <?php if ($examQuestionImage): ?>
                 <img src="<?= htmlspecialchars($examQuestionImage) ?>" class="img-fluid rounded mb-3" alt="Ilustracja do pytania: <?= htmlspecialchars(mb_substr($currentQuestion['question_text'] ?? 'pytanie egzaminacyjne', 0, 90)) ?>" loading="lazy" decoding="async" referrerpolicy="no-referrer">
@@ -485,15 +494,59 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
     }, 1000);
     <?php endif; ?>
 
+    <?php if ($aiCopyGuard): ?>
+    const aiCopyGuardPrompt = <?= json_encode(examAiCopyGuardPrompt(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    const reportAiGuardViolation = (type) => {
+        ExamEngine.reportViolation(type, <?= $sessionId ?>, <?= $participant['id'] ?>, <?= $currentQuestion['id'] ?? 0 ?>);
+    };
+
+    document.addEventListener('copy', (event) => {
+        event.preventDefault();
+        event.clipboardData?.setData('text/plain', aiCopyGuardPrompt);
+        reportAiGuardViolation('copy_paste');
+    });
+    document.addEventListener('cut', (event) => {
+        event.preventDefault();
+        event.clipboardData?.setData('text/plain', aiCopyGuardPrompt);
+        reportAiGuardViolation('copy_paste');
+    });
+    document.addEventListener('dragstart', (event) => {
+        if (event.target.closest?.('.ai-copy-guard')) {
+            event.preventDefault();
+            reportAiGuardViolation('copy_paste');
+        }
+    });
+    document.addEventListener('contextmenu', (event) => {
+        if (event.target.closest?.('.ai-copy-guard')) {
+            event.preventDefault();
+            reportAiGuardViolation('copy_paste');
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && ['c', 'x'].includes(event.key.toLowerCase())) {
+            event.preventDefault();
+            navigator.clipboard?.writeText(aiCopyGuardPrompt).catch(() => {});
+            reportAiGuardViolation('copy_paste');
+        }
+    });
+    document.addEventListener('keyup', (event) => {
+        if (event.key === 'PrintScreen') {
+            reportAiGuardViolation('screenshot_attempt');
+        }
+    });
+    <?php endif; ?>
+
     <?php if ($antiCheat): ?>
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             ExamEngine.reportViolation('tab_switch', <?= $sessionId ?>, <?= $participant['id'] ?>, <?= $currentQuestion['id'] ?? 0 ?>);
         }
     });
+    <?php if (!$aiCopyGuard): ?>
     document.addEventListener('copy', () => {
         ExamEngine.reportViolation('copy_paste', <?= $sessionId ?>, <?= $participant['id'] ?>, <?= $currentQuestion['id'] ?? 0 ?>);
     });
+    <?php endif; ?>
     document.addEventListener('paste', () => {
         ExamEngine.reportViolation('copy_paste', <?= $sessionId ?>, <?= $participant['id'] ?>, <?= $currentQuestion['id'] ?? 0 ?>);
     });

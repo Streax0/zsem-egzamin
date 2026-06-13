@@ -82,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $autoFinish = isset($_POST['auto_finish']) ? 1 : 0;
     $allowRejoin = isset($_POST['allow_rejoin']) ? 1 : 0;
     $antiCheat = isset($_POST['anti_cheat']) ? 1 : 0;
+    $aiCopyGuard = isset($_POST['ai_copy_guard']);
     $blockTabSwitch = isset($_POST['block_tab_switch']) ? 1 : 0;
     $requireFullscreen = isset($_POST['require_fullscreen']) ? 1 : 0;
     if (!$antiCheat) {
@@ -212,6 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         
         $examId = $pdo->lastInsertId();
+        setExamAiCopyGuard($pdo, (int)$examId, $aiCopyGuard);
         setSessionMessage('success', "Sprawdzian \"$title\" został utworzony! Teraz możesz go zhostować.");
         redirect('host_exam.php?exam=' . $examId);
     } catch (PDOException $e) {
@@ -728,6 +730,11 @@ $flashMsg = getSessionMessage();
                                             <div class="form-check form-switch">
                                                 <input class="form-check-input" type="checkbox" name="anti_cheat" id="antiCheat">
                                                 <label class="form-check-label" for="antiCheat">Włącz zabezpieczenia anty-oszustw</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" name="ai_copy_guard" id="aiCopyGuard">
+                                                <label class="form-check-label" for="aiCopyGuard">Blokuj kopiowanie pytań do AI</label>
+                                                <div class="form-text">Blokuje kopiowanie, podmienia schowek na komunikat dla AI i zgłasza nauczycielowi próbę kopiowania lub wykryty klawisz PrintScreen. Zrzutów wykonanych przez telefon lub system nie da się wykryć niezawodnie.</div>
                                             </div>
                                             <div id="antiCheatOptions" style="display:none;" class="ps-3 border-start">
                                                 <div class="form-check form-switch mb-2">

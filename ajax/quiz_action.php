@@ -190,7 +190,7 @@ switch ($action) {
                 // Persist single-question result to history for 'single' mode
                 if (!$isGuest && isset($test['mode']) && $test['mode'] === 'single') {
                     $historyId = saveSingleQuestionResult($pdo, $_SESSION['user_id'], $q, $userAnswer, $isCorrect);
-                    $test['last_result']['history_id'] = $historyId;
+                    recordSingleQuestionResultId($test, $historyId);
                 }
 
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
@@ -256,6 +256,23 @@ switch ($action) {
         break;
 
     case 'next_question':
+        if (!testCanAdvanceFromReview($test)) {
+            echo securityJsonEncode(array_merge([
+                'success' => false,
+                'error' => 'Najpierw odpowiedz na bieżące pytanie.',
+            ], testProgressPayload($test)));
+            break;
+        }
+        if (($test['mode'] ?? '') === 'single' && !$isGuest) {
+            $singleResultId = ensureSingleQuestionResultSaved($pdo, $test, $ajaxUserId);
+            if ($singleResultId <= 0) {
+                echo securityJsonEncode(array_merge([
+                    'success' => false,
+                    'error' => 'Nie udało się zapisać wyniku. Spróbuj ponownie.',
+                ], testProgressPayload($test)));
+                break;
+            }
+        }
         $test['current']++;
         $test['phase'] = 'answering';
         $test['last_result'] = null;
@@ -301,6 +318,21 @@ switch ($action) {
         break;
 
     case 'finish_early':
+        if (($test['mode'] ?? '') === 'single' && !$isGuest) {
+            if (testHasReviewedCurrentAnswer($test)) {
+                $resultId = ensureSingleQuestionResultSaved($pdo, $test, $ajaxUserId);
+                if ($resultId <= 0) {
+                    echo securityJsonEncode(['success' => false, 'error' => 'Nie udało się zapisać wyniku. Spróbuj ponownie.']);
+                    break;
+                }
+            } else {
+                $resultId = 0;
+            }
+            cancelActiveTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null);
+            $redirect = $resultId > 0 ? "result.php?id=$resultId" : 'test.php?mode=single&setup=1';
+            echo securityJsonEncode(['success' => true, 'redirect' => $redirect]);
+            break;
+        }
         if ($isGuest) {
             $resultId = finishGuestTest($test);
             echo securityJsonEncode(['success' => true, 'redirect' => "result.php?guest=" . rawurlencode($resultId)]);

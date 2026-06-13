@@ -24,35 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($friendId > 0 && $friendId != $myId) {
-        // Check roles and target privacy settings.
-        $stmt = $pdo->prepare("SELECT id, role, allow_friend_requests FROM users WHERE id IN (?, ?)");
-        $stmt->execute([$myId, $friendId]);
-        $usersData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        $senderRole = $_SESSION['role'] ?? 'user';
-        $targetRole = 'user';
-        $targetAllowsRequests = true;
-
-        foreach ($usersData as $u) {
-            if ($u['id'] === $myId) {
-                $senderRole = $u['role'] ?? 'user';
-            }
-            if ($u['id'] === $friendId) {
-                $targetRole = $u['role'] ?? 'user';
-                $targetAllowsRequests = isset($u['allow_friend_requests']) ? $u['allow_friend_requests'] == 1 : true;
-            }
-        }
-
-        if (!canSendMoreFriendRequests($pdo, (int)$myId)) {
+        $failureReason = null;
+        if (sendFriendRequest($pdo, $myId, $friendId, $failureReason)) {
+            setSessionMessage('success', 'Zaproszenie zostało wysłane.');
+        } elseif ($failureReason === 'friend_request_limit') {
             setSessionMessage('error', 'Masz już 4 oczekujące wysłane zaproszenia. Anuluj jedno albo poczekaj na akceptację.');
-        } elseif (!canSendFriendRequest($senderRole, $targetRole, $targetAllowsRequests)) {
+        } elseif ($failureReason === 'friend_request_privacy') {
             setSessionMessage('error', 'Nie możesz wysłać zaproszenia do tego konta.');
         } else {
-            if (sendFriendRequest($pdo, $myId, $friendId)) {
-                setSessionMessage('success', 'Zaproszenie zostało wysłane.');
-            } else {
-                setSessionMessage('error', 'Nie udało się wysłać zaproszenia lub już istnieje relacja.');
-            }
+            setSessionMessage('error', 'Nie udało się wysłać zaproszenia lub już istnieje relacja.');
         }
     }
 }

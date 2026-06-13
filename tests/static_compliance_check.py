@@ -767,6 +767,9 @@ def test_observatory_header_hardening() -> None:
     )
     assert_contains(
         ".htaccess",
+        "Header setifempty Content-Security-Policy \"default-src 'none'",
+        "script-src 'self' 'unsafe-inline' blob: https://cdn.jsdelivr.net",
+        "object-src 'none'; frame-ancestors 'self'; base-uri 'none'; form-action 'self'",
         "Header always set X-Frame-Options \"SAMEORIGIN\"",
         "Header always set X-DNS-Prefetch-Control \"off\"",
         "Header always set Origin-Agent-Cluster \"?1\"",
@@ -774,6 +777,7 @@ def test_observatory_header_hardening() -> None:
         "browsing-topics=()",
         "max-age=63072000; includeSubDomains; preload",
     )
+    assert 'header("Content-Security-Policy: " . appContentSecurityPolicy($cspNonce));' in read("includes/session.php")
 
 
 def test_sidebar_topbar_animation_polish() -> None:
@@ -1516,10 +1520,20 @@ def test_theme_colors_follow_app_preference_only() -> None:
 
 def test_admin_search_uses_unique_pdo_placeholders() -> None:
     admin = read("admin.php")
+    functions = read("includes/functions.php")
     search_block = admin.split("if ($search !== '') {", 1)[1].split("} else {", 1)[0]
-    assert "LIKE :q OR" not in search_block
+    helper = functions.split("function searchAdminUsers", 1)[1].split("function getUsers", 1)[0]
+
+    assert "searchAdminUsers($pdo, $search, $limit, $offset)" in search_block
+    assert "$adminSearchFailed = !empty($searchResult['error']);" in search_block
+    assert "prepare(" not in search_block
+    assert "LIKE :q OR" not in helper
     for placeholder in [":q_username", ":q_email", ":q_first_name", ":q_last_name", ":q_class"]:
-        assert placeholder in search_block
+        assert placeholder in helper
+    assert "$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);" in helper
+    assert "$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);" in helper
+    assert "'error' => true" in helper
+    assert "Nie udało się wykonać wyszukiwania użytkowników" in admin
 
 
 def test_single_question_mode_has_category_setup_without_time_or_answer_check() -> None:
@@ -1540,6 +1554,21 @@ def test_single_question_mode_has_category_setup_without_time_or_answer_check() 
     assert "<?= $mode === 'single' ? 'show' : '' ?>" in test_page
     assert "['exam', 'practice']" in functions
     assert "['exam', 'practice', 'single']" not in functions.split("function testAnswerCheckModeAllowed", 1)[1].split("}", 1)[0]
+    assert "normalizeSingleQuestionTestState($test)" in test_page
+    assert "function normalizeSingleQuestionTestState" in functions
+    assert "function testCanAdvanceFromReview" in functions
+    assert "function singleQuestionCompletedResultId" in functions
+    assert "function singleQuestionCategoryFilter" in functions
+    assert "function ensureSingleQuestionResultSaved" in functions
+    assert "if (!testCanAdvanceFromReview($test))" in test_page
+    assert "ensureSingleQuestionResultSaved($pdo, $test, $userId)" in test_page
+    assert "recordSingleQuestionResultId($test, $singleResultId);" in test_page
+    assert "finishGuestTest($test)" in test_page.split("$nextSingle = prepareNextSingleQuestion", 1)[1].split("exit;", 1)[0]
+    assert "$resultId = $singleResultId;" in test_page.split("$nextSingle = prepareNextSingleQuestion", 1)[1].split("exit;", 1)[0]
+
+    ajax = read("ajax/quiz_action.php")
+    assert "if (!testCanAdvanceFromReview($test))" in ajax
+    assert "ensureSingleQuestionResultSaved($pdo, $test, $ajaxUserId)" in ajax
 
 
 def test_security_request_context_does_not_trust_proxy_headers_by_default() -> None:
@@ -1579,6 +1608,60 @@ def test_security_helpers_runtime_suite() -> None:
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "security helper runtime OK" in result.stdout
+
+
+def test_help_center_runtime_suite() -> None:
+    node = shutil.which("node")
+    if node is None:
+        raise AssertionError("node executable is required for help center runtime checks")
+    result = subprocess.run(
+        [node, str(ROOT / "tests/help_center_runtime.js")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "help center runtime OK" in result.stdout
+
+
+def test_admin_search_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    if php is None:
+        raise AssertionError("php executable is required for admin search runtime checks")
+    result = subprocess.run(
+        [php, str(ROOT / "tests/admin_search_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "admin search runtime OK" in result.stdout
+
+
+def test_single_question_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    if php is None:
+        raise AssertionError("php executable is required for single-question runtime checks")
+    result = subprocess.run(
+        [php, str(ROOT / "tests/single_question_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "single question runtime OK" in result.stdout
 
 
 def test_password_reset_links_use_configured_public_origin() -> None:
@@ -1799,6 +1882,80 @@ def test_password_hashes_upgrade_and_secure_randomness_fails_closed() -> None:
     assert "return random_bytes($length);" in random_bytes_helper
     assert "mt_rand" not in random_bytes_helper
     assert "openssl_random_pseudo_bytes" not in random_bytes_helper
+
+
+def test_notification_and_lesson_pdf_paths_are_confined() -> None:
+    functions = read("includes/functions.php")
+    feed = read("ajax/notifications_feed.php")
+    lesson_pdf = read("lesson_pdf.php")
+
+    action_url = functions.split("function normalizeNotificationActionUrl", 1)[1].split("function ", 1)[0]
+    assert "HTTP_HOST" not in action_url
+    assert "preg_match('#^[a-z][a-z0-9+.-]*:#i', $url)" in action_url
+    assert "securityPublicBaseUrl()" in action_url
+    assert "$configuredBasePath" in action_url
+    assert "rawurldecode($decodedPath)" in action_url
+    assert "str_starts_with($url, '//')" in action_url
+    assert "return null;" in action_url
+    assert "function notificationActionHref" in functions
+    assert "notificationActionHref($notifUrl, $baseUrl)" in functions
+    assert "notificationActionHref($notif['action_url'])" in read("notifications.php")
+
+    assert "in_array($baseUrl, ['', '../'], true)" in feed
+    assert "str_starts_with($baseUrl, '//')" not in feed
+
+    assert "$pdfRoot = realpath($pdfDir)" in lesson_pdf
+    assert "$resolvedPdfFile = realpath($pdfFile)" in lesson_pdf
+    assert "strncmp($resolvedPdfFile, $pdfPrefix, strlen($pdfPrefix)) !== 0" in lesson_pdf
+
+
+def test_global_and_admin_text_contrast_guards() -> None:
+    style = read("assets/css/style.css")
+    admin = read("admin.php")
+
+    for rule in [
+        ".text-primary { color: #1d4ed8 !important; }",
+        ".text-success { color: #047857 !important; }",
+        ".text-danger { color: #b91c1c !important; }",
+        ".text-info { color: #0e7490 !important; }",
+        ".text-warning { color: #92400e !important; }",
+        "body.dark-mode .text-primary { color: #93c5fd !important; }",
+        "body.dark-mode .text-success { color: #6ee7b7 !important; }",
+        "body.dark-mode .text-danger { color: #fca5a5 !important; }",
+        "body.dark-mode .text-info { color: #67e8f9 !important; }",
+        "body.dark-mode .text-warning { color: #fde68a !important; }",
+    ]:
+        assert rule in style
+
+    assert "body.dark-mode .admin-user-email" in admin
+    assert "color: #cbd5e1 !important;" in admin
+    assert "body.dark-mode .admin-icon-btn.btn-outline-success" in admin
+    assert "color: #6ee7b7 !important;" in admin
+    assert 'class="admin-user-email" style="font-size: .8rem; color:' not in admin
+
+
+def test_app_status_fallback_sync_is_session_throttled() -> None:
+    functions = read("includes/functions.php")
+    sync_block = functions.split("function syncAppStatusNotificationsForUser", 1)[1].split("function notifyUsersAboutAppStatus", 1)[0]
+
+    assert "app_status_sync_at" in sync_block
+    assert "session_status() === PHP_SESSION_ACTIVE" in sync_block
+    assert "time() - 300" in sync_block
+    assert "$_SESSION[$syncKey] = time();" in sync_block
+
+
+def test_friend_request_endpoint_uses_single_authoritative_eligibility_path() -> None:
+    action = read("actions/send_friend_request.php")
+    functions = read("includes/functions.php")
+    helper = functions.split("function sendFriendRequest", 1)[1].split("function acceptFriendRequest", 1)[0]
+
+    assert "SELECT id, role, allow_friend_requests" not in action
+    assert "canSendMoreFriendRequests" not in action
+    assert "canSendFriendRequest" not in action
+    assert "sendFriendRequest($pdo, $myId, $friendId, $failureReason)" in action
+    assert "?string &$failureReason = null" in helper
+    assert "friend_request_limit" in helper
+    assert "friend_request_privacy" in helper
 
 
 if __name__ == "__main__":

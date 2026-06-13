@@ -2,6 +2,7 @@
 require dirname(__DIR__) . '/Security/RequestContext.php';
 require dirname(__DIR__) . '/Security/PublicUrl.php';
 require dirname(__DIR__) . '/Security/RateLimiter.php';
+require dirname(__DIR__) . '/includes/functions.php';
 function check($condition, $message) { if (!$condition) { fwrite(STDERR, "FAIL: $message\n"); exit(1); } }
 putenv('APP_TRUST_PROXY_HEADERS'); unset($_ENV['APP_TRUST_PROXY_HEADERS']);
 putenv('APP_TRUSTED_PROXY_IPS'); unset($_ENV['APP_TRUSTED_PROXY_IPS']);
@@ -26,6 +27,20 @@ putenv("APP_BASE_URL=https://evil.test\r\nBcc:x@y.test");
 putenv('CLIENT_URL'); unset($_ENV['CLIENT_URL']);
 check(securityPublicBaseUrl() === 'https://zsem-egzamin.online', 'header injection URL accepted');
 check(securityNormalizePublicBaseUrl('javascript://evil.test') === null, 'unsafe scheme accepted');
+check(normalizeNotificationActionUrl('javascript:alert%281%29') === null, 'javascript notification URL accepted');
+check(normalizeNotificationActionUrl('//evil.test/path') === null, 'protocol-relative notification URL accepted');
+check(normalizeNotificationActionUrl('/duels/lobby.php?id=42') === 'duels/lobby.php?id=42', 'valid local notification URL rejected');
+putenv('APP_BASE_URL=https://example.test/app');
+check(normalizeNotificationActionUrl('https://example.test/app/duels/lobby.php?id=42') === 'duels/lobby.php?id=42', 'configured-origin notification URL rejected');
+check(notificationActionHref('https://example.test/app/duels/lobby.php?id=42', '../') === '../duels/lobby.php?id=42', 'nested notification href duplicated app base path');
+check(notificationActionHref('/app/duels/lobby.php?id=42', '') === 'duels/lobby.php?id=42', 'root-relative notification href duplicated app base path');
+check(notificationActionHref('/app/duels/lobby.php?id=42', '../') === '../duels/lobby.php?id=42', 'nested root-relative notification href duplicated app base path');
+check(notificationActionHref('/duels/lobby.php?id=42', '') === 'duels/lobby.php?id=42', 'root notification href invalid');
+check(normalizeNotificationActionUrl('https://example.test/outside') === null, 'notification URL escaped configured app path');
+check(normalizeNotificationActionUrl('https://evil.test/app/duels/lobby.php') === null, 'cross-origin notification URL accepted');
+check(normalizeNotificationActionUrl('/app/%2e%2e/admin.php') === null, 'encoded notification path traversal accepted');
+check(normalizeNotificationActionUrl('/app/%252e%252e/admin.php') === null, 'double-encoded notification path traversal accepted');
+putenv('APP_BASE_URL'); unset($_ENV['APP_BASE_URL']);
 $rateLimitDir = sys_get_temp_dir() . '/zsemtech-rate-test-' . bin2hex(random_bytes(4));
 putenv('APP_RATE_LIMIT_DIR=' . $rateLimitDir);
 $bucket = 'runtime-test:' . bin2hex(random_bytes(6));

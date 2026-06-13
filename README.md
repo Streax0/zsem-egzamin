@@ -119,8 +119,10 @@ Otwórz przeglądarkę i przejdź pod adres lokalnego serwera, np. `http://local
 ## 🛡️ Bezpieczeństwo
 - Połączenie z bazą przez PDO z `utf8mb4`
 - `.htaccess` blokuje wybrane katalogi i pliki
-- Zalecane zabezpieczenie plików konfiguracyjnych poza publicznym katalogiem
-- Warto używać HTTPS w środowisku produkcyjnym
+- CSP jest wymuszany przez Apache jako kompatybilny fallback, a odpowiedzi PHP wysyłają dodatkowo ciaśniejszą politykę z nonce
+- HSTS ma `max-age=63072000`, `includeSubDomains` i `preload`; przed zgłoszeniem domeny do [hstspreload.org](https://hstspreload.org/) wszystkie subdomeny muszą stale obsługiwać HTTPS
+- Pliki konfiguracyjne powinny pozostawać poza publicznym katalogiem lub być blokowane przez serwer WWW
+- Produkcja musi wymuszać HTTPS również w konfiguracji vhosta/reverse proxy
 
 ## 🛠️ Rozwiązywanie problemów
 

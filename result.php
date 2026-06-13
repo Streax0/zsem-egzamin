@@ -1191,5 +1191,6 @@ $shareCardData = [
     window.resultShareCardData = <?php echo json_encode($shareCardData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
     </script>
     <script src="assets/js/result-share-card.js?v=<?php echo (int)@filemtime(__DIR__ . '/assets/js/result-share-card.js'); ?>"></script>
+    <?php include 'includes/help_center.php'; ?>
 </body>
 </html>
