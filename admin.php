@@ -51,6 +51,8 @@ function ensureBannedEmailsTable(PDO $pdo): bool {
         return true;
     }
 
+    if (!appRuntimeSchemaUpdatesEnabled()) return false;
+
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS banned_emails (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -84,6 +86,8 @@ function ensureBannedIpsTable(PDO $pdo): bool {
         }
         return true;
     }
+
+    if (!appRuntimeSchemaUpdatesEnabled()) return false;
 
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS banned_ips (

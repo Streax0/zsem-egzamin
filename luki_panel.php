@@ -23,20 +23,22 @@ $spinResult = null;
 $flashMsg = getSessionMessage();
 
 try {
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS luki_spins (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            spin_date DATE NOT NULL,
-            archetype VARCHAR(40) NOT NULL,
-            label VARCHAR(120) NOT NULL,
-            xp_delta INT NOT NULL DEFAULT 0,
-            note VARCHAR(255) DEFAULT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_user_date (user_id, spin_date),
-            INDEX idx_created (created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    ");
+    if (appRuntimeSchemaUpdatesEnabled()) {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS luki_spins (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                spin_date DATE NOT NULL,
+                archetype VARCHAR(40) NOT NULL,
+                label VARCHAR(120) NOT NULL,
+                xp_delta INT NOT NULL DEFAULT 0,
+                note VARCHAR(255) DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_user_date (user_id, spin_date),
+                INDEX idx_created (created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+    }
 } catch (PDOException $e) {
     error_log('Luki table create failed: ' . $e->getMessage());
 }

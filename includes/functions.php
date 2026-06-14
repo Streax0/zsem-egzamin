@@ -203,61 +203,102 @@ function &dbRequestRuntimeCache(): array {
     return $cache;
 }
 
-function dbTableExists(PDO $pdo, string $table): bool {
+function dbSchemaNameMap(array $names): array {
+    $map = [];
+    foreach ($names as $name) {
+        $name = (string)$name;
+        if ($name !== '') $map[$name] = true;
+    }
+    return $map;
+}
+
+function dbSchemaTables(PDO $pdo): ?array {
     $cache =& dbRequestRuntimeCache();
-    $cacheKey = 'table:' . spl_object_id($pdo) . ':' . $table;
-    if (($cache[$cacheKey] ?? false) === true) {
-        return true;
-    }
+    $cacheKey = 'schema_tables:' . spl_object_id($pdo);
+    if (array_key_exists($cacheKey, $cache)) return $cache[$cacheKey];
+
     try {
-        $stmt = $pdo->prepare('SHOW TABLES LIKE ?');
-        $stmt->execute([$table]);
-        $exists = (bool)$stmt->fetchColumn();
-        if ($exists) $cache[$cacheKey] = true;
-        return $exists;
-    } catch (PDOException $e) {
-        return false;
+        $stmt = $pdo->query('SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE()');
+        if ($stmt === false) return null;
+        return $cache[$cacheKey] = dbSchemaNameMap($stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Throwable $e) {
+        return null;
     }
+}
+
+function dbSchemaColumns(PDO $pdo, string $table): ?array {
+    dbIdentifier($table);
+    $cache =& dbRequestRuntimeCache();
+    $cacheKey = 'schema_columns:' . spl_object_id($pdo) . ':' . $table;
+    if (array_key_exists($cacheKey, $cache)) return $cache[$cacheKey];
+
+    try {
+        $stmt = $pdo->prepare('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+        $stmt->execute([$table]);
+        return $cache[$cacheKey] = dbSchemaNameMap($stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+function dbSchemaIndexes(PDO $pdo, string $table): ?array {
+    dbIdentifier($table);
+    $cache =& dbRequestRuntimeCache();
+    $cacheKey = 'schema_indexes:' . spl_object_id($pdo) . ':' . $table;
+    if (array_key_exists($cacheKey, $cache)) return $cache[$cacheKey];
+
+    try {
+        $stmt = $pdo->prepare('SELECT DISTINCT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+        $stmt->execute([$table]);
+        return $cache[$cacheKey] = dbSchemaNameMap($stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+function dbRememberSchemaObject(PDO $pdo, string $type, string $table, string $name): void {
+    $cache =& dbRequestRuntimeCache();
+    $cacheKey = 'schema_' . $type . ':' . spl_object_id($pdo) . ':' . $table;
+    if (isset($cache[$cacheKey]) && is_array($cache[$cacheKey])) {
+        $cache[$cacheKey][$name] = true;
+    }
+}
+
+function dbTableExists(PDO $pdo, string $table): bool {
+    dbIdentifier($table);
+    $tables = dbSchemaTables($pdo);
+    if ($tables === null) return false;
+    $exists = isset($tables[$table]);
+    if (!$exists && dbRuntimeSchemaUpdatesEnabled()) {
+        $cache =& dbRequestRuntimeCache();
+        unset($cache['schema_tables:' . spl_object_id($pdo)]);
+    }
+    return $exists;
 }
 
 function dbColumnExists(PDO $pdo, string $table, string $column): bool {
-    $cache =& dbRequestRuntimeCache();
-    $cacheKey = 'column:' . spl_object_id($pdo) . ':' . $table . ':' . $column;
-    if (($cache[$cacheKey] ?? false) === true) {
-        return true;
-    }
-    try {
-        $stmt = $pdo->prepare('SHOW COLUMNS FROM ' . dbIdentifier($table) . ' LIKE ?');
-        $stmt->execute([$column]);
-        $exists = (bool)$stmt->fetch();
-        if ($exists) $cache[$cacheKey] = true;
-        return $exists;
-    } catch (Throwable $e) {
-        return false;
-    }
+    dbIdentifier($column);
+    $columns = dbSchemaColumns($pdo, $table);
+    return $columns !== null && isset($columns[$column]);
 }
 
 function dbIndexExists(PDO $pdo, string $table, string $index): bool {
-    $cache =& dbRequestRuntimeCache();
-    $cacheKey = 'index:' . spl_object_id($pdo) . ':' . $table . ':' . $index;
-    if (($cache[$cacheKey] ?? false) === true) {
-        return true;
-    }
-    try {
-        $stmt = $pdo->prepare('SHOW INDEX FROM ' . dbIdentifier($table) . ' WHERE Key_name = ?');
-        $stmt->execute([$index]);
-        $exists = (bool)$stmt->fetch();
-        if ($exists) $cache[$cacheKey] = true;
-        return $exists;
-    } catch (Throwable $e) {
-        return false;
-    }
+    dbIdentifier($index);
+    $indexes = dbSchemaIndexes($pdo, $table);
+    return $indexes !== null && isset($indexes[$index]);
+}
+
+function dbRuntimeSchemaUpdatesEnabled(): bool {
+    return function_exists('appRuntimeSchemaUpdatesEnabled') && appRuntimeSchemaUpdatesEnabled();
 }
 
 function dbAddColumnIfMissing(PDO $pdo, string $table, string $column, string $definition): void {
+    if (!dbRuntimeSchemaUpdatesEnabled()) return;
+
     try {
         if (!dbColumnExists($pdo, $table, $column)) {
             $pdo->exec('ALTER TABLE ' . dbIdentifier($table) . ' ADD COLUMN ' . dbIdentifier($column) . ' ' . $definition);
+            dbRememberSchemaObject($pdo, 'columns', $table, $column);
         }
     } catch (Throwable $e) {
         error_log("Failed to add column {$column} to table {$table}: " . $e->getMessage());
@@ -265,9 +306,12 @@ function dbAddColumnIfMissing(PDO $pdo, string $table, string $column, string $d
 }
 
 function dbAddIndexIfMissing(PDO $pdo, string $table, string $index, string $definition): void {
+    if (!dbRuntimeSchemaUpdatesEnabled()) return;
+
     try {
         if (!dbIndexExists($pdo, $table, $index)) {
             $pdo->exec('ALTER TABLE ' . dbIdentifier($table) . ' ADD INDEX ' . dbIdentifier($index) . ' ' . $definition);
+            dbRememberSchemaObject($pdo, 'indexes', $table, $index);
         }
     } catch (Throwable $e) {
         error_log("Failed to add index {$index} to table {$table}: " . $e->getMessage());
@@ -369,6 +413,10 @@ function seedRankingEventTemplates(PDO $pdo): void {
 function ensurePlatformEnhancements(PDO $pdo): void {
     static $done = false;
     if ($done) return;
+    if (!dbRuntimeSchemaUpdatesEnabled()) {
+        $done = true;
+        return;
+    }
 
     // 1. Users table
     try {
@@ -2760,6 +2808,13 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
 
     try {
         ensureDuelModeColumns($pdo);
+        $duelHistoryCanHide = dbColumnExists($pdo, 'duels', 'challenger_hidden_at')
+            && dbColumnExists($pdo, 'duels', 'opponent_hidden_at');
+        $visibilityFilter = $duelHistoryCanHide ? "
+              AND (
+                  (d.challenger_id = ? AND d.challenger_hidden_at IS NULL)
+                  OR (d.opponent_id = ? AND d.opponent_hidden_at IS NULL)
+              )" : '';
         $stmt = $pdo->prepare("
             SELECT d.*, challenger.username AS challenger_name, opponent.username AS opponent_name
             FROM duels d
@@ -2767,22 +2822,22 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
             JOIN users opponent ON opponent.id = d.opponent_id
             WHERE (d.challenger_id = ? OR d.opponent_id = ?)
               AND (d.challenger_finished_at IS NOT NULL OR d.opponent_finished_at IS NOT NULL OR d.status = 'finished')
-              AND (
-                  (d.challenger_id = ? AND d.challenger_hidden_at IS NULL)
-                  OR (d.opponent_id = ? AND d.opponent_hidden_at IS NULL)
-              )
+              {$visibilityFilter}
             ORDER BY COALESCE(
                 CASE WHEN d.challenger_id = ? THEN d.challenger_finished_at ELSE d.opponent_finished_at END,
                 d.created_at
             ) DESC
             LIMIT ?
         ");
-        $stmt->bindValue(1, $userId, PDO::PARAM_INT);
-        $stmt->bindValue(2, $userId, PDO::PARAM_INT);
-        $stmt->bindValue(3, $userId, PDO::PARAM_INT);
-        $stmt->bindValue(4, $userId, PDO::PARAM_INT);
-        $stmt->bindValue(5, $userId, PDO::PARAM_INT);
-        $stmt->bindValue(6, max(1, min(200, $limit)), PDO::PARAM_INT);
+        $position = 1;
+        $stmt->bindValue($position++, $userId, PDO::PARAM_INT);
+        $stmt->bindValue($position++, $userId, PDO::PARAM_INT);
+        if ($duelHistoryCanHide) {
+            $stmt->bindValue($position++, $userId, PDO::PARAM_INT);
+            $stmt->bindValue($position++, $userId, PDO::PARAM_INT);
+        }
+        $stmt->bindValue($position++, $userId, PDO::PARAM_INT);
+        $stmt->bindValue($position, max(1, min(200, $limit)), PDO::PARAM_INT);
         $stmt->execute();
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $duel) {
             $isChallenger = (int)$duel['challenger_id'] === $userId;
@@ -2799,6 +2854,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
                 'total_questions' => (int)$duel['question_count'],
                 'time_spent' => (int)($isChallenger ? $duel['challenger_time_spent'] : $duel['opponent_time_spent']),
                 'url' => 'duels/results.php?id=' . (int)$duel['id'],
+                'can_hide' => $duelHistoryCanHide,
             ];
         }
     } catch (PDOException $e) {
@@ -3802,6 +3858,10 @@ function ensureUserActiveTestsTable(PDO $pdo): void {
     if ($ensured) {
         return;
     }
+    if (!dbRuntimeSchemaUpdatesEnabled()) {
+        $ensured = true;
+        return;
+    }
     $pdo->exec("CREATE TABLE IF NOT EXISTS user_active_tests (
         user_id INT NOT NULL PRIMARY KEY,
         payload LONGTEXT NOT NULL,
@@ -4399,12 +4459,14 @@ function finishTest($pdo, $userId, $test) {
     if ($excludeFromRanking && !$skipUnrankedQuota) {
         try {
             $today = date('Y-m-d');
-            $pdo->exec("CREATE TABLE IF NOT EXISTS unranked_usage (
-                user_id INT NOT NULL,
-                used_date DATE NOT NULL,
-                usage_count INT NOT NULL DEFAULT 0,
-                PRIMARY KEY (user_id, used_date)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            if (dbRuntimeSchemaUpdatesEnabled()) {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS unranked_usage (
+                    user_id INT NOT NULL,
+                    used_date DATE NOT NULL,
+                    usage_count INT NOT NULL DEFAULT 0,
+                    PRIMARY KEY (user_id, used_date)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            }
             $stmt = $pdo->prepare("SELECT usage_count FROM unranked_usage WHERE user_id = ? AND used_date = ? FOR UPDATE");
             if (!$pdo->inTransaction()) {
                 $pdo->beginTransaction();
@@ -4436,19 +4498,26 @@ function finishTest($pdo, $userId, $test) {
     } catch (PDOException $e) {
         // Fallback if exclude_from_ranking column doesn't exist
         if ($e->getCode() == '42S22') {
-            try {
-                $pdo->exec("ALTER TABLE test_results ADD COLUMN exclude_from_ranking TINYINT(1) DEFAULT 0 AFTER mode");
-                $stmt = $pdo->prepare(
-                    "INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode, start_time, exclude_from_ranking)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-                );
-                $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $testMode, $startTime, $excludeFromRanking]);
-            } catch (PDOException $e2) {
+            $insertWithoutRankingFlag = static function () use ($pdo, $userId, $totalQ, $correctCount, $scorePct, $timeSpent, $testMode): void {
                 $stmt = $pdo->prepare(
                     "INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode)
                      VALUES (?, ?, ?, ?, ?, ?)"
                 );
                 $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $testMode]);
+            };
+            if (!dbRuntimeSchemaUpdatesEnabled()) {
+                $insertWithoutRankingFlag();
+            } else {
+                try {
+                    $pdo->exec("ALTER TABLE test_results ADD COLUMN exclude_from_ranking TINYINT(1) DEFAULT 0 AFTER mode");
+                    $stmt = $pdo->prepare(
+                        "INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode, start_time, exclude_from_ranking)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                    );
+                    $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $testMode, $startTime, $excludeFromRanking]);
+                } catch (PDOException $e2) {
+                    $insertWithoutRankingFlag();
+                }
             }
         } else {
             throw $e;
@@ -4692,6 +4761,9 @@ function deleteUserTestResult(PDO $pdo, int $userId, int $resultId): bool {
 
 function hideUserDuelFromHistory(PDO $pdo, int $userId, int $duelId): bool {
     if ($userId <= 0 || $duelId <= 0) return false;
+    if (!dbColumnExists($pdo, 'duels', 'challenger_hidden_at') || !dbColumnExists($pdo, 'duels', 'opponent_hidden_at')) {
+        return false;
+    }
     try {
         ensureDuelModeColumns($pdo);
         $stmt = $pdo->prepare("SELECT challenger_id, opponent_id FROM duels WHERE id = ? LIMIT 1");
@@ -4841,33 +4913,29 @@ function getUserOfDay($pdo) {
 function ensureDuelModeColumns($pdo) {
     static $done = false;
     if ($done) return;
+    if (!dbRuntimeSchemaUpdatesEnabled()) {
+        $done = true;
+        return;
+    }
 
     $columns = [
-        'mode' => "ALTER TABLE duels ADD COLUMN mode VARCHAR(30) NOT NULL DEFAULT 'classic' AFTER question_ids",
-        'stake_xp' => "ALTER TABLE duels ADD COLUMN stake_xp INT NOT NULL DEFAULT 0 AFTER mode",
-        'underdog_bonus' => "ALTER TABLE duels ADD COLUMN underdog_bonus DECIMAL(4,2) NOT NULL DEFAULT 1.00 AFTER stake_xp",
-        'revenge_parent_id' => "ALTER TABLE duels ADD COLUMN revenge_parent_id INT DEFAULT NULL AFTER winner_id",
-        'preset' => "ALTER TABLE duels ADD COLUMN preset VARCHAR(40) NOT NULL DEFAULT 'classic' AFTER mode",
-        'time_per_question_seconds' => "ALTER TABLE duels ADD COLUMN time_per_question_seconds INT DEFAULT NULL AFTER underdog_bonus",
-        'total_time_seconds' => "ALTER TABLE duels ADD COLUMN total_time_seconds INT DEFAULT NULL AFTER time_per_question_seconds",
-        'require_answer_confirmation' => "ALTER TABLE duels ADD COLUMN require_answer_confirmation TINYINT(1) NOT NULL DEFAULT 0 AFTER total_time_seconds",
-        'allow_early_finish' => "ALTER TABLE duels ADD COLUMN allow_early_finish TINYINT(1) NOT NULL DEFAULT 1 AFTER require_answer_confirmation",
-        'challenger_started_at' => "ALTER TABLE duels ADD COLUMN challenger_started_at DATETIME DEFAULT NULL AFTER opponent_finished_at",
-        'opponent_started_at' => "ALTER TABLE duels ADD COLUMN opponent_started_at DATETIME DEFAULT NULL AFTER challenger_started_at",
-        'challenger_hidden_at' => "ALTER TABLE duels ADD COLUMN challenger_hidden_at DATETIME DEFAULT NULL AFTER opponent_started_at",
-        'opponent_hidden_at' => "ALTER TABLE duels ADD COLUMN opponent_hidden_at DATETIME DEFAULT NULL AFTER challenger_hidden_at",
+        'mode' => "VARCHAR(30) NOT NULL DEFAULT 'classic' AFTER question_ids",
+        'stake_xp' => "INT NOT NULL DEFAULT 0 AFTER mode",
+        'underdog_bonus' => "DECIMAL(4,2) NOT NULL DEFAULT 1.00 AFTER stake_xp",
+        'revenge_parent_id' => "INT DEFAULT NULL AFTER winner_id",
+        'preset' => "VARCHAR(40) NOT NULL DEFAULT 'classic' AFTER mode",
+        'time_per_question_seconds' => "INT DEFAULT NULL AFTER underdog_bonus",
+        'total_time_seconds' => "INT DEFAULT NULL AFTER time_per_question_seconds",
+        'require_answer_confirmation' => "TINYINT(1) NOT NULL DEFAULT 0 AFTER total_time_seconds",
+        'allow_early_finish' => "TINYINT(1) NOT NULL DEFAULT 1 AFTER require_answer_confirmation",
+        'challenger_started_at' => "DATETIME DEFAULT NULL AFTER opponent_finished_at",
+        'opponent_started_at' => "DATETIME DEFAULT NULL AFTER challenger_started_at",
+        'challenger_hidden_at' => "DATETIME DEFAULT NULL AFTER opponent_started_at",
+        'opponent_hidden_at' => "DATETIME DEFAULT NULL AFTER challenger_hidden_at",
     ];
 
-    foreach ($columns as $column => $sql) {
-        try {
-            $stmt = $pdo->prepare("SHOW COLUMNS FROM duels LIKE ?");
-            $stmt->execute([$column]);
-            if (!$stmt->fetch()) {
-                $pdo->exec($sql);
-            }
-        } catch (PDOException $e) {
-            error_log("Duel schema extension failed for {$column}: " . $e->getMessage());
-        }
+    foreach ($columns as $column => $definition) {
+        dbAddColumnIfMissing($pdo, 'duels', $column, $definition);
     }
 
     $done = true;
@@ -5070,6 +5138,7 @@ function getPendingDuelChallengeForUser(PDO $pdo, int $userId, int $duelId): ?ar
 function ensureDuelParticipantStarted(PDO $pdo, int $duelId, bool $isChallenger): int {
     ensureDuelModeColumns($pdo);
     $column = $isChallenger ? 'challenger_started_at' : 'opponent_started_at';
+    if (!dbColumnExists($pdo, 'duels', $column)) return time();
     try {
         $stmt = $pdo->prepare("SELECT {$column} FROM duels WHERE id = ? LIMIT 1");
         $stmt->execute([$duelId]);
@@ -5332,6 +5401,8 @@ function hydrateTeacherDecisionNotificationMessage(PDO $pdo, string $message): s
  * Ensure the admin_requests table exists
  */
 function ensureAdminRequestsTableExists($pdo) {
+    if (!dbRuntimeSchemaUpdatesEnabled()) return;
+
     try {
         ensurePlatformEnhancements($pdo);
         $sql = "CREATE TABLE IF NOT EXISTS admin_requests (
@@ -6531,10 +6602,7 @@ function deleteQuestion($pdo, $id) {
     }
 }
 
-// Auto-update lightweight schema additions and activity if user is logged in
-if (isset($pdo) && $pdo instanceof PDO) {
-    ensurePlatformEnhancements($pdo);
-}
+// Normal requests update activity only; schema changes belong to installation/migration CLI.
 if (isset($_SESSION['user_id']) && isset($pdo) && $pdo instanceof PDO) {
     updateUserActivity($pdo, $_SESSION['user_id']);
 }

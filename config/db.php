@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 // Database configuration: server environment wins over the optional local .env file.
 function loadLocalEnvFile(string $path): void {
-    if (!is_readable($path)) return;
+    if (!is_file($path) || is_link($path) || !is_readable($path)) return;
 
     $size = @filesize($path);
     if (is_int($size) && $size > 1024 * 1024) {
@@ -52,9 +52,23 @@ loadLocalEnvFile(__DIR__ . '/../.env');
 
 function configValue(string $key, string $default = ''): string {
     $value = getenv($key);
-    if ($value !== false && $value !== '') return (string)$value;
-    if (isset($_ENV[$key]) && $_ENV[$key] !== '') return (string)$_ENV[$key];
+    if ($value !== false) return (string)$value;
+    if (array_key_exists($key, $_ENV)) return (string)$_ENV[$key];
     return $default;
+}
+
+function appConfigBool(string $key, bool $default = false): bool {
+    $value = configValue($key);
+    if ($value === '') return $default;
+
+    $parsed = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    return $parsed ?? $default;
+}
+
+function appRuntimeSchemaUpdatesEnabled(): bool {
+    return defined('APP_RUNTIME_SCHEMA_UPDATES')
+        && APP_RUNTIME_SCHEMA_UPDATES === true
+        && PHP_SAPI === 'cli';
 }
 
 function appDbConfigInt(string $key, int $default, int $min, int $max, ?string $fallbackKey = null): int {
@@ -86,10 +100,15 @@ function appDbBuildDsn(array $config): string {
 function appDbReadableTlsFile(string $path, string $label): string {
     $path = trim($path);
     if ($path === '') return '';
-    if (!is_file($path) || !is_readable($path)) {
+    $isAbsolute = str_starts_with($path, '/')
+        || str_starts_with($path, '\\')
+        || preg_match('/^[A-Za-z]:[\\\\\/]/', $path) === 1;
+    $candidate = $isAbsolute ? $path : dirname(__DIR__) . DIRECTORY_SEPARATOR . $path;
+    $resolved = realpath($candidate);
+    if ($resolved === false || !is_file($resolved) || !is_readable($resolved)) {
         throw new RuntimeException('Configured database TLS ' . $label . ' file is not readable.');
     }
-    return $path;
+    return $resolved;
 }
 
 function appDbPdoOptions(array $config): array {
@@ -101,6 +120,7 @@ function appDbPdoOptions(array $config): array {
         PDO::ATTR_PERSISTENT => false,
         PDO::ATTR_TIMEOUT => max(1, min(30, (int)($config['connect_timeout'] ?? 5))),
         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
+        PDO::MYSQL_ATTR_LOCAL_INFILE => false,
         PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci',
     ];
 
@@ -108,15 +128,21 @@ function appDbPdoOptions(array $config): array {
         $options[constant('PDO::MYSQL_ATTR_MULTI_STATEMENTS')] = false;
     }
 
+    $configuredSslCert = trim((string)($config['ssl_cert'] ?? ''));
+    $configuredSslKey = trim((string)($config['ssl_key'] ?? ''));
     $sslCa = appDbReadableTlsFile((string)($config['ssl_ca'] ?? ''), 'CA');
+    if ($sslCa === '' && ($configuredSslCert !== '' || $configuredSslKey !== '')) {
+        throw new RuntimeException('Database TLS CA is required when a client certificate or key is configured.');
+    }
     if ($sslCa !== '') {
         $options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
-        if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
-            $options[constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')] = true;
+        if (!defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
+            throw new RuntimeException('PDO MySQL cannot verify the database server certificate.');
         }
+        $options[constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')] = true;
 
-        $sslCert = appDbReadableTlsFile((string)($config['ssl_cert'] ?? ''), 'certificate');
-        $sslKey = appDbReadableTlsFile((string)($config['ssl_key'] ?? ''), 'key');
+        $sslCert = appDbReadableTlsFile($configuredSslCert, 'certificate');
+        $sslKey = appDbReadableTlsFile($configuredSslKey, 'key');
         if (($sslCert === '') !== ($sslKey === '')) {
             throw new RuntimeException('Database TLS certificate and key must be configured together.');
         }
@@ -129,6 +155,52 @@ function appDbPdoOptions(array $config): array {
     return $options;
 }
 
+function appDbValidateConnectionConfig(array $config, string $user, string $password, string $appEnv): void {
+    appDbBuildDsn($config);
+    if ($user === '' || preg_match('/[\x00-\x1F\x7F]/', $user)) {
+        throw new RuntimeException('Invalid database user configuration.');
+    }
+
+    $environment = strtolower(trim($appEnv));
+    $isLocalEnvironment = in_array($environment, ['local', 'dev', 'development', 'test', 'testing'], true);
+    $isLocalEndpoint = appDbEndpointIsLocal($config);
+    if ((!$isLocalEnvironment || !$isLocalEndpoint) && $password === '') {
+        throw new RuntimeException('Empty database password is not allowed outside local development.');
+    }
+    if ((!$isLocalEnvironment || !$isLocalEndpoint) && strtolower(trim($user)) === 'root') {
+        throw new RuntimeException('The root database account is not allowed outside local development.');
+    }
+}
+
+function appDbEndpointIsLocal(array $config): bool {
+    if (trim((string)($config['socket'] ?? '')) !== '') return true;
+    $host = strtolower(trim((string)($config['host'] ?? '')));
+    return in_array($host, ['localhost', '127.0.0.1', '::1'], true);
+}
+
+function appDbConfigureSession(PDO $pdo, string $appEnv): void {
+    $environment = strtolower(trim($appEnv));
+    if (in_array($environment, ['local', 'dev', 'development', 'test', 'testing'], true)) return;
+
+    $currentMode = (string)$pdo->query('SELECT @@SESSION.sql_mode')->fetchColumn();
+    $modes = array_values(array_unique(array_filter(array_map('trim', explode(',', $currentMode)))));
+    foreach (['STRICT_TRANS_TABLES', 'ERROR_FOR_DIVISION_BY_ZERO'] as $requiredMode) {
+        if (!in_array($requiredMode, $modes, true)) $modes[] = $requiredMode;
+    }
+    $stmt = $pdo->prepare('SET SESSION sql_mode = ?');
+    $stmt->execute([implode(',', $modes)]);
+}
+
+function appDbPathIsInsidePublicRoot(string $path): bool {
+    $publicRoot = realpath(dirname(__DIR__));
+    $directory = realpath(dirname($path));
+    if ($publicRoot === false || $directory === false) return false;
+
+    $publicPrefix = rtrim(str_replace('\\', '/', $publicRoot), '/') . '/';
+    $directoryPath = rtrim(str_replace('\\', '/', $directory), '/') . '/';
+    return str_starts_with(strtolower($directoryPath), strtolower($publicPrefix));
+}
+
 function appDbWriteFailureLog(Throwable $error): void {
     if (!defined('APP_DEBUG_LOG')) {
         define('APP_DEBUG_LOG', configValue('APP_DEBUG_LOG', dirname(__DIR__) . '/../logs/zsemtech-debug.log'));
@@ -136,15 +208,29 @@ function appDbWriteFailureLog(Throwable $error): void {
 
     $logDir = dirname(APP_DEBUG_LOG);
     if (!is_dir($logDir)) @mkdir($logDir, 0750, true);
+    if (!is_dir($logDir) || is_link(APP_DEBUG_LOG) || appDbPathIsInsidePublicRoot(APP_DEBUG_LOG)) return;
+
     $errorCode = preg_replace('/[^A-Za-z0-9_-]/', '', (string)$error->getCode()) ?: 'unknown';
-    @file_put_contents(
-        APP_DEBUG_LOG,
-        '[' . date('Y-m-d H:i:s') . '] DB connect failed; code=' . $errorCode . PHP_EOL,
-        FILE_APPEND | LOCK_EX
-    );
+    $line = '[' . date('Y-m-d H:i:s') . '] DB connect failed; code=' . $errorCode . PHP_EOL;
+    $handle = @fopen(APP_DEBUG_LOG, 'ab');
+    if ($handle === false) return;
+    @chmod(APP_DEBUG_LOG, 0640);
+
+    try {
+        if (!@flock($handle, LOCK_EX)) return;
+        $stats = @fstat($handle);
+        if (is_array($stats) && (int)($stats['size'] ?? 0) < 1024 * 1024) {
+            @fwrite($handle, $line);
+            @fflush($handle);
+        }
+        @flock($handle, LOCK_UN);
+    } finally {
+        fclose($handle);
+    }
 }
 
 define('APP_ENV', configValue('APP_ENV', 'local'));
+define('APP_RUNTIME_SCHEMA_UPDATES', appConfigBool('APP_RUNTIME_SCHEMA_UPDATES', false));
 $genericDbLooksPostgres = configValue('DB_PORT') === '5432'
     || strtolower(configValue('DB_USER')) === 'postgres'
     || strtolower(configValue('DB_DRIVER')) === 'pgsql';
@@ -168,14 +254,22 @@ $appDbConfig = [
 
 if (!defined('APP_DB_SKIP_CONNECT') || APP_DB_SKIP_CONNECT !== true) {
     try {
+        appDbValidateConnectionConfig($appDbConfig, DB_USER, DB_PASS, APP_ENV);
         $pdo = new PDO(appDbBuildDsn($appDbConfig), DB_USER, DB_PASS, appDbPdoOptions($appDbConfig));
+        appDbConfigureSession($pdo, APP_ENV);
     } catch (Throwable $error) {
         error_log('Database connection failed.');
         appDbWriteFailureLog($error);
         if (PHP_SAPI !== 'cli' && !headers_sent()) {
+            header_remove('X-Powered-By');
             http_response_code(503);
             header('Retry-After: 30');
             header('Cache-Control: no-store');
+            header('Content-Type: text/plain; charset=UTF-8');
+            header('X-Content-Type-Options: nosniff');
+            header('X-Frame-Options: DENY');
+            header('Referrer-Policy: no-referrer');
+            header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
         }
         die('Błąd połączenia z bazą danych. Spróbuj ponownie później.');
     }

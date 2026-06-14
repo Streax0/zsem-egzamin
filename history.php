@@ -201,7 +201,7 @@ $modeBadgeMap = [
                                                             <input type="hidden" name="return_to" value="../history.php">
                                                             <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń wynik" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
                                                         </form>
-                                                    <?php elseif (($test['kind'] ?? 'test') === 'duel'): ?>
+                                                    <?php elseif (($test['kind'] ?? 'test') === 'duel' && !empty($test['can_hide'])): ?>
                                                         <form method="POST" action="actions/delete_duel_history.php" onsubmit="return appConfirmSubmit(this, 'Usunąć ten pojedynek z Twojej historii?');">
                                                             <?php echo csrfTokenField('delete_duel_history'); ?>
                                                             <input type="hidden" name="duel_id" value="<?php echo (int)$test['id']; ?>">

@@ -126,6 +126,8 @@ function rememberGuestExamParticipant(int $sessionId, int $participantId): void 
 }
 
 function ensureActiveSessionTable(PDO $pdo): void {
+    if (!appRuntimeSchemaUpdatesEnabled()) return;
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS active_user_sessions (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -691,6 +693,7 @@ function recordRegistrationAttempt(string $ip, string $email, bool $success): vo
 
 function createRegistrationAttemptsTable(): void {
     global $pdo;
+    if (!appRuntimeSchemaUpdatesEnabled()) return;
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS registration_attempts (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -908,6 +911,7 @@ function clearLoginAttempts($ip) {
  */
 function createLoginAttemptsTable() {
     global $pdo;
+    if (!appRuntimeSchemaUpdatesEnabled()) return;
     
     $sql = "CREATE TABLE IF NOT EXISTS login_attempts (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -921,11 +925,11 @@ function createLoginAttemptsTable() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
     
     $pdo->exec($sql);
-    if (function_exists('dbColumnExists') && !dbColumnExists($pdo, 'login_attempts', 'username')) {
-        $pdo->exec("ALTER TABLE login_attempts ADD COLUMN username VARCHAR(50) DEFAULT NULL AFTER ip_address");
+    if (function_exists('dbAddColumnIfMissing')) {
+        dbAddColumnIfMissing($pdo, 'login_attempts', 'username', 'VARCHAR(50) DEFAULT NULL AFTER ip_address');
     }
-    if (function_exists('dbIndexExists') && !dbIndexExists($pdo, 'login_attempts', 'idx_username_time')) {
-        $pdo->exec("ALTER TABLE login_attempts ADD INDEX idx_username_time (username, attempt_time)");
+    if (function_exists('dbAddIndexIfMissing')) {
+        dbAddIndexIfMissing($pdo, 'login_attempts', 'idx_username_time', '(username, attempt_time)');
     }
 }
 

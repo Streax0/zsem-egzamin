@@ -831,6 +831,13 @@ def test_duel_integrity_guards() -> None:
         "rowCount() === 1",
     )
     assert_contains("duels/save_answer.php", "Answer already saved", "Duel already finished")
+    assert_contains("duels/take.php", "getQuestionsByIds($pdo, $duelQuestionIds)", "getQuestionsByIds($pdo, $_SESSION[$sessionQuestionKey])")
+    stable_duel_branch = extract_between(
+        "duels/take.php",
+        "if (is_array($duelQuestionIds) && !empty($duelQuestionIds))",
+        "} else {",
+    )
+    assert "loadQuestions($pdo)" not in stable_duel_branch
 
 
 def test_password_reset_and_mfa_exist() -> None:
@@ -2038,6 +2045,112 @@ def test_database_read_performance_runtime_suite() -> None:
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "database read performance runtime OK" in result.stdout
+
+
+def test_database_connection_config_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    assert php is not None, "PHP CLI is required for database connection config tests"
+    result = subprocess.run(
+        [php, str(ROOT / "tests/db_connection_config_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "database connection config runtime OK" in result.stdout
+
+
+def test_runtime_schema_guard_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    assert php is not None, "PHP CLI is required for runtime schema guard tests"
+    result = subprocess.run(
+        [php, str(ROOT / "tests/runtime_schema_guard_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "runtime schema guard OK" in result.stdout
+
+
+def test_runtime_schema_updates_are_cli_only_and_opt_in() -> None:
+    db = read("config/db.php")
+    functions = read("includes/functions.php")
+    auth = read("includes/auth.php")
+
+    assert "define('APP_RUNTIME_SCHEMA_UPDATES', appConfigBool('APP_RUNTIME_SCHEMA_UPDATES', false))" in db
+    assert "APP_RUNTIME_SCHEMA_UPDATES === true" in db
+    assert "PHP_SAPI === 'cli'" in db
+    assert "function dbRuntimeSchemaUpdatesEnabled(): bool" in functions
+    assert functions.count("if (!dbRuntimeSchemaUpdatesEnabled())") >= 6
+    assert auth.count("if (!appRuntimeSchemaUpdatesEnabled()) return;") >= 3
+    assert "if (!appRuntimeSchemaUpdatesEnabled()) return false;" in read("admin.php")
+    assert "if (appRuntimeSchemaUpdatesEnabled())" in read("ajax/check_unranked.php")
+    assert "if (appRuntimeSchemaUpdatesEnabled())" in read("luki_panel.php")
+    assert "if (isset($pdo) && $pdo instanceof PDO) {\n    ensurePlatformEnhancements($pdo);" not in functions
+    assert "APP_RUNTIME_SCHEMA_UPDATES=false" in read(".env.example")
+    assert "APP_RUNTIME_SCHEMA_UPDATES=false" in read("README.md")
+
+
+def test_database_connection_config_is_hardened() -> None:
+    db = read("config/db.php")
+    example = read("config.example.php")
+    assert "PDO::ATTR_EMULATE_PREPARES => false" in db
+    assert "PDO::ATTR_PERSISTENT => false" in db
+    assert "PDO::ATTR_STRINGIFY_FETCHES => false" in db
+    assert "PDO::MYSQL_ATTR_LOCAL_INFILE => false" in db
+    assert "PDO::MYSQL_ATTR_MULTI_STATEMENTS" in db
+    assert "PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT" in db
+    assert "PDO MySQL cannot verify the database server certificate." in db
+    assert "dirname(__DIR__) . DIRECTORY_SEPARATOR . $path" in db
+    assert "MYSQL_CONNECT_TIMEOUT" in db
+    assert "MYSQL_SOCKET" in db
+    assert "http_response_code(503)" in db
+    assert "Retry-After: 30" in db
+    assert "Content-Type: text/plain; charset=UTF-8" in db
+    assert "header_remove('X-Powered-By')" in db
+    assert "X-Content-Type-Options: nosniff" in db
+    assert "X-Frame-Options: DENY" in db
+    assert "Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'" in db
+    assert "$error->getMessage()" not in db
+    assert "if ($value !== false) return (string)$value;" in db
+    assert "(int)($stats['size'] ?? 0) < 1024 * 1024" in db
+    assert "is_link(APP_DEBUG_LOG)" in db
+    assert "@chmod(APP_DEBUG_LOG, 0640)" in db
+    assert "appDbPathIsInsidePublicRoot(APP_DEBUG_LOG)" in db
+    assert "Empty database password is not allowed outside local development." in db
+    assert "The root database account is not allowed outside local development." in db
+    assert "function appDbEndpointIsLocal" in db
+    assert "function appDbConfigureSession" in db
+    assert "STRICT_TRANS_TABLES" in db
+    assert "ERROR_FOR_DIVISION_BY_ZERO" in db
+    assert "is_link($path)" in db
+    assert "Nie kopiuj go do config/db.php" in example
+    assert "define('DB_PASS'" not in example
+    assert "http_response_code(404)" in example
+
+
+def test_database_schema_metadata_uses_native_prepare_safe_queries() -> None:
+    functions = read("includes/functions.php")
+    assert "FROM INFORMATION_SCHEMA.TABLES" in functions
+    assert "FROM INFORMATION_SCHEMA.COLUMNS" in functions
+    assert "FROM INFORMATION_SCHEMA.STATISTICS" in functions
+    assert "function dbSchemaNameMap" in functions
+    assert "function dbSchemaColumns" in functions
+    assert "function dbSchemaIndexes" in functions
+    assert "SHOW TABLES LIKE ?" not in functions
+    assert "SHOW COLUMNS FROM duels LIKE ?" not in functions
+    assert "SHOW INDEX FROM" not in functions
 
 
 def test_optional_mfa_prompt_runtime_suite() -> None:

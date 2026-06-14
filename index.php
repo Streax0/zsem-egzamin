@@ -97,6 +97,11 @@ foreach ($dailyMissions as $mission) {
 $pendingDuels = [];
 $activeDuels = [];
 try {
+    $duelStartedColumnsAvailable = dbColumnExists($pdo, 'duels', 'challenger_started_at')
+        && dbColumnExists($pdo, 'duels', 'opponent_started_at');
+    $activeDuelOrder = $duelStartedColumnsAvailable
+        ? 'COALESCE(d.challenger_started_at, d.opponent_started_at, d.created_at)'
+        : 'd.created_at';
     $stmt = $pdo->prepare("
         SELECT d.*, u.username as challenger_name, u.avatar_path as challenger_avatar
         FROM duels d 
@@ -118,7 +123,7 @@ try {
         WHERE d.status = 'accepted'
           AND (d.challenger_id = ? OR d.opponent_id = ?)
           AND (CASE WHEN d.challenger_id = ? THEN d.challenger_finished_at ELSE d.opponent_finished_at END) IS NULL
-        ORDER BY COALESCE(d.challenger_started_at, d.opponent_started_at, d.created_at) DESC
+        ORDER BY {$activeDuelOrder} DESC
         LIMIT 5
     ");
     $stmt->execute([$_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id'], $_SESSION['user_id']]);

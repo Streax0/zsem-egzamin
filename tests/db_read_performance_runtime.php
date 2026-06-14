@@ -30,7 +30,11 @@ final class DbReadPerformanceStatementStub extends PDOStatement {
         $this->pdoStub->executedSql[] = $this->sql;
         $normalized = preg_replace('/\s+/', ' ', trim($this->sql));
 
-        if (str_starts_with($normalized, 'SHOW TABLES') || str_starts_with($normalized, 'SHOW COLUMNS') || str_starts_with($normalized, 'SHOW INDEX')) {
+        if (str_contains($normalized, 'FROM INFORMATION_SCHEMA.COLUMNS')) {
+            $this->rows = $this->pdoStub->schemaColumns[(string)($this->params[0] ?? '')] ?? [];
+        } elseif (str_contains($normalized, 'FROM INFORMATION_SCHEMA.STATISTICS')) {
+            $this->rows = $this->pdoStub->schemaIndexes[(string)($this->params[0] ?? '')] ?? [];
+        } elseif (str_starts_with($normalized, 'SHOW TABLES') || str_starts_with($normalized, 'SHOW COLUMNS') || str_starts_with($normalized, 'SHOW INDEX')) {
             $this->columnValue = $this->pdoStub->schemaExists ? 1 : false;
             $this->row = $this->pdoStub->schemaExists ? ['exists' => 1] : false;
         } elseif (str_contains($normalized, 'SELECT setting_value FROM app_settings')) {
@@ -65,6 +69,9 @@ final class DbReadPerformancePdoStub extends PDO {
     public array $executedSql = [];
     public array $settings = ['perf_key' => 'alpha'];
     public bool $schemaExists = false;
+    public array $schemaTables = [];
+    public array $schemaColumns = [];
+    public array $schemaIndexes = [];
     public array $streakRows = [
         ['user_id' => 10, 'score_percent' => 92],
         ['user_id' => 10, 'score_percent' => 88],
@@ -86,6 +93,8 @@ final class DbReadPerformancePdoStub extends PDO {
         $normalized = preg_replace('/\s+/', ' ', trim($query));
         if (str_contains($normalized, 'SELECT COUNT(*) FROM ranking_event_templates')) {
             $statement->columnValue = 50;
+        } elseif (str_contains($normalized, 'FROM INFORMATION_SCHEMA.TABLES')) {
+            $statement->rows = $this->schemaTables;
         } elseif (str_contains($normalized, 'SELECT * FROM questions')) {
             $statement->rows = [[
                 'id' => 1,
@@ -123,18 +132,38 @@ checkDbReadPerformance(getAppSetting($pdo, 'perf_key', 'fallback') === 'beta', '
 checkDbReadPerformance(countExecutedSql($pdo, 'WHERE setting_key = ? LIMIT 1') === 1, 'setting was re-read after cache refresh');
 
 $pdo->schemaExists = true;
-$tableProbeBaseline = countExecutedSql($pdo, 'SHOW TABLES LIKE ?');
+$pdo->schemaTables = ['perf_probe', 'perf_probe_two'];
+$pdo->schemaColumns = ['perf_probe' => ['probe_column', 'probe_column_two']];
+$pdo->schemaIndexes = ['perf_probe' => ['probe_index', 'probe_index_two']];
+$tableProbeBaseline = countExecutedSql($pdo, 'FROM INFORMATION_SCHEMA.TABLES');
 checkDbReadPerformance(dbTableExists($pdo, 'perf_probe'), 'table probe failed');
-checkDbReadPerformance(dbTableExists($pdo, 'perf_probe'), 'cached table probe failed');
-checkDbReadPerformance(countExecutedSql($pdo, 'SHOW TABLES LIKE ?') === $tableProbeBaseline + 1, 'table metadata was queried more than once');
-$columnProbeBaseline = countExecutedSql($pdo, 'SHOW COLUMNS FROM `perf_probe` LIKE ?');
+checkDbReadPerformance(dbTableExists($pdo, 'perf_probe_two'), 'second cached table probe failed');
+checkDbReadPerformance(!dbTableExists($pdo, 'missing_probe'), 'missing table probe changed');
+checkDbReadPerformance(!dbTableExists($pdo, 'missing_probe'), 'missing table result was not cached');
+checkDbReadPerformance(countExecutedSql($pdo, 'FROM INFORMATION_SCHEMA.TABLES') === $tableProbeBaseline + 1, 'table metadata was queried more than once');
+$columnProbeBaseline = countExecutedSql($pdo, 'FROM INFORMATION_SCHEMA.COLUMNS');
 checkDbReadPerformance(dbColumnExists($pdo, 'perf_probe', 'probe_column'), 'column probe failed');
-checkDbReadPerformance(dbColumnExists($pdo, 'perf_probe', 'probe_column'), 'cached column probe failed');
-checkDbReadPerformance(countExecutedSql($pdo, 'SHOW COLUMNS FROM `perf_probe` LIKE ?') === $columnProbeBaseline + 1, 'column metadata was queried more than once');
-$indexProbeBaseline = countExecutedSql($pdo, 'SHOW INDEX FROM `perf_probe` WHERE Key_name = ?');
+checkDbReadPerformance(dbColumnExists($pdo, 'perf_probe', 'probe_column_two'), 'second cached column probe failed');
+checkDbReadPerformance(!dbColumnExists($pdo, 'perf_probe', 'missing_column'), 'missing column probe changed');
+checkDbReadPerformance(!dbColumnExists($pdo, 'perf_probe', 'missing_column'), 'missing column result was not cached');
+checkDbReadPerformance(countExecutedSql($pdo, 'FROM INFORMATION_SCHEMA.COLUMNS') === $columnProbeBaseline + 1, 'column metadata was queried more than once');
+$indexProbeBaseline = countExecutedSql($pdo, 'FROM INFORMATION_SCHEMA.STATISTICS');
 checkDbReadPerformance(dbIndexExists($pdo, 'perf_probe', 'probe_index'), 'index probe failed');
-checkDbReadPerformance(dbIndexExists($pdo, 'perf_probe', 'probe_index'), 'cached index probe failed');
-checkDbReadPerformance(countExecutedSql($pdo, 'SHOW INDEX FROM `perf_probe` WHERE Key_name = ?') === $indexProbeBaseline + 1, 'index metadata was queried more than once');
+checkDbReadPerformance(dbIndexExists($pdo, 'perf_probe', 'probe_index_two'), 'second cached index probe failed');
+checkDbReadPerformance(!dbIndexExists($pdo, 'perf_probe', 'missing_index'), 'missing index probe changed');
+checkDbReadPerformance(!dbIndexExists($pdo, 'perf_probe', 'missing_index'), 'missing index result was not cached');
+checkDbReadPerformance(countExecutedSql($pdo, 'FROM INFORMATION_SCHEMA.STATISTICS') === $indexProbeBaseline + 1, 'index metadata was queried more than once');
+
+$invalidIdentifierRejected = false;
+try {
+    dbColumnExists($pdo, 'perf_probe', 'probe%');
+} catch (InvalidArgumentException $error) {
+    $invalidIdentifierRejected = true;
+}
+checkDbReadPerformance($invalidIdentifierRejected, 'invalid schema identifier was accepted');
+checkDbReadPerformance(countExecutedSql($pdo, 'SHOW TABLES') === 0, 'non-preparable SHOW TABLES query is still used');
+checkDbReadPerformance(countExecutedSql($pdo, 'SHOW COLUMNS') === 0, 'non-preparable SHOW COLUMNS query is still used');
+checkDbReadPerformance(countExecutedSql($pdo, 'SHOW INDEX') === 0, 'non-preparable SHOW INDEX query is still used');
 
 $streaks = getUsersPerformanceStreaks($pdo, [10, 20, 30, 10]);
 checkDbReadPerformance(countExecutedSql($pdo, 'ROW_NUMBER() OVER') === 1, 'bulk streak lookup did not use one query');

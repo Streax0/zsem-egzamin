@@ -13,7 +13,7 @@ Platforma edukacyjna wspierająca przygotowanie do egzaminu zawodowego INF.02. S
 
 ### Narzędzia
 - **Dostęp do serwera MySQL/MariaDB**
-- **Edytor tekstowy** do konfiguracji `.env` lub `config/db.php`
+- **Edytor tekstowy** do konfiguracji lokalnego pliku `.env`
 
 ## 📁 Struktura projektu
 
@@ -23,8 +23,8 @@ public_html/
 ├── ajax/                   # Endpointy AJAX
 ├── admin.php               # Panel administratora
 ├── config/                 # Konfiguracja bazy danych
-│   ├── db.php              # Połączenie PDO
-│   └── config.example.php  # Przykładowy plik konfiguracyjny
+│   └── db.php              # Połączenie PDO
+├── config.example.php      # Wskazówki dotyczące zmiennych środowiskowych
 ├── data_question/          # Pliki pytań i importy
 ├── includes/               # Funkcje, autoryzacja, sesje
 ├── exam/                   # Obsługa egzaminów
@@ -71,6 +71,7 @@ MYSQL_USER=root
 MYSQL_PASSWORD=
 MYSQL_CONNECT_TIMEOUT=5
 APP_ENV=local
+APP_RUNTIME_SCHEMA_UPDATES=false
 APP_BASE_URL=http://localhost/public_html
 APP_TRUST_PROXY_HEADERS=false
 APP_TRUSTED_PROXY_IPS=
@@ -78,7 +79,11 @@ APP_TRUSTED_PROXY_IPS=
 
 Pełny, bezpieczny szablon znajduje się w `.env.example`. `APP_BASE_URL` musi wskazywać kanoniczny publiczny adres aplikacji. Nagłówki proxy wolno włączyć tylko razem z `APP_TRUSTED_PROXY_IPS` zawierającym dokładne adresy lub zakresy CIDR zaufanych proxy.
 
-Dla zdalnej bazy można ustawić `MYSQL_SSL_CA`, a przy uwierzytelnianiu certyfikatem także oba pola `MYSQL_SSL_CERT` i `MYSQL_SSL_KEY`. Połączenie TLS zawsze weryfikuje certyfikat serwera. `MYSQL_CONNECT_TIMEOUT` jest ograniczony do 1-30 sekund; połączenia trwałe i wielokrotne instrukcje SQL są wyłączone.
+Poza środowiskami `local`, `dev` i `test` aplikacja odrzuca konto bazy `root` oraz puste hasło. Te słabe dane są także odrzucane w trybie lokalnym, gdy baza nie działa przez localhost, loopback lub lokalny socket. Na stagingu i produkcji utwórz osobnego użytkownika MySQL/MariaDB z minimalnym zestawem uprawnień wymaganym przez aplikację. Połączenia poza trybem lokalnym wymuszają sesyjnie `STRICT_TRANS_TABLES` i `ERROR_FOR_DIVISION_BY_ZERO`.
+
+Dla zdalnej bazy można ustawić `MYSQL_SSL_CA`, a przy uwierzytelnianiu certyfikatem także oba pola `MYSQL_SSL_CERT` i `MYSQL_SSL_KEY`. Ścieżki względne są liczone od katalogu aplikacji. Połączenie TLS zawsze weryfikuje certyfikat serwera i zostanie odrzucone, jeśli sterownik nie obsługuje weryfikacji. `MYSQL_CONNECT_TIMEOUT` jest ograniczony do 1-30 sekund; połączenia trwałe i wielokrotne instrukcje SQL są wyłączone.
+
+Zwykłe żądania HTTP nie wykonują `CREATE TABLE` ani `ALTER TABLE`. Schemat instaluj z `full_schema.sql`; `APP_RUNTIME_SCHEMA_UPDATES=true` jest honorowane wyłącznie przez PHP CLI i powinno być używane tylko w kontrolowanym procesie migracji. Domyślna wartość pozostaje `false` także lokalnie.
 
 Przy terminacji TLS na reverse proxy ustaw po stronie Apache/PHP zaufany stan HTTPS (`HTTPS=on` lub równoważną konfigurację vhosta). Aplikacja i `.htaccess` celowo nie uznają samego nagłówka klienta `X-Forwarded-Proto` za dowód bezpiecznego połączenia.
 
@@ -112,7 +117,7 @@ Otwórz przeglądarkę i przejdź pod adres lokalnego serwera, np. `http://local
 
 ## 📌 Najważniejsze pliki
 - `config/db.php` – konfiguracja połączenia z bazą danych
-- `config/config.example.php` – przykładowy plik konfiguracyjny
+- `config.example.php` – bezpieczna ściąga zmiennych środowiskowych; nie zastępuje `config/db.php`
 - `full_schema.sql` – pełny schemat bazy danych
 - `admin.php` – panel administratora
 - `actions/` – obsługa formularzy i zmian stanu
@@ -135,7 +140,7 @@ Otwórz przeglądarkę i przejdź pod adres lokalnego serwera, np. `http://local
 - Sprawdź poprawność składni plików PHP
 
 ### Problem z połączeniem bazy
-- Sprawdź prawidłowość danych w `.env` lub `config/db.php`
+- Sprawdź prawidłowość danych w `.env` lub zmiennych środowiskowych serwera
 - Upewnij się, że serwer MySQL/MariaDB działa
 - Upewnij się, że baza `inf02_platform` istnieje
 

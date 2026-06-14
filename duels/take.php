@@ -53,30 +53,15 @@ if (($isChallenger && $duel['challenger_finished_at']) || (!$isChallenger && $du
 }
 
 // Prepare stable questions for this user's duel attempt.
-$allQ = loadQuestions($pdo);
 $sessionQuestionKey = 'duel_questions_' . $duelId;
-$questionsById = [];
-foreach ($allQ as $q) {
-    $questionsById[(int)$q['id']] = $q;
-}
-
 $duelQuestionIds = !empty($duel['question_ids']) ? json_decode($duel['question_ids'], true) : null;
 if (is_array($duelQuestionIds) && !empty($duelQuestionIds)) {
-    $questions = [];
-    foreach ($duelQuestionIds as $qid) {
-        if (isset($questionsById[(int)$qid])) {
-            $questions[] = $questionsById[(int)$qid];
-        }
-    }
-    $_SESSION[$sessionQuestionKey] = array_values(array_filter(array_map('intval', $duelQuestionIds), static fn($qid) => isset($questionsById[$qid])));
+    $questions = getQuestionsByIds($pdo, $duelQuestionIds);
+    $_SESSION[$sessionQuestionKey] = array_column($questions, 'id');
 } elseif (!empty($_SESSION[$sessionQuestionKey]) && is_array($_SESSION[$sessionQuestionKey])) {
-    $questions = [];
-    foreach ($_SESSION[$sessionQuestionKey] as $qid) {
-        if (isset($questionsById[(int)$qid])) {
-            $questions[] = $questionsById[(int)$qid];
-        }
-    }
+    $questions = getQuestionsByIds($pdo, $_SESSION[$sessionQuestionKey]);
 } else {
+    $allQ = loadQuestions($pdo);
     $filtered = array_filter($allQ, fn($q) => $q['category'] === $duel['category']);
     if (empty($filtered)) $filtered = $allQ; // fallback
     shuffle($filtered);
