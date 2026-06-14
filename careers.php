@@ -33,7 +33,7 @@ requireLogin();
                 <section class="dashboard-panel mb-4 p-4 p-lg-5" style="background:linear-gradient(135deg,var(--primary-color-dark),#0f172a);color:#fff;border-radius:28px;">
                     <span class="badge bg-white bg-opacity-25 rounded-pill mb-3">Dołącz do projektu</span>
                     <h1 class="fw-800 mb-3"; style="color: #fff;">Rozwijaj ZSEM Tech razem z nami</h1>
-                    <p class="lead opacity-75 mb-4" style="max-width:760px;">Szukamy osób, które chcą pomagać przy kodzie, UI, testach, treściach i aktualizacjach platformy.</p>
+                    <p class="lead mb-4" style="max-width:760px;">Szukamy osób, które chcą pomagać przy kodzie, UI, testach, treściach i aktualizacjach platformy.</p>
                     <a href="mailto:zsemtech@zsem.edu.pl?subject=Chcę%20dołączyć%20do%20ZSEM%20Tech" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
                         <i class="bi bi-envelope me-2"></i>Zgłoś się
                     </a>

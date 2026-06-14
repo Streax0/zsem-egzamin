@@ -1678,7 +1678,9 @@ body.dark-mode .answer-option:hover {
 }
 
 .answer-option.disabled {
-  opacity: 0.6;
+  opacity: 1;
+  background-color: #e2e8f0;
+  color: #475569;
   cursor: not-allowed;
   transform: none !important;
 }
@@ -2335,7 +2337,7 @@ body.dark-mode .help-quick-card {
   text-transform: uppercase;
   font-weight: 700;
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .footer-contact-item .value {

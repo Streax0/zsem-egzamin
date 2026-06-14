@@ -229,8 +229,8 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
             gap: 4px;
         }
 
-        .status-online { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
-        .status-offline { background: rgba(148, 163, 184, 0.1); color: #94a3b8; }
+        .status-online { background: #dcfce7; color: #166534; }
+        .status-offline { background: #e2e8f0; color: #475569; }
         
         .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
         .dot-online { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
@@ -635,13 +635,13 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="col-lg-7">
                             <span class="badge bg-white bg-opacity-25 rounded-pill mb-3">Społeczność ZSEM Tech</span>
                             <h2 class="fw-900 mb-2"; style="color: #fff;">Znajomi, wyzwania i wspólna nauka</h2>
-                            <p class="opacity-75 mb-0">Szukaj osób, zapraszaj znajomych, startuj pojedynki i szybciej wracaj do nauki z ludźmi z klasy.</p>
+                            <p class="mb-0">Szukaj osób, zapraszaj znajomych, startuj pojedynki i szybciej wracaj do nauki z ludźmi z klasy.</p>
                         </div>
                         <div class="col-lg-5">
                             <div class="social-stat-grid mb-3">
-                                <div class="social-stat"><div class="h4 fw-900 mb-0"><?php echo count($friends); ?></div><div class="small opacity-75">znajomych</div></div>
-                                <div class="social-stat"><div class="h4 fw-900 mb-0"><?php echo count($pendingRequests); ?></div><div class="small opacity-75">wniosków</div></div>
-                                <div class="social-stat"><div class="h4 fw-900 mb-0"><?php echo count($suggestions); ?></div><div class="small opacity-75">propozycji</div></div>
+                                <div class="social-stat"><div class="h4 fw-900 mb-0"><?php echo count($friends); ?></div><div class="small">znajomych</div></div>
+                                <div class="social-stat"><div class="h4 fw-900 mb-0"><?php echo count($pendingRequests); ?></div><div class="small">wniosków</div></div>
+                                <div class="social-stat"><div class="h4 fw-900 mb-0"><?php echo count($suggestions); ?></div><div class="small">propozycji</div></div>
                             </div>
                             <form action="social.php" method="GET" id="socialSearchForm">
                                 <input type="hidden" name="browse" value="1">

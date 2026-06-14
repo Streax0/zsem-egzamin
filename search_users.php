@@ -175,7 +175,7 @@ if (!empty($query)) {
                     <section class="user-search-hero mb-4 animate-in">
                         <span class="badge bg-white bg-opacity-25 rounded-pill mb-3">Społeczność</span>
                         <h2 class="fw-900 mb-2"><?php echo $query !== '' ? 'Wyniki wyszukiwania' : 'Lista użytkowników'; ?></h2>
-                        <p class="opacity-75 mb-0">
+                        <p class="mb-0">
                             <?php echo $query !== '' ? 'Dla frazy: "' . htmlspecialchars($query) . '"' : 'Przeglądaj aktywne konta, statusy i relacje znajomych.'; ?>
                         </p>
                     </section>

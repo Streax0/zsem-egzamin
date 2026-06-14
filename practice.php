@@ -390,6 +390,7 @@ unset($qualExams);
         .sheet-btn-primary:hover { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
         .sheet-btn-success { background: rgba(16,185,129,.1); color: #059669; border: 1px solid rgba(16,185,129,.2); }
         .sheet-btn-success:hover { background: #10b981; color: #fff; border-color: #10b981; }
+        .sheet-btn:disabled { opacity: 1; background: #e2e8f0; color: #475569; border-color: #cbd5e1; cursor: not-allowed; }
         .sheet-details-content { padding: 1rem; border-top: 1px solid var(--border-color); background: rgba(148,163,184,.05); font-size: 0.85rem; }
         .guide-filter-bar { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1rem; }
         .guide-tag-btn { border:1px solid var(--border-color); background:var(--panel-bg); color:var(--text-main); border-radius:999px; padding:.4rem .75rem; font-weight:800; font-size:.82rem; }
@@ -409,6 +410,7 @@ unset($qualExams);
         body.dark-mode .sheet-btn-primary:hover { background: #3b82f6; color: #fff; }
         body.dark-mode .sheet-btn-success { background: rgba(52,211,153,.15); color: #a7f3d0; border-color: rgba(52,211,153,.25); }
         body.dark-mode .sheet-btn-success:hover { background: #10b981; color: #fff; }
+        body.dark-mode .sheet-btn:disabled { background: #334155; color: #f1f5f9; border-color: #64748b; }
         
         @media (max-width: 991.98px) { .practice-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
         @media (max-width: 575.98px) { .practice-grid { grid-template-columns:1fr; } }
@@ -576,7 +578,7 @@ unset($qualExams);
                                                             <i class="bi bi-file-earmark-pdf"></i> Arkusz
                                                         </a>
                                                     <?php else: ?>
-                                                        <button class="sheet-btn sheet-btn-primary flex-fill justify-content-center opacity-50" disabled title="Arkusz niedostępny">
+                                                        <button class="sheet-btn sheet-btn-primary flex-fill justify-content-center" disabled title="Arkusz niedostępny">
                                                             <i class="bi bi-file-earmark-pdf"></i> Brak arkusza
                                                         </button>
                                                     <?php endif; ?>
@@ -586,7 +588,7 @@ unset($qualExams);
                                                             <i class="bi bi-check-square"></i> Ocenianie
                                                         </a>
                                                     <?php else: ?>
-                                                        <button class="sheet-btn sheet-btn-success flex-fill justify-content-center opacity-50" disabled title="Zasady oceniania niedostępne">
+                                                        <button class="sheet-btn sheet-btn-success flex-fill justify-content-center" disabled title="Zasady oceniania niedostępne">
                                                             <i class="bi bi-check-square"></i> Brak oceniania
                                                         </button>
                                                     <?php endif; ?>

@@ -5570,17 +5570,25 @@ function getAdminRequestsForTeacher($pdo, $teacherId) {
 /**
  * Get all requests (admin view)
  */
-function getAllAdminRequests($pdo) {
+function getAllAdminRequests($pdo, ?int $limit = null) {
     ensureAdminRequestsTableExists($pdo);
     try {
-        $stmt = $pdo->query("
+        $sql = "
             SELECT ar.*, u.username as teacher_username, u.first_name, u.last_name, u.email, u.class,
                    u.trust_status, u.risk_flags,
                    (SELECT COUNT(*) FROM admin_request_replies rr WHERE rr.request_id = ar.id) AS reply_count
             FROM admin_requests ar
             LEFT JOIN users u ON u.id = ar.teacher_id
             ORDER BY ar.created_at DESC
-        ");
+        ";
+        if ($limit !== null) {
+            $sql .= ' LIMIT ?';
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindValue(1, max(1, min(100, $limit)), PDO::PARAM_INT);
+            $stmt->execute();
+        } else {
+            $stmt = $pdo->query($sql);
+        }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log('Error fetching all admin requests: ' . $e->getMessage());
@@ -5702,6 +5710,16 @@ function sendFriendRequest($pdo, $fromId, $toId, ?string &$failureReason = null)
     } catch (PDOException $e) {
         $failureReason = 'friend_request_failed';
         return false;
+    }
+}
+
+function countOpenAdminRequests(PDO $pdo): int {
+    ensureAdminRequestsTableExists($pdo);
+    try {
+        $stmt = $pdo->query("SELECT COUNT(*) FROM admin_requests WHERE status IN ('sent', 'read', 'replied')");
+        return (int)$stmt->fetchColumn();
+    } catch (PDOException $e) {
+        return 0;
     }
 }
 

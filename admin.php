@@ -583,6 +583,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$adminKpis = [
+    'users_total' => 0,
+    'teachers' => 0,
+    'admins' => 0,
+    'directors' => 0,
+    'banned' => 0,
+    'verified' => 0,
+    'unverified' => 0,
+    'recent_logins' => 0,
+];
+try {
+    $statsStmt = $pdo->query("
+        SELECT
+            COUNT(*) AS users_total,
+            SUM(CASE WHEN role = 'teacher' THEN 1 ELSE 0 END) AS teachers,
+            SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admins,
+            SUM(CASE WHEN role = 'dyrektor' THEN 1 ELSE 0 END) AS directors,
+            SUM(CASE WHEN is_banned = 1 THEN 1 ELSE 0 END) AS banned,
+            SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END) AS verified,
+            SUM(CASE WHEN COALESCE(is_verified, 0) = 0 THEN 1 ELSE 0 END) AS unverified,
+            SUM(CASE WHEN last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) AS recent_logins
+        FROM users
+    ");
+    $statsRow = $statsStmt ? $statsStmt->fetch(PDO::FETCH_ASSOC) : [];
+    foreach ($adminKpis as $key => $fallback) {
+        $adminKpis[$key] = isset($statsRow[$key]) ? (int)$statsRow[$key] : $fallback;
+    }
+} catch (PDOException $e) {
+    $adminKpis['users_total'] = getUsersCount($pdo);
+}
+
 // Listing / search / pagination
 $search = mb_substr(trim((string)($_GET['q'] ?? '')), 0, 100);
 $page = max(1, intval($_GET['page'] ?? 1));
@@ -597,7 +628,7 @@ if ($search !== '') {
     $adminSearchFailed = !empty($searchResult['error']);
 } else {
     $users = getUsers($pdo, $limit, $offset);
-    $totalUsers = getUsersCount($pdo);
+    $totalUsers = $adminKpis['users_total'];
 }
 
 try {
@@ -653,8 +684,8 @@ $abuseReportsRecent = $abuseReports;
 $auditLog = getAdminAuditLog($pdo, 50);
 $auditInitialLimit = 20;
 $auditVisibleCount = min($auditInitialLimit, count($auditLog));
-$allAdminRequests = getAllAdminRequests($pdo);
-$adminRequests = array_slice($allAdminRequests, 0, 8);
+$adminRequests = getAllAdminRequests($pdo, 8);
+$openAdminRequestCount = countOpenAdminRequests($pdo);
 $rankingEvents = getRankingEvents($pdo, 8);
 $appStatuses = getAppStatuses($pdo, false, 10);
 $activeAppStatuses = array_values(array_filter($appStatuses, static fn($s) => !empty($s['is_active'])));
@@ -675,40 +706,10 @@ try {
 $allInDailyLimit = getAllInDailyLimit($pdo);
 $systemStats = [
     'reports_new' => count(array_filter($abuseReports, static fn($r) => ($r['status'] ?? '') === 'new')),
-    'requests_open' => count(array_filter($allAdminRequests, static fn($r) => in_array(($r['status'] ?? ''), ['sent', 'read', 'replied'], true))),
+    'requests_open' => $openAdminRequestCount,
     'events_active' => count(array_filter($rankingEvents, static fn($r) => ($r['status'] ?? '') === 'active')),
     'audit_items' => $auditVisibleCount,
 ];
-$adminKpis = [
-    'users_total' => $totalUsers,
-    'teachers' => 0,
-    'admins' => 0,
-    'directors' => 0,
-    'banned' => 0,
-    'verified' => 0,
-    'unverified' => 0,
-    'recent_logins' => 0,
-];
-try {
-    $statsStmt = $pdo->query("
-        SELECT
-            COUNT(*) AS users_total,
-            SUM(CASE WHEN role = 'teacher' THEN 1 ELSE 0 END) AS teachers,
-            SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admins,
-            SUM(CASE WHEN role = 'dyrektor' THEN 1 ELSE 0 END) AS directors,
-            SUM(CASE WHEN is_banned = 1 THEN 1 ELSE 0 END) AS banned,
-            SUM(CASE WHEN is_verified = 1 THEN 1 ELSE 0 END) AS verified,
-            SUM(CASE WHEN COALESCE(is_verified, 0) = 0 THEN 1 ELSE 0 END) AS unverified,
-            SUM(CASE WHEN last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) AS recent_logins
-        FROM users
-    ");
-    $statsRow = $statsStmt ? $statsStmt->fetch(PDO::FETCH_ASSOC) : [];
-    foreach ($adminKpis as $key => $fallback) {
-        $adminKpis[$key] = isset($statsRow[$key]) ? (int)$statsRow[$key] : $fallback;
-    }
-} catch (PDOException $e) {
-    $adminKpis['users_total'] = $totalUsers;
-}
 $adminOpsChecks = [
     ['label' => 'Nowe zgłoszenia', 'value' => (int)$systemStats['reports_new'], 'status' => (int)$systemStats['reports_new'] > 0 ? 'action' : 'ok', 'href' => '#admin-system'],
     ['label' => 'Otwarte wnioski', 'value' => (int)$systemStats['requests_open'], 'status' => (int)$systemStats['requests_open'] > 0 ? 'watch' : 'ok', 'href' => '#admin-requests'],
@@ -800,7 +801,7 @@ if (is_array($rawFlash)) {
             gap: .5rem;
             border-radius: 8px;
             padding: .5rem 1rem;
-            color: #3b82f6;
+            color: #1d4ed8;
             background: rgba(59, 130, 246, .08);
             border: 1px solid rgba(59, 130, 246, .2);
             font-weight: 700;
@@ -829,8 +830,8 @@ if (is_array($rawFlash)) {
         }
         .admin-nav-pills a:hover {
             background: #f0f9ff;
-            border-color: #3b82f6;
-            color: #3b82f6;
+            border-color: #1d4ed8;
+            color: #1d4ed8;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, .15);
         }
@@ -900,7 +901,7 @@ if (is_array($rawFlash)) {
             background: #f1f5f9;
             color: #0f172a;
         }
-        .admin-ops-item.is-action .admin-ops-value { background: rgba(239, 68, 68, .12); color: #dc2626; }
+        .admin-ops-item.is-action .admin-ops-value { background: rgba(239, 68, 68, .12); color: #b91c1c; }
         .admin-ops-item.is-watch .admin-ops-value { background: rgba(234, 179, 8, .14); color: #b45309; }
         .admin-ops-item.is-ok .admin-ops-value { background: rgba(34, 197, 94, .12); color: #15803d; }
         .admin-search-card {
@@ -1495,6 +1496,22 @@ if (is_array($rawFlash)) {
             background: #ffffff;
             color: #0f172a;
             border-radius: 8px;
+        }
+        body.dark-mode.admin-page .modal-content,
+        body.dark-mode.admin-page .modal-content .fw-bold,
+        body.dark-mode.admin-page .modal-content .text-dark {
+            color: #0f172a !important;
+        }
+        body.dark-mode.admin-page .modal-content .text-muted {
+            color: #475569 !important;
+        }
+        body.dark-mode.admin-page .modal-content,
+        body.dark-mode.admin-page .modal-content .fw-bold,
+        body.dark-mode.admin-page .modal-content .text-dark {
+            color: #0f172a !important;
+        }
+        body.dark-mode.admin-page .modal-content .text-muted {
+            color: #475569 !important;
         }
         body.admin-page .modal-open .sidebar,
         body.admin-page.modal-open .sidebar {
@@ -2656,26 +2673,25 @@ if (is_array($rawFlash)) {
             if (modal.parentElement !== document.body) {
                 document.body.appendChild(modal);
             }
-            modal.addEventListener('hidden.bs.modal', cleanupAdminModalArtifacts);
         });
         document.addEventListener('hidden.bs.modal', cleanupAdminModalArtifacts, true);
 
-        function bindAdminUserModal(selector, formSelector) {
-            const form = document.querySelector(formSelector);
+        const adminUserModalForms = {
+            adminResetUser: '#adminPasswordForm',
+            adminBanUser: '#adminBanForm',
+            adminDeleteUser: '#adminDeleteForm',
+        };
+        document.addEventListener('click', (event) => {
+            const trigger = event.target.closest('[data-admin-reset-user], [data-admin-ban-user], [data-admin-delete-user]');
+            if (!trigger) return;
+            const dataKey = Object.keys(adminUserModalForms).find((key) => trigger.dataset[key] !== undefined);
+            const form = dataKey ? document.querySelector(adminUserModalForms[dataKey]) : null;
             if (!form) return;
-            document.querySelectorAll(selector).forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    form.querySelector('input[name="user_id"]').value = btn.dataset.userId || '';
-                    form.querySelectorAll('[data-admin-modal-user]').forEach((node) => {
-                        node.textContent = btn.dataset.userLabel || 'użytkownik';
-                    });
-                });
+            form.querySelector('input[name="user_id"]').value = trigger.dataset.userId || '';
+            form.querySelectorAll('[data-admin-modal-user]').forEach((node) => {
+                node.textContent = trigger.dataset.userLabel || 'użytkownik';
             });
-        }
-
-        bindAdminUserModal('[data-admin-reset-user]', '#adminPasswordForm');
-        bindAdminUserModal('[data-admin-ban-user]', '#adminBanForm');
-        bindAdminUserModal('[data-admin-delete-user]', '#adminDeleteForm');
+        });
 
         const adminConfirmEl = document.getElementById('adminConfirmModal');
         const adminConfirmMessage = document.getElementById('adminConfirmMessage');
@@ -2700,42 +2716,37 @@ if (is_array($rawFlash)) {
             if (callback) callback();
         });
 
-        document.querySelectorAll('form[data-admin-confirm]').forEach((form) => {
-            form.addEventListener('submit', (event) => {
-                if (form.dataset.adminConfirmed === '1') {
-                    return;
-                }
-                event.preventDefault();
-                openAdminConfirm(form.dataset.adminConfirm, () => {
-                    form.dataset.adminConfirmed = '1';
-                    form.submit();
-                });
+        document.addEventListener('submit', (event) => {
+            const form = event.target.closest('form[data-admin-confirm]');
+            if (!form || form.dataset.adminConfirmed === '1') return;
+            event.preventDefault();
+            openAdminConfirm(form.dataset.adminConfirm, () => {
+                form.dataset.adminConfirmed = '1';
+                form.submit();
             });
         });
 
-        document.querySelectorAll('button[data-admin-confirm]').forEach((button) => {
-            button.addEventListener('click', (event) => {
-                if (button.dataset.adminConfirmed === '1') {
-                    return;
-                }
-                event.preventDefault();
-                openAdminConfirm(button.dataset.adminConfirm, () => {
-                    button.dataset.adminConfirmed = '1';
-                    if (button.form) {
-                        if (typeof button.form.requestSubmit === 'function') {
-                            button.form.requestSubmit(button);
-                        } else {
-                            if (button.name) {
-                                const hidden = document.createElement('input');
-                                hidden.type = 'hidden';
-                                hidden.name = button.name;
-                                hidden.value = button.value;
-                                button.form.appendChild(hidden);
-                            }
-                            button.form.submit();
+        document.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-admin-confirm]');
+            if (!button || button.dataset.adminConfirmed === '1') return;
+            event.preventDefault();
+            openAdminConfirm(button.dataset.adminConfirm, () => {
+                button.dataset.adminConfirmed = '1';
+                if (button.form) {
+                    button.form.dataset.adminConfirmed = '1';
+                    if (typeof button.form.requestSubmit === 'function') {
+                        button.form.requestSubmit(button);
+                    } else {
+                        if (button.name) {
+                            const hidden = document.createElement('input');
+                            hidden.type = 'hidden';
+                            hidden.name = button.name;
+                            hidden.value = button.value;
+                            button.form.appendChild(hidden);
                         }
+                        button.form.submit();
                     }
-                });
+                }
             });
         });
 

@@ -94,7 +94,7 @@ startSecureSession();
                         <div class="col-lg-5 col-xl-4">
                             <div class="contact-hero-panel p-4 p-xl-5 h-100 d-flex flex-column animate-in">
                                 <h3 class="fw-bold mb-3">ZSEM Tech</h3>
-                                <p class="opacity-75 mb-5 fs-6">
+                                <p class="mb-5 fs-6">
                                     Masz pytania dotyczące platformy? Chcesz zgłosić błąd lub zaproponować nową funkcjonalność? Jesteśmy do Twojej dyspozycji.
                                 </p>
                                 
@@ -104,7 +104,7 @@ startSecureSession();
                                             <i class="bi bi-envelope-at-fill"></i>
                                         </div>
                                         <div>
-                                            <div class="small text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">E-mail do nas</div>
+                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">E-mail do nas</div>
                                             <a href="mailto:zsemtech@zsem.edu.pl" class="text-white text-decoration-none fw-bold fs-5">zsemtech@zsem.edu.pl</a>
                                         </div>
                                     </div>
@@ -114,9 +114,9 @@ startSecureSession();
                                             <i class="bi bi-building-fill" aria-hidden="true"></i>
                                         </div>
                                         <div>
-                                            <div class="small text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dane identyfikacyjne</div>
+                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dane identyfikacyjne</div>
                                             <div class="text-white fw-bold">Zespół Szkół Elektryczno-Mechanicznych im. gen. Józefa Kustronia</div>
-                                            <div class="text-white-50 small">Platforma edukacyjna ZSEM Tech</div>
+                                            <div class="text-white small">Platforma edukacyjna ZSEM Tech</div>
                                         </div>
                                     </div>
 
@@ -125,7 +125,7 @@ startSecureSession();
                                             <i class="bi bi-geo-alt-fill"></i>
                                         </div>
                                         <div>
-                                            <div class="small text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Lokalizacja</div>
+                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Lokalizacja</div>
                                             <div class="text-white fw-bold fs-5">Nowy Sącz, Polska</div>
                                         </div>
                                     </div>
@@ -135,7 +135,7 @@ startSecureSession();
                                             <i class="bi bi-clock-fill"></i>
                                         </div>
                                         <div>
-                                            <div class="small text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Godziny pracy</div>
+                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Godziny pracy</div>
                                             <div class="text-white fw-bold fs-5">Pon - Pt: 7:00 - 17:00</div>
                                         </div>
                                     </div>

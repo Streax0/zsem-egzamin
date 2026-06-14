@@ -11,7 +11,7 @@ if (!isset($base_url)) {
                 <div class="col-lg-8">
                     <span class="badge px-3 py-2 rounded-pill mb-3 fw-bold footer-cta-badge" style="background: rgba(255,255,255,0.2); color: white;">Platforma Edukacyjna</span>
                     <h3 class="text-white fw-800 mb-2 footer-cta-title">Gotowy na kolejny sprawdzian?</h3>
-                    <p class="text-white opacity-75 mb-0 fs-5 footer-cta-text">Rozwiąż test, sprawdź wynik i buduj portfolio umiejętności zawodowych.</p>
+                    <p class="text-white mb-0 fs-5 footer-cta-text">Rozwiąż test, sprawdź wynik i buduj portfolio umiejętności zawodowych.</p>
                 </div>
                 <div class="col-lg-4 text-lg-end">
                     <a href="<?php echo $base_url; ?>exam/join.php" class="btn btn-light btn-lg rounded-pill px-5 fw-bold shadow-sm footer-cta-link">
@@ -30,7 +30,7 @@ if (!isset($base_url)) {
                         <i class="bi bi-mortarboard-fill"></i>
                         ZSEM <span class="text-main">Tech</span>
                     </div>
-                    <div class="small fw-bold text-muted opacity-75">Zespół Szkół Elektryczno-Mechanicznych</div>
+                    <div class="small fw-bold text-muted">Zespół Szkół Elektryczno-Mechanicznych</div>
                 </div>
                 <p class="text-muted mb-4 pe-lg-5">
                     Platforma Zespołu Szkół Elektryczno-Mechanicznych im. gen. Józefa Kustronia do nauki, sprawdzianów i przygotowania do kwalifikacji zawodowych.

@@ -72,6 +72,11 @@ const body = {
         node.parentElement = this;
     },
 };
+const footer = {
+    getBoundingClientRect() {
+        return { top: 100 };
+    },
+};
 
 panel.parentElement = { name: 'wrapper' };
 fab.parentElement = { name: 'wrapper' };
@@ -90,7 +95,7 @@ global.document = {
     },
     querySelector(selector) {
         if (selector === '[data-help-center-trigger]') return fab;
-        if (selector === '.main-footer') return null;
+        if (selector === '.main-footer') return footer;
         return null;
     },
     querySelectorAll() {
@@ -112,6 +117,9 @@ handlers['document:DOMContentLoaded']();
 
 if (fab.classList.contains('d-none') || fab.attrs['aria-hidden'] !== undefined) {
     throw new Error('help button remains hidden after initialization');
+}
+if (fab.style.opacity !== '1' || fab.style.pointerEvents !== 'auto') {
+    throw new Error('visible footer disabled the help button');
 }
 
 handlers['fab:click']({ preventDefault() {}, stopPropagation() {} });

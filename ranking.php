@@ -74,8 +74,8 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
             border-radius: 10px; font-weight: 800;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .rank-1 { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; }
-        .rank-2 { background: linear-gradient(135deg, #94a3b8, #475569); color: #fff; }
+        .rank-1 { background: linear-gradient(135deg, #fbbf24, #d97706); color: #422006; }
+        .rank-2 { background: linear-gradient(135deg, #cbd5e1, #64748b); color: #0f172a; }
         .rank-3 { background: linear-gradient(135deg, #d97706, #92400e); color: #fff; }
         .ranking-row { height: 72px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 12px; }
         .ranking-row:hover { background-color: rgba(59, 130, 246, 0.04) !important; transform: scale(1.005); }
@@ -267,8 +267,9 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
             border: 1px solid rgba(59,130,246,.14);
         }
         .ranking-info-card.is-inactive {
-            opacity: .56;
+            opacity: 1;
             filter: grayscale(.25);
+            background: #f1f5f9;
         }
         @media (min-width: 1200px) {
             .ranking-layout .dashboard-panel { height: auto; }

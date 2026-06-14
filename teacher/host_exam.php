@@ -342,7 +342,7 @@ if ($session) {
             display: grid;
             place-items: center;
             text-align: center;
-            color: #94a3b8;
+            color: #475569;
         }
         .participant-refresh-dot {
             width: 8px;

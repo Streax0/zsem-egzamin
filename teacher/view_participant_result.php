@@ -177,7 +177,7 @@ $flashMsg = getSessionMessage();
                                     ?>
                                         <div class="border rounded p-3 <?= $userAnswer ? ($userAnswer['is_correct'] ? 'border-success' : 'border-danger') : 'border-light bg-light' ?>">
                                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <span class="badge bg-secondary opacity-50">Pytanie <?= $sq['question_order'] ?></span>
+                                                <span class="badge bg-secondary">Pytanie <?= $sq['question_order'] ?></span>
                                                 <?php if ($userAnswer): ?>
                                                     <?php if ($userAnswer['is_correct']): ?>
                                                         <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Poprawne</span>

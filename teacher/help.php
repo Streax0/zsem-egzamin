@@ -107,7 +107,7 @@ $sections = [
                         <div>
                             <span class="badge bg-white bg-opacity-25 rounded-pill mb-3">Tylko dla nauczycieli</span>
                             <h1 class="fw-900 mb-2">Pomoc panelu nauczyciela</h1>
-                            <p class="mb-0 opacity-75">Szybka dokumentacja funkcji, które służą do tworzenia, prowadzenia i sprawdzania testów.</p>
+                            <p class="mb-0">Szybka dokumentacja funkcji, które służą do tworzenia, prowadzenia i sprawdzania testów.</p>
                         </div>
                         <a href="index.php" class="btn btn-light rounded-pill px-4"><i class="bi bi-arrow-left me-1"></i>Panel</a>
                     </div>

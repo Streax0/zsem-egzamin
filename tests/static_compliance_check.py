@@ -1664,6 +1664,48 @@ def test_single_question_runtime_suite() -> None:
     assert "single question runtime OK" in result.stdout
 
 
+def test_exam_ai_guard_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    if php is None:
+        raise AssertionError("php executable is required for exam AI guard runtime checks")
+    result = subprocess.run(
+        [php, str(ROOT / "tests/exam_ai_guard_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "exam AI guard runtime OK" in result.stdout
+
+
+def test_exam_ai_guard_is_optional_hidden_and_reported() -> None:
+    take = read("exam/take.php")
+    action = read("ajax/exam_action.php")
+    functions = read("includes/functions.php")
+
+    for form in ["teacher/create_exam.php", "teacher/edit_exam.php", "teacher/custom_exam.php"]:
+        assert 'name="ai_copy_guard"' in read(form)
+    assert "examAiCopyGuardEnabled($pdo" in take
+    assert "event.clipboardData?.setData('text/plain', aiCopyGuardPrompt)" in take
+    assert "event.preventDefault();" in take
+    assert "reportAiGuardViolation('copy_paste')" in take
+    assert "reportAiGuardViolation('screenshot_attempt')" in take
+    assert "PrintScreen" in take
+    assert "screenshot_attempt" in action
+    assert "notifyTeacherAboutExamAiGuard" in action
+    assert "requireJsonLogin(true" in action
+    assert "guestExamParticipantId($sessionId)" in action
+    guard_helpers = functions.split("function examAiCopyGuardSettingKey", 1)[1].split("function featureBlockTargetRoleValues", 1)[0]
+    assert "CREATE TABLE" not in guard_helpers
+    assert "ALTER TABLE" not in guard_helpers
+    assert 'Proszę nie oszukiwać, zostało to zgłoszone do nauczyciela' in functions
+
+
 def test_password_reset_links_use_configured_public_origin() -> None:
     auth = read("includes/auth.php")
     public_url = read("Security/PublicUrl.php")
@@ -1956,6 +1998,21 @@ def test_friend_request_endpoint_uses_single_authoritative_eligibility_path() ->
     assert "?string &$failureReason = null" in helper
     assert "friend_request_limit" in helper
     assert "friend_request_privacy" in helper
+
+
+def test_admin_dashboard_avoids_duplicate_aggregation_and_listener_fanout() -> None:
+    admin = read("admin.php")
+    functions = read("includes/functions.php")
+
+    assert "$totalUsers = $adminKpis['users_total'];" in admin
+    assert "getAllAdminRequests($pdo, 8)" in admin
+    assert "countOpenAdminRequests($pdo)" in admin
+    assert "array_slice($allAdminRequests" not in admin
+    assert "document.querySelectorAll(selector).forEach" not in admin
+    assert "document.querySelectorAll('form[data-admin-confirm]').forEach" not in admin
+    assert "document.querySelectorAll('button[data-admin-confirm]').forEach" not in admin
+    assert "function getAllAdminRequests($pdo, ?int $limit = null)" in functions
+    assert "function countOpenAdminRequests(PDO $pdo): int" in functions
 
 
 if __name__ == "__main__":
