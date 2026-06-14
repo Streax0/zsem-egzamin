@@ -39,7 +39,7 @@ try {
         $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
         $stmt->execute([$notificationId, $userId]);
     } else {
-        $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
+        $stmt = $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')");
         $stmt->execute([$userId]);
     }
 } catch (PDOException $e) {

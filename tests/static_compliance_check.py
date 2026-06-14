@@ -1664,48 +1664,6 @@ def test_single_question_runtime_suite() -> None:
     assert "single question runtime OK" in result.stdout
 
 
-def test_exam_ai_guard_runtime_suite() -> None:
-    php = shutil.which("php")
-    if php is None:
-        xampp_php = Path("C:/xampp/php/php.exe")
-        php = str(xampp_php) if xampp_php.exists() else None
-    if php is None:
-        raise AssertionError("php executable is required for exam AI guard runtime checks")
-    result = subprocess.run(
-        [php, str(ROOT / "tests/exam_ai_guard_runtime.php")],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        timeout=30,
-        check=False,
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
-    assert "exam AI guard runtime OK" in result.stdout
-
-
-def test_exam_ai_guard_is_optional_hidden_and_reported() -> None:
-    take = read("exam/take.php")
-    action = read("ajax/exam_action.php")
-    functions = read("includes/functions.php")
-
-    for form in ["teacher/create_exam.php", "teacher/edit_exam.php", "teacher/custom_exam.php"]:
-        assert 'name="ai_copy_guard"' in read(form)
-    assert "examAiCopyGuardEnabled($pdo" in take
-    assert "event.clipboardData?.setData('text/plain', aiCopyGuardPrompt)" in take
-    assert "event.preventDefault();" in take
-    assert "reportAiGuardViolation('copy_paste')" in take
-    assert "reportAiGuardViolation('screenshot_attempt')" in take
-    assert "PrintScreen" in take
-    assert "screenshot_attempt" in action
-    assert "notifyTeacherAboutExamAiGuard" in action
-    assert "requireJsonLogin(true" in action
-    assert "guestExamParticipantId($sessionId)" in action
-    guard_helpers = functions.split("function examAiCopyGuardSettingKey", 1)[1].split("function featureBlockTargetRoleValues", 1)[0]
-    assert "CREATE TABLE" not in guard_helpers
-    assert "ALTER TABLE" not in guard_helpers
-    assert 'Proszę nie oszukiwać, zostało to zgłoszone do nauczyciela' in functions
-
-
 def test_password_reset_links_use_configured_public_origin() -> None:
     auth = read("includes/auth.php")
     public_url = read("Security/PublicUrl.php")
@@ -2000,6 +1958,55 @@ def test_friend_request_endpoint_uses_single_authoritative_eligibility_path() ->
     assert "friend_request_privacy" in helper
 
 
+def test_exam_ai_guard_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    assert php is not None, "PHP CLI is required for exam AI guard runtime tests"
+    result = subprocess.run(
+        [php, str(ROOT / "tests/exam_ai_guard_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "exam AI guard runtime OK" in result.stdout
+
+
+def test_exam_ai_guard_is_optional_hidden_and_reported() -> None:
+    take = read("exam/take.php")
+    action = read("ajax/exam_action.php")
+    legacy_action = read("ajax/exam_violation.php")
+    engine = read("assets/js/exam-engine.js")
+    functions = read("includes/functions.php")
+
+    for form in ["teacher/create_exam.php", "teacher/edit_exam.php", "teacher/custom_exam.php"]:
+        assert 'name="ai_copy_guard"' in read(form)
+    assert "examAiCopyGuardEnabled($pdo" in take
+    assert "event.clipboardData?.setData('text/plain', aiCopyGuardPrompt)" in take
+    assert "reportAiGuardViolation('copy_paste')" in take
+    assert "reportAiGuardViolation('screenshot_attempt')" in take
+    assert "document.addEventListener('paste', (event)" in take
+    assert "PrintScreen" in take
+    context_menu = take.split("document.addEventListener('contextmenu'", 1)[1].split("document.addEventListener('keydown'", 1)[0]
+    assert "event.preventDefault()" in context_menu
+    assert "reportAiGuardViolation" not in context_menu
+    assert "ExamEngine.reportViolation('other'" not in take
+    for endpoint in [action, legacy_action]:
+        assert "screenshot_attempt" in endpoint
+        assert "notifyTeacherAboutExamAiGuard" in endpoint
+    assert "lastViolationReports[type]" in engine
+    assert "this.state.lastViolationReports[type] = now" in engine
+    guard_helpers = functions.split("function examAiCopyGuardSettingKey", 1)[1].split("function featureBlockTargetRoleValues", 1)[0]
+    assert "CREATE TABLE" not in guard_helpers
+    assert "ALTER TABLE" not in guard_helpers
+    assert 'Proszę nie oszukiwać, zostało to zgłoszone do nauczyciela' in functions
+    assert "'|' . $violationType" in guard_helpers
+
+
 def test_admin_dashboard_avoids_duplicate_aggregation_and_listener_fanout() -> None:
     admin = read("admin.php")
     functions = read("includes/functions.php")
@@ -2013,6 +2020,66 @@ def test_admin_dashboard_avoids_duplicate_aggregation_and_listener_fanout() -> N
     assert "document.querySelectorAll('button[data-admin-confirm]').forEach" not in admin
     assert "function getAllAdminRequests($pdo, ?int $limit = null)" in functions
     assert "function countOpenAdminRequests(PDO $pdo): int" in functions
+
+
+def test_database_read_performance_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    assert php is not None, "PHP CLI is required for database read performance tests"
+    result = subprocess.run(
+        [php, str(ROOT / "tests/db_read_performance_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "database read performance runtime OK" in result.stdout
+
+
+def test_optional_mfa_prompt_runtime_suite() -> None:
+    php = shutil.which("php")
+    if php is None:
+        xampp_php = Path("C:/xampp/php/php.exe")
+        php = str(xampp_php) if xampp_php.exists() else None
+    assert php is not None, "PHP CLI is required for optional MFA prompt runtime tests"
+    result = subprocess.run(
+        [php, str(ROOT / "tests/mfa_optional_prompt_runtime.php")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "optional MFA prompt runtime OK" in result.stdout
+
+
+def test_optional_mfa_uses_popup_instead_of_notifications() -> None:
+    functions = read("includes/functions.php")
+    topbar = read("includes/topbar.php")
+    response = read("actions/respond_mfa_prompt.php")
+
+    assert "function getPendingOptionalMfaPrompt" in functions
+    assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in functions
+    assert 'id="optionalMfaPrompt"' in topbar
+    assert "getPendingOptionalMfaPrompt(" in topbar
+    assert 'value="setup"' in topbar
+    assert 'value="decline"' in topbar
+    assert "dialog.showModal()" in topbar
+    assert "securityValidateRequestCsrf('mfa_prompt')" in response
+    assert "SELECT role FROM users WHERE id = ? LIMIT 1" in response
+    assert "type = 'mfa_optional_prompt'" in response
+    assert "redirect('../mfa.php')" in response
+    assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("notifications.php")
+    assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("actions/mark_read.php")
+    assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("actions/delete_notification.php")
+    assert "type = 'mfa_optional_declined'" in response
+    assert "CREATE TABLE" not in response
+    assert "ALTER TABLE" not in response
 
 
 if __name__ == "__main__":

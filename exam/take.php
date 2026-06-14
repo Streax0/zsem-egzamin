@@ -510,6 +510,10 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
         event.clipboardData?.setData('text/plain', aiCopyGuardPrompt);
         reportAiGuardViolation('copy_paste');
     });
+    document.addEventListener('paste', (event) => {
+        event.preventDefault();
+        reportAiGuardViolation('copy_paste');
+    });
     document.addEventListener('dragstart', (event) => {
         if (event.target.closest?.('.ai-copy-guard')) {
             event.preventDefault();
@@ -519,13 +523,18 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
     document.addEventListener('contextmenu', (event) => {
         if (event.target.closest?.('.ai-copy-guard')) {
             event.preventDefault();
-            reportAiGuardViolation('copy_paste');
         }
     });
     document.addEventListener('keydown', (event) => {
-        if ((event.ctrlKey || event.metaKey) && ['c', 'x'].includes(event.key.toLowerCase())) {
+        const key = event.key.toLowerCase();
+        const copyShortcut = (event.ctrlKey || event.metaKey) && ['c', 'x'].includes(key);
+        const pasteShortcut = ((event.ctrlKey || event.metaKey) && key === 'v') || (event.shiftKey && key === 'insert');
+        if (copyShortcut) {
             event.preventDefault();
             navigator.clipboard?.writeText(aiCopyGuardPrompt).catch(() => {});
+            reportAiGuardViolation('copy_paste');
+        } else if (pasteShortcut) {
+            event.preventDefault();
             reportAiGuardViolation('copy_paste');
         }
     });
@@ -549,9 +558,6 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
     <?php endif; ?>
     document.addEventListener('paste', () => {
         ExamEngine.reportViolation('copy_paste', <?= $sessionId ?>, <?= $participant['id'] ?>, <?= $currentQuestion['id'] ?? 0 ?>);
-    });
-    document.addEventListener('contextmenu', () => {
-        ExamEngine.reportViolation('other', <?= $sessionId ?>, <?= $participant['id'] ?>, <?= $currentQuestion['id'] ?? 0 ?>);
     });
     window.addEventListener('blur', () => {
         // Blur often fires with visibilitychange. We only report it if the tab is actually still visible (e.g. alt-tab to another app)

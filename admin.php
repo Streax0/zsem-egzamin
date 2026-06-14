@@ -1505,14 +1505,6 @@ if (is_array($rawFlash)) {
         body.dark-mode.admin-page .modal-content .text-muted {
             color: #475569 !important;
         }
-        body.dark-mode.admin-page .modal-content,
-        body.dark-mode.admin-page .modal-content .fw-bold,
-        body.dark-mode.admin-page .modal-content .text-dark {
-            color: #0f172a !important;
-        }
-        body.dark-mode.admin-page .modal-content .text-muted {
-            color: #475569 !important;
-        }
         body.admin-page .modal-open .sidebar,
         body.admin-page.modal-open .sidebar {
             pointer-events: none;

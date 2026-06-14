@@ -24,7 +24,7 @@ if (empty($rateLimit['allowed'])) {
 
 try {
     if ($deleteAll) {
-        $stmt = $pdo->prepare('DELETE FROM notifications WHERE user_id = ?');
+        $stmt = $pdo->prepare("DELETE FROM notifications WHERE user_id = ? AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')");
         $stmt->execute([$userId]);
         setSessionMessage('info', 'Wszystkie powiadomienia zostały usunięte.');
     } elseif ($notificationId > 0) {

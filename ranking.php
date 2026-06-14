@@ -9,6 +9,7 @@ requireLogin();
 
 $userId = $_SESSION['user_id'];
 $topUsers = getTopRankings($pdo, 200);
+$rankingStreaks = getUsersPerformanceStreaks($pdo, array_column($topUsers, 'id'));
 $userOfDay = getUserOfDay($pdo);
 $rankDefinitions = getRankDefinitions($pdo);
 $rankingEvents = getRankingEvents($pdo, 6);
@@ -338,7 +339,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                                 $rank = $index + 1;
                                                 $isMe = ($u['id'] == $userId);
                                                 $rowRankInfo = getRankInfoByXp((int)$u['xp']);
-                                                $rowStreak = getUserPerformanceStreak($pdo, (int)$u['id']);
+                                                $rowStreak = $rankingStreaks[(int)$u['id']] ?? classifyUserPerformanceStreakScores([]);
                                                 $rowProgress = max(((int)$u['xp'] > 0 ? 4 : 0), (int)($rowRankInfo['progress'] ?? 0));
                                                 $rowAvatar = userAvatarSrc($u['avatar_path'] ?? '');
                                             ?>

@@ -198,31 +198,57 @@ function dbIdentifier(string $name): string {
     return '`' . $name . '`';
 }
 
+function &dbRequestRuntimeCache(): array {
+    static $cache = [];
+    return $cache;
+}
+
 function dbTableExists(PDO $pdo, string $table): bool {
+    $cache =& dbRequestRuntimeCache();
+    $cacheKey = 'table:' . spl_object_id($pdo) . ':' . $table;
+    if (($cache[$cacheKey] ?? false) === true) {
+        return true;
+    }
     try {
         $stmt = $pdo->prepare('SHOW TABLES LIKE ?');
         $stmt->execute([$table]);
-        return (bool)$stmt->fetchColumn();
+        $exists = (bool)$stmt->fetchColumn();
+        if ($exists) $cache[$cacheKey] = true;
+        return $exists;
     } catch (PDOException $e) {
         return false;
     }
 }
 
 function dbColumnExists(PDO $pdo, string $table, string $column): bool {
+    $cache =& dbRequestRuntimeCache();
+    $cacheKey = 'column:' . spl_object_id($pdo) . ':' . $table . ':' . $column;
+    if (($cache[$cacheKey] ?? false) === true) {
+        return true;
+    }
     try {
         $stmt = $pdo->prepare('SHOW COLUMNS FROM ' . dbIdentifier($table) . ' LIKE ?');
         $stmt->execute([$column]);
-        return (bool)$stmt->fetch();
+        $exists = (bool)$stmt->fetch();
+        if ($exists) $cache[$cacheKey] = true;
+        return $exists;
     } catch (Throwable $e) {
         return false;
     }
 }
 
 function dbIndexExists(PDO $pdo, string $table, string $index): bool {
+    $cache =& dbRequestRuntimeCache();
+    $cacheKey = 'index:' . spl_object_id($pdo) . ':' . $table . ':' . $index;
+    if (($cache[$cacheKey] ?? false) === true) {
+        return true;
+    }
     try {
         $stmt = $pdo->prepare('SHOW INDEX FROM ' . dbIdentifier($table) . ' WHERE Key_name = ?');
         $stmt->execute([$index]);
-        return (bool)$stmt->fetch();
+        $exists = (bool)$stmt->fetch();
+        if ($exists) $cache[$cacheKey] = true;
+        return $exists;
     } catch (Throwable $e) {
         return false;
     }
@@ -811,11 +837,17 @@ function ensurePlatformEnhancements(PDO $pdo): void {
 }
 
 function getAppSetting(PDO $pdo, string $key, $default = null) {
+    $cache =& dbRequestRuntimeCache();
+    $cacheKey = 'setting:' . spl_object_id($pdo) . ':' . $key;
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey]['found'] ? $cache[$cacheKey]['value'] : $default;
+    }
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = ? LIMIT 1');
         $stmt->execute([$key]);
         $value = $stmt->fetchColumn();
+        $cache[$cacheKey] = ['found' => $value !== false, 'value' => $value];
         return $value === false ? $default : $value;
     } catch (PDOException $e) {
         return $default;
@@ -826,7 +858,12 @@ function setAppSetting(PDO $pdo, string $key, $value): bool {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare('INSERT INTO app_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
-        return $stmt->execute([$key, (string)$value]);
+        $saved = $stmt->execute([$key, (string)$value]);
+        if ($saved) {
+            $cache =& dbRequestRuntimeCache();
+            $cache['setting:' . spl_object_id($pdo) . ':' . $key] = ['found' => true, 'value' => (string)$value];
+        }
+        return $saved;
     } catch (PDOException $e) {
         error_log('App setting save failed: ' . $e->getMessage());
         return false;
@@ -1141,7 +1178,7 @@ function notifyTeacherAboutExamAiGuard(PDO $pdo, array $sessionInfo, array $part
     $incident = $violationType === 'screenshot_attempt' ? 'próbował wykonać zrzut ekranu' : 'próbował skopiować treść pytania';
     $examTitle = trim((string)($sessionInfo['exam_title'] ?? 'sprawdzian'));
     $message = $participantName . ' ' . $incident . ' podczas sprawdzianu „' . $examTitle . '”.';
-    $dedupeKey = hash('sha256', 'exam-ai-guard|' . $sessionId . '|' . $participantId);
+    $dedupeKey = hash('sha256', 'exam-ai-guard|' . $sessionId . '|' . $participantId . '|' . $violationType);
 
     try {
         $check = $pdo->prepare('SELECT id FROM notifications WHERE user_id = ? AND dedupe_key = ? LIMIT 1');
@@ -2553,12 +2590,13 @@ function getUserStats($pdo, $userId) {
     ];
 
     try {
-        // Total tests and average score
+        // Test result aggregates share the same completion predicate, so fetch them together.
         $completedSql = completedFullTestSql('tr', 1, true);
         $stmt = $pdo->prepare("
             SELECT
                 COUNT(*) as total_tests,
-                AVG(score_percent) as average_score
+                AVG(score_percent) as average_score,
+                COALESCE(SUM(time_spent), 0) as total_time
             FROM test_results tr
             WHERE tr.user_id = :user_id AND {$completedSql}
         ");
@@ -2568,34 +2606,28 @@ function getUserStats($pdo, $userId) {
         if ($result) {
             $stats['tests_taken'] = (int)($result['total_tests'] ?? 0);
             $stats['average_score'] = round((float)($result['average_score'] ?? 0.0), 2);
+            $stats['total_time_seconds'] = (int)($result['total_time'] ?? 0);
         }
 
-        // Total time spent
+        // Mastery and progress use the same user rows, so fetch them together.
         $stmt = $pdo->prepare("
-            SELECT SUM(time_spent) as total_time
-            FROM test_results tr
-            WHERE tr.user_id = :user_id AND {$completedSql}
-        ");
-        $stmt->execute([':user_id' => $userId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $stats['total_time_seconds'] = (int)($result['total_time'] ?? 0);
-
-        // Mastered questions count
-        $stmt = $pdo->prepare("
-            SELECT COUNT(*) as mastered_count
+            SELECT
+                SUM(CASE WHEN is_mastered = 1 THEN 1 ELSE 0 END) as mastered_count,
+                COUNT(DISTINCT question_id) as seen_count
             FROM user_question_progress
-            WHERE user_id = :user_id AND is_mastered = 1
+            WHERE user_id = :user_id
         ");
         $stmt->execute([':user_id' => $userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $stats['mastered_questions'] = (int)($result['mastered_count'] ?? 0);
+        $seenCount = (int)($result['seen_count'] ?? 0);
 
         // Calculate progress percentage based on total questions available
         try {
             $questions = loadQuestions($pdo);
             $totalQuestions = is_array($questions) ? count($questions) : 0;
             if ($totalQuestions > 0) {
-                $stats['progress_percentage'] = getProgressPercentage($pdo, $userId, $totalQuestions);
+                $stats['progress_percentage'] = min(100.0, round(($seenCount / $totalQuestions) * 100, 2));
             } else {
                 $stats['progress_percentage'] = 0.0;
             }
@@ -4696,6 +4728,77 @@ function getTopRankings($pdo, $limit = 10) {
     return $stmt->fetchAll();
 }
 
+function classifyUserPerformanceStreakScores(array $scores): array {
+    if (empty($scores)) {
+        return ['type' => 'none', 'label' => 'bez serii', 'count' => 0, 'class' => 'streak-neutral'];
+    }
+
+    $first = (float)$scores[0];
+    if ($first >= 80) {
+        $count = 0;
+        foreach ($scores as $score) {
+            if ((float)$score < 80) break;
+            $count++;
+        }
+        return ['type' => 'win', 'label' => '🔥 x' . $count, 'count' => $count, 'class' => 'streak-fire'];
+    }
+
+    if ($first < 50) {
+        $count = 0;
+        foreach ($scores as $score) {
+            if ((float)$score >= 50) break;
+            $count++;
+        }
+        return ['type' => 'cold', 'label' => '❄ cold' . ($count > 1 ? ' x' . $count : ''), 'count' => $count, 'class' => 'streak-cold'];
+    }
+
+    return ['type' => 'none', 'label' => 'stabilnie', 'count' => 0, 'class' => 'streak-neutral'];
+}
+
+function getUsersPerformanceStreaks(PDO $pdo, array $userIds): array {
+    $userIds = array_values(array_unique(array_filter(array_map('intval', $userIds), static fn(int $id): bool => $id > 0)));
+    if (empty($userIds)) return [];
+
+    $result = [];
+    foreach ($userIds as $userId) {
+        $result[$userId] = classifyUserPerformanceStreakScores([]);
+    }
+
+    try {
+        $completedSql = completedFullTestSql('tr', 40, true);
+        $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+        $stmt = $pdo->prepare("
+            SELECT ranked.user_id, ranked.score_percent
+            FROM (
+                SELECT tr.user_id, tr.score_percent,
+                    ROW_NUMBER() OVER (PARTITION BY tr.user_id ORDER BY tr.test_date DESC, tr.id DESC) AS row_num
+                FROM test_results tr
+                WHERE tr.user_id IN ({$placeholders})
+                  AND {$completedSql}
+                  AND COALESCE(tr.exclude_from_ranking, 0) = 0
+            ) ranked
+            WHERE ranked.row_num <= 20
+            ORDER BY ranked.user_id, ranked.row_num
+        ");
+        $stmt->execute($userIds);
+
+        $scoresByUser = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $scoresByUser[(int)$row['user_id']][] = (float)$row['score_percent'];
+        }
+        foreach ($scoresByUser as $userId => $scores) {
+            $result[$userId] = classifyUserPerformanceStreakScores($scores);
+        }
+    } catch (PDOException $e) {
+        error_log('Bulk performance streak error: ' . $e->getMessage());
+        foreach ($userIds as $userId) {
+            $result[$userId] = getUserPerformanceStreak($pdo, $userId);
+        }
+    }
+
+    return $result;
+}
+
 function getUserPerformanceStreak($pdo, $userId) {
     try {
         $completedSql = completedFullTestSql('tr', 40, true);
@@ -4707,34 +4810,11 @@ function getUserPerformanceStreak($pdo, $userId) {
             LIMIT 20
         ");
         $stmt->execute([$userId]);
-        $scores = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        if (empty($scores)) {
-            return ['type' => 'none', 'label' => 'bez serii', 'count' => 0, 'class' => 'streak-neutral'];
-        }
-
-        $first = (float)$scores[0];
-        if ($first >= 80) {
-            $count = 0;
-            foreach ($scores as $score) {
-                if ((float)$score >= 80) $count++;
-                else break;
-            }
-            return ['type' => 'win', 'label' => '🔥 x' . $count, 'count' => $count, 'class' => 'streak-fire'];
-        }
-
-        if ($first < 50) {
-            $count = 0;
-            foreach ($scores as $score) {
-                if ((float)$score < 50) $count++;
-                else break;
-            }
-            return ['type' => 'cold', 'label' => '❄ cold' . ($count > 1 ? ' x' . $count : ''), 'count' => $count, 'class' => 'streak-cold'];
-        }
+        return classifyUserPerformanceStreakScores($stmt->fetchAll(PDO::FETCH_COLUMN));
     } catch (PDOException $e) {
         error_log('Performance streak error: ' . $e->getMessage());
+        return classifyUserPerformanceStreakScores([]);
     }
-
-    return ['type' => 'none', 'label' => 'stabilnie', 'count' => 0, 'class' => 'streak-neutral'];
 }
 
 function getUserOfDay($pdo) {
@@ -4914,8 +4994,10 @@ function addNotification($pdo, $userId, $type, $message, $actionUrl = null, ?str
  */
 function getNotifications($pdo, $userId, $limit = 5) {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?");
-        $stmt->execute([$userId, $limit]);
+        $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined') ORDER BY created_at DESC LIMIT ?");
+        $stmt->bindValue(1, (int)$userId, PDO::PARAM_INT);
+        $stmt->bindValue(2, max(1, min(100, (int)$limit)), PDO::PARAM_INT);
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         return [];
@@ -5195,7 +5277,7 @@ function buildNotificationsDropdownPayload(PDO $pdo, int $userId, string $baseUr
  */
 function getUnreadNotificationsCount($pdo, $userId) {
     try {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0 AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')");
         $stmt->execute([$userId]);
         return (int)$stmt->fetchColumn();
     } catch (PDOException $e) {
@@ -5445,6 +5527,31 @@ function normalizeNotificationActionUrl($url): ?string {
     return mb_substr(ltrim($url, '/'), 0, 500);
 }
 
+function getPendingOptionalMfaPrompt(PDO $pdo, int $userId, string $role): ?array {
+    if ($userId <= 0 || !in_array($role, ['teacher', 'dyrektor'], true)) {
+        return null;
+    }
+    if (function_exists('mfaUserHasEnabled') && mfaUserHasEnabled($pdo, $userId)) {
+        return null;
+    }
+
+    try {
+        $stmt = $pdo->prepare("
+            SELECT id
+            FROM notifications
+            WHERE user_id = ? AND type = 'mfa_optional_prompt'
+            ORDER BY created_at DESC, id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$userId]);
+        $notificationId = (int)($stmt->fetchColumn() ?: 0);
+        return $notificationId > 0 ? ['id' => $notificationId] : null;
+    } catch (PDOException $e) {
+        error_log('Optional MFA prompt lookup failed: ' . $e->getMessage());
+        return null;
+    }
+}
+
 function notificationActionHref($actionUrl, string $baseUrl = ''): ?string {
     $normalized = normalizeNotificationActionUrl($actionUrl);
     if ($normalized === null) return null;
@@ -5582,8 +5689,7 @@ function getAllAdminRequests($pdo, ?int $limit = null) {
             ORDER BY ar.created_at DESC
         ";
         if ($limit !== null) {
-            $sql .= ' LIMIT ?';
-            $stmt = $pdo->prepare($sql);
+            $stmt = $pdo->prepare($sql . ' LIMIT ?');
             $stmt->bindValue(1, max(1, min(100, $limit)), PDO::PARAM_INT);
             $stmt->execute();
         } else {

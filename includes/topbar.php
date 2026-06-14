@@ -23,6 +23,7 @@ unset($_SESSION['sandbox_element_block_notice']);
     <?php
     $unreadCount = 0;
     $notifications = [];
+    $mfaPromptNotification = null;
     $topbarUser = [
         'role' => $isGuestTopbar ? 'guest' : ($_SESSION['role'] ?? 'user'),
         'username' => $isGuestTopbar ? 'Gosc' : ($_SESSION['username'] ?? ''),
@@ -47,6 +48,13 @@ unset($_SESSION['sandbox_element_block_notice']);
             }
         } catch (Exception $e) {
             // Keep session fallback.
+        }
+        if (function_exists('getPendingOptionalMfaPrompt')) {
+            $mfaPromptNotification = getPendingOptionalMfaPrompt(
+                $pdo,
+                (int)$_SESSION['user_id'],
+                (string)($topbarUser['role'] ?? $_SESSION['role'] ?? 'user')
+            );
         }
     }
     $decisionNotification = null;
@@ -161,6 +169,66 @@ unset($_SESSION['sandbox_element_block_notice']);
     </div>
     </div>
 </header>
+
+<?php if (is_array($mfaPromptNotification)): ?>
+<style>
+.mfa-choice-dialog {
+    width: min(92vw, 520px);
+    padding: 0;
+    border: 0;
+    border-radius: 24px;
+    color: #0f172a;
+    background: #fff;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, .28);
+}
+.mfa-choice-dialog::backdrop { background: rgba(15, 23, 42, .62); backdrop-filter: blur(5px); }
+.mfa-choice-dialog-card { padding: 2rem; text-align: center; }
+.mfa-choice-dialog-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    color: #1d4ed8;
+    background: #dbeafe;
+    font-size: 2rem;
+}
+.mfa-choice-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 1.5rem; }
+body.dark-mode .mfa-choice-dialog { color: #e5e7eb; background: #1e293b; }
+body.dark-mode .mfa-choice-dialog .text-muted { color: #cbd5e1 !important; }
+@media (max-width: 575.98px) {
+    .mfa-choice-dialog-card { padding: 1.5rem; }
+    .mfa-choice-dialog-actions { grid-template-columns: 1fr; }
+}
+</style>
+<dialog class="mfa-choice-dialog" id="optionalMfaPrompt" aria-labelledby="optionalMfaPromptTitle" aria-describedby="optionalMfaPromptText">
+    <div class="mfa-choice-dialog-card">
+        <div class="mfa-choice-dialog-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></div>
+        <h2 class="h4 fw-bold mb-2" id="optionalMfaPromptTitle">Włączyć uwierzytelnianie 2FA?</h2>
+        <p class="text-muted mb-0" id="optionalMfaPromptText">2FA dodatkowo chroni konto nauczyciela lub dyrektora. Po wybraniu „Ustaw teraz” zeskanujesz kod QR i aktywujesz zabezpieczenie kodem z aplikacji.</p>
+        <form action="<?php echo htmlspecialchars($base_url); ?>actions/respond_mfa_prompt.php" method="POST" class="mfa-choice-dialog-actions">
+            <?php echo csrfTokenField('mfa_prompt'); ?>
+            <input type="hidden" name="notification_id" value="<?php echo (int)$mfaPromptNotification['id']; ?>">
+            <button type="submit" class="btn btn-light border rounded-pill" name="decision" value="decline">Nie, dziękuję</button>
+            <button type="submit" class="btn btn-primary rounded-pill" name="decision" value="setup"><i class="bi bi-phone-lock me-1"></i>Ustaw teraz</button>
+        </form>
+        <div class="small text-muted mt-3">Po odmowie 2FA pozostanie wyłączone. Nadal możesz włączyć je ręcznie w Ustawieniach → Bezpieczeństwo.</div>
+    </div>
+</dialog>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dialog = document.getElementById('optionalMfaPrompt');
+    if (!dialog) return;
+    dialog.addEventListener('cancel', (event) => event.preventDefault());
+    if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+    } else {
+        dialog.setAttribute('open', '');
+    }
+});
+</script>
+<?php endif; ?>
 
 <?php if (is_array($pageBlockAdminNotice)): ?>
 <div class="container-fluid px-4 pt-3 feature-block-notice">

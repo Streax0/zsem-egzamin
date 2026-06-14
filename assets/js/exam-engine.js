@@ -5,7 +5,8 @@ const ExamEngine = {
     state: {
         isBusy: false,
         startTime: Date.now(),
-        questionStartTime: Date.now()
+        questionStartTime: Date.now(),
+        lastViolationReports: Object.create(null)
     },
 
     init() {
@@ -98,11 +99,12 @@ const ExamEngine = {
     reportViolation(type, sessionId, participantId, questionId) {
         // Prevent double hits (debounce)
         const now = Date.now();
-        if (this.state.lastViolationReport && (now - this.state.lastViolationReport < 2000)) {
+        const lastReport = this.state.lastViolationReports[type] || 0;
+        if (now - lastReport < 2000) {
             console.warn('Violation report debounced');
             return;
         }
-        this.state.lastViolationReport = now;
+        this.state.lastViolationReports[type] = now;
 
         const formData = new FormData();
         formData.append('action', 'report_violation');

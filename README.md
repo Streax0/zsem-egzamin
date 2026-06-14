@@ -65,9 +65,11 @@ Utwórz plik `.env` w katalogu głównym projektu i dodaj:
 
 ```env
 MYSQL_HOST=localhost
+MYSQL_PORT=3306
 MYSQL_DATABASE=inf02_platform
 MYSQL_USER=root
 MYSQL_PASSWORD=
+MYSQL_CONNECT_TIMEOUT=5
 APP_ENV=local
 APP_BASE_URL=http://localhost/public_html
 APP_TRUST_PROXY_HEADERS=false
@@ -75,6 +77,8 @@ APP_TRUSTED_PROXY_IPS=
 ```
 
 Pełny, bezpieczny szablon znajduje się w `.env.example`. `APP_BASE_URL` musi wskazywać kanoniczny publiczny adres aplikacji. Nagłówki proxy wolno włączyć tylko razem z `APP_TRUSTED_PROXY_IPS` zawierającym dokładne adresy lub zakresy CIDR zaufanych proxy.
+
+Dla zdalnej bazy można ustawić `MYSQL_SSL_CA`, a przy uwierzytelnianiu certyfikatem także oba pola `MYSQL_SSL_CERT` i `MYSQL_SSL_KEY`. Połączenie TLS zawsze weryfikuje certyfikat serwera. `MYSQL_CONNECT_TIMEOUT` jest ograniczony do 1-30 sekund; połączenia trwałe i wielokrotne instrukcje SQL są wyłączone.
 
 Przy terminacji TLS na reverse proxy ustaw po stronie Apache/PHP zaufany stan HTTPS (`HTTPS=on` lub równoważną konfigurację vhosta). Aplikacja i `.htaccess` celowo nie uznają samego nagłówka klienta `X-Forwarded-Proto` za dowód bezpiecznego połączenia.
 

@@ -32,7 +32,7 @@ foreach ($notifications as $notification) {
 }
 
 // Mark all as read when visiting this page
-$pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?")->execute([$userId]);
+$pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')")->execute([$userId]);
 ?>
 <!DOCTYPE html>
 <html lang="pl">

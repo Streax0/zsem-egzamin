@@ -84,6 +84,17 @@ checkExamAiGuard($notificationInsert->params[1] === 'exam_ai_guard', 'notificati
 checkExamAiGuard(str_contains($notificationInsert->params[2], 'Jan Kowalski próbował skopiować'), 'notification message invalid');
 checkExamAiGuard($notificationInsert->params[4] === 'teacher/exam_details.php?session=34', 'notification URL invalid');
 
+$screenshotPdo = new ExamAiGuardPdoStub();
+checkExamAiGuard(notifyTeacherAboutExamAiGuard($screenshotPdo, $sessionInfo, $participant, 'screenshot_attempt'), 'screenshot notification failed');
+$screenshotInsert = null;
+foreach ($screenshotPdo->statements as $statement) {
+    if (str_contains($statement->sql, 'INSERT INTO notifications')) {
+        $screenshotInsert = $statement;
+    }
+}
+checkExamAiGuard($screenshotInsert instanceof ExamAiGuardStatementStub, 'screenshot notification insert missing');
+checkExamAiGuard($screenshotInsert->params[3] !== $notificationInsert->params[3], 'copy and screenshot notifications share dedupe key');
+
 $dedupedPdo = new ExamAiGuardPdoStub();
 $dedupedPdo->notificationExists = true;
 checkExamAiGuard(notifyTeacherAboutExamAiGuard($dedupedPdo, $sessionInfo, $participant, 'screenshot_attempt'), 'deduped notification failed');
