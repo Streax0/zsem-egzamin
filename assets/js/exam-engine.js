@@ -6,7 +6,8 @@ const ExamEngine = {
         isBusy: false,
         startTime: Date.now(),
         questionStartTime: Date.now(),
-        lastViolationReports: Object.create(null)
+        lastViolationReports: Object.create(null),
+        pendingViolationReports: Object.create(null)
     },
 
     init() {
@@ -104,7 +105,11 @@ const ExamEngine = {
             console.warn('Violation report debounced');
             return;
         }
-        this.state.lastViolationReports[type] = now;
+        if (this.state.pendingViolationReports[type]) {
+            console.warn('Violation report already pending');
+            return;
+        }
+        this.state.pendingViolationReports[type] = true;
 
         const formData = new FormData();
         formData.append('action', 'report_violation');
@@ -115,22 +120,25 @@ const ExamEngine = {
 
         this.postExamAction(formData).then(data => {
             if (data.success) {
+                this.state.lastViolationReports[type] = Date.now();
                 // Update UI counter for student
                 const counter = document.getElementById('violationCount');
                 if (counter) {
                     let val = parseInt(counter.textContent) || 0;
                     counter.textContent = val + 1;
                 }
+                const warn = document.createElement('div');
+                warn.className = 'alert alert-danger position-fixed top-0 start-50 translate-middle-x mt-3 shadow-lg';
+                warn.style.zIndex = '10000';
+                warn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Ostrzeżenie!</strong> Naruszenie zasad zostało odnotowane.';
+                document.body.appendChild(warn);
+                setTimeout(() => warn.remove(), 4000);
+            } else {
+                console.warn('Violation report rejected:', data.error || 'unknown error');
             }
-        }).catch(e => console.error('Violation Report Error:', e));
-
-        // Show UI warning popup
-        const warn = document.createElement('div');
-        warn.className = 'alert alert-danger position-fixed top-0 start-50 translate-middle-x mt-3 shadow-lg';
-        warn.style.zIndex = '10000';
-        warn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Ostrzeżenie!</strong> Naruszenie zasad zostało odnotowane.';
-        document.body.appendChild(warn);
-        setTimeout(() => warn.remove(), 4000);
+        }).catch(e => console.error('Violation Report Error:', e)).finally(() => {
+            this.state.pendingViolationReports[type] = false;
+        });
     },
 
     selectOption(el, letter) {

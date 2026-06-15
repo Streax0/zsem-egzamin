@@ -190,6 +190,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: auto;
 }
 
+.sidebar-footer .sidebar-item.text-danger {
+  color: #fca5a5 !important;
+}
+
+.sidebar-footer .sidebar-item.text-danger:hover {
+  color: #ffffff !important;
+}
+
 .main-container {
   flex: 1;
   margin-left: 260px;
@@ -1728,10 +1736,14 @@ body.dark-mode .review-box {
 
 .key-hint {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: #475569;
   display: flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+body.dark-mode .key-hint {
+  color: #cbd5e1;
 }
 
 kbd {

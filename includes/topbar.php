@@ -211,7 +211,7 @@ body.dark-mode .mfa-choice-dialog .text-muted { color: #cbd5e1 !important; }
             <?php echo csrfTokenField('mfa_prompt'); ?>
             <input type="hidden" name="notification_id" value="<?php echo (int)$mfaPromptNotification['id']; ?>">
             <button type="submit" class="btn btn-light border rounded-pill" name="decision" value="decline">Nie, dziękuję</button>
-            <button type="submit" class="btn btn-primary rounded-pill" name="decision" value="setup"><i class="bi bi-phone-lock me-1"></i>Ustaw teraz</button>
+            <button type="submit" class="btn btn-primary rounded-pill" name="decision" value="accept"><i class="bi bi-phone-lock me-1"></i>Tak, ustaw teraz</button>
         </form>
         <div class="small text-muted mt-3">Po odmowie 2FA pozostanie wyłączone. Nadal możesz włączyć je ręcznie w Ustawieniach → Bezpieczeństwo.</div>
     </div>

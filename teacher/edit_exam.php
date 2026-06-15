@@ -121,7 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $resultsAvailableAt, $printIncludeAnswerKey, $newGradeThresholds, $examId, $userId
         ]);
         
-        setExamAiCopyGuard($pdo, $examId, $aiCopyGuard);
+        if (!setExamAiCopyGuard($pdo, $examId, $aiCopyGuard)) {
+            setSessionMessage('error', 'Nie udało się zapisać ustawienia ochrony AI. Pozostałe zmiany mogły zostać zapisane.');
+            redirect('edit_exam.php?id=' . $examId);
+        }
         setSessionMessage('success', "Zmiany w sprawdzianie \"$title\" zostały zapisane.");
         redirect('index.php');
     } catch (PDOException $e) {
@@ -142,7 +145,7 @@ $flashMsg = getSessionMessage();
     <title>Edytuj sprawdzian – ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
     <style>

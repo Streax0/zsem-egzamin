@@ -182,13 +182,10 @@ function appDbConfigureSession(PDO $pdo, string $appEnv): void {
     $environment = strtolower(trim($appEnv));
     if (in_array($environment, ['local', 'dev', 'development', 'test', 'testing'], true)) return;
 
-    $currentMode = (string)$pdo->query('SELECT @@SESSION.sql_mode')->fetchColumn();
-    $modes = array_values(array_unique(array_filter(array_map('trim', explode(',', $currentMode)))));
-    foreach (['STRICT_TRANS_TABLES', 'ERROR_FOR_DIVISION_BY_ZERO'] as $requiredMode) {
-        if (!in_array($requiredMode, $modes, true)) $modes[] = $requiredMode;
-    }
-    $stmt = $pdo->prepare('SET SESSION sql_mode = ?');
-    $stmt->execute([implode(',', $modes)]);
+    $pdo->exec(
+        "SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), "
+        . "'STRICT_TRANS_TABLES', 'ERROR_FOR_DIVISION_BY_ZERO')"
+    );
 }
 
 function appDbPathIsInsidePublicRoot(string $path): bool {

@@ -213,7 +213,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         
         $examId = $pdo->lastInsertId();
-        setExamAiCopyGuard($pdo, (int)$examId, $aiCopyGuard);
+        if (!setExamAiCopyGuard($pdo, (int)$examId, $aiCopyGuard)) {
+            setSessionMessage('error', 'Sprawdzian został utworzony, ale nie udało się zapisać ochrony AI. Wejdź w edycję i spróbuj ponownie.');
+            redirect('edit_exam.php?id=' . (int)$examId);
+        }
         setSessionMessage('success', "Sprawdzian \"$title\" został utworzony! Teraz możesz go zhostować.");
         redirect('host_exam.php?exam=' . $examId);
     } catch (PDOException $e) {
@@ -234,9 +237,7 @@ $flashMsg = getSessionMessage();
     <title>Utwórz sprawdzian – ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
     <style>

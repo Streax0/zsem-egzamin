@@ -968,19 +968,71 @@ def test_cke_mode_labels_and_no_ckz_copy() -> None:
 
 
 def test_external_cdn_resources_have_sri() -> None:
-    missing = []
+    expected_integrity = {
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css":
+            "sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM",
+        "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css":
+            "sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq",
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js":
+            "sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz",
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js":
+            "sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz",
+        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css":
+            "sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH",
+        "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js":
+            "sha384-9Q0jWoineiIq95JeIyBsNV90KKLfDsbkj29k/YFxf76a2JwkHDYkMuSbNGN6XJfV",
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js":
+            "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e",
+        "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js":
+            "sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM",
+    }
+    violations = []
+    seen_urls = set()
     for path in ROOT.rglob("*.php"):
         rel = path.relative_to(ROOT).as_posix()
         content = path.read_text(encoding="utf-8", errors="ignore")
         for match in re.finditer(r"<(?:script|link)\b[^>]+https://[^>]+>", content, re.I):
             tag = match.group(0)
-            if any(allowed in tag for allowed in ("fonts.googleapis.com", "fonts.gstatic.com", "api.qrserver.com")):
+            if "preconnect" in tag:
                 continue
-            if "preconnect" in tag or "workerSrc" in tag:
+            url_match = re.search(r'(?:src|href)=["\'](https://[^"\']+)', tag, re.I)
+            integrity_match = re.search(r'integrity=["\']([^"\']+)', tag, re.I)
+            if not url_match:
+                violations.append(f"{rel}: cannot identify external URL in {tag[:140]}")
                 continue
-            if "integrity=" not in tag or "crossorigin=" not in tag:
-                missing.append(f"{rel}: {tag[:140]}")
-    assert not missing, "external CDN resources without SRI: " + "; ".join(missing)
+            url = url_match.group(1)
+            seen_urls.add(url)
+            expected = expected_integrity.get(url)
+            if expected is None:
+                violations.append(f"{rel}: unapproved external resource {url}")
+                continue
+            if integrity_match is None or integrity_match.group(1) != expected:
+                violations.append(f"{rel}: invalid SRI for {url}")
+            if not re.search(r'crossorigin=["\']anonymous["\']', tag, re.I):
+                violations.append(f"{rel}: missing crossorigin=anonymous for {url}")
+
+    project_text = "\n".join(
+        path.read_text(encoding="utf-8", errors="ignore")
+        for pattern in ("*.php", "*.html")
+        for path in ROOT.rglob(pattern)
+    )
+    assert "fonts.googleapis.com" not in project_text
+    assert "fonts.gstatic.com" not in project_text
+    assert not re.search(r"workerSrc\s*=\s*['\"]https://", project_text)
+    for relative_path in (
+        "assets/css/fonts.css",
+        "assets/fonts/inter-latin-ext.woff2",
+        "assets/fonts/inter-latin.woff2",
+        "assets/fonts/nunito-latin-ext.woff2",
+        "assets/fonts/nunito-latin.woff2",
+        "assets/fonts/OFL-Inter.txt",
+        "assets/fonts/OFL-Nunito.txt",
+        "assets/vendor/pdfjs/pdf.worker.min.js",
+    ):
+        file_path = ROOT / relative_path
+        assert file_path.is_file() and file_path.stat().st_size > 0, f"missing local asset: {relative_path}"
+    assert seen_urls == set(expected_integrity), "SRI allowlist contains unused or missing resources"
+    assert not violations, "external resource SRI violations: " + "; ".join(violations)
 
 
 def test_json_session_guards_cover_private_endpoints() -> None:
@@ -1918,6 +1970,7 @@ def test_notification_and_lesson_pdf_paths_are_confined() -> None:
 
 def test_global_and_admin_text_contrast_guards() -> None:
     style = read("assets/css/style.css")
+    dashboard = read("assets/css/dashboard-new.css")
     admin = read("admin.php")
 
     for rule in [
@@ -1939,6 +1992,12 @@ def test_global_and_admin_text_contrast_guards() -> None:
     assert "body.dark-mode .admin-icon-btn.btn-outline-success" in admin
     assert "color: #6ee7b7 !important;" in admin
     assert 'class="admin-user-email" style="font-size: .8rem; color:' not in admin
+    assert ".sidebar-footer .sidebar-item.text-danger" in dashboard
+    assert "color: #fca5a5 !important;" in dashboard
+    assert ".key-hint {" in dashboard
+    assert "color: #475569;" in dashboard
+    assert "body.dark-mode .key-hint" in dashboard
+    assert "color: #cbd5e1;" in dashboard
 
 
 def test_app_status_fallback_sync_is_session_throttled() -> None:
@@ -1991,13 +2050,22 @@ def test_exam_ai_guard_is_optional_hidden_and_reported() -> None:
     functions = read("includes/functions.php")
 
     for form in ["teacher/create_exam.php", "teacher/edit_exam.php", "teacher/custom_exam.php"]:
-        assert 'name="ai_copy_guard"' in read(form)
+        form_source = read(form)
+        assert 'name="ai_copy_guard"' in form_source
+        assert "if (!setExamAiCopyGuard" in form_source
     assert "examAiCopyGuardEnabled($pdo" in take
-    assert "event.clipboardData?.setData('text/plain', aiCopyGuardPrompt)" in take
+    assert "aiCopyGuardPrompt" not in take
+    assert "examAiCopyGuardPrompt" not in take
+    assert "event.clipboardData?.setData" not in take
+    assert "navigator.clipboard?.writeText" not in take
     assert "reportAiGuardViolation('copy_paste')" in take
     assert "reportAiGuardViolation('screenshot_attempt')" in take
     assert "document.addEventListener('paste', (event)" in take
     assert "PrintScreen" in take
+    assert "function isLikelyScreenshotShortcut(event)" in take
+    assert "event.metaKey && event.shiftKey && key === 's'" in take
+    submit_block = take.split("if ($action === 'submit_answer')", 1)[1].split("if ($q &&", 1)[0]
+    assert "$session['status'] !== 'in_progress'" in submit_block
     context_menu = take.split("document.addEventListener('contextmenu'", 1)[1].split("document.addEventListener('keydown'", 1)[0]
     assert "event.preventDefault()" in context_menu
     assert "reportAiGuardViolation" not in context_menu
@@ -2006,12 +2074,16 @@ def test_exam_ai_guard_is_optional_hidden_and_reported() -> None:
         assert "screenshot_attempt" in endpoint
         assert "notifyTeacherAboutExamAiGuard" in endpoint
     assert "lastViolationReports[type]" in engine
-    assert "this.state.lastViolationReports[type] = now" in engine
+    assert "pendingViolationReports[type]" in engine
+    violation_block = engine.split("reportViolation(type, sessionId, participantId, questionId)", 1)[1]
+    success_block = violation_block.split("if (data.success)", 1)[1].split(".catch", 1)[0]
+    assert "this.state.lastViolationReports[type] = Date.now()" in success_block
+    assert "document.body.appendChild(warn)" in success_block
     guard_helpers = functions.split("function examAiCopyGuardSettingKey", 1)[1].split("function featureBlockTargetRoleValues", 1)[0]
     assert "CREATE TABLE" not in guard_helpers
     assert "ALTER TABLE" not in guard_helpers
-    assert 'Proszę nie oszukiwać, zostało to zgłoszone do nauczyciela' in functions
-    assert "'|' . $violationType" in guard_helpers
+    assert "function examAiCopyGuardPrompt" not in guard_helpers
+    assert "floor(time() / 300)" in guard_helpers
 
 
 def test_admin_dashboard_avoids_duplicate_aggregation_and_listener_fanout() -> None:
@@ -2175,18 +2247,24 @@ def test_optional_mfa_uses_popup_instead_of_notifications() -> None:
     functions = read("includes/functions.php")
     topbar = read("includes/topbar.php")
     response = read("actions/respond_mfa_prompt.php")
+    mfa = read("mfa.php")
 
     assert "function getPendingOptionalMfaPrompt" in functions
+    assert "function clearOptionalMfaPrompt" in functions
+    assert "notifyOptionalMfaForRole($pdo, $userId, $role)" in functions
     assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in functions
     assert 'id="optionalMfaPrompt"' in topbar
     assert "getPendingOptionalMfaPrompt(" in topbar
-    assert 'value="setup"' in topbar
+    assert 'value="accept"' in topbar
     assert 'value="decline"' in topbar
     assert "dialog.showModal()" in topbar
     assert "securityValidateRequestCsrf('mfa_prompt')" in response
     assert "SELECT role FROM users WHERE id = ? LIMIT 1" in response
     assert "type = 'mfa_optional_prompt'" in response
-    assert "redirect('../mfa.php')" in response
+    assert "SELECT id FROM notifications WHERE id = ? AND user_id = ? AND type = 'mfa_optional_prompt' LIMIT 1" in response
+    assert "redirect('../mfa.php?setup=1')" in response
+    assert "DELETE FROM notifications" not in response
+    assert "clearOptionalMfaPrompt($pdo, $userId)" in mfa
     assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("notifications.php")
     assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("actions/mark_read.php")
     assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("actions/delete_notification.php")

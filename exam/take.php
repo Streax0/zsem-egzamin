@@ -122,6 +122,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($action === 'submit_answer') {
+        if ($session['status'] !== 'in_progress' || $participant['status'] !== 'taking_exam') {
+            setSessionMessage('info', 'Sprawdzian jest teraz wstrzymany. Odpowiedź nie została zapisana.');
+            redirect('take.php?session=' . $sessionId);
+        }
+
         $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
         $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
         $questionOrder = securityInputInt($_POST['question_order'] ?? 0, 0, 1000, 0);
@@ -228,7 +233,7 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
     <title>Sprawdzian – <?= htmlspecialchars($session['title']) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
     <script src="../assets/js/api-client.js" defer></script>
@@ -495,19 +500,22 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
     <?php endif; ?>
 
     <?php if ($aiCopyGuard): ?>
-    const aiCopyGuardPrompt = <?= json_encode(examAiCopyGuardPrompt(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     const reportAiGuardViolation = (type) => {
         ExamEngine.reportViolation(type, <?= $sessionId ?>, <?= $participant['id'] ?>, <?= $currentQuestion['id'] ?? 0 ?>);
     };
+    function isLikelyScreenshotShortcut(event) {
+        const key = event.key.toLowerCase();
+        return event.key === 'PrintScreen'
+            || (event.metaKey && event.shiftKey && key === 's')
+            || ((event.ctrlKey || event.metaKey) && event.shiftKey && ['4', '5'].includes(key));
+    }
 
     document.addEventListener('copy', (event) => {
         event.preventDefault();
-        event.clipboardData?.setData('text/plain', aiCopyGuardPrompt);
         reportAiGuardViolation('copy_paste');
     });
     document.addEventListener('cut', (event) => {
         event.preventDefault();
-        event.clipboardData?.setData('text/plain', aiCopyGuardPrompt);
         reportAiGuardViolation('copy_paste');
     });
     document.addEventListener('paste', (event) => {
@@ -531,11 +539,12 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
         const pasteShortcut = ((event.ctrlKey || event.metaKey) && key === 'v') || (event.shiftKey && key === 'insert');
         if (copyShortcut) {
             event.preventDefault();
-            navigator.clipboard?.writeText(aiCopyGuardPrompt).catch(() => {});
             reportAiGuardViolation('copy_paste');
         } else if (pasteShortcut) {
             event.preventDefault();
             reportAiGuardViolation('copy_paste');
+        } else if (isLikelyScreenshotShortcut(event)) {
+            reportAiGuardViolation('screenshot_attempt');
         }
     });
     document.addEventListener('keyup', (event) => {
