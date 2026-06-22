@@ -1,17 +1,46 @@
 User-agent: GPTBot
+Allow: /author_damian.php
+Allow: /author_michal.php
+Allow: /landing.php
 Disallow: /
 
 User-agent: ClaudeBot
+Allow: /author_damian.php
+Allow: /author_michal.php
+Allow: /landing.php
 Disallow: /
 
 User-agent: Google-Extended
+Allow: /author_damian.php
+Allow: /author_michal.php
+Allow: /landing.php
 Disallow: /
 
 User-agent: CCBot
+Allow: /author_damian.php
+Allow: /author_michal.php
+Allow: /landing.php
 Disallow: /
 
 User-agent: FacebookBot
+Allow: /author_damian.php
+Allow: /author_michal.php
+Allow: /landing.php
+Disallow: /
+
+User-agent: PerplexityBot
+Allow: /author_damian.php
+Allow: /author_michal.php
+Allow: /landing.php
+Disallow: /
+
+User-agent: Bytespider
+Allow: /author_damian.php
+Allow: /author_michal.php
+Allow: /landing.php
 Disallow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://zsem-egzamin.online/sitemap.xml

@@ -15,6 +15,18 @@ $isLoggedIn = isLoggedIn();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Profil zawodowy i bio współtwórcy platformy ZSEM Tech: Damian Podgórski. Sprawdź doświadczenie z LinkedIn, projekty i certyfikaty.">
     <meta name="author" content="Damian Podgórski">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta property="og:type" content="profile">
+    <meta property="og:title" content="Damian Podgórski - Współtwórca ZSEM Tech">
+    <meta property="og:description" content="Zastępca Przewodniczącego ZSEM Tech, główny programista platformy testów egzaminacyjnych. Technik informatyk z doświadczeniem w SQL, web development i ekstremalnym overclockingu.">
+    <meta property="og:url" content="https://zsem-egzamin.online/author_damian.php">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="profile:first_name" content="Damian">
+    <meta property="profile:last_name" content="Podgórski">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Damian Podgórski - Współtwórca ZSEM Tech">
+    <meta name="twitter:description" content="Zastępca Przewodniczącego ZSEM Tech, główny programista platformy testów egzaminacyjnych.">
     <title>Damian Podgórski - Współtwórca ZSEM Tech</title>
     
     <!-- Structured JSON-LD Data for search bots and AI crawlers -->

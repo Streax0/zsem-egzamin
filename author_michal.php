@@ -15,6 +15,18 @@ $isLoggedIn = isLoggedIn();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Profil zawodowy i bio przewodniczącego ZSEM Tech: Michał Michalik. Przeczytaj o doświadczeniu z LinkedIn, ZSEM OC CUP i projektach.">
     <meta name="author" content="Michał Michalik">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta property="og:type" content="profile">
+    <meta property="og:title" content="Michał Michalik - Przewodniczący ZSEM Tech">
+    <meta property="og:description" content="Przewodniczący ZSEM Tech, główny koordynator ZSEM OC CUP i współtwórca platformy testów egzaminacyjnych. Lider zespołu z doświadczeniem w zarządzaniu projektami IT.">
+    <meta property="og:url" content="https://zsem-egzamin.online/author_michal.php">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="profile:first_name" content="Michał">
+    <meta property="profile:last_name" content="Michalik">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Michał Michalik - Przewodniczący ZSEM Tech">
+    <meta name="twitter:description" content="Przewodniczący ZSEM Tech, główny koordynator ZSEM OC CUP i współtwórca platformy testów egzaminacyjnych.">
     <title>Michał Michalik - Przewodniczący ZSEM Tech</title>
     
     <!-- Structured JSON-LD Data for search bots and AI crawlers -->
