@@ -1785,7 +1785,7 @@ if (is_array($rawFlash)) {
                                             <div class="d-flex align-items-center gap-3">
                                                 <div class="user-avatar-small bg-primary bg-opacity-10 text-primary fw-bold" style="width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem;">
                                                     <?php if ($adminAvatarSrc !== ''): ?>
-                                                        <img src="<?php echo htmlspecialchars($adminAvatarSrc); ?>" alt="" class="user-avatar-img" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;">
+                                                        <img src="<?php echo htmlspecialchars($adminAvatarSrc); ?>" alt="" class="user-avatar-img" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;" loading="lazy" decoding="async">
                                                     <?php else: ?>
                                                         <?php echo strtoupper(substr($u['username'], 0, 1)); ?>
                                                     <?php endif; ?>

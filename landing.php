@@ -26,7 +26,7 @@ startSecureSession();
     <section class="landing-hero">
         <nav class="landing-nav" aria-label="Główna nawigacja">
             <a href="landing.php" class="landing-brand" aria-label="ZSEM Tech">
-                <img src="zsemtech_profile.ico" alt="" width="36" height="36">
+                <img src="zsemtech_profile.ico" alt="" width="36" height="36" loading="lazy" decoding="async">
                 <span>ZSEM Tech</span>
             </a>
             <div class="landing-nav-actions">

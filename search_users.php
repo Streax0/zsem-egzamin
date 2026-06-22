@@ -196,7 +196,7 @@ if (!empty($query)) {
                                     <article class="user-result-card">
                                         <a href="profile.php?id=<?php echo (int)$user['id']; ?>" class="user-result-main">
                                             <?php if ($avatarSrc): ?>
-                                                <img class="user-avatar-search" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="">
+                                                <img class="user-avatar-search" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" loading="lazy" decoding="async">
                                             <?php else: ?>
                                                 <div class="user-avatar-search" aria-hidden="true">
                                                     <?php echo strtoupper(substr($user['username'], 0, 1)); ?>

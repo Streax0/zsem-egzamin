@@ -397,7 +397,7 @@ try {
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="user-avatar-small bg-warning text-dark fw-bold" style="width:30px; height:30px; font-size:0.7rem;">
                                             <?php if ($activeAvatar): ?>
-                                                <img class="user-avatar-img" src="<?= htmlspecialchars($activeAvatar) ?>" alt="">
+                                                <img class="user-avatar-img" src="<?= htmlspecialchars($activeAvatar) ?>" alt="" loading="lazy" decoding="async">
                                             <?php else: ?>
                                                 <?= strtoupper(substr($duel['opponent_name'], 0, 1)) ?>
                                             <?php endif; ?>
@@ -418,7 +418,7 @@ try {
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="user-avatar-small bg-danger text-white fw-bold" style="width:30px; height:30px; font-size:0.7rem;">
                                             <?php if ($pendingAvatar): ?>
-                                                <img class="user-avatar-img" src="<?= htmlspecialchars($pendingAvatar) ?>" alt="">
+                                                <img class="user-avatar-img" src="<?= htmlspecialchars($pendingAvatar) ?>" alt="" loading="lazy" decoding="async">
                                             <?php else: ?>
                                                 <?= strtoupper(substr($duel['challenger_name'], 0, 1)) ?>
                                             <?php endif; ?>
