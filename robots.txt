@@ -2,42 +2,49 @@ User-agent: GPTBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /llms.txt
 Disallow: /
 
 User-agent: ClaudeBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /llms.txt
 Disallow: /
 
 User-agent: Google-Extended
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /llms.txt
 Disallow: /
 
 User-agent: CCBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /llms.txt
 Disallow: /
 
 User-agent: FacebookBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /llms.txt
 Disallow: /
 
 User-agent: PerplexityBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /llms.txt
 Disallow: /
 
 User-agent: Bytespider
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /llms.txt
 Disallow: /
 
 User-agent: *
