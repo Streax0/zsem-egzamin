@@ -48,32 +48,284 @@ $isLoggedIn = isLoggedIn();
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
     <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <style>
-        body { background: var(--bg-color); color: var(--text-main); font-family: var(--czcionka-glowna, 'Inter', sans-serif); transition: background 0.3s, color 0.3s; }
-        .profile-container { max-width: 960px; margin: 2.5rem auto; padding: 0 1rem 4rem; }
-        .profile-card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 1.25rem; overflow: hidden; box-shadow: var(--cień-sredni); margin-bottom: 2rem; position: relative; }
-        .cover-photo { height: 200px; background: linear-gradient(135deg, #1d4ed8, #0f172a); position: relative; }
-        .cover-mesh { position: absolute; inset: 0; opacity: 0.15; background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 20px 20px; }
-        .avatar-container { position: absolute; top: 120px; left: 2.5rem; width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--panel-bg); background: var(--panel-bg); overflow: hidden; box-shadow: var(--cień-maly); z-index: 2; }
-        .avatar-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--primary-color) 8%, var(--panel-bg)); color: var(--primary-color); font-size: 3.5rem; font-weight: 800; }
-        .author-header-content { padding: 1.5rem 2.5rem 2rem 12.5rem; }
-        .profile-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
-        .profile-section-title { font-size: 1.25rem; font-weight: 800; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: var(--text-main); }
-        .exp-item { display: flex; gap: 1.25rem; margin-bottom: 1.5rem; }
-        .exp-icon { width: 48px; height: 48px; border-radius: 8px; background: color-mix(in srgb, var(--primary-color) 8%, var(--panel-bg)); border: 1px solid var(--border-color); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
-        .exp-details h5 { font-weight: 700; margin-bottom: 0.2rem; color: var(--text-main); }
-        .exp-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .skills-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .skill-badge { background: color-mix(in srgb, var(--primary-color) 8%, var(--panel-bg)); border: 1px solid var(--border-color); color: var(--text-main); font-weight: 600; padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.85rem; }
-        .quick-info-row { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.4rem; }
-        .quick-info-row i { color: var(--primary-color); }
-        .visually-hidden-ai { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+        body { background: var(--bg-color); color: var(--text-main); font-family: var(--czcionka-glowna, 'Inter', sans-serif); transition: background 0.3s, color 0.3s; position: relative; }
+        
+        /* Premium Fade & Slide animation on load */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .profile-container {
+            max-width: 960px;
+            margin: 2.5rem auto;
+            padding: 0 1rem 4rem;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* Glowing background blobs that adapt to dark and light mode */
+        .bg-mesh-blob {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .bg-mesh-blob-1 {
+            background: var(--primary-color, #1d4ed8);
+            top: 5%;
+            left: -120px;
+        }
+        .bg-mesh-blob-2 {
+            background: var(--primary-color-dark, #1e3a8a);
+            bottom: 25%;
+            right: -120px;
+        }
+        body.light-mode .bg-mesh-blob {
+            opacity: 0.06;
+        }
+
+        /* Glassmorphism profile card styling */
+        .profile-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: var(--cień-sredni);
+            margin-bottom: 2rem;
+            position: relative;
+            backdrop-filter: blur(20px) saturate(1.25);
+            -webkit-backdrop-filter: blur(20px) saturate(1.25);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s, border-color 0.4s;
+        }
+        .profile-card:hover {
+            border-color: color-mix(in srgb, var(--primary-color, #1d4ed8) 30%, var(--border-color));
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+        body.dark-mode .profile-card:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Cover photo with animated mesh gradient and layered glass aura */
+        .cover-photo {
+            height: 220px;
+            background: linear-gradient(135deg, var(--primary-color-dark, #1e3a8a) 0%, #090d16 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .cover-mesh {
+            position: absolute;
+            inset: 0;
+            opacity: 0.12;
+            background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        .cover-photo::after {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -10%;
+            width: 120%;
+            height: 180%;
+            background: radial-gradient(circle, rgba(29, 78, 216, 0.2) 0%, rgba(30, 58, 138, 0.05) 50%, transparent 80%);
+            animation: aura-glow 10s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes aura-glow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(4%, 8%) scale(1.08); }
+        }
+
+        /* Avatar styling with dynamic scaling border and zoom effect */
+        .avatar-container {
+            position: absolute;
+            top: 130px;
+            left: 2.5rem;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid var(--panel-bg);
+            background: var(--panel-bg);
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+        }
+        .profile-card:hover .avatar-container {
+            transform: scale(1.04);
+            border-color: var(--primary-color, #1d4ed8);
+        }
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color, #1d4ed8) 12%, var(--panel-bg)), color-mix(in srgb, var(--primary-color, #1d4ed8) 4%, var(--panel-bg)));
+            color: var(--primary-color, #1d4ed8);
+            font-size: 3.5rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .author-header-content {
+            padding: 2rem 2.5rem 2rem 13.5rem;
+        }
+        .author-header-content h1 {
+            font-weight: 850 !important;
+            letter-spacing: -0.02em;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+            margin-top: 1.25rem;
+        }
+        .profile-actions .btn {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 700;
+        }
+        .profile-actions .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+        }
+        .profile-actions .btn-outline-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+        }
+
+        .profile-section-title {
+            font-size: 1.3rem;
+            font-weight: 850;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.6rem;
+            margin-bottom: 1.75rem;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        /* Experience elements with hover lift and micro-rotates */
+        .exp-item {
+            display: flex;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .exp-item:hover {
+            background: color-mix(in srgb, var(--primary-color, #1d4ed8) 4%, var(--panel-bg));
+            border-color: color-mix(in srgb, var(--primary-color, #1d4ed8) 12%, var(--border-color));
+            transform: translateX(4px);
+        }
+        .exp-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color, #1d4ed8) 10%, var(--panel-bg)), color-mix(in srgb, var(--primary-color, #1d4ed8) 4%, var(--panel-bg)));
+            border: 1px solid var(--border-color);
+            color: var(--primary-color, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .exp-item:hover .exp-icon {
+            transform: scale(1.08) rotate(3deg);
+            background: var(--primary-color, #1d4ed8);
+            color: #fff;
+            border-color: var(--primary-color, #1d4ed8);
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.35);
+        }
+
+        .exp-details h5 {
+            font-weight: 750;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+            font-size: 1.05rem;
+        }
+        .exp-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+        .skill-badge {
+            background: color-mix(in srgb, var(--primary-color, #1d4ed8) 6%, var(--panel-bg));
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-weight: 600;
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: default;
+        }
+        .skill-badge:hover {
+            background: var(--primary-color, #1d4ed8);
+            color: #fff;
+            border-color: var(--primary-color, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .quick-info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .quick-info-row i {
+            color: var(--primary-color, #1d4ed8);
+            font-size: 1rem;
+        }
+        
+        .visually-hidden-ai {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
         @media (max-width: 767.98px) {
             .cover-photo { height: 140px; }
-            .avatar-container { top: 70px; left: 50%; transform: translateX(-50%); width: 110px; height: 110px; }
+            .avatar-container { top: 75px; left: 50%; transform: translateX(-50%); width: 110px; height: 110px; }
+            .profile-card:hover .avatar-container { transform: translateX(-50%) scale(1.04); }
             .author-header-content { padding: 4.5rem 1.5rem 1.5rem; text-align: center; }
             .profile-actions { justify-content: center; }
-            .exp-item { flex-direction: column; text-align: center; align-items: center; }
-            .exp-icon { margin-bottom: 0.5rem; }
+            .exp-item { flex-direction: column; text-align: center; align-items: center; gap: 0.75rem; }
+            .exp-item:hover { transform: translateY(-2px); }
+            .exp-icon { margin-bottom: 0.25rem; }
         }
     </style>
 </head>
@@ -99,6 +351,10 @@ $isLoggedIn = isLoggedIn();
     <?php endif; ?>
 
     <div class="profile-container">
+        <!-- Background decorative blobs -->
+        <div class="bg-mesh-blob bg-mesh-blob-1"></div>
+        <div class="bg-mesh-blob bg-mesh-blob-2"></div>
+
         <!-- Return back button -->
         <a href="<?php echo $isLoggedIn ? 'careers.php' : 'landing.php'; ?>" class="btn btn-outline-secondary rounded-pill px-4 mb-4 shadow-sm border-0">
             <i class="bi bi-arrow-left me-2"></i>Powrót

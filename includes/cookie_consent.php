@@ -176,16 +176,13 @@ if (!isset($base_url)) {
             source,
             categories: {
                 necessary: true,
-                preferences: !!categories.preferences,
+                preferences: true, // Treated as necessary for layout/styling
                 analytics: !!categories.analytics,
                 marketing: !!categories.marketing
             }
         };
         setCookie('cookie_consent_v2', JSON.stringify(value));
-        setCookie('cookie_consent', value.categories.preferences || value.categories.analytics || value.categories.marketing ? 'accepted' : 'rejected');
-        if (!value.categories.preferences) {
-            deleteOptionalPreferenceCookies();
-        }
+        setCookie('cookie_consent', 'accepted');
         banner.hidden = true;
         window.dispatchEvent(new CustomEvent('cookie-consent-updated', { detail: value }));
     };

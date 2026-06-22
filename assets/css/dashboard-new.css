@@ -65,7 +65,7 @@ h1, h2, h3, h4, h5, h6 {
   top: 0;
   left: 0;
   bottom: 0;
-  z-index: 1050;
+  z-index: 1110;
   box-shadow: 18px 0 44px rgba(2, 6, 23, 0.18);
   transition: transform 0.34s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s ease;
   will-change: transform;
@@ -890,9 +890,9 @@ body.dark-mode.welcome-style-glass .welcome-card .btn-welcome-outline {
 }
 
 .stat-card-new {
-  background: var(--panel-bg);
-  padding: 1.15rem 1rem;
-  border-radius: 1.25rem;
+  background: linear-gradient(135deg, var(--panel-bg) 0%, rgba(255, 255, 255, 0.01) 100%);
+  padding: 1.25rem 1.1rem;
+  border-radius: 14px;
   border: 1px solid var(--border-color);
   display: grid;
   grid-template-columns: auto 1fr;
@@ -900,54 +900,88 @@ body.dark-mode.welcome-style-glass .welcome-card .btn-welcome-outline {
   grid-template-areas: 
     "icon number"
     "icon label";
-  column-gap: 0.85rem;
-  row-gap: 0.15rem;
+  column-gap: 1rem;
+  row-gap: 0.2rem;
   align-items: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s;
+}
+
+body.dark-mode .stat-card-new {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.55) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
 }
 
 .stat-card-new:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: var(--primary-color);
+}
+
+body.dark-mode .stat-card-new:hover {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 20px 35px rgba(99, 102, 241, 0.15) !important;
 }
 
 .stat-icon {
   grid-area: icon;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   margin-bottom: 0 !important;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  --bs-bg-opacity: 0.25 !important; /* Made icons more visible */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+  --bs-bg-opacity: 0.15 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0.08;
+  z-index: 0;
 }
 
 .stat-icon i {
-  filter: contrast(1.2);
+  position: relative;
+  z-index: 1;
+  filter: contrast(1.1);
 }
 
 .dark-mode .stat-icon i {
   filter: brightness(1.2) contrast(1.2);
 }
 
+.stat-card-new:hover .stat-icon {
+  transform: scale(1.1) rotate(3deg);
+  box-shadow: 0 10px 20px -3px currentColor;
+}
+
 .stat-number-new {
   grid-area: number;
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--text-main);
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
 .stat-label-new {
   grid-area: label;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   line-height: 1.2;
 }
 

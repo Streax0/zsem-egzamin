@@ -2727,7 +2727,7 @@ function completedFullTestSql(string $alias = 'tr', int $minQuestions = 1, bool 
     $totalExpr = $prefix . '`total_questions`';
     $parts = [
         "{$totalExpr} >= " . max(1, $minQuestions),
-        "(SELECT COUNT(*) FROM test_answers ta_full WHERE ta_full.result_id = {$idExpr} AND COALESCE(ta_full.user_answer, '') <> '') >= {$totalExpr}"
+        "(SELECT COUNT(*) FROM test_answers ta_full WHERE ta_full.result_id = {$idExpr}) >= {$totalExpr}"
     ];
     if ($excludeSingle) {
         $parts[] = "{$prefix}`mode` <> 'single'";
@@ -3519,7 +3519,7 @@ function testResultQualifiesForMissions(PDO $pdo, int $resultId, ?int $totalQues
     try {
         $stmt = $pdo->prepare("
             SELECT tr.mode, tr.total_questions,
-                   (SELECT COUNT(*) FROM test_answers ta WHERE ta.result_id = tr.id AND COALESCE(ta.user_answer, '') <> '') AS answered_count
+                   (SELECT COUNT(*) FROM test_answers ta WHERE ta.result_id = tr.id) AS answered_count
             FROM test_results tr
             WHERE tr.id = ?
             LIMIT 1
