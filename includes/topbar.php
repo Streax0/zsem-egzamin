@@ -139,7 +139,7 @@ unset($_SESSION['sandbox_element_block_notice']);
                 $topbarAvatar = (string)($topbarUser['avatar_path'] ?? '');
                 if ($topbarAvatar !== '' && preg_match('~^uploads/avatars/[a-zA-Z0-9_.-]+\.webp$~', $topbarAvatar)):
                 ?>
-                    <img src="<?php echo $base_url . htmlspecialchars($topbarAvatar); ?>" alt="" class="user-avatar-img">
+                    <img src="<?php echo $base_url . htmlspecialchars($topbarAvatar); ?>" alt="" class="user-avatar-img" loading="lazy" decoding="async">
                 <?php else: ?>
                     <?php echo strtoupper(substr(function_exists('userDisplayName') ? userDisplayName($topbarUser) : ($_SESSION['username'] ?? 'A'), 0, 1)); ?>
                 <?php endif; ?>

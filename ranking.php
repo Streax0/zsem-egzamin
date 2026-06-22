@@ -350,7 +350,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                                 <td class="user-name-cell">
                                                     <div class="d-flex align-items-center gap-3">
                                                         <?php if ($rowAvatar): ?>
-                                                            <img class="user-avatar-small ranking-avatar" src="<?php echo htmlspecialchars($rowAvatar); ?>" alt="">
+                                                            <img class="user-avatar-small ranking-avatar" src="<?php echo htmlspecialchars($rowAvatar); ?>" alt="" loading="lazy" decoding="async">
                                                         <?php else: ?>
                                                             <div class="user-avatar-small ranking-avatar bg-primary bg-opacity-10 text-primary fw-bold">
                                                                 <?php echo strtoupper(substr($u['username'], 0, 1)); ?>

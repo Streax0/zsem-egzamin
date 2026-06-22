@@ -702,7 +702,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="social-card p-3 social-click-card" data-profile-url="profile.php?id=<?php echo (int)$user['id']; ?>" role="link" tabindex="0">
                                                 <div class="d-flex align-items-center gap-3">
                                                     <?php if ($avatarSrc): ?>
-                                                        <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="">
+                                                        <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" loading="lazy" decoding="async">
                                                     <?php else: ?>
                                                         <div class="user-avatar-social <?php echo $avatarClass; ?>">
                                                             <?php echo strtoupper(substr($user['username'], 0, 1)); ?>
@@ -789,7 +789,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="social-card p-4">
                                                 <div class="d-flex align-items-center gap-3 mb-4">
                                                     <?php if ($avatarSrc): ?>
-                                                        <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="">
+                                                        <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" loading="lazy" decoding="async">
                                                     <?php else: ?>
                                                         <div class="user-avatar-social <?php echo $avatarClass; ?>">
                                                             <?php echo strtoupper(substr($friend['username'], 0, 1)); ?>
@@ -872,7 +872,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="pending-request-row d-flex align-items-center gap-3 p-3 border rounded-4">
                                                 <a href="profile.php?id=<?php echo (int)$req['id']; ?>" class="text-decoration-none flex-shrink-0" aria-label="Profil <?php echo htmlspecialchars($req['username']); ?>">
                                                     <?php if ($avatarSrc): ?>
-                                                        <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem;">
+                                                        <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem;" loading="lazy" decoding="async">
                                                     <?php else: ?>
                                                         <div class="user-avatar-social <?php echo $avatarClass; ?>" style="width: 42px; height: 42px; font-size: 1rem;">
                                                             <?php echo strtoupper(substr($req['username'], 0, 1)); ?>
@@ -913,7 +913,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         ?>
                                             <div class="sent-request-row d-flex align-items-center gap-3 p-3 border rounded-4">
                                                 <?php if ($avatarSrc): ?>
-                                                    <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem; opacity: 0.95;">
+                                                    <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem; opacity: 0.95;" loading="lazy" decoding="async">
                                                 <?php else: ?>
                                                     <div class="user-avatar-social <?php echo $avatarClass; ?>" style="width: 42px; height: 42px; font-size: 1rem; opacity: 0.95;">
                                                         <?php echo strtoupper(substr($req['username'], 0, 1)); ?>
@@ -958,7 +958,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             ?>
                                             <div class="d-flex align-items-center gap-3 p-3 border rounded-4 bg-light bg-opacity-10">
                                                 <?php if ($avatarSrc): ?>
-                                                    <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem;">
+                                                    <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem;" loading="lazy" decoding="async">
                                                 <?php else: ?>
                                                     <div class="user-avatar-social <?php echo $avatarClass; ?>" style="width: 42px; height: 42px; font-size: 1rem;">
                                                         <?php echo strtoupper(substr($activity['username'], 0, 1)); ?>
@@ -1003,7 +1003,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     ?>
                                         <div class="suggested-user-row d-flex align-items-center gap-3">
                                             <?php if ($avatarSrc): ?>
-                                                <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem;">
+                                                <img class="user-avatar-social is-image" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" style="width: 42px; height: 42px; font-size: 1rem;" loading="lazy" decoding="async">
                                             <?php else: ?>
                                                 <div class="user-avatar-social <?php echo $avatarClass; ?>" style="width: 42px; height: 42px; font-size: 1rem;">
                                                     <?php echo strtoupper(substr($s['username'], 0, 1)); ?>
@@ -1075,7 +1075,7 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
         let timer = null;
         const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
         const avatarHtml = (row) => row.avatar
-            ? `<img class="user-avatar-social is-image" src="${esc(row.avatar)}" alt="">`
+            ? `<img class="user-avatar-social is-image" src="${esc(row.avatar)}" alt="" loading="lazy" decoding="async">`
             : `<div class="user-avatar-social">${esc(row.username).slice(0,1).toUpperCase()}</div>`;
         const render = (rows) => {
             if (!rows.length) {

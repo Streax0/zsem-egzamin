@@ -134,7 +134,7 @@ $csrf = generateCsrfToken('mfa');
         <?php else: ?>
             <?php if (!$enabled): ?>
                 <div class="totp-qr-card">
-                    <img id="totpQrCode" src="<?= htmlspecialchars($qrImageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Kod QR 2FA" referrerpolicy="no-referrer">
+                    <img id="totpQrCode" src="<?= htmlspecialchars($qrImageUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Kod QR 2FA" referrerpolicy="no-referrer" loading="lazy" decoding="async">
                     <div class="small text-muted text-center">Zeskanuj QR w Google Authenticator, Microsoft Authenticator albo Authy.</div>
                     <div class="small text-danger d-none" id="totpQrFallback">QR nie załadował się. Przepisz sekret TOTP ręcznie.</div>
                 </div>

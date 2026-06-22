@@ -679,7 +679,7 @@ $socialPlatforms = [
                 <div class="profile-header-content">
                     <div class="profile-left-stack">
                         <?php if ($avatarSrc): ?>
-                            <img class="user-avatar-large shadow-lg border border-4 border-white" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="Zdjęcie profilowe <?php echo htmlspecialchars($displayName); ?>" style="object-fit: cover;">
+                            <img class="user-avatar-large shadow-lg border border-4 border-white" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="Zdjęcie profilowe <?php echo htmlspecialchars($displayName); ?>" style="object-fit: cover;" loading="lazy" decoding="async">
                         <?php else: ?>
                             <div class="user-avatar-large shadow-lg border border-4 border-white" style="background-color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; font-weight: 800;">
                                 <?php echo strtoupper(substr($displayName, 0, 1)); ?>
