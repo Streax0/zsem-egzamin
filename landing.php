@@ -81,6 +81,7 @@ startSecureSession();
                 </form>
             </div>
         </div>
+        <div class="landing-hero-overlay-fade"></div>
     </section>
 
     <section class="landing-band">

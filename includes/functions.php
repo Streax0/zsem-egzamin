@@ -19,8 +19,8 @@ function sanitize($data) {
 
 function validatePasswordPolicy(string $password): array {
     $errors = [];
-    if (mb_strlen($password, '8bit') < 10) {
-        $errors[] = 'Hasło musi mieć minimum 10 znaków.';
+    if (mb_strlen($password, '8bit') < 6) {
+        $errors[] = 'Hasło musi mieć minimum 6 znaków.';
     }
     if (!preg_match('/[a-z]/', $password)) {
         $errors[] = 'Hasło musi zawierać małą literę.';
@@ -4103,8 +4103,17 @@ function testHasReviewedCurrentAnswer(array $test): bool {
 }
 
 function testCanAdvanceFromReview(array $test): bool {
-    return in_array((string)($test['mode'] ?? ''), ['practice', 'single'], true)
-        && testHasReviewedCurrentAnswer($test);
+    if (!testHasReviewedCurrentAnswer($test)) {
+        return false;
+    }
+    $mode = (string)($test['mode'] ?? '');
+    if (in_array($mode, ['practice', 'single'], true)) {
+        return true;
+    }
+    // Allow advancing from review in exam mode when the answer was revealed by check_answer
+    $currentIndex = max(0, (int)($test['current'] ?? 0));
+    $answer = is_array($test['answers'][$currentIndex] ?? null) ? $test['answers'][$currentIndex] : [];
+    return !empty($answer['revealed_by_check']);
 }
 
 function singleQuestionCompletedResultId(array $test): int {

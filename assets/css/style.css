@@ -242,7 +242,7 @@ body.dark-mode input[type="range"].custom-range-slider {
 :root {
   /* Purple/Blue Gradient Theme */
   --kolor-glowy: #667eea;
-  --kolor-glowy-dark: #5568d3;
+  --kolor-glowy-dark: color-mix(in srgb, var(--kolor-glowy) 85%, #000000);
   --kolor-sukces: #10b981;
   --kolor-sukces-dark: #059669;
   --kolor-blad: #ef4444;
@@ -272,15 +272,15 @@ body.dark-mode input[type="range"].custom-range-slider {
   --kolor-tekst-jasny: #94a3b8;
 
   /* Gradienty */
-  --gradient-podstawowy: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-nawigacja: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
-  --gradient-karty: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  --gradient-podstawowy: linear-gradient(135deg, var(--kolor-glowy) 0%, color-mix(in srgb, var(--kolor-glowy) 70%, #764ba2) 100%);
+  --gradient-nawigacja: linear-gradient(135deg, var(--kolor-glowy) 0%, var(--kolor-glowy-dark) 100%);
+  --gradient-karty: linear-gradient(135deg, color-mix(in srgb, var(--kolor-glowy) 10%, transparent) 0%, color-mix(in srgb, var(--kolor-glowy-dark) 10%, transparent) 100%);
 
   /* Cienie */
   --cień-maly: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   --cień-sredni: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   --cień-duzy: 0 10px 25px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
-  --cień-przycisk: 0 4px 12px rgba(102, 126, 234, 0.3);
+  --cień-przycisk: 0 4px 12px color-mix(in srgb, var(--kolor-glowy) 30%, transparent);
 
   /* Zaokrąglenia */
   --radius-maly: 0.375rem;
@@ -2824,14 +2824,98 @@ body.reduce-motion *::after {
 
 .dashboard-hero {
   border-radius: 28px;
-  background: radial-gradient(circle at top left, rgba(59, 130, 246, .28), transparent 28%),
-              radial-gradient(circle at bottom right, rgba(16, 185, 129, .18), transparent 24%),
-              linear-gradient(135deg, #0f172a 0%, #0f3d64 45%, #0f5f4d 100%);
   color: #fff;
   padding: 2.3rem;
   box-shadow: 0 28px 80px rgba(15, 23, 42, .22);
   position: relative;
   overflow: hidden;
+  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 28%, transparent), transparent 28%),
+              radial-gradient(circle at bottom right, rgba(16, 185, 129, .18), transparent 24%),
+              linear-gradient(135deg, #0f172a 0%, color-mix(in srgb, var(--primary-color) 35%, #0f172a) 45%, #0f5f4d 100%);
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+body.welcome-style-gradient .dashboard-hero {
+  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 28%, transparent), transparent 28%),
+              radial-gradient(circle at bottom right, rgba(16, 185, 129, .18), transparent 24%),
+              linear-gradient(135deg, #0f172a 0%, color-mix(in srgb, var(--primary-color) 35%, #0f172a) 45%, #0f5f4d 100%) !important;
+}
+
+body.welcome-style-pure .dashboard-hero {
+  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 25%, transparent), transparent 45%),
+              linear-gradient(135deg, #0f172a 0%, color-mix(in srgb, var(--primary-color) 35%, #0f172a) 100%) !important;
+}
+
+body.welcome-style-aurora .dashboard-hero {
+  background: linear-gradient(135deg, #0d0b21 0%, var(--primary-color) 50%, #03001c 100%) !important;
+  background-size: 200% 200% !important;
+  animation: ctaMeshMovement 10s ease infinite !important;
+}
+
+body.welcome-style-glass .dashboard-hero {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #0f172a !important;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.08) !important;
+}
+body.welcome-style-glass .dashboard-hero h1,
+body.welcome-style-glass .dashboard-hero h2,
+body.welcome-style-glass .dashboard-hero p,
+body.welcome-style-glass .dashboard-hero .hero-rank-pill,
+body.welcome-style-glass .dashboard-hero .xp-summary-label,
+body.welcome-style-glass .dashboard-hero .xp-summary-value,
+body.welcome-style-glass .dashboard-hero .xp-summary-meta {
+  color: #0f172a !important;
+}
+body.welcome-style-glass .dashboard-hero .hero-rank-pill {
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+body.welcome-style-glass .dashboard-hero .xp-summary-card {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+body.welcome-style-glass .dashboard-hero .xp-progress-fill {
+  background: var(--primary-color) !important;
+}
+body.welcome-style-glass .dashboard-hero .btn-welcome-primary {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+body.welcome-style-glass .dashboard-hero .btn-welcome-outline {
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+body.dark-mode.welcome-style-glass .dashboard-hero {
+  background: rgba(15, 23, 42, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+body.dark-mode.welcome-style-glass .dashboard-hero h1,
+body.dark-mode.welcome-style-glass .dashboard-hero h2,
+body.dark-mode.welcome-style-glass .dashboard-hero p,
+body.dark-mode.welcome-style-glass .dashboard-hero .hero-rank-pill,
+body.dark-mode.welcome-style-glass .dashboard-hero .xp-summary-label,
+body.dark-mode.welcome-style-glass .dashboard-hero .xp-summary-value,
+body.dark-mode.welcome-style-glass .dashboard-hero .xp-summary-meta {
+  color: #f8fafc !important;
+}
+body.dark-mode.welcome-style-glass .dashboard-hero .hero-rank-pill {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.dark-mode.welcome-style-glass .dashboard-hero .xp-summary-card {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.dark-mode.welcome-style-glass .dashboard-hero .btn-welcome-outline {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 .dashboard-hero::before {

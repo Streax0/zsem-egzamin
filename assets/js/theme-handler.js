@@ -16,7 +16,8 @@
         'reduce_motion',
         'dashboard_view',
         'default_test_mode',
-        'external_new_tab'
+        'external_new_tab',
+        'welcome_banner_style'
     ];
 
     function setCookie(name, value, days) {
@@ -116,6 +117,14 @@
         });
     }
 
+    function applyWelcomeBannerStylePreference() {
+        if (!bodyReady()) return;
+        const allowed = ['gradient', 'pure', 'aurora', 'glass'];
+        const style = allowed.includes(getPreference('welcome_banner_style', 'gradient')) ? getPreference('welcome_banner_style', 'gradient') : 'gradient';
+        document.body.classList.remove('welcome-style-gradient', 'welcome-style-pure', 'welcome-style-aurora', 'welcome-style-glass');
+        document.body.classList.add('welcome-style-' + style);
+    }
+
     function applyDashboardViewPreference() {
         if (!bodyReady()) return;
         const allowed = ['balanced', 'learning', 'compact'];
@@ -177,6 +186,7 @@
 
         applyDefaultTestModePreference();
         applyDashboardViewPreference();
+        applyWelcomeBannerStylePreference();
         applyExternalLinkPreference();
         window.syncSettingsPreferencePanel?.();
     }
@@ -270,6 +280,14 @@
         applyDefaultTestModePreference();
         applySettings();
         window.testPreferenceFeedback?.('Domyślny tryb testu zapisany.');
+    };
+
+    window.updateWelcomeBannerStyleSetting = function(style) {
+        const allowed = ['gradient', 'pure', 'aurora', 'glass'];
+        setPreference('welcome_banner_style', allowed.includes(style) ? style : 'gradient');
+        applyWelcomeBannerStylePreference();
+        applySettings();
+        window.testPreferenceFeedback?.('Styl baneru powitalnego zapisany.');
     };
 
     window.updateNotifyActivitySetting = function(enabled) {

@@ -5,7 +5,7 @@
   --text-muted: #64748b;
   --border-color: #e2e8f0;
   --primary-color: #3b82f6;
-  --primary-color-dark: #2563eb;
+  --primary-color-dark: color-mix(in srgb, var(--primary-color) 85%, #000000);
 }
 
 body.dark-mode {
@@ -16,7 +16,7 @@ body.dark-mode {
   --text-muted: #94a3b8;
   --border-color: #334155;
   --primary-color: #60a5fa;
-  --primary-color-dark: #3b82f6;
+  --primary-color-dark: color-mix(in srgb, var(--primary-color) 85%, #000000);
 
   /* Legacy variables from style.css – kept in sync */
   --kolor-tekst: #f1f5f9;
@@ -501,9 +501,6 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
 
 /* Premium Welcome Card */
 .welcome-card {
-  background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.95), transparent 30%),
-              radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.85), transparent 25%),
-              linear-gradient(135deg, rgba(59, 130, 246, 1) 0%, rgba(16, 185, 129, 1) 100%);
   border-radius: 2.75rem;
   padding: 3rem 3rem;
   color: white !important;
@@ -511,6 +508,93 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
   box-shadow: 0 40px 120px rgba(15, 23, 42, 0.2);
   position: relative;
   overflow: hidden;
+  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 95%, transparent), transparent 30%),
+              radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.85), transparent 25%),
+              linear-gradient(135deg, var(--primary-color) 0%, rgba(16, 185, 129, 1) 100%);
+  transition: background 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+body.welcome-style-gradient .welcome-card {
+  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 95%, transparent), transparent 30%),
+              radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.85), transparent 25%),
+              linear-gradient(135deg, var(--primary-color) 0%, rgba(16, 185, 129, 1) 100%) !important;
+}
+
+body.welcome-style-pure .welcome-card {
+  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 90%, transparent), transparent 45%),
+              linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 15%, #0d0b21) 100%) !important;
+}
+
+body.welcome-style-aurora .welcome-card {
+  background: linear-gradient(135deg, #0d0b21 0%, var(--primary-color) 50%, #03001c 100%) !important;
+  background-size: 200% 200% !important;
+  animation: ctaMeshMovement 10s ease infinite !important;
+}
+
+body.welcome-style-glass .welcome-card {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #0f172a !important;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.08) !important;
+}
+body.welcome-style-glass .welcome-card h1,
+body.welcome-style-glass .welcome-card h2,
+body.welcome-style-glass .welcome-card p,
+body.welcome-style-glass .welcome-card .hero-rank-pill,
+body.welcome-style-glass .welcome-card .xp-summary-label,
+body.welcome-style-glass .welcome-card .xp-summary-value,
+body.welcome-style-glass .welcome-card .xp-summary-meta {
+  color: #0f172a !important;
+}
+body.welcome-style-glass .welcome-card .hero-rank-pill {
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+body.welcome-style-glass .welcome-card .xp-summary-card {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+body.welcome-style-glass .welcome-card .xp-progress-fill {
+  background: var(--primary-color) !important;
+}
+body.welcome-style-glass .welcome-card .btn-welcome-primary {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+body.welcome-style-glass .welcome-card .btn-welcome-outline {
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+body.dark-mode.welcome-style-glass .welcome-card {
+  background: rgba(15, 23, 42, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+body.dark-mode.welcome-style-glass .welcome-card h1,
+body.dark-mode.welcome-style-glass .welcome-card h2,
+body.dark-mode.welcome-style-glass .welcome-card p,
+body.dark-mode.welcome-style-glass .welcome-card .hero-rank-pill,
+body.dark-mode.welcome-style-glass .welcome-card .xp-summary-label,
+body.dark-mode.welcome-style-glass .welcome-card .xp-summary-value,
+body.dark-mode.welcome-style-glass .welcome-card .xp-summary-meta {
+  color: #f8fafc !important;
+}
+body.dark-mode.welcome-style-glass .welcome-card .hero-rank-pill {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.dark-mode.welcome-style-glass .welcome-card .xp-summary-card {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.dark-mode.welcome-style-glass .welcome-card .btn-welcome-outline {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 .welcome-card::before {

@@ -179,41 +179,41 @@ try {
                 <?php endif; ?>
 
                 <!-- Welcome Card -->
-                <div class="welcome-card dashboard-hero animate-in">
+                <div class="welcome-card dashboard-hero animate-in" style="overflow: hidden;">
                     <div class="dashboard-hero-inner">
-                        <div class="hero-left">
-                            <div class="hero-rank-pill">
-                                <i class="bi bi-stars"></i>
-                                <span><?php echo htmlspecialchars(strtoupper($rankInfo['name'] ?? 'BRONZE')); ?></span>
+                        <div class="hero-left" style="text-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);">
+                            <div class="hero-rank-pill" style="border-color: rgba(255, 255, 255, 0.18); background: rgba(15, 23, 42, 0.35); color: #ffffff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                                <i class="bi bi-stars" style="color: <?php echo $rankInfo['color'] ?? '#fff'; ?>;"></i>
+                                <span style="color: #ffffff; font-weight: 800;"><?php echo htmlspecialchars(strtoupper($rankInfo['name'] ?? 'BRONZE')); ?></span>
                             </div>
-                            <h1 class="h2">Witaj, <?php echo htmlspecialchars($_SESSION['username'] ?? 'admin'); ?>!</h1>
-                            <p class="mb-4">Kontynuuj naukę, domknij dzisiejsze misje i pilnuj progresu do kolejnej rangi.</p>
+                            <h1 class="h2" style="font-weight: 800; color: #ffffff;">Witaj, <?php echo htmlspecialchars($_SESSION['username'] ?? 'admin'); ?>!</h1>
+                            <p class="mb-4 text-white" style="font-size: 1.05rem; line-height: 1.6; font-weight: 500; opacity: 0.95;">Rozwiąż dzisiejsze testy egzaminacyjne, wykonaj aktywne misje i zdobywaj cenne punkty XP na drodze do kolejnego awansu.</p>
                             <div class="welcome-actions">
-                                <a href="test.php?mode=exam&setup=1" class="btn-welcome btn-welcome-primary" data-default-test-start>
+                                <a href="test.php?mode=exam&setup=1" class="btn-welcome btn-welcome-primary" style="box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);" data-default-test-start>
                                     <i class="bi bi-play-fill"></i>
                                     <span data-default-test-label>Rozpocznij test</span>
                                 </a>
-                                <a href="progress.php" class="btn-welcome btn-welcome-outline">
+                                <a href="progress.php" class="btn-welcome btn-welcome-outline" style="background: rgba(15, 23, 42, 0.25); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);">
                                     <i class="bi bi-bar-chart"></i>
                                     Statystyki
                                 </a>
                             </div>
                         </div>
                         <div class="hero-right">
-                            <div class="xp-summary-card">
-                                <div class="xp-summary-icon">
-                                    <i class="bi <?php echo htmlspecialchars($rankInfo['icon'] ?? 'bi-shield-fill'); ?>"></i>
+                            <div class="xp-summary-card" style="backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-color: rgba(255, 255, 255, 0.1); background: rgba(15, 23, 42, 0.45); box-shadow: 0 30px 70px rgba(15, 23, 42, 0.25); border-radius: 2rem;">
+                                <div class="xp-summary-icon" style="background: rgba(255, 255, 255, 0.08); color: <?php echo $rankInfo['color'] ?? '#fff'; ?>; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 20px color-mix(in srgb, <?php echo $rankInfo['color'] ?? '#fff'; ?> 30%, transparent); display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="bi <?php echo htmlspecialchars($rankInfo['icon'] ?? 'bi-shield-fill'); ?>" style="font-size: 1.8rem; filter: drop-shadow(0 0 8px <?php echo $rankInfo['color'] ?? '#fff'; ?>);"></i>
                                 </div>
-                                <div class="xp-summary-body">
-                                    <div class="xp-summary-label">TWOJE XP</div>
-                                    <div class="xp-summary-value"><?php echo number_format((int)($currentUser['xp'] ?? 0)); ?></div>
+                                <div class="xp-summary-body" style="color: #ffffff;">
+                                    <div class="xp-summary-label" style="color: rgba(255, 255, 255, 0.7); font-weight: 700; letter-spacing: 0.15em; font-size: 0.8rem;">TWOJE XP</div>
+                                    <div class="xp-summary-value" style="font-size: 3rem; font-weight: 900; color: #ffffff; letter-spacing: -0.02em;"><?php echo number_format((int)($currentUser['xp'] ?? 0)); ?></div>
                                 </div>
-                                <div class="xp-progress-line">
-                                    <div class="xp-progress-fill" style="width: <?php echo min(100, max(0, (float)($rankInfo['progress'] ?? 0))); ?>%;"></div>
+                                <div class="xp-progress-line" style="height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 999px; overflow: hidden; margin-top: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                                    <div class="xp-progress-fill" style="width: <?php echo min(100, max(0, (float)($rankInfo['progress'] ?? 0))); ?>%; background: linear-gradient(90deg, #ffffff, <?php echo $rankInfo['color'] ?? '#ffffff'; ?>); box-shadow: 0 0 10px <?php echo $rankInfo['color'] ?? '#ffffff'; ?>; border-radius: inherit; height: 100%; transition: width 0.5s ease;"></div>
                                 </div>
-                                <div class="xp-summary-meta">
-                                    <span><?php echo min(100, max(0, (float)($rankInfo['progress'] ?? 0))); ?>%</span>
-                                    <span>Do: <?php echo htmlspecialchars($rankInfo['next_name'] ?? 'Max'); ?></span>
+                                <div class="xp-summary-meta" style="margin-top: 0.2rem; display: flex; justify-content: space-between; gap: 1rem; color: rgba(255, 255, 255, 0.8); font-size: 0.88rem; font-weight: 600;">
+                                    <span>Postęp: <?php echo min(100, max(0, (float)($rankInfo['progress'] ?? 0))); ?>%</span>
+                                    <span><?php echo $rankInfo['next_name'] ? number_format($rankInfo['xp_to_next']) . ' XP do: ' . htmlspecialchars($rankInfo['next_name']) : 'Maksymalna ranga'; ?></span>
                                 </div>
                             </div>
                         </div>
@@ -286,9 +286,15 @@ try {
                         ];
                         ?>
                         <?php if (empty($recentTests)): ?>
-                            <div class="empty-state">
-                                <i class="bi bi-inbox"></i>
-                                <p>Brak przeprowadzonych testów. Rozpocznij naukę!</p>
+                            <div class="empty-state p-4 d-flex flex-column align-items-center justify-content-center" style="border: 1px dashed var(--border-color); border-radius: 1.5rem; background: color-mix(in srgb, var(--bg-color) 30%, var(--panel-bg)); min-height: 250px; text-align: center;">
+                                <div class="empty-state-icon-wrap mb-3 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px; border-radius: 50%; background: color-mix(in srgb, var(--primary-color) 10%, var(--panel-bg)); border: 1px solid color-mix(in srgb, var(--primary-color) 20%, var(--panel-bg)); color: var(--primary-color); font-size: 2rem; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03); margin: 0 auto;">
+                                    <i class="bi bi-clipboard2-pulse" style="font-size: 2rem; color: var(--primary-color) !important; margin: 0;"></i>
+                                </div>
+                                <h4 class="fw-bold mb-2" style="font-size: 1.15rem; color: var(--text-main); margin-top: 0.5rem;">Brak zrealizowanych testów</h4>
+                                <p class="text-muted small text-center mb-4" style="max-width: 340px; line-height: 1.6; color: var(--text-muted) !important; margin: 0 auto 1.5rem;">Rozpocznij naukę już teraz. Po ukończeniu pierwszego testu, w tym miejscu pojawi się szczegółowe podsumowanie Twoich ostatnich wyników.</p>
+                                <a href="test.php?mode=exam&setup=1" class="btn btn-primary rounded-pill px-4 py-2" style="font-weight: 700; font-size: 0.88rem; box-shadow: 0 4px 12px color-mix(in srgb, var(--primary-color) 30%, transparent);">
+                                    Rozwiąż pierwszy test
+                                </a>
                             </div>
                         <?php else: ?>
                             <div class="table-responsive recent-tests-table-wrap">

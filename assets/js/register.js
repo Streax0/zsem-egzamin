@@ -124,12 +124,28 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   })();
 
+  let usernameTouched = false;
   if (usernameInput && usernameFeedback) {
     usernameInput.addEventListener('input', () => {
       const username = usernameInput.value.trim();
       previewGeneratedUsername();
+      if (username.length > 0) {
+        usernameTouched = true;
+      }
+      if (username === '' && !usernameTouched) {
+        usernameFeedback.textContent = '';
+        usernameFeedback.className = 'small mt-1';
+        return;
+      }
       const ok = /^[A-Za-z0-9_.-]{3,16}$/.test(username);
       checkAvailability('username', username, usernameFeedback, ok, 'Login: 3-16 znaków, litery, cyfry, kropka, myślnik lub podkreślenie.');
+    });
+    usernameInput.addEventListener('blur', () => {
+      usernameTouched = true;
+      if (usernameInput.value.trim() === '') {
+        usernameFeedback.textContent = 'Nazwa użytkownika jest wymagana.';
+        usernameFeedback.className = 'small mt-1 feedback-error';
+      }
     });
     usernameInput.dispatchEvent(new Event('input'));
   }

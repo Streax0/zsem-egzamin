@@ -21,6 +21,7 @@ if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
 $reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
 $dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
 $defaultTestMode = $_COOKIE['default_test_mode'] ?? 'exam';
+$welcomeBannerStyle = $_COOKIE['welcome_banner_style'] ?? 'gradient';
 $openExternalNewTab = ($_COOKIE['external_new_tab'] ?? '1') === '1';
 $activeAppStatuses = getAppStatuses($pdo, true, 2);
 
@@ -539,6 +540,16 @@ $settingsHealth = [
                                 </div>
 
                                 <div class="mb-4">
+                                    <label class="form-label d-block" for="welcomeBannerStyleSelect">Styl baneru powitalnego</label>
+                                    <select class="form-select" id="welcomeBannerStyleSelect" onchange="updateWelcomeBannerStyleSetting(this.value)">
+                                        <option value="gradient" <?php echo $welcomeBannerStyle === 'gradient' ? 'selected' : ''; ?>>Zbalansowany gradient</option>
+                                        <option value="pure" <?php echo $welcomeBannerStyle === 'pure' ? 'selected' : ''; ?>>Czysty akcent</option>
+                                        <option value="aurora" <?php echo $welcomeBannerStyle === 'aurora' ? 'selected' : ''; ?>>Kosmiczna zorza (Animowany)</option>
+                                        <option value="glass" <?php echo $welcomeBannerStyle === 'glass' ? 'selected' : ''; ?>>Szklany minimalizm (Glassmorphism)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4">
                                     <label class="form-label d-block" for="defaultTestMode">Domyślny tryb testu</label>
                                     <select class="form-select" id="defaultTestMode" onchange="updateDefaultTestModeSetting(this.value)">
                                         <option value="exam" <?php echo $defaultTestMode === 'exam' ? 'selected' : ''; ?>>Egzamin</option>
@@ -615,7 +626,7 @@ $settingsHealth = [
                                 <div class="small">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">Wersja aplikacji:</span>
-                                        <span class="fw-bold">1.9.1 HOTFIX</span>
+                                        <span class="fw-bold">2.0 Release</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span class="text-muted">ID Użytkownika:</span>
@@ -626,8 +637,8 @@ $settingsHealth = [
                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                     </div>
                                 </div>
-                                <div class="settings-release-title mt-3 mb-2">Changelog 1.9.1 Hotfix</div>
-                                <div class="settings-release-grid" aria-label="Changelog wersji 1.9 Beta">
+                                <div class="settings-release-title mt-3 mb-2">Changelog 2.0 Release</div>
+                                <div class="settings-release-grid" aria-label="Changelog wersji 2.0 Release">
                                     <span><i class="bi bi-patch-question"></i> TESTS UPDATE</span>
                                     <span><i class="bi bi-bell"></i> Płynniejsze menu powiadomień i profilu</span>
                                     <span><i class="bi bi-speedometer2"></i> Stabilniejsze odświeżanie topbara</span>
@@ -745,7 +756,7 @@ $settingsHealth = [
     document.addEventListener('DOMContentLoaded', () => {
         syncSettingsMiniCards();
         syncSettingsOverviewCards();
-        document.querySelectorAll('#dashboardView, #defaultTestMode, #themeSelect, #densitySelect, #notifySwitch, #soundsSwitch, #externalTabSwitch, #motionSwitch').forEach((el) => {
+        document.querySelectorAll('#dashboardView, #defaultTestMode, #themeSelect, #densitySelect, #notifySwitch, #soundsSwitch, #externalTabSwitch, #motionSwitch, #welcomeBannerStyleSelect').forEach((el) => {
             el.addEventListener('change', () => setTimeout(() => {
                 applyUiPreferences();
                 syncSettingsMiniCards();
@@ -787,7 +798,7 @@ $settingsHealth = [
         applyUiPreferences();
     }
     function resetUiPrefs() {
-        ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab'].forEach(n => {
+        ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
             const secure = location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = `${n}=; path=/; max-age=0; SameSite=Lax${secure}`;
             try { localStorage.removeItem(n); } catch (error) {}
@@ -822,6 +833,10 @@ $settingsHealth = [
         const defaultMode = readPreference('default_test_mode', 'exam');
         const defaultModeSelect = document.getElementById('defaultTestMode');
         if (defaultModeSelect && ['exam', 'practice', 'single'].includes(defaultMode)) defaultModeSelect.value = defaultMode;
+
+        const welcomeStyle = readPreference('welcome_banner_style', 'gradient');
+        const welcomeStyleSelect = document.getElementById('welcomeBannerStyleSelect');
+        if (welcomeStyleSelect && ['gradient', 'pure', 'aurora', 'glass'].includes(welcomeStyle)) welcomeStyleSelect.value = welcomeStyle;
 
         const motion = document.getElementById('motionSwitch');
         if (motion) motion.checked = readPreference('reduce_motion', '0') === '1';

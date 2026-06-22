@@ -1084,11 +1084,11 @@ def test_admin_and_luki_expanded_operational_panels() -> None:
 def test_release_teacher_generator_luki_v17_surface() -> None:
     assert_contains(
         "settings.php",
-        "1.9.1 HOTFIX",
+        "2.0 Release",
         "settings-overview-grid",
         "settings-switch-grid",
         "settings-release-grid",
-        "Changelog 1.9.1 Hotfix",
+        "Changelog 2.0 Release",
         "Płynniejsze menu powiadomień i profilu",
     )
     assert_contains(
@@ -1742,8 +1742,8 @@ def test_password_policy_and_duel_question_lookup_are_hardened() -> None:
     duel_save = read("duels/save_answer.php")
 
     policy = functions.split("function validatePasswordPolicy", 1)[1].split("function registrationUsernameSlug", 1)[0]
-    assert "< 10" in policy
-    assert "minimum 10" in policy
+    assert "< 6" in policy
+    assert "minimum 6" in policy
     assert "getQuestionsByIds($pdo, [$questionId])" in duel_save
     assert "loadQuestions($pdo)" not in duel_save
 

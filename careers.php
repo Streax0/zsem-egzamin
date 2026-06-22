@@ -63,16 +63,25 @@ requireLogin();
                             <h4 class="fw-bold mb-3"><i class="bi bi-diagram-3 text-primary me-2"></i>Struktura ZSEM Tech</h4>
                             <?php
                             $board = [
-                                ['Michał Michalik', 'Przewodniczący, współtwórca strony', 'bi-person-badge'],
-                                ['Paweł Madzia', 'Zastępca przewodniczącego', 'bi-person-check'],
-                                ['Damian Podgórski', 'Zastępca przewodniczącego, współtwórca strony', 'bi-person-check'],
-                                ['Amelia Sułkowska', 'Skarbnik', 'bi-cash-coin'],
+                                ['Michał Michalik', 'Przewodniczący, współtwórca strony', 'bi-person-badge', 'author_michal.php'],
+                                ['Damian Podgórski', 'Zastępca przewodniczącego, współtwórca strony', 'bi-person-check', 'author_damian.php'],
+                                ['Paweł Madzia', 'Zastępca przewodniczącego', 'bi-person-check', ''],
+                                ['Amelia Sułkowska', 'Skarbnik', 'bi-cash-coin', ''],
                             ];
-                            foreach ($board as [$name, $desc, $icon]):
+                            foreach ($board as [$name, $desc, $icon, $url]):
                             ?>
                                 <div class="d-flex gap-3 py-3 border-bottom">
                                     <div class="stat-icon bg-primary bg-opacity-10 text-primary flex-shrink-0"><i class="bi <?php echo $icon; ?>"></i></div>
-                                    <div><div class="fw-bold"><?php echo $name; ?></div><div class="text-muted small"><?php echo $desc; ?></div></div>
+                                    <div>
+                                        <div class="fw-bold">
+                                            <?php if ($url): ?>
+                                                <a href="<?php echo htmlspecialchars($url); ?>" class="text-decoration-none text-reset"><?php echo $name; ?></a>
+                                            <?php else: ?>
+                                                <?php echo $name; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="text-muted small"><?php echo $desc; ?></div>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
