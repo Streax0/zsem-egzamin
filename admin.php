@@ -748,8 +748,7 @@ if (is_array($rawFlash)) {
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
     <style>
-        body,
-        .content-body {
+        body {
             background: radial-gradient(circle at 50% 0%, #0a0f1d 0%, #070a13 100%) !important;
             color: #f8fafc !important;
         }
@@ -1480,8 +1479,7 @@ if (is_array($rawFlash)) {
         }
 
         /* ==================== LIGHT MODE OVERRIDES ==================== */
-        body.light-mode,
-        body.light-mode .content-body {
+        body.light-mode {
             background: radial-gradient(circle at 50% 0%, #f8fafc 0%, #f1f5f9 100%) !important;
             color: #0f172a !important;
         }

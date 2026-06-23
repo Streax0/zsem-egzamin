@@ -193,6 +193,8 @@ if (!isset($base_url)) {
 
 <style>
 .main-footer {
+    position: relative;
+    z-index: auto;
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
     border-top: 1px solid rgba(148, 163, 184, 0.25) !important;
     padding-bottom: 7rem !important; /* Spacing to prevent help-fab overlap on bottom links */

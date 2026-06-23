@@ -325,6 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['current']++;
         $test['phase']       = 'answering';
         $test['last_result'] = null;
+        restoreCheckedQuestionReview($test);
         touchTestQuestionStart($test);
 
         if (($test['mode'] ?? $mode) === 'single') {

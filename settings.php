@@ -185,7 +185,7 @@ $settingsHealth = [
             color: #64748b !important;
         }
         body.light-mode .form-check-input {
-            background-color: rgba(255, 255, 255, 0.9) !important;
+            background-color: rgba(15, 23, 42, 0.08) !important;
             border-color: rgba(15, 23, 42, 0.2) !important;
         }
 
@@ -1214,10 +1214,7 @@ $settingsHealth = [
                                 </div>
                             </div>
                         </div>
-                    </div>                 </div>
-                        </div>
                     </div>
-
                 </div>
             </main>
             <?php include 'includes/footer.php'; ?>

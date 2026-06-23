@@ -304,6 +304,15 @@ switch ($action) {
                     echo securityJsonEncode(['success' => true, 'finished' => true, 'redirect' => "result.php?id=$resultId"]);
                 }
             } else {
+                if (restoreCheckedQuestionReview($test)) {
+                    saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
+                    echo securityJsonEncode(array_merge([
+                        'success' => true,
+                        'phase' => 'review',
+                        'result' => $test['last_result'],
+                    ], testProgressPayload($test)));
+                    break;
+                }
                 saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
                 $savedAnswer = $test['answers'][$test['current']]['user_answer'] ?? '';
                 echo securityJsonEncode(array_merge([

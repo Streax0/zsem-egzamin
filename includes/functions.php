@@ -3340,16 +3340,17 @@ function setUserRole($pdo, $userId, $role) {
         if (dbColumnExists($pdo, 'users', 'verified_at')) {
             $stmt = $pdo->prepare("
                 UPDATE users
-                SET role = :role,
-                    ranking_visible = :ranking_visible,
-                    is_verified = GREATEST(is_verified, :verified),
-                    verified_at = CASE WHEN :verified = 1 AND verified_at IS NULL THEN NOW() ELSE verified_at END
-                WHERE id = :id
+                SET role = ?,
+                    ranking_visible = ?,
+                    is_verified = GREATEST(is_verified, ?),
+                    verified_at = CASE WHEN ? = 1 AND verified_at IS NULL THEN NOW() ELSE verified_at END
+                WHERE id = ?
             ");
+            $success = $stmt->execute([$role, $rankingVisible, $verified, $verified, $userId]);
         } else {
-            $stmt = $pdo->prepare("UPDATE users SET role = :role, ranking_visible = :ranking_visible, is_verified = GREATEST(is_verified, :verified) WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE users SET role = ?, ranking_visible = ?, is_verified = GREATEST(is_verified, ?) WHERE id = ?");
+            $success = $stmt->execute([$role, $rankingVisible, $verified, $userId]);
         }
-        $success = $stmt->execute([':role' => $role, ':ranking_visible' => $rankingVisible, ':verified' => $verified, ':id' => $userId]);
         if ($success && in_array($role, privilegedStaffRoles(), true)) {
             if ($role === 'teacher') {
                 $pdo->prepare("UPDATE users SET class = NULL, class_year = NULL, class_suffix = NULL WHERE id = ?")->execute([$userId]);
@@ -4329,7 +4330,20 @@ function testReviewResultFromAnswer(array $test, int $currentIdx): array {
 function restoreCheckedQuestionReview(array &$test): bool {
     $currentIdx = max(0, (int)($test['current'] ?? 0));
     $answer = is_array($test['answers'][$currentIdx] ?? null) ? $test['answers'][$currentIdx] : [];
-    if (empty($answer['revealed_by_check'])) {
+    
+    $shouldRestore = false;
+    $mode = (string)($test['mode'] ?? 'exam');
+    if (in_array($mode, ['practice', 'single'], true)) {
+        if (isset($answer['user_answer']) && $answer['user_answer'] !== '') {
+            $shouldRestore = true;
+        }
+    } else {
+        if (!empty($answer['revealed_by_check'])) {
+            $shouldRestore = true;
+        }
+    }
+
+    if (!$shouldRestore) {
         return false;
     }
     if (($test['phase'] ?? '') === 'reviewing' && !empty($test['last_result'])) {
