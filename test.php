@@ -2938,13 +2938,13 @@ $flashMsg = getSessionMessage();
 <!-- Test modals and timer -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script>
-let shouldConfirmNavigation = false;
+window.shouldConfirmNavigation = <?php echo ($phase === 'answering') ? 'true' : 'false'; ?>;
 let pendingFinishForm = null;
 let confirmModal = null;
 let timeExpiredModal = null;
 
 window.allowQuizNavigation = function () {
-    shouldConfirmNavigation = false;
+    window.shouldConfirmNavigation = false;
 };
 
 function modalInstance(id) {
@@ -2953,7 +2953,7 @@ function modalInstance(id) {
 }
 
 function submitFinishEarlyForm(form) {
-    shouldConfirmNavigation = false;
+    window.shouldConfirmNavigation = false;
     if (form) {
         form.submit();
         return;
@@ -2983,7 +2983,7 @@ document.getElementById('testConfirmSubmit')?.addEventListener('click', function
 });
 
 window.addEventListener('beforeunload', function (e) {
-    if (shouldConfirmNavigation) {
+    if (window.shouldConfirmNavigation) {
         e.preventDefault();
         e.returnValue = ''; 
     }
@@ -3008,7 +3008,7 @@ function updateTimer() {
     if (timeLeft <= 0) {
         timerExpired = true;
         clearInterval(totalTimerInterval);
-        shouldConfirmNavigation = false;
+        window.shouldConfirmNavigation = false;
         timeExpiredModal = timeExpiredModal || modalInstance('testTimeExpiredModal');
         if (timeExpiredModal) timeExpiredModal.show();
         setTimeout(() => submitFinishEarlyForm(null), 900);

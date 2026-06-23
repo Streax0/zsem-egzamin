@@ -524,14 +524,35 @@ body.dark-mode .question-card .badge.bg-primary.bg-opacity-10 {
 }
 
 body.welcome-style-gradient .welcome-card {
-  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 95%, transparent), transparent 30%),
-              radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.85), transparent 25%),
-              linear-gradient(135deg, var(--primary-color) 0%, rgba(16, 185, 129, 1) 100%) !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #10b981 100%) !important;
+}
+body.welcome-style-gradient .welcome-card::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 65%) !important;
+  pointer-events: none;
+  inset: auto !important;
 }
 
 body.welcome-style-pure .welcome-card {
-  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 90%, transparent), transparent 45%),
-              linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 15%, #0d0b21) 100%) !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 25%, #0d0b21) 100%) !important;
+}
+body.welcome-style-pure .welcome-card::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%) !important;
+  pointer-events: none;
+  inset: auto !important;
 }
 
 body.welcome-style-aurora .welcome-card {
@@ -539,14 +560,37 @@ body.welcome-style-aurora .welcome-card {
   background-size: 200% 200% !important;
   animation: ctaMeshMovement 10s ease infinite !important;
 }
+body.welcome-style-aurora .welcome-card::before {
+  display: none !important;
+}
 
 body.welcome-style-glass .welcome-card {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color) 100%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
   color: #0f172a !important;
-  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.15) !important;
+}
+body.welcome-style-glass .welcome-card::before {
+  content: '';
+  position: absolute;
+  inset: 12px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  pointer-events: none;
+}
+body.dark-mode.welcome-style-glass .welcome-card::before {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.welcome-style-glass .welcome-card > * {
+  position: relative;
+  z-index: 1;
 }
 body.welcome-style-glass .welcome-card h1,
 body.welcome-style-glass .welcome-card h2,
@@ -579,8 +623,8 @@ body.welcome-style-glass .welcome-card .btn-welcome-outline {
 }
 
 body.dark-mode.welcome-style-glass .welcome-card {
-  background: rgba(15, 23, 42, 0.4) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color) 100%) !important;
+  border: none !important;
   color: #f8fafc !important;
 }
 body.dark-mode.welcome-style-glass .welcome-card h1,

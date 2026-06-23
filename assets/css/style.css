@@ -2866,14 +2866,35 @@ body.reduce-motion *::after {
 }
 
 body.welcome-style-gradient .dashboard-hero {
-  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 28%, transparent), transparent 28%),
-              radial-gradient(circle at bottom right, rgba(16, 185, 129, .18), transparent 24%),
-              linear-gradient(135deg, #0f172a 0%, color-mix(in srgb, var(--primary-color) 35%, #0f172a) 45%, #0f5f4d 100%) !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #10b981 100%) !important;
+}
+body.welcome-style-gradient .dashboard-hero::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 65%) !important;
+  pointer-events: none;
+  inset: auto !important;
 }
 
 body.welcome-style-pure .dashboard-hero {
-  background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 25%, transparent), transparent 45%),
-              linear-gradient(135deg, #0f172a 0%, color-mix(in srgb, var(--primary-color) 35%, #0f172a) 100%) !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 25%, #0d0b21) 100%) !important;
+}
+body.welcome-style-pure .dashboard-hero::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%) !important;
+  pointer-events: none;
+  inset: auto !important;
 }
 
 body.welcome-style-aurora .dashboard-hero {
@@ -2881,14 +2902,37 @@ body.welcome-style-aurora .dashboard-hero {
   background-size: 200% 200% !important;
   animation: ctaMeshMovement 10s ease infinite !important;
 }
+body.welcome-style-aurora .dashboard-hero::before {
+  display: none !important;
+}
 
 body.welcome-style-glass .dashboard-hero {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color) 100%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
   color: #0f172a !important;
-  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.15) !important;
+}
+body.welcome-style-glass .dashboard-hero::before {
+  content: '';
+  position: absolute;
+  inset: 12px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  pointer-events: none;
+}
+body.dark-mode.welcome-style-glass .dashboard-hero::before {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.welcome-style-glass .dashboard-hero > * {
+  position: relative;
+  z-index: 1;
 }
 body.welcome-style-glass .dashboard-hero h1,
 body.welcome-style-glass .dashboard-hero h2,
@@ -2921,8 +2965,8 @@ body.welcome-style-glass .dashboard-hero .btn-welcome-outline {
 }
 
 body.dark-mode.welcome-style-glass .dashboard-hero {
-  background: rgba(15, 23, 42, 0.4) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color) 100%) !important;
+  border: none !important;
   color: #f8fafc !important;
 }
 body.dark-mode.welcome-style-glass .dashboard-hero h1,
@@ -3687,4 +3731,18 @@ body.dark-mode .empty-state i {
     right: 18px;
     bottom: 18px;
   }
+}
+
+/* SPA progress loading bar */
+#spa-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--primary-color, #3b82f6), #10b981);
+  z-index: 99999;
+  width: 0;
+  transition: width 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+  box-shadow: 0 0 8px var(--primary-color, #3b82f6);
 }

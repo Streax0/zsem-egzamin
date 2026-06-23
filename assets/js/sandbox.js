@@ -225,41 +225,392 @@
           setHint('Przeglądarka zablokowała okno PDF. Zezwól na wyskakujące okna.', 'danger');
           return;
         }
-        popup.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Układ logiczny - ZSEM Tech</title>
-          <style>
-            @page { size: A4 landscape; margin: 12mm; }
-            body { font-family: Inter, Segoe UI, Arial, sans-serif; color: #0f172a; margin: 0; }
-            .pdf-brand { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; border-bottom:3px solid #2563eb; padding-bottom:12px; margin-bottom:16px; }
-            .pdf-brand strong { display:block; font-size:22pt; letter-spacing:.2px; color:#1d4ed8; }
-            .pdf-brand span { display:block; margin-top:4px; color:#475569; font-size:10pt; }
-            .pdf-meta { text-align:right; color:#64748b; font-size:9pt; line-height:1.5; }
-            h1 { font-size: 18pt; margin: 0 0 10px; }
-            h2 { font-size: 13pt; margin: 16px 0 8px; }
-            .logic-canvas { position: relative; min-height: 380px; overflow: hidden; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc; }
-            .logic-wire-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-            .logic-wire-path { fill: none; stroke: #64748b; stroke-width: 4; stroke-linecap: round; }
-            .logic-wire-path.is-active { stroke: #16a34a; }
-            .logic-node { position: absolute; min-width: 126px; padding: 10px; border-radius: 8px; border: 2px solid #cbd5e1; background: #fff; font-weight: 800; text-align: center; z-index: 2; box-shadow: 0 8px 20px rgba(15,23,42,.08); }
-            .logic-node-header { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-            .logic-node-delete, .logic-port { display: none !important; }
-            .logic-led { display: inline-block; width: 26px; height: 26px; border-radius: 50%; background: #cbd5e1; border: 4px solid #e2e8f0; vertical-align: middle; margin-right: 8px; }
-            .logic-led.is-on { background: #22c55e; box-shadow: 0 0 18px rgba(34,197,94,.8); }
-            .logic-switch { border: 1px solid #cbd5e1; border-radius: 999px; min-width: 42px; padding: 6px 12px; font-weight: 900; background: #e2e8f0; }
-            .logic-switch.is-on { background: #22c55e; color: #fff; border-color: #16a34a; }
-            table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 10pt; }
-            th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; }
-            th { background: #eff6ff; }
-          </style></head><body>
-            <header class="pdf-brand">
-              <div><strong>ZSEM Tech</strong><span>Eksport z symulatora bramek logicznych</span></div>
-              <div class="pdf-meta">Układ logiczny<br>Wygenerowano: ${escapeHtml(exportedAt)}</div>
-            </header>
-            <h1>Schemat układu</h1>${boardClone.outerHTML}
-            <h2>Tabela prawdy</h2>${truthTable.outerHTML}
-          </body></html>`);
+
+        const baseHref = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+        const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+          .map(link => link.outerHTML)
+          .join('\n');
+
+        popup.document.write(`<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <base href="${baseHref}">
+  <title>Układ logiczny - Raport Techniczny</title>
+  ${stylesheets}
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    @page {
+      size: A4 landscape;
+      margin: 12mm 15mm;
+    }
+    
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      color: #0f172a;
+    }
+
+    /* Print Visibility Resets */
+    @media print {
+      body.pdf-generator-page,
+      body.pdf-generator-page * {
+        visibility: visible !important;
+        display: revert !important;
+      }
+      body.pdf-generator-page .pdf-wrapper { display: block !important; }
+      body.pdf-generator-page .logic-node { display: flex !important; }
+      body.pdf-generator-page .logic-port { display: block !important; }
+      body.pdf-generator-page .logic-node-delete { display: none !important; }
+      body.pdf-generator-page button:not(.logic-port):not(.logic-switch) { display: none !important; }
+    }
+
+    .pdf-wrapper {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Header Section */
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #1e293b;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .pdf-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pdf-logo-box {
+      width: 48px;
+      height: 48px;
+      background: #0f172a;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    }
+
+    .pdf-title-group strong {
+      display: block;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #0f172a;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    .pdf-title-group span {
+      display: block;
+      margin-top: 4px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .pdf-meta-data {
+      text-align: right;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #475569;
+      font-family: 'JetBrains Mono', monospace;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .pdf-meta-data strong {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    /* Section Titles */
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 16px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .section-title i {
+      color: #2563eb;
+      background: #eff6ff;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    /* Canvas (Blueprint Style) */
+    .canvas-container {
+      width: 100%;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      background-color: #f8fafc;
+      background-image: 
+        linear-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
+      background-size: 20px 20px;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logic-canvas {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+    }
+
+    /* Overriding Logic Node Print Styles for Premium Look */
+    .logic-node {
+      border: 2px solid #334155 !important;
+      border-radius: 8px !important;
+      background: #ffffff !important;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+      padding: 12px 16px !important;
+    }
+
+    .logic-node-header strong {
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 12px !important;
+      color: #0f172a !important;
+    }
+
+    .logic-gate-label {
+      color: #2563eb !important;
+      font-weight: 900 !important;
+      letter-spacing: 1px !important;
+    }
+
+    .logic-port {
+      border: 2px solid #64748b !important;
+      background: #f8fafc !important;
+    }
+
+    .logic-port.is-on {
+      border-color: #059669 !important;
+      background: #d1fae5 !important;
+    }
+
+    .logic-wire-path {
+      stroke: #334155 !important;
+      stroke-width: 3px !important;
+    }
+
+    .logic-wire-path.is-active {
+      stroke: #10b981 !important;
+      stroke-width: 4px !important;
+    }
+
+    .logic-switch {
+      font-family: 'JetBrains Mono', monospace !important;
+      border: 2px solid #cbd5e1 !important;
+      background: #f1f5f9 !important;
+      color: #475569 !important;
+    }
+
+    .logic-switch.is-on {
+      border-color: #059669 !important;
+      background: #10b981 !important;
+      color: #ffffff !important;
+    }
+
+    .logic-led {
+      border: 2px solid #94a3b8 !important;
+      background: #f1f5f9 !important;
+      box-shadow: none !important;
+    }
+
+    .logic-led.is-on {
+      border-color: #059669 !important;
+      background: #10b981 !important;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;
+    }
+
+    /* Truth Table Premium Styling */
+    .truth-table-wrapper {
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      page-break-inside: avoid;
+    }
+
+    .truth-table-wrapper table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+      background: #ffffff;
+    }
+
+    .truth-table-wrapper th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 12px 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #cbd5e1;
+      border-right: 1px solid #e2e8f0;
+    }
+
+    .truth-table-wrapper th:last-child {
+      border-right: none;
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .truth-table-wrapper td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #475569;
+      border-bottom: 1px solid #f1f5f9;
+      border-right: 1px solid #f1f5f9;
+    }
+
+    .truth-table-wrapper td:last-child {
+      border-right: none;
+      background: #f8fafc;
+      font-weight: 700;
+      color: #0f172a;
+      border-left: 2px solid #e2e8f0;
+    }
+
+    .truth-table-wrapper tr:last-child td {
+      border-bottom: none;
+    }
+
+    .truth-table-wrapper tr:nth-child(even) td:not(:last-child) {
+      background: #fafafa;
+    }
+
+    /* State Badges */
+    .val-1 {
+      background: #d1fae5;
+      color: #047857;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 12px;
+      border: 1px solid #a7f3d0;
+      display: inline-block;
+      min-width: 32px;
+    }
+
+    .val-0 {
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      border: 1px solid #e2e8f0;
+      display: inline-block;
+      min-width: 32px;
+    }
+  </style>
+</head>
+<body class="pdf-generator-page">
+  <div class="pdf-wrapper">
+    
+    <header class="pdf-header">
+      <div class="pdf-brand">
+        <div class="pdf-logo-box"><i class="bi bi-cpu-fill"></i></div>
+        <div class="pdf-title-group">
+          <strong>ZSEM Tech</strong>
+          <span>Raport Analizy Logicznej</span>
+        </div>
+      </div>
+      <div class="pdf-meta-data">
+        <div>ID RAPORTU: <strong>LGC-${Math.floor(Math.random()*9000)+1000}</strong></div>
+        <div>DATA GENERACJI: <strong>${escapeHtml(exportedAt)}</strong></div>
+        <div>PROJEKT: <strong>Układ Cyfrowy (Symulator)</strong></div>
+      </div>
+    </header>
+    
+    <h2 class="section-title"><i class="bi bi-diagram-3"></i> Schemat blokowy układu</h2>
+    <div class="canvas-container canvas-wrapper">
+      ${boardClone.outerHTML}
+    </div>
+    
+    <h2 class="section-title"><i class="bi bi-table"></i> Tabela stanów logicznych (Tabela prawdy)</h2>
+    <div class="truth-table-wrapper">
+      ${truthTable.outerHTML}
+    </div>
+
+  </div>
+
+  <script>
+    window.onload = function() {
+      const canvas = document.querySelector('.logic-canvas');
+      const wrapper = document.querySelector('.canvas-wrapper');
+      if (canvas && wrapper) {
+        setTimeout(() => {
+          const wrapperWidth = wrapper.clientWidth;
+          const canvasWidth = canvas.scrollWidth || canvas.clientWidth;
+          if (canvasWidth > wrapperWidth && wrapperWidth > 0) {
+            const scale = wrapperWidth / canvasWidth;
+            canvas.style.transform = 'scale(' + scale + ')';
+            canvas.style.transformOrigin = 'top left';
+            wrapper.style.height = (canvas.clientHeight * scale) + 'px';
+          } else {
+            wrapper.style.height = canvas.clientHeight + 'px';
+          }
+        }, 50);
+      }
+      
+      document.querySelectorAll('.truth-table-container td').forEach(td => {
+        const text = td.textContent.trim();
+        if (text === '1') {
+          td.innerHTML = '<span class="val-1">1</span>';
+        } else if (text === '0') {
+          td.innerHTML = '<span class="val-0">0</span>';
+        }
+      });
+      
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          setTimeout(() => window.print(), 200);
+        });
+      } else {
+        setTimeout(() => window.print(), 500);
+      }
+    };
+  </script>
+</body>
+</html>`);
         popup.document.close();
         popup.focus();
-        setTimeout(() => popup.print(), 250);
       });
     };
 
@@ -442,12 +793,12 @@
     if (!$('psuRecommended')) return;
     const ids = ['psuCpuTdp', 'psuGpuTbp', 'psuBoard', 'psuDriveCount', 'psuFanCount', 'psuExtra', 'psuHeadroom', 'psuEfficiency'];
     const sync = () => {
-      const cpu = Number($('psuCpuTdp').value) || 0;
-      const gpu = Number($('psuGpuTbp').value) || 0;
-      const board = Number($('psuBoard').value) || 0;
-      const drives = Math.max(0, Number($('psuDriveCount').value) || 0) * 8;
-      const fans = Math.max(0, Number($('psuFanCount').value) || 0) * 3;
-      const extra = Number($('psuExtra').value) || 0;
+      const cpu = Math.max(0, Math.min(1000, Number($('psuCpuTdp').value) || 0));
+      const gpu = Math.max(0, Math.min(2000, Number($('psuGpuTbp').value) || 0));
+      const board = Math.max(10, Math.min(250, Number($('psuBoard').value) || 0));
+      const drives = Math.max(0, Math.min(50, Number($('psuDriveCount').value) || 0)) * 8;
+      const fans = Math.max(0, Math.min(50, Number($('psuFanCount').value) || 0)) * 3;
+      const extra = Math.max(0, Math.min(500, Number($('psuExtra').value) || 0));
       const headroom = Math.max(10, Math.min(80, Number($('psuHeadroom').value) || 30));
       const efficiency = Math.max(70, Math.min(94, Number($('psuEfficiency').value) || 85));
       const load = cpu + gpu + board + drives + fans + extra;
@@ -954,6 +1305,78 @@
     sync();
   }
 
+  function initCrypto() {
+    if (!$('pwdGenerate')) return;
+    
+    const generatePassword = () => {
+      const length = Math.max(8, Math.min(128, Number($('pwdLength').value) || 16));
+      const useUpper = $('pwdUpper').checked;
+      const useLower = $('pwdLower').checked;
+      const useNum = $('pwdNum').checked;
+      const useSym = $('pwdSym').checked;
+      
+      const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const lower = 'abcdefghijklmnopqrstuvwxyz';
+      const num = '0123456789';
+      const sym = '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+      
+      let chars = '';
+      if (useUpper) chars += upper;
+      if (useLower) chars += lower;
+      if (useNum) chars += num;
+      if (useSym) chars += sym;
+      
+      if (!chars) {
+        chars = lower;
+        $('pwdLower').checked = true;
+      }
+      
+      let pwd = '';
+      const array = new Uint32Array(length);
+      window.crypto.getRandomValues(array);
+      for (let i = 0; i < length; i++) {
+        pwd += chars[array[i] % chars.length];
+      }
+      
+      $('pwdResult').value = pwd;
+    };
+    
+    $('pwdGenerate').addEventListener('click', generatePassword);
+    $('pwdCopy').addEventListener('click', () => {
+      const pwd = $('pwdResult').value;
+      if (pwd) {
+        navigator.clipboard.writeText(pwd).then(() => {
+          const icon = $('pwdCopy').querySelector('i');
+          icon.className = 'bi bi-check';
+          setTimeout(() => icon.className = 'bi bi-clipboard', 2000);
+        });
+      }
+    });
+    
+    const inEl = $('cryptoInput');
+    const outEl = $('cryptoOutput');
+    
+    $('cryptoB64Enc').addEventListener('click', () => {
+      try { outEl.value = btoa(unescape(encodeURIComponent(inEl.value))); }
+      catch (e) { outEl.value = 'Błąd kodowania Base64'; }
+    });
+    $('cryptoB64Dec').addEventListener('click', () => {
+      try { outEl.value = decodeURIComponent(escape(atob(inEl.value.trim()))); }
+      catch (e) { outEl.value = 'Błąd dekodowania Base64. Upewnij się, że wejście jest poprawne.'; }
+    });
+    $('cryptoUrlEnc').addEventListener('click', () => {
+      outEl.value = encodeURIComponent(inEl.value);
+    });
+    $('cryptoUrlDec').addEventListener('click', () => {
+      try { outEl.value = decodeURIComponent(inEl.value); }
+      catch (e) { outEl.value = 'Błąd dekodowania URL'; }
+    });
+    $('cryptoClear').addEventListener('click', () => {
+      inEl.value = '';
+      outEl.value = '';
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     initLogic();
     initPsu();
@@ -963,5 +1386,6 @@
     initNumbers();
     initOhm();
     initLive();
+    initCrypto();
   });
 }());

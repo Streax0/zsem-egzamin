@@ -309,6 +309,8 @@
     window.applyStoredUiPreferences = applySettings;
     window.applyUiPreferences = applySettings;
 
+
+
     window.addEventListener('cookie-consent-updated', function(event) {
         const categories = event.detail && event.detail.categories;
         if ((event.detail && event.detail.value === 'rejected') || (categories && !categories.preferences)) {
