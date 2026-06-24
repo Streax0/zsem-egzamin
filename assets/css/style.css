@@ -2830,6 +2830,35 @@ body.reduce-motion *::after {
   box-shadow: 0 24px 60px rgba(15, 23, 42, .2);
 }
 
+.lobby-hero {
+  border-radius: 28px;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  color: #f8fafc;
+  background: radial-gradient(circle at top left, rgba(255,255,255,.12), transparent 28%), linear-gradient(135deg, #0f172a 0%, #0c4a6e 46%, #1e293b 100%);
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, .35);
+  position: relative;
+  overflow: hidden;
+}
+
+.lobby-hero h1,
+.lobby-hero p,
+.lobby-hero .small,
+.lobby-hero strong,
+.lobby-hero .alert,
+.lobby-hero .waiting-ribbon {
+  color: #f8fafc;
+}
+
+.lobby-hero .alert {
+  background: rgba(255,255,255,.12);
+  color: #f8fafc;
+  border: 1px solid rgba(255,255,255,.16);
+}
+
 .join-hero-icon {
   width: 86px;
   height: 86px;
@@ -3684,7 +3713,8 @@ body.dark-mode .empty-state i {
     grid-template-columns: 1fr;
   }
 
-  .join-hero-panel {
+  .join-hero-panel,
+  .lobby-hero {
     min-height: auto;
   }
 
@@ -3720,7 +3750,8 @@ body.dark-mode .empty-state i {
     padding: .85rem;
   }
 
-  .join-hero-panel {
+  .join-hero-panel,
+  .lobby-hero {
     border-radius: 20px;
     padding: 1.25rem;
   }
@@ -3745,4 +3776,143 @@ body.dark-mode .empty-state i {
   transition: width 0.3s ease, opacity 0.3s ease;
   pointer-events: none;
   box-shadow: 0 0 8px var(--primary-color, #3b82f6);
+}
+
+/* Dynamic Welcome Styles for join-hero-panel & lobby-hero */
+
+body.welcome-style-gradient .join-hero-panel,
+body.welcome-style-gradient .lobby-hero {
+  background: radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 34%), linear-gradient(135deg, var(--primary-color, #2563eb), #0f172a);
+}
+body.dark-mode.welcome-style-gradient .join-hero-panel,
+body.dark-mode.welcome-style-gradient .lobby-hero {
+  background: radial-gradient(circle at top left, rgba(255,255,255,.12), transparent 28%), linear-gradient(135deg, #0f172a 0%, #0c4a6e 46%, #1e293b 100%);
+}
+
+body.welcome-style-pure .join-hero-panel,
+body.welcome-style-pure .lobby-hero {
+  background: var(--primary-color, #2563eb) !important;
+}
+
+body.welcome-style-aurora .join-hero-panel,
+body.welcome-style-aurora .lobby-hero {
+  background: linear-gradient(135deg, #0d0b21 0%, var(--primary-color, #2563eb) 50%, #03001c 100%) !important;
+  background-size: 200% 200% !important;
+  animation: ctaMeshMovement 10s ease infinite !important;
+}
+
+body.welcome-style-glass .join-hero-panel,
+body.welcome-style-glass .lobby-hero {
+  background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color, #2563eb) 100%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  color: #0f172a !important;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.15) !important;
+}
+
+body.welcome-style-glass .join-hero-panel::before,
+body.welcome-style-glass .lobby-hero::before {
+  content: '';
+  position: absolute;
+  inset: 12px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  pointer-events: none;
+}
+
+body.dark-mode.welcome-style-glass .join-hero-panel::before,
+body.dark-mode.welcome-style-glass .lobby-hero::before {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.welcome-style-glass .join-hero-panel > *,
+body.welcome-style-glass .lobby-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.welcome-style-glass .join-hero-panel h1,
+body.welcome-style-glass .join-hero-panel h2,
+body.welcome-style-glass .join-hero-panel p,
+body.welcome-style-glass .lobby-hero h1,
+body.welcome-style-glass .lobby-hero h2,
+body.welcome-style-glass .lobby-hero p,
+body.welcome-style-glass .lobby-hero .small,
+body.welcome-style-glass .lobby-hero strong,
+body.welcome-style-glass .lobby-hero .waiting-ribbon {
+  color: #0f172a !important;
+}
+
+body.welcome-style-glass .lobby-hero .alert {
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+body.welcome-style-glass .lobby-hero .waiting-ribbon {
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+body.welcome-style-glass .lobby-hero .lobby-stat-card {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+body.welcome-style-glass .join-hero-panel .icon-wrapper,
+body.welcome-style-glass .lobby-hero .lobby-pulse div {
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+}
+body.welcome-style-glass .join-hero-panel .icon-wrapper i,
+body.welcome-style-glass .lobby-hero .lobby-pulse div i {
+  color: #0f172a !important;
+}
+
+
+body.dark-mode.welcome-style-glass .join-hero-panel,
+body.dark-mode.welcome-style-glass .lobby-hero {
+  background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color, #2563eb) 100%) !important;
+  border: none !important;
+  color: #f8fafc !important;
+}
+
+body.dark-mode.welcome-style-glass .join-hero-panel h1,
+body.dark-mode.welcome-style-glass .join-hero-panel h2,
+body.dark-mode.welcome-style-glass .join-hero-panel p,
+body.dark-mode.welcome-style-glass .lobby-hero h1,
+body.dark-mode.welcome-style-glass .lobby-hero h2,
+body.dark-mode.welcome-style-glass .lobby-hero p,
+body.dark-mode.welcome-style-glass .lobby-hero .small,
+body.dark-mode.welcome-style-glass .lobby-hero strong,
+body.dark-mode.welcome-style-glass .lobby-hero .waiting-ribbon {
+  color: #f8fafc !important;
+}
+
+body.dark-mode.welcome-style-glass .lobby-hero .alert {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.dark-mode.welcome-style-glass .lobby-hero .waiting-ribbon {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+body.dark-mode.welcome-style-glass .lobby-hero .lobby-stat-card {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+body.dark-mode.welcome-style-glass .join-hero-panel .icon-wrapper,
+body.dark-mode.welcome-style-glass .lobby-hero .lobby-pulse div {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+body.dark-mode.welcome-style-glass .join-hero-panel .icon-wrapper i,
+body.dark-mode.welcome-style-glass .lobby-hero .lobby-pulse div i {
+  color: #f8fafc !important;
 }
