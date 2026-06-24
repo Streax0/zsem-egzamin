@@ -38,20 +38,82 @@ if (isGuestMode()) {
                 <?php if ($flashMessage): ?>
                     <div class="alert alert-<?php echo htmlspecialchars($flashMessage['type']); ?> border-0 shadow-sm mb-4"><?php echo htmlspecialchars($flashMessage['message']); ?></div>
                 <?php endif; ?>
-                <section class="dashboard-panel p-4 p-lg-5" style="border-radius:8px; background:linear-gradient(135deg,#0f172a,#155e75 58%,#166534); color:#fff;">
-                    <div class="row g-4 align-items-center">
+                <section class="dashboard-panel p-4 p-lg-5 position-relative overflow-hidden" style="border-radius: 16px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%); color: #fff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+                    <div class="position-absolute top-0 end-0 opacity-10" style="transform: translate(20%, -20%); pointer-events: none;">
+                        <i class="bi bi-incognito" style="font-size: 15rem;"></i>
+                    </div>
+
+                    <div class="row g-5 align-items-center position-relative z-1">
                         <div class="col-lg-7">
-                            <h1 class="fw-900 mb-3">Tryb gościa</h1>
-                            <p class="fs-5 opacity-75 mb-4">Możesz rozwiązywać testy bez konta. Wyniki zostają tylko w tej sesji przeglądarki i nie trafiają do historii, rankingu ani misji.</p>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <a href="test.php?setup=1&new=1" class="btn btn-light btn-lg rounded-pill px-4 fw-bold"><i class="bi bi-play-fill me-1"></i>Rozpocznij test</a>
-                                <a href="exam/join.php" class="btn btn-outline-light btn-lg rounded-pill px-4 fw-bold"><i class="bi bi-qr-code-scan me-1"></i>Kod sprawdzianu</a>
+                            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(4px);">
+                                <i class="bi bi-person-x-fill text-warning"></i>
+                                <span class="small fw-semibold tracking-wide text-warning text-uppercase">Niezalogowany</span>
+                            </div>
+
+                            <h1 class="display-5 fw-900 mb-4 text-white letter-spacing-tight">Witaj w trybie gościa!</h1>
+
+                            <p class="fs-5 opacity-85 mb-5 fw-medium" style="line-height: 1.6;">
+                                Rozwiązuj testy bez konieczności zakładania konta. Twoje wyniki zostaną zachowane wyłącznie podczas tej sesji przeglądarki.
+                            </p>
+
+                            <div class="d-flex gap-3 flex-wrap">
+                                <a href="test.php?setup=1&new=1" class="btn btn-light btn-lg rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2 transition-all hover-lift">
+                                    <i class="bi bi-play-fill fs-5"></i>
+                                    Rozpocznij test
+                                </a>
+                                <a href="exam/join.php" class="btn btn-outline-light btn-lg rounded-pill px-4 fw-bold d-flex align-items-center gap-2 transition-all hover-lift" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(4px);">
+                                    <i class="bi bi-qr-code-scan"></i>
+                                    Kod sprawdzianu
+                                </a>
                             </div>
                         </div>
+
                         <div class="col-lg-5">
-                            <div class="p-4 bg-white bg-opacity-10 border border-white border-opacity-25" style="border-radius:8px;">
-                                <div class="d-flex align-items-center gap-3 mb-3"><i class="bi bi-incognito fs-2"></i><strong>Gość nie ma konta w bazie</strong></div>
-                                <div class="small opacity-75">Dostępne: testy i dołączenie do sprawdzianu nauczyciela kodem. Zablokowane: społeczność, rankingi, misje, historia, lekcje, ustawienia i duele.</div>
+                            <div class="p-4" style="border-radius: 16px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);">
+                                <h3 class="h5 fw-bold mb-4 d-flex align-items-center gap-2 text-white">
+                                    <i class="bi bi-info-circle-fill text-info"></i>
+                                    Zasady trybu gościa
+                                </h3>
+
+                                <div class="mb-4">
+                                    <div class="text-uppercase small fw-bold text-success mb-2 opacity-75" style="letter-spacing: 0.5px;">Dostępne funkcje</div>
+                                    <ul class="list-unstyled mb-0 vstack gap-2">
+                                        <li class="d-flex align-items-center gap-2 opacity-85">
+                                            <i class="bi bi-check2-circle text-success fs-5"></i>
+                                            <span>Rozwiązywanie testów</span>
+                                        </li>
+                                        <li class="d-flex align-items-center gap-2 opacity-85">
+                                            <i class="bi bi-check2-circle text-success fs-5"></i>
+                                            <span>Dołączanie do sprawdzianów</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <div class="text-uppercase small fw-bold text-danger mb-2 opacity-75" style="letter-spacing: 0.5px;">Zablokowane funkcje</div>
+                                    <ul class="list-unstyled mb-0 vstack gap-2">
+                                        <li class="d-flex align-items-center gap-2 opacity-75">
+                                            <i class="bi bi-x-circle text-danger fs-5"></i>
+                                            <span>Zapisywanie historii i postępów</span>
+                                        </li>
+                                        <li class="d-flex align-items-center gap-2 opacity-75">
+                                            <i class="bi bi-x-circle text-danger fs-5"></i>
+                                            <span>Zdobywanie XP i misje</span>
+                                        </li>
+                                        <li class="d-flex align-items-center gap-2 opacity-75">
+                                            <i class="bi bi-x-circle text-danger fs-5"></i>
+                                            <span>Rankingi i społeczność</span>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <hr class="border-white opacity-10 my-4">
+
+                                <div class="text-center">
+                                    <a href="register.php" class="text-white text-decoration-none small fw-bold d-inline-flex align-items-center gap-1 hover-opacity">
+                                        Załóż darmowe konto <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
