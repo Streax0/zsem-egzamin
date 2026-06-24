@@ -388,7 +388,7 @@ const QuizEngine = {
 
         if (whyPos !== -1) {
             explanationMain = explanationFull.substring(0, whyPos).trim();
-            explanationDistractors = explanationFull.substring(whyPos).trim();
+            explanationDistractors = explanationFull.substring(whyPos + whyMarker.length).trim();
         }
 
         const reviewNote = String(result.review_note || '').trim();
@@ -422,7 +422,7 @@ const QuizEngine = {
                     </div>
                     <div>${this.escapeHtml(explanationMain).replace(/\n/g, '<br>')}</div>
                     ${explanationDistractors ? `
-                        <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); toggleAnswerDistractors(this)">
+                        <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); window.QuizEngine.toggleAnswerDistractors(this)">
                             <i class="bi bi-list-check"></i> Dlaczego nie reszta?
                         </button>
                         <div class="answer-distractors d-none" data-distractors-panel>
@@ -508,6 +508,14 @@ const QuizEngine = {
         window.setTimeout(() => {
             if (box) box.innerHTML = '';
         }, 3600);
+    },
+
+    toggleAnswerDistractors(button) {
+        const panel = button.closest('.answer-explanation')?.querySelector('[data-distractors-panel]');
+        if (!panel) return;
+        const willShow = panel.classList.contains('d-none');
+        panel.classList.toggle('d-none', !willShow);
+        button.setAttribute('aria-expanded', willShow ? 'true' : 'false');
     },
 
     escapeHtml(text) {

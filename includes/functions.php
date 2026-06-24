@@ -3241,7 +3241,25 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
     if (str_contains($text, 'mask')) {
         return 'maska podsieci opisuje część sieciową adresu, ale sama nie wykonuje akcji wymaganej w pytaniu.';
     }
-    return '';
+
+    // Generic context-aware fallback
+    if (str_contains($text, 'sterownik')) {
+        return 'problem ze sterownikami zazwyczaj objawia się błędami sprzętowymi (BSoD) po wczytaniu jądra, a nie na etapie samego startu narzędzi naprawczych przed załadowaniem środowiska.';
+    }
+    if (str_contains($text, 'dysk') || str_contains($text, 'miejsc')) {
+        return 'brak miejsca na dysku nie powoduje błędów rozruchowych o takim charakterze w tej fazie bootowania.';
+    }
+    if (str_contains($text, 'klawiatur') || str_contains($text, 'mysz')) {
+        return 'urządzenia peryferyjne są sygnalizowane przez BIOS/UEFI wcześniej i nie generują takiego błędu startowego Windows.';
+    }
+    if (str_contains($text, 'pamięć') || str_contains($text, 'ram')) {
+        return 'błędy pamięci operacyjnej częściej powodują sprzętowe zawieszenia lub losowe restarty całego systemu.';
+    }
+    if (str_contains($text, 'zasilacz')) {
+        return 'uszkodzenie zasilacza prowadzi do wyłączania się sprzętu lub niemożności jego uruchomienia, a nie do komunikatów systemu operacyjnego.';
+    }
+
+    return 'ta odpowiedź dotyczy innego aspektu działania systemu i nie jest bezpośrednią przyczyną opisanego problemu.';
 }
 
 function buildQuestionExplanation(array $question, string $userAnswer = '', ?bool $isCorrect = null): string {
@@ -6670,4 +6688,26 @@ function getUserBadgeHtml($role, $isVerified) {
         return ' <i class="bi bi-patch-check-fill text-primary" title="Profil zweryfikowany" style="font-size: 0.95em; vertical-align: middle;"></i>';
     }
     return '';
+}
+
+function duelRevengeIsAvailable(PDO $pdo, int $parentId, int $userId, int $opponentId): bool {
+    if ($parentId <= 0) return false;
+    $stmt = $pdo->prepare("
+        SELECT challenger_id, opponent_id, status, challenger_finished_at, opponent_finished_at
+        FROM duels
+        WHERE id = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$parentId]);
+    $duel = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$duel || ($duel['status'] ?? '') !== 'finished') return false;
+    $participants = [(int)$duel['challenger_id'], (int)$duel['opponent_id']];
+    if (!in_array($userId, $participants, true) || !in_array($opponentId, $participants, true) || $userId === $opponentId) {
+        return false;
+    }
+    $finishedTs = 0;
+    foreach ([$duel['challenger_finished_at'] ?? null, $duel['opponent_finished_at'] ?? null] as $finishedAt) {
+        if (!empty($finishedAt)) $finishedTs = max($finishedTs, strtotime((string)$finishedAt) ?: 0);
+    }
+    return $finishedTs > 0 && (time() - $finishedTs) <= 600;
 }

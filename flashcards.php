@@ -41,7 +41,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'flash
 $dictionaryFile = __DIR__ . '/data/dictionary.json';
 $dictionaryData = [];
 if (is_file($dictionaryFile)) {
-    $dictionaryData = json_decode((string)file_get_contents($dictionaryFile), true) ?: [];
+    // Optimization: Cache parsed dictionary JSON using APCu to avoid synchronous file read and JSON decoding on every request.
+    $cacheKey = 'dictionary_data_' . filemtime($dictionaryFile);
+    if (function_exists('apcu_fetch')) {
+        $dictionaryData = apcu_fetch($cacheKey, $success);
+        if (!$success) {
+            $dictionaryData = json_decode((string)file_get_contents($dictionaryFile), true) ?: [];
+            apcu_store($cacheKey, $dictionaryData);
+        }
+    } else {
+        $dictionaryData = json_decode((string)file_get_contents($dictionaryFile), true) ?: [];
+    }
 }
 
 $cards = [];

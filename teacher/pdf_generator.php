@@ -305,6 +305,8 @@ if (!in_array($generatorMode, ['db', 'txt', 'manual'], true)) {
 }
 $shuffleQuestions = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['shuffle_questions']);
 $includeKey = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['include_key']);
+$fontSize = (string)($_POST["font_size"] ?? "normal");
+
 $shuffleAnswers = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["shuffle_answers"]);
 $showPoints = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_points"]);
 $showDateSpace = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_date_space"]);
@@ -618,13 +620,10 @@ $questionSelectorLimit = min(260, count($allQuestions));
         }
         body.dark-mode .generator-preset strong { color: #f8fafc; }
         body.dark-mode .generator-preset:hover::before { background: #60a5fa; }
-        body.dark-mode .nav-pills-custom .nav-link { color: #94a3b8; }
-        body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b; }
-        body.dark-mode .nav-pills-custom .nav-link.active {
-            background: rgba(37, 99, 235, 0.2);
-            color: #60a5fa;
-            border-color: rgba(37, 99, 235, 0.4);
-        }
+        body.dark-mode .nav-pills-custom { background: #0f172a !important; border: 1px solid rgba(148, 163, 184, 0.1) !important; }
+        body.dark-mode .nav-pills-custom .nav-link { color: #cbd5e1 !important; }
+        body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b !important; color: #f8fafc !important; }
+        body.dark-mode .nav-pills-custom .nav-link.active { background: rgba(37, 99, 235, 0.2) !important; color: #60a5fa !important; border: 1px solid rgba(37, 99, 235, 0.4) !important; }
 
         .generator-title-row {
             display:flex;
