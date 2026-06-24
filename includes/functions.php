@@ -3241,7 +3241,25 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
     if (str_contains($text, 'mask')) {
         return 'maska podsieci opisuje część sieciową adresu, ale sama nie wykonuje akcji wymaganej w pytaniu.';
     }
-    return '';
+
+    // Generic context-aware fallback
+    if (str_contains($text, 'sterownik')) {
+        return 'problem ze sterownikami zazwyczaj objawia się błędami sprzętowymi (BSoD) po wczytaniu jądra, a nie na etapie samego startu narzędzi naprawczych przed załadowaniem środowiska.';
+    }
+    if (str_contains($text, 'dysk') || str_contains($text, 'miejsc')) {
+        return 'brak miejsca na dysku nie powoduje błędów rozruchowych o takim charakterze w tej fazie bootowania.';
+    }
+    if (str_contains($text, 'klawiatur') || str_contains($text, 'mysz')) {
+        return 'urządzenia peryferyjne są sygnalizowane przez BIOS/UEFI wcześniej i nie generują takiego błędu startowego Windows.';
+    }
+    if (str_contains($text, 'pamięć') || str_contains($text, 'ram')) {
+        return 'błędy pamięci operacyjnej częściej powodują sprzętowe zawieszenia lub losowe restarty całego systemu.';
+    }
+    if (str_contains($text, 'zasilacz')) {
+        return 'uszkodzenie zasilacza prowadzi do wyłączania się sprzętu lub niemożności jego uruchomienia, a nie do komunikatów systemu operacyjnego.';
+    }
+
+    return 'ta odpowiedź dotyczy innego aspektu działania systemu i nie jest bezpośrednią przyczyną opisanego problemu.';
 }
 
 function buildQuestionExplanation(array $question, string $userAnswer = '', ?bool $isCorrect = null): string {

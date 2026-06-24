@@ -2878,7 +2878,7 @@ $flashMsg = getSessionMessage();
                 $why_pos = mb_strpos($reviewExplanation, $why_marker, 0, 'UTF-8');
                 if ($why_pos !== false) {
                     $answer_explanation_main = trim(mb_substr($reviewExplanation, 0, $why_pos, 'UTF-8'));
-                    $answer_distractors = trim(mb_substr($reviewExplanation, $why_pos, mb_strlen($reviewExplanation, 'UTF-8'), 'UTF-8'));
+                    $answer_distractors = trim(mb_substr($reviewExplanation, $why_pos + mb_strlen($why_marker, 'UTF-8'), null, 'UTF-8'));
                 }
             ?>
                 <div id="answersContainer" class="d-flex flex-column gap-2">
@@ -2956,7 +2956,7 @@ $flashMsg = getSessionMessage();
                     </div>
                     <div><?= nl2br(htmlspecialchars($answer_explanation_main)) ?></div>
                     <?php if ($answer_distractors !== ''): ?>
-                        <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); toggleAnswerDistractors(this)">
+                        <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); window.QuizEngine ? window.QuizEngine.toggleAnswerDistractors(this) : (function(btn){const panel = btn.closest('.answer-explanation')?.querySelector('[data-distractors-panel]'); if(!panel) return; const willShow = panel.classList.contains('d-none'); panel.classList.toggle('d-none', !willShow); btn.setAttribute('aria-expanded', willShow ? 'true' : 'false');})(this)">
                             <i class="bi bi-list-check"></i> Dlaczego nie reszta?
                         </button>
                         <div class="answer-distractors d-none" data-distractors-panel>
@@ -3163,14 +3163,5 @@ function confirmEndTest() {
 }
 </script>
 
-<script>
-    function toggleAnswerDistractors(button) {
-        const panel = button.closest('.answer-explanation')?.querySelector('[data-distractors-panel]');
-        if (!panel) return;
-        const willShow = panel.classList.contains('d-none');
-        panel.classList.toggle('d-none', !willShow);
-        button.setAttribute('aria-expanded', willShow ? 'true' : 'false');
-    }
-</script>
 </body>
 </html>
