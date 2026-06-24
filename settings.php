@@ -41,6 +41,9 @@ $statsPublic = (bool)($userSettings['stats_public'] ?? 1);
 $allowFriendRequests = (bool)($userSettings['allow_friend_requests'] ?? 1);
 $searchable = (bool)($userSettings['searchable'] ?? 1);
 $allowProfileComments = (bool)($userSettings['allow_profile_comments'] ?? 1);
+$showMissions = (bool)($userSettings['show_missions'] ?? 1);
+$showOnlineStatus = (bool)($userSettings['show_online_status'] ?? 1);
+$showRecentActivity = (bool)($userSettings['show_recent_activity'] ?? 1);
 $rankingVisible = (bool)($userSettings['ranking_visible'] ?? ($role !== 'teacher'));
 $canUseMfa = mfaRoleCanUse($role);
 $mfaEnabled = false;
@@ -1042,6 +1045,18 @@ $settingsHealth = [
                                                     <div class="form-check form-switch mb-3">
                                                         <input class="form-check-input" type="checkbox" id="searchable" name="searchable" value="1" <?php echo $searchable ? 'checked' : ''; ?>>
                                                         <label class="form-check-label" for="searchable">Profil widoczny w wyszukiwarce</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showMissions" name="show_missions" value="1" <?php echo $showMissions ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showMissions">Pokazuj misje na moim profilu</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showOnlineStatus" name="show_online_status" value="1" <?php echo $showOnlineStatus ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showOnlineStatus">Pokazuj status aktywności (Online)</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showRecentActivity" name="show_recent_activity" value="1" <?php echo $showRecentActivity ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showRecentActivity">Pokazuj ostatnią aktywność na profilu</label>
                                                     </div>
                                                     <?php if ($role === 'teacher'): ?>
                                                     <div class="form-check form-switch mb-3">
