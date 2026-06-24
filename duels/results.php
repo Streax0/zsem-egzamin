@@ -266,7 +266,9 @@ unset($answerRow);
                     clearInterval(timer);
                     window.location.reload();
                 }
-            } catch (_) {}
+            } catch (error) {
+                console.error('Error polling duel results:', error);
+            }
             if (tries > 300) clearInterval(timer);
         }, 3000);
     })();
