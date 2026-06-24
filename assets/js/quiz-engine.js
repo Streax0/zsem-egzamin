@@ -372,7 +372,7 @@ const QuizEngine = {
         const correctLabel = correctAnswerText
             ? `${result.correct_answer} („${correctAnswerText}”)`
             : result.correct_answer;
-        const explanation = String(result.explanation || '').trim()
+        const explanationFull = String(result.explanation || '').trim()
             || [
                 `Poprawna odpowiedź to ${correctLabel}.`,
                 result.is_correct
@@ -380,6 +380,17 @@ const QuizEngine = {
                     : `Wybrano ${userLabel}.`,
                 correctAnswerText ? `Najważniejsze do zapamiętania: ${correctAnswerText}` : ''
             ].filter(Boolean).join('\n');
+
+        let explanationMain = explanationFull;
+        let explanationDistractors = '';
+        const whyMarker = 'Dlaczego nie reszta?';
+        const whyPos = explanationFull.indexOf(whyMarker);
+
+        if (whyPos !== -1) {
+            explanationMain = explanationFull.substring(0, whyPos).trim();
+            explanationDistractors = explanationFull.substring(whyPos).trim();
+        }
+
         const reviewNote = String(result.review_note || '').trim();
         
         const reviewHtml = `
@@ -409,7 +420,15 @@ const QuizEngine = {
                         <i class="bi bi-info-circle-fill"></i>
                         Wyjaśnienie
                     </div>
-                    <div>${this.escapeHtml(explanation).replace(/\n/g, '<br>')}</div>
+                    <div>${this.escapeHtml(explanationMain).replace(/\n/g, '<br>')}</div>
+                    ${explanationDistractors ? `
+                        <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); toggleAnswerDistractors(this)">
+                            <i class="bi bi-list-check"></i> Dlaczego nie reszta?
+                        </button>
+                        <div class="answer-distractors d-none" data-distractors-panel>
+                            ${this.escapeHtml(explanationDistractors).replace(/\n/g, '<br>')}
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
