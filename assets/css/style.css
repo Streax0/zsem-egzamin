@@ -318,6 +318,9 @@ body.dark-mode {
     --text-main: var(--kolor-tekst);
     --bg-color: var(--kolor-tlo-wtoczne);
     --border-color: var(--kolor-ramka);
+    /* Usunięto sztywny wpis --primary-color: #3b82f6;
+       Optymalizacja/Poprawka: Pozwala to na dynamiczne przejmowanie koloru akcentu (user_accent)
+       ustawionego przez JS na elemencie :root, odblokowując możliwość zmiany akcentu w trybie ciemnym. */
 }
 
 /* ==================== OGOLNE ==================== */

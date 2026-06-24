@@ -228,7 +228,9 @@
         const isDark = theme === 'dark';
         setPreference('user_theme', isDark ? 'dark' : 'light');
 
-        // Zgodnie z wytycznymi, po zmianie na ciemny motyw resetujemy akcent i wygląd panelu do domyślnych dla tego motywu
+        // Zgodnie z wytycznymi, po zmianie na ciemny motyw resetujemy akcent i wygląd panelu do domyślnych dla tego motywu.
+        // Optymalizacja UX: Użytkownik zachowuje możliwość modyfikacji akcentu w obu trybach,
+        // a automatyczny reset gwarantuje natychmiastowe wizualne dopasowanie palety (np. 'glass' dla ciemnego).
         if (isDark) {
             setPreference('user_accent', '#6366f1'); // domyślny akcent ciemnego motywu
             setPreference('welcome_banner_style', 'glass');
