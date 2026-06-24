@@ -9,3 +9,5 @@ Added `llms.txt` to provide explicit context to AI models about platform authors
 - Updated optimization to `teacher/pdf_generator.php`: Fixed the logic of `worksheetShuffleOptions` to handle questions with fewer than 4 answers appropriately. Also added UI inputs, variables usage and proper toggles in views to reflect user's configuration during PDF printing without breaking existing components.
 ## 2024-05-18 - Generator UI improvement
 - Updated UI layout for `teacher/pdf_generator.php`: grouped configuration checkboxes into visually distinct and semantic cards (Mieszanie, Wygląd arkusza, Klucz odpowiedzi) matching the application's Bootstrap design system and handling dark mode styling.
+## 2024-05-18 - Full Generator Redesign
+- Redesigned `teacher/pdf_generator.php`: Replaced the legacy form inputs with a deeply customized, responsive card layout using Bootstrap features, modern "floating label" components, dedicated setting toggle cards, and refined visual hierarchies for both light and dark mode.
