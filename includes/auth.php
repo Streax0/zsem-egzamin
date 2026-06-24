@@ -414,7 +414,20 @@ if (!function_exists('requireLogin')) {
             $return_url = urlencode($_SERVER['REQUEST_URI'] ?? '/');
             $script = $_SERVER['PHP_SELF'] ?? '';
             $prefix = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false || strpos($script, '/actions/') !== false || strpos($script, '/ajax/') !== false) ? '../' : '';
-            header('Location: ' . $prefix . 'login.php?return=' . $return_url);
+
+            http_response_code(401);
+            $login_url = $prefix . 'login.php?return=' . $return_url;
+            $home_url = $prefix . 'index.php';
+            echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
+            echo '<title>Wymagane logowanie - ZSEM Tech</title>';
+            echo '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">';
+            echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">';
+            echo '<style>body{min-height:100vh;display:grid;place-items:center;padding:1rem;background:linear-gradient(180deg,#f8fafc,#eef4fb);color:#0f172a;font-family:Inter,system-ui,sans-serif}.blocked-card{width:min(760px,94vw);border:1px solid rgba(148,163,184,.32);border-radius:8px;background:#fff;box-shadow:0 28px 80px rgba(15,23,42,.16);padding:clamp(1.35rem,3vw,2.25rem)}.blocked-lock{width:56px;height:56px;border-radius:8px;display:grid;place-items:center;background:#fff7d6;color:#d97706;font-size:1.8rem;flex:0 0 auto}.blocked-heading{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem}.blocked-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .65rem;border-radius:999px;background:#facc15;color:#172033;font-weight:900;font-size:.78rem}.blocked-card .btn{font-weight:800}@media (max-width:560px){.blocked-card{padding:1.1rem}.blocked-heading{flex-direction:column}.blocked-lock{width:48px;height:48px}}</style>';
+            echo '</head><body><main class="blocked-card" role="main">';
+            echo '<div class="blocked-heading d-flex align-items-start gap-3"><div class="blocked-lock"><i class="bi bi-shield-lock-fill"></i></div><div><p class="blocked-badge mb-2">Dostęp ograniczony</p><h1 class="h3 fw-bold mb-2">Wymagane logowanie</h1><p class="text-muted mb-0">Aby uzyskać dostęp do tej strony, musisz się zalogować. Jeśli nie masz konta, możesz je założyć.</p></div></div>';
+            echo '<div class="mt-4 d-flex gap-2 flex-wrap"><a class="btn btn-primary rounded-pill px-4" href="' . htmlspecialchars($login_url, ENT_QUOTES) . '"><i class="bi bi-box-arrow-in-right me-1"></i>Zaloguj się</a><a class="btn btn-outline-secondary rounded-pill px-4" href="' . htmlspecialchars($home_url, ENT_QUOTES) . '"><i class="bi bi-house me-1"></i>Strona główna</a></div>';
+            echo '</main>';
+            echo '</body></html>';
             exit();
         }
 
