@@ -3,4 +3,3 @@
 **Action:** Always verify if optimization violates negative constraints like database editing, and prioritize safe frontend changes.
 ## 2024-10-24 - AI Visibility Optimization
 Added `llms.txt` to provide explicit context to AI models about platform authors, and updated `robots.txt` to explicitly allow AI crawlers (GPTBot, ClaudeBot, etc.) to access it, ensuring they can index this standard AI context file while respecting other site restrictions.
-
