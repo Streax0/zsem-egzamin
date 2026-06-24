@@ -41,6 +41,8 @@ if ($profileAction === 'delete_avatar') {
 
 $username = trim($_POST['username'] ?? '');
 $email = trim($_POST['email'] ?? '');
+$firstName = trim($_POST['first_name'] ?? '');
+$lastName = trim($_POST['last_name'] ?? '');
 $classParts = normalizeClassParts($_POST['class_year'] ?? null, $_POST['class_suffix'] ?? '');
 $errors = [];
 $avatarUploaded = false;
@@ -93,7 +95,15 @@ if (!preg_match('/^[a-zA-Z0-9_.-]+$/', $username)) {
     $errors[] = 'Nazwa użytkownika może zawierać tylko litery, cyfry, kropki, podkreślenia i myślniki.';
 }
 
-if (containsProfanity($username) || containsProfanity($email) || containsProfanity($_POST['class_suffix'] ?? '')) {
+if (mb_strlen($firstName, 'UTF-8') > 50) {
+    $errors[] = 'Imię może mieć maksymalnie 50 znaków.';
+}
+
+if (mb_strlen($lastName, 'UTF-8') > 50) {
+    $errors[] = 'Nazwisko może mieć maksymalnie 50 znaków.';
+}
+
+if (containsProfanity($username) || containsProfanity($email) || containsProfanity($_POST['class_suffix'] ?? '') || containsProfanity($firstName) || containsProfanity($lastName)) {
     $errors[] = 'Dane profilu zawierają niedozwolone słowa.';
 }
 
@@ -196,12 +206,12 @@ try {
         $oldStmt = $pdo->prepare("SELECT avatar_path FROM users WHERE id = ? LIMIT 1");
         $oldStmt->execute([$userId]);
         $oldAvatar = (string)($oldStmt->fetchColumn() ?: '');
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, class = ?, class_year = ?, class_suffix = ?, avatar_path = ?, avatar_changed_at = NOW() WHERE id = ?");
-        $stmt->execute([$username, $email, $classParts['label'], $classParts['year'], $classParts['suffix'], $avatarPath, $userId]);
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, first_name = ?, last_name = ?, class = ?, class_year = ?, class_suffix = ?, avatar_path = ?, avatar_changed_at = NOW() WHERE id = ?");
+        $stmt->execute([$username, $email, $firstName ?: null, $lastName ?: null, $classParts['label'], $classParts['year'], $classParts['suffix'], $avatarPath, $userId]);
         deleteLocalAvatarFile($oldAvatar);
     } else {
-        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, class = ?, class_year = ?, class_suffix = ? WHERE id = ?");
-        $stmt->execute([$username, $email, $classParts['label'], $classParts['year'], $classParts['suffix'], $userId]);
+        $stmt = $pdo->prepare("UPDATE users SET username = ?, email = ?, first_name = ?, last_name = ?, class = ?, class_year = ?, class_suffix = ? WHERE id = ?");
+        $stmt->execute([$username, $email, $firstName ?: null, $lastName ?: null, $classParts['label'], $classParts['year'], $classParts['suffix'], $userId]);
     }
     $_SESSION['username'] = $username;
     setSessionMessage('success', $avatarUploaded ? 'Dane profilu i zdjęcie zostały zaktualizowane.' : 'Dane profilu zostały zaktualizowane.');
