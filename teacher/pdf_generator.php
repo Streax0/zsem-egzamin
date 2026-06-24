@@ -132,49 +132,7 @@ function worksheetGroupLabels(int $count): array {
     return array_slice(range('A', 'J'), 0, $count);
 }
 
-
-// Optymalizacja: Dodano tasowanie odpowiedzi dla pytań zamkniętych w celu utrudnienia ściągania
-function worksheetShuffleOptions(array $question): array {
-    if (worksheetQuestionIsOpen($question)) {
-        return $question;
-    }
-    $options = [
-        'A' => $question['option_a'] ?? '',
-        'B' => $question['option_b'] ?? '',
-        'C' => $question['option_c'] ?? '',
-        'D' => $question['option_d'] ?? '',
-    ];
-    $validOptions = array_filter($options, fn($val) => trim((string)$val) !== '');
-    if (count($validOptions) < 2) {
-        return $question;
-    }
-
-    $keys = array_keys($validOptions);
-    shuffle($keys);
-
-    $newOptions = $options; // Start with original to keep empty ones
-    $newCorrect = '';
-    $correctOrig = $question['correct_answer'] ?? 'A';
-
-    $originalKeys = array_keys($validOptions);
-    foreach ($keys as $i => $oldKey) {
-        $newKey = $originalKeys[$i];
-        $newOptions[$newKey] = $options[$oldKey];
-        if ($oldKey === $correctOrig) {
-            $newCorrect = substr($newKey, 0, 1);
-        }
-    }
-
-    return array_merge($question, [
-        'option_a' => $newOptions['A'],
-        'option_b' => $newOptions['B'],
-        'option_c' => $newOptions['C'],
-        'option_d' => $newOptions['D'],
-        'correct_answer' => $newCorrect ?: $correctOrig
-    ]);
-}
-
-function worksheetBuildGroups(array $questions, int $questionCount, int $groupCount, string $groupStrategy, bool $shuffleAnswers = false): array {
+function worksheetBuildGroups(array $questions, int $questionCount, int $groupCount, string $groupStrategy): array {
     $labels = worksheetGroupLabels($groupCount);
     $questionCount = max(1, min(120, $questionCount));
     $groupStrategy = in_array($groupStrategy, ['same', 'rotate', 'unique'], true) ? $groupStrategy : 'unique';
@@ -197,13 +155,6 @@ function worksheetBuildGroups(array $questions, int $questionCount, int $groupCo
             $slice = array_slice($pool, 0, $questionCount);
         } else {
             $slice = array_slice($questions, 0, $questionCount);
-        }
-
-        if ($shuffleAnswers) {
-            foreach ($slice as &$q) {
-                $q = worksheetShuffleOptions($q);
-            }
-            unset($q);
         }
 
         $groups[] = [
@@ -263,7 +214,7 @@ function worksheetPreviewQuestionsFromPayload(string $payload): array {
     return is_array($rows) ? array_slice($rows, 0, 120) : [];
 }
 
-function worksheetSavePreviewAsCustomExam(array $questions, int $teacherId, string $title, string $description, string $difficulty, bool $shuffleAnswers = false): bool {
+function worksheetSavePreviewAsCustomExam(array $questions, int $teacherId, string $title, string $description, string $difficulty): bool {
     if ($teacherId <= 0 || empty($questions)) {
         return false;
     }
@@ -307,7 +258,7 @@ function worksheetSavePreviewAsCustomExam(array $questions, int $teacherId, stri
         'pass_threshold' => 50,
         'difficulty' => in_array($difficulty, ['easy','medium','hard','mixed'], true) ? $difficulty : 'mixed',
         'shuffle_questions' => true,
-        'shuffle_answers' => $shuffleAnswers,
+        'shuffle_answers' => false,
         'show_answers_after' => true,
         'tags' => ['do druku', 'PDF'],
         'print_only' => true,
@@ -353,15 +304,12 @@ if (!in_array($generatorMode, ['db', 'txt', 'manual'], true)) {
     $generatorMode = 'db';
 }
 $shuffleQuestions = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['shuffle_questions']);
-$shuffleAnswers = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['shuffle_answers']);
-$showPoints = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['show_points']);
-$showDateSpace = isset($_POST['show_date_space']);
-$showGradeSpace = isset($_POST['show_grade_space']);
-$fontSize = (string)($_POST['font_size'] ?? 'normal');
-if (!in_array($fontSize, ['small', 'normal', 'large'], true)) {
-    $fontSize = 'normal';
-}
 $includeKey = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['include_key']);
+$shuffleAnswers = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["shuffle_answers"]);
+$showPoints = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_points"]);
+$showDateSpace = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_date_space"]);
+$showGradeSpace = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_grade_space"]);
+
 $showExplanations = isset($_POST['show_explanations']);
 $selected = [];
 $worksheetGroups = [];
@@ -375,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $worksheetAction === 'save_preview'
         redirect('pdf_generator.php');
     }
     $payloadQuestions = worksheetPreviewQuestionsFromPayload((string)($_POST['questions_payload'] ?? ''));
-    if (worksheetSavePreviewAsCustomExam($payloadQuestions, $userId, $title, $description, $difficultyLevel, $shuffleAnswers)) {
+    if (worksheetSavePreviewAsCustomExam($payloadQuestions, $userId, $title, $description, $difficultyLevel)) {
         setSessionMessage('success', 'Podgląd zapisano w Moich sprawdzianach.');
         redirect('custom_exams.php');
     }
@@ -459,7 +407,7 @@ if ($submitted) {
 }
 
 if (!empty($selected)) {
-    $worksheetGroups = worksheetBuildGroups($selected, $questionCount, $groupCount, $groupStrategy, $shuffleAnswers ?? false);
+    $worksheetGroups = worksheetBuildGroups($selected, $questionCount, $groupCount, $groupStrategy);
 }
 
 $currentUserStmt = $pdo->prepare("SELECT username, first_name, last_name FROM users WHERE id = ? LIMIT 1");
@@ -482,8 +430,203 @@ $questionSelectorLimit = min(260, count($allQuestions));
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css', '..')); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css', '..')); ?>">
     <style>
-        body.pdf-generator-page { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body.pdf-generator-page { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #f8fafc; }
         .generator-shell { max-width: 1480px; margin: 0 auto; }
+
+        /* New UI Styles */
+        .generator-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .generator-card-header {
+            background: #f8fafc;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .generator-card-header h5 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .generator-card-header .icon-wrapper {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+        }
+        .generator-card-body {
+            padding: 1.5rem;
+        }
+
+        .form-floating-custom {
+            position: relative;
+        }
+        .form-floating-custom label {
+            position: absolute;
+            top: -0.6rem;
+            left: 0.75rem;
+            background: #fff;
+            padding: 0 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            z-index: 5;
+        }
+        .form-floating-custom .form-control,
+        .form-floating-custom .form-select {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-radius: 8px;
+            border-color: #cbd5e1;
+            box-shadow: none;
+            transition: all 0.2s;
+        }
+        .form-floating-custom .form-control:focus,
+        .form-floating-custom .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .toggle-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.2s;
+            height: 100%;
+        }
+        .toggle-card:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        .toggle-card .form-check-label {
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+        }
+
+        .generator-preset-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .generator-preset {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: linear-gradient(to bottom right, #ffffff, #f8fafc);
+            padding: 1rem;
+            text-align: left;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .generator-preset::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: #cbd5e1;
+            transition: all 0.2s ease;
+        }
+        .generator-preset:hover {
+            transform: translateY(-2px);
+            border-color: #94a3b8;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        .generator-preset:hover::before {
+            background: #2563eb;
+        }
+        .generator-preset strong { display: block; font-size: 1rem; color: #1e293b; margin-bottom: 0.25rem; }
+        .generator-preset span { display: block; color: #64748b; font-size: 0.8rem; line-height: 1.4; }
+
+        .nav-pills-custom .nav-link {
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            color: #475569;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-pills-custom .nav-link:hover {
+            background: #f1f5f9;
+        }
+        .nav-pills-custom .nav-link.active {
+            background: #eff6ff;
+            color: #2563eb;
+            border-color: #bfdbfe;
+        }
+
+        /* Dark mode overrides for new UI */
+        body.dark-mode .generator-card {
+            background: #1e293b;
+            border-color: rgba(148, 163, 184, 0.1);
+        }
+        body.dark-mode .generator-card-header {
+            background: #0f172a;
+            border-color: rgba(148, 163, 184, 0.1);
+        }
+        body.dark-mode .generator-card-header h5 {
+            color: #f8fafc;
+        }
+        body.dark-mode .generator-card-header .icon-wrapper {
+            background: rgba(96, 165, 250, 0.15);
+            color: #60a5fa;
+        }
+        body.dark-mode .form-floating-custom label {
+            background: #1e293b;
+            color: #94a3b8;
+        }
+        body.dark-mode .form-floating-custom .form-control,
+        body.dark-mode .form-floating-custom .form-select {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .toggle-card {
+            border-color: #334155;
+            background: #0f172a;
+        }
+        body.dark-mode .toggle-card:hover {
+            background: #1e293b;
+            border-color: #475569;
+        }
+        body.dark-mode .toggle-card .form-check-label {
+            color: #cbd5e1;
+        }
+        body.dark-mode .generator-preset {
+            background: #0f172a;
+            border-color: #334155;
+        }
+        body.dark-mode .generator-preset::before {
+            background: #475569;
+        }
+        body.dark-mode .generator-preset strong { color: #f8fafc; }
+        body.dark-mode .generator-preset:hover::before { background: #60a5fa; }
+        body.dark-mode .nav-pills-custom { background: rgba(255, 255, 255, 0.08) !important; }
+        body.dark-mode .nav-pills-custom .nav-link { color: #94a3b8; }
+        body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b; }
+        body.dark-mode .nav-pills-custom .nav-link.active {
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+            border-color: rgba(37, 99, 235, 0.4);
+        }
+
         .generator-title-row {
             display:flex;
             align-items:center;
@@ -801,7 +944,8 @@ $questionSelectorLimit = min(260, count($allQuestions));
         body.dark-mode .source-method-card,
         body.dark-mode .generator-preset,
         body.dark-mode .generator-live-estimate,
-        body.dark-mode .manual-q-item {
+        body.dark-mode .manual-q-item,
+        body.dark-mode .card.bg-light {
             background:#111827 !important;
             border-color:rgba(148,163,184,.24) !important;
             color:#e5e7eb;
@@ -949,22 +1093,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
     </style>
     <style id="worksheetPrintCss">
         @page { size:A4; margin:12mm; }
-        <?php if ($fontSize === 'small'): ?>
-        body { margin:0; background:#fff; color:#111827; font-family:Inter, Arial, sans-serif; font-size:10pt; line-height:1.3; }
-        .h3 { font-size:18pt; }
-        .h4 { font-size:14pt; }
-        .h6 { font-size:11pt; }
-        <?php elseif ($fontSize === 'large'): ?>
-        body { margin:0; background:#fff; color:#111827; font-family:Inter, Arial, sans-serif; font-size:12pt; line-height:1.4; }
-        .h3 { font-size:22pt; }
-        .h4 { font-size:16pt; }
-        .h6 { font-size:12pt; }
-        <?php else: ?>
         body { margin:0; background:#fff; color:#111827; font-family:Inter, Arial, sans-serif; font-size:11pt; line-height:1.35; }
-        .h3 { font-size:20pt; }
-        .h4 { font-size:15pt; }
-        .h6 { font-size:11.5pt; }
-        <?php endif; ?>
         .d-flex { display:flex; }
         .justify-content-between { justify-content:space-between; }
         .align-items-start { align-items:flex-start; }
@@ -1040,126 +1169,193 @@ $questionSelectorLimit = min(260, count($allQuestions));
 
                 <form method="POST" enctype="multipart/form-data" id="worksheetForm" class="no-print">
                     <?php echo csrfTokenField('teacher_pdf_generator'); ?>
-                    <section class="dashboard-panel generator-panel mb-4">
-                        <div class="config-section">
-                            <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Informacje</h5>
-                            <div class="row g-3">
-                                <div class="col-lg-8">
-                                    <label class="form-label fw-semibold" for="title">Tytuł sprawdzianu</label>
-                                    <input class="form-control" id="title" name="title" maxlength="120" placeholder="np. Test z rozdziału 3" value="<?php echo htmlspecialchars($title); ?>" required>
+                                        <div class="row g-4 mb-4">
+                        <div class="col-xl-8">
+                            <div class="generator-card h-100">
+                                <div class="generator-card-header">
+                                    <div class="icon-wrapper"><i class="bi bi-pencil-square"></i></div>
+                                    <h5>Podstawowe informacje</h5>
                                 </div>
-                                <div class="col-lg-4">
-                                    <label class="form-label fw-semibold" for="description">Opis (opcjonalnie)</label>
-                                    <input class="form-control" id="description" name="description" maxlength="220" placeholder="Krótki opis..." value="<?php echo htmlspecialchars($description); ?>">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-semibold" for="questionCountInput">Liczba pytań</label>
-                                    <input class="form-control" id="questionCountInput" name="question_count" type="number" min="1" max="120" value="<?php echo (int)$questionCount; ?>">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-semibold" for="groupCountInput">Liczba grup</label>
-                                    <input class="form-control" id="groupCountInput" name="group_count" type="number" min="1" max="10" value="<?php echo (int)$groupCount; ?>">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-semibold" for="groupStrategy">Pytania w grupach</label>
-                                    <select class="form-select" id="groupStrategy" name="group_strategy">
-                                        <option value="unique" <?php echo $groupStrategy === 'unique' ? 'selected' : ''; ?>>Różne zestawy</option>
-                                        <option value="rotate" <?php echo $groupStrategy === 'rotate' ? 'selected' : ''; ?>>Ten zestaw, inna kolejność</option>
-                                        <option value="same" <?php echo $groupStrategy === 'same' ? 'selected' : ''; ?>>Ten sam zestaw</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-semibold" for="difficultyLevel">Poziom</label>
-                                    <select class="form-select" id="difficultyLevel" name="difficulty_level">
-                                        <?php foreach ($difficultyLabels as $value => $label): ?>
-                                            <option value="<?php echo htmlspecialchars($value); ?>" <?php echo $difficultyLevel === $value ? 'selected' : ''; ?>><?php echo htmlspecialchars($label); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label fw-semibold" for="fontSize">Rozmiar czcionki</label>
-                                    <select class="form-select" id="fontSize" name="font_size">
-                                        <option value="small" <?php echo $fontSize === 'small' ? 'selected' : ''; ?>>Mała (10pt)</option>
-                                        <option value="normal" <?php echo $fontSize === 'normal' ? 'selected' : ''; ?>>Normalna (11pt)</option>
-                                        <option value="large" <?php echo $fontSize === 'large' ? 'selected' : ''; ?>>Duża (12pt)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-12 d-flex align-items-end">
-                                    <div class="d-flex flex-wrap gap-3 pb-1 mt-2">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQuestions" <?php echo $shuffleQuestions ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="shuffleQuestions">Mieszaj pytania</label>
+                                <div class="generator-card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <div class="form-floating-custom">
+                                                <label for="title">Tytuł sprawdzianu</label>
+                                                <input class="form-control form-control-lg" id="title" name="title" maxlength="120" placeholder="Wpisz tytuł..." value="<?php echo htmlspecialchars($title); ?>" required>
+                                            </div>
                                         </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="shuffle_answers" id="shuffleAnswers" <?php echo $shuffleAnswers ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="shuffleAnswers">Mieszaj odpowiedzi</label>
+                                        <div class="col-md-4">
+                                            <div class="form-floating-custom">
+                                                <label for="difficultyLevel">Poziom trudności</label>
+                                                <select class="form-select form-select-lg" id="difficultyLevel" name="difficulty_level">
+                                                    <?php foreach ($difficultyLabels as $value => $label): ?>
+                                                        <option value="<?php echo htmlspecialchars($value); ?>" <?php echo $difficultyLevel === $value ? 'selected' : ''; ?>><?php echo htmlspecialchars($label); ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_points" id="showPoints" <?php echo $showPoints ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showPoints">Punktacja</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_date_space" id="showDateSpace" <?php echo $showDateSpace ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showDateSpace">Miejsce na datę</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_grade_space" id="showGradeSpace" <?php echo $showGradeSpace ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showGradeSpace">Miejsce na ocenę</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="include_key" id="includeKey" <?php echo $includeKey ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="includeKey">Klucz odpowiedzi</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_explanations" id="showExplanations" <?php echo $showExplanations ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showExplanations">Wyjaśnienia</label>
+                                        <div class="col-12">
+                                            <div class="form-floating-custom">
+                                                <label for="description">Opis lub instrukcja (opcjonalnie)</label>
+                                                <input class="form-control" id="description" name="description" maxlength="220" placeholder="Krótki opis widoczny pod tytułem..." value="<?php echo htmlspecialchars($description); ?>">
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="generator-preset-row" aria-label="Szybkie presety generatora">
-                                        <button type="button" class="generator-preset" data-generator-preset data-count="20" data-groups="1" data-strategy="same" data-title="Kartkówka CKE">
-                                            <strong><i class="bi bi-lightning-charge me-1 text-warning"></i>Kartkówka</strong>
-                                            <span>20 pytań, 1 grupa, szybki druk.</span>
-                                        </button>
-                                        <button type="button" class="generator-preset" data-generator-preset data-count="40" data-groups="2" data-strategy="rotate" data-title="Sprawdzian CKE">
-                                            <strong><i class="bi bi-shuffle me-1 text-primary"></i>Sprawdzian</strong>
-                                            <span>40 pytań, 2 grupy, rotacja kolejności.</span>
-                                        </button>
-                                        <button type="button" class="generator-preset" data-generator-preset data-count="60" data-groups="3" data-strategy="unique" data-title="Próbny egzamin zawodowy">
-                                            <strong><i class="bi bi-mortarboard me-1 text-success"></i>Egzamin próbny</strong>
-                                            <span>60 pytań, 3 grupy, różne zestawy.</span>
-                                        </button>
+
+                                    <hr class="my-4 text-muted opacity-25">
+
+                                    <h6 class="fw-bold mb-3 text-muted small text-uppercase tracking-wider">Konfiguracja arkuszy</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <div class="form-floating-custom">
+                                                <label for="questionCountInput">Pytań / grupę</label>
+                                                <input class="form-control text-center fw-bold" id="questionCountInput" name="question_count" type="number" min="1" max="120" value="<?php echo (int)$questionCount; ?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-floating-custom">
+                                                <label for="groupCountInput">Liczba grup</label>
+                                                <input class="form-control text-center fw-bold" id="groupCountInput" name="group_count" type="number" min="1" max="10" value="<?php echo (int)$groupCount; ?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-floating-custom">
+                                                <label for="groupStrategy">Warianty grup</label>
+                                                <select class="form-select" id="groupStrategy" name="group_strategy">
+                                                    <option value="unique" <?php echo $groupStrategy === 'unique' ? 'selected' : ''; ?>>Różne pytania</option>
+                                                    <option value="rotate" <?php echo $groupStrategy === 'rotate' ? 'selected' : ''; ?>>Inna kolejność</option>
+                                                    <option value="same" <?php echo $groupStrategy === 'same' ? 'selected' : ''; ?>>Identyczne</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-floating-custom">
+                                                <label for="fontSize">Wielkość czcionki</label>
+                                                <select class="form-select" id="fontSize" name="font_size">
+                                                    <option value="small" <?php echo $fontSize === 'small' ? 'selected' : ''; ?>>Mała</option>
+                                                    <option value="normal" <?php echo $fontSize === 'normal' ? 'selected' : ''; ?>>Normalna</option>
+                                                    <option value="large" <?php echo $fontSize === 'large' ? 'selected' : ''; ?>>Duża</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="generator-live-estimate" id="worksheetEstimate" aria-live="polite"></div>
+
+                                    <div class="generator-live-estimate mt-4" id="worksheetEstimate" aria-live="polite"></div>
                                 </div>
                             </div>
                         </div>
-                    </section>
 
-                    <section class="dashboard-panel generator-panel mb-4">
-                        <div class="config-section">
-                            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
-                                <h5 class="fw-bold mb-0"><i class="bi bi-question-circle me-2"></i>Pytania</h5>
-                                <span class="badge bg-primary rounded-pill"><?php echo count($allQuestions); ?> w puli</span>
+                        <div class="col-xl-4">
+                            <div class="generator-card h-100">
+                                <div class="generator-card-header">
+                                    <div class="icon-wrapper"><i class="bi bi-sliders"></i></div>
+                                    <h5>Opcje i wygląd</h5>
+                                </div>
+                                <div class="generator-card-body d-flex flex-column gap-3">
+                                    <div class="toggle-card">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-check-label mb-0" for="shuffleQuestions">
+                                                <i class="bi bi-shuffle me-2 text-primary"></i>Tasuj pytania
+                                            </label>
+                                            <div class="form-check form-switch m-0">
+                                                <input class="form-check-input fs-5 m-0" type="checkbox" name="shuffle_questions" id="shuffleQuestions" <?php echo $shuffleQuestions ? 'checked' : ''; ?>>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small">Zmienia kolejność pytań w grupach.</div>
+                                    </div>
+
+                                    <div class="toggle-card">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-check-label mb-0" for="shuffleAnswers">
+                                                <i class="bi bi-list-nested me-2 text-primary"></i>Tasuj odpowiedzi
+                                            </label>
+                                            <div class="form-check form-switch m-0">
+                                                <input class="form-check-input fs-5 m-0" type="checkbox" name="shuffle_answers" id="shuffleAnswers" <?php echo $shuffleAnswers ? 'checked' : ''; ?>>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small">Zmienia kolejność opcji A, B, C, D.</div>
+                                    </div>
+
+                                    <div class="toggle-card">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-check-label mb-0" for="showPoints">
+                                                <i class="bi bi-123 me-2 text-success"></i>Pokaż punktację
+                                            </label>
+                                            <div class="form-check form-switch m-0">
+                                                <input class="form-check-input fs-5 m-0" type="checkbox" name="show_points" id="showPoints" <?php echo $showPoints ? 'checked' : ''; ?>>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small">Wyświetla ilość punktów przy pytaniach.</div>
+                                    </div>
+
+                                    <div class="toggle-card">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-check-label mb-0" for="includeKey">
+                                                <i class="bi bi-key me-2 text-warning"></i>Klucz odpowiedzi
+                                            </label>
+                                            <div class="form-check form-switch m-0">
+                                                <input class="form-check-input fs-5 m-0" type="checkbox" name="include_key" id="includeKey" <?php echo $includeKey ? 'checked' : ''; ?>>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small">Dodaje stronę z rozwiązaniami dla nauczyciela.</div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <div class="form-check form-switch flex-fill border rounded p-2 ps-5 bg-light">
+                                            <input class="form-check-input" type="checkbox" name="show_date_space" id="showDateSpace" <?php echo $showDateSpace ? 'checked' : ''; ?>>
+                                            <label class="form-check-label small" for="showDateSpace">Miejsce: Data</label>
+                                        </div>
+                                        <div class="form-check form-switch flex-fill border rounded p-2 ps-5 bg-light">
+                                            <input class="form-check-input" type="checkbox" name="show_grade_space" id="showGradeSpace" <?php echo $showGradeSpace ? 'checked' : ''; ?>>
+                                            <label class="form-check-label small" for="showGradeSpace">Miejsce: Ocena</label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
 
-                            <ul class="nav nav-tabs mb-3 border-0 gap-2" id="questionTabs" role="tablist">
+                        <div class="col-12">
+                            <div class="generator-preset-row" aria-label="Szybkie presety generatora">
+                                <button type="button" class="generator-preset" data-generator-preset data-count="20" data-groups="1" data-strategy="same" data-title="Kartkówka CKE">
+                                    <strong><i class="bi bi-lightning-charge me-2 text-warning"></i>Szybka Kartkówka</strong>
+                                    <span>20 pytań, 1 grupa, bez mieszania wariantów.</span>
+                                </button>
+                                <button type="button" class="generator-preset" data-generator-preset data-count="40" data-groups="2" data-strategy="rotate" data-title="Sprawdzian CKE">
+                                    <strong><i class="bi bi-shuffle me-2 text-primary"></i>Standardowy Sprawdzian</strong>
+                                    <span>40 pytań, 2 grupy, rotacja kolejności.</span>
+                                </button>
+                                <button type="button" class="generator-preset" data-generator-preset data-count="60" data-groups="3" data-strategy="unique" data-title="Próbny egzamin zawodowy">
+                                    <strong><i class="bi bi-mortarboard me-2 text-success"></i>Egzamin Próbny</strong>
+                                    <span>60 pytań, 3 grupy, całkowicie różne zestawy.</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                                        <div class="generator-card mb-4">
+                        <div class="generator-card-header justify-content-between">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-wrapper"><i class="bi bi-collection"></i></div>
+                                <h5>Źródło pytań</h5>
+                            </div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-3 py-2"><?php echo count($allQuestions); ?> dostępnych pytań</span>
+                        </div>
+                        <div class="generator-card-body">
+
+                            <ul class="nav nav-pills nav-pills-custom mb-4 gap-2 bg-light p-1 rounded-3 d-inline-flex" id="questionTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link <?php echo $generatorMode === 'db' ? 'active' : ''; ?> rounded-pill px-4 btn-outline-primary" id="db-tab" data-bs-toggle="tab" data-bs-target="#db-questions" type="button" role="tab">
-                                        <i class="bi bi-database me-1"></i>Z puli pytań
+                                    <button class="nav-link <?php echo $generatorMode === 'db' ? 'active' : ''; ?>" id="db-tab" data-bs-toggle="tab" data-bs-target="#db-questions" type="button" role="tab">
+                                        <i class="bi bi-database me-2"></i>Baza Pytań
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link <?php echo $generatorMode === 'txt' ? 'active' : ''; ?> rounded-pill px-4 btn-outline-primary" id="txt-tab" data-bs-toggle="tab" data-bs-target="#txt-questions" type="button" role="tab">
-                                        <i class="bi bi-filetype-txt me-1"></i>Plik TXT
+                                    <button class="nav-link <?php echo $generatorMode === 'txt' ? 'active' : ''; ?>" id="txt-tab" data-bs-toggle="tab" data-bs-target="#txt-questions" type="button" role="tab">
+                                        <i class="bi bi-file-earmark-arrow-up me-2"></i>Import TXT
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link <?php echo $generatorMode === 'manual' ? 'active' : ''; ?> rounded-pill px-4 btn-outline-primary" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-questions" type="button" role="tab">
-                                        <i class="bi bi-pencil-square me-1"></i>Ułóż własne pytania
+                                    <button class="nav-link <?php echo $generatorMode === 'manual' ? 'active' : ''; ?>" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-questions" type="button" role="tab">
+                                        <i class="bi bi-keyboard me-2"></i>Wprowadź Ręcznie
                                     </button>
                                 </li>
                             </ul>
@@ -1259,13 +1455,17 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-end gap-2 mt-4">
-                                <button class="btn btn-primary rounded-pill px-4" type="submit">
-                                    <i class="bi bi-magic me-1"></i>Generuj arkusz
+                            <hr class="my-4 text-muted opacity-25">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted small">
+                                    <i class="bi bi-info-circle me-1"></i>Sprawdź opcje na górze przed wygenerowaniem.
+                                </div>
+                                <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm" type="submit">
+                                    <i class="bi bi-magic me-2"></i>Generuj Arkusze
                                 </button>
                             </div>
                         </div>
-                    </section>
+                    </div>
                 </form>
 
                 <?php if ($submitted && empty($selected)): ?>
@@ -1326,8 +1526,6 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                 <div class="worksheet-student-lines">
                                     <div>Grupa <span class="worksheet-group-chip"><?php echo htmlspecialchars($worksheetHeaderGroup); ?></span> Klasa ....................................</div>
                                     <div>Imię i nazwisko ....................................................................................</div>
-                                    <?php if ($showDateSpace): ?><div>Data ....................................</div><?php endif; ?>
-                                    <?php if ($showGradeSpace): ?><div>Ocena ....................................</div><?php endif; ?>
                                 </div>
                                 <div class="worksheet-points-total">Liczba punktów ........ / <?php echo (int)$worksheetTotalPoints; ?></div>
                             </div>
@@ -1363,7 +1561,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                     <h2 class="fw-bold">
                                         <span class="worksheet-question-number"><?php echo $index + 1; ?></span>
                                         <span><?php echo htmlspecialchars($question['question_text'] ?? ''); ?></span>
-                                        <?php if ($showPoints): ?><span class="worksheet-question-points"><?php echo worksheetQuestionIsOpen($question) ? '2 p.' : '1 p.'; ?></span><?php endif; ?>
+                                        <span class="worksheet-question-points"><?php echo worksheetQuestionIsOpen($question) ? '2 p.' : '1 p.'; ?></span>
                                     </h2>
                                     <?php if (!empty($question['image_url'])): ?>
                                         <?php $imageSrc = questionImageSrc($question['image_url'], '../'); ?>

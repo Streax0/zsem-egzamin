@@ -41,6 +41,9 @@ $statsPublic = (bool)($userSettings['stats_public'] ?? 1);
 $allowFriendRequests = (bool)($userSettings['allow_friend_requests'] ?? 1);
 $searchable = (bool)($userSettings['searchable'] ?? 1);
 $allowProfileComments = (bool)($userSettings['allow_profile_comments'] ?? 1);
+$showMissions = (bool)($userSettings['show_missions'] ?? 1);
+$showOnlineStatus = (bool)($userSettings['show_online_status'] ?? 1);
+$showRecentActivity = (bool)($userSettings['show_recent_activity'] ?? 1);
 $rankingVisible = (bool)($userSettings['ranking_visible'] ?? ($role !== 'teacher'));
 $canUseMfa = mfaRoleCanUse($role);
 $mfaEnabled = false;
@@ -1043,6 +1046,18 @@ $settingsHealth = [
                                                         <input class="form-check-input" type="checkbox" id="searchable" name="searchable" value="1" <?php echo $searchable ? 'checked' : ''; ?>>
                                                         <label class="form-check-label" for="searchable">Profil widoczny w wyszukiwarce</label>
                                                     </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showMissions" name="show_missions" value="1" <?php echo $showMissions ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showMissions">Pokazuj misje na moim profilu</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showOnlineStatus" name="show_online_status" value="1" <?php echo $showOnlineStatus ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showOnlineStatus">Pokazuj status aktywności (Online)</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showRecentActivity" name="show_recent_activity" value="1" <?php echo $showRecentActivity ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showRecentActivity">Pokazuj ostatnią aktywność na profilu</label>
+                                                    </div>
                                                     <?php if ($role === 'teacher'): ?>
                                                     <div class="form-check form-switch mb-3">
                                                         <input class="form-check-input" type="checkbox" id="rankingVisible" name="ranking_visible" value="1" <?php echo $rankingVisible ? 'checked' : ''; ?>>
@@ -1199,6 +1214,7 @@ $settingsHealth = [
                                                              <button type="button" class="accent-dot" data-color="#3b82f6" style="--dot:#3b82f6" onclick="pickAccent('#3b82f6')" aria-label="Niebieski"></button>
                                                              <button type="button" class="accent-dot" data-color="#06b6d4" style="--dot:#06b6d4" onclick="pickAccent('#06b6d4')" aria-label="Turkusowy"></button>
                                                              <button type="button" class="accent-dot" data-color="#10b981" style="--dot:#10b981" onclick="pickAccent('#10b981')" aria-label="Zielony"></button>
+                                                             <button type="button" class="accent-dot" data-color="#6366f1" style="--dot:#6366f1" onclick="pickAccent('#6366f1')" aria-label="Indygo"></button>
                                                              <button type="button" class="accent-dot" data-color="#8b5cf6" style="--dot:#8b5cf6" onclick="pickAccent('#8b5cf6')" aria-label="Fioletowy"></button>
                                                              <button type="button" class="accent-dot" data-color="#ec4899" style="--dot:#ec4899" onclick="pickAccent('#ec4899')" aria-label="Różowy"></button>
                                                              <button type="button" class="accent-dot" data-color="#f43f5e" style="--dot:#f43f5e" onclick="pickAccent('#f43f5e')" aria-label="Karminowy"></button>

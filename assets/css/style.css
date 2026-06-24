@@ -318,7 +318,6 @@ body.dark-mode {
     --text-main: var(--kolor-tekst);
     --bg-color: var(--kolor-tlo-wtoczne);
     --border-color: var(--kolor-ramka);
-    --primary-color: #3b82f6;
 }
 
 /* ==================== OGOLNE ==================== */
