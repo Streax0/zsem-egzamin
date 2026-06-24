@@ -1598,12 +1598,6 @@
         "link": "https://developer.mozilla.org/pl/docs/Web/CSS/Custom_properties"
       },
       {
-        "term": "BEM",
-        "definition": "Metodologia nazywania klas CSS w celu lepszej organizacji i reużywalności kodu.",
-        "example": ".block__element--modifier { ... }.",
-        "link": "https://pl.wikipedia.org/wiki/BEM_(metodyka)"
-      },
-      {
         "term": "CDN",
         "definition": "Content Delivery Network - sieć serwerów rozproszonych geograficznie, przyspieszająca ładowanie zasobów.",
         "example": "Ładowanie plików JavaScript z globalnego CDN, aby przyspieszyć dostęp do strony.",

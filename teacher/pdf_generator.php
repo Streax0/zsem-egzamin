@@ -558,6 +558,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
         .generator-preset strong { display: block; font-size: 1rem; color: #1e293b; margin-bottom: 0.25rem; }
         .generator-preset span { display: block; color: #64748b; font-size: 0.8rem; line-height: 1.4; }
 
+        .nav-pills-custom { background: #f8fafc !important; border: 1px solid rgba(203, 213, 225, 0.8); }
         .nav-pills-custom .nav-link {
             border-radius: 8px;
             padding: 0.75rem 1.25rem;
@@ -1340,7 +1341,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
                         </div>
                         <div class="generator-card-body">
 
-                            <ul class="nav nav-pills nav-pills-custom mb-4 gap-2 bg-light p-1 rounded-3 d-inline-flex" id="questionTabs" role="tablist">
+                            <ul class="nav nav-pills nav-pills-custom mb-4 gap-2 p-1 rounded-3 d-inline-flex" id="questionTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link <?php echo $generatorMode === 'db' ? 'active' : ''; ?>" id="db-tab" data-bs-toggle="tab" data-bs-target="#db-questions" type="button" role="tab">
                                         <i class="bi bi-database me-2"></i>Baza Pytań

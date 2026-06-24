@@ -1059,7 +1059,9 @@ document.addEventListener('DOMContentLoaded', function() {
             gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
             osc.start();
             osc.stop(ctx.currentTime + 0.5);
-        } catch (e) {}
+        } catch (e) {
+            console.error('Audio generation error:', e);
+        }
     };
     const setAlert = (message, type = 'danger') => {
         if (!alertBox) return;

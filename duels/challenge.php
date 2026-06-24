@@ -14,27 +14,6 @@ $revengeParentId = (int)($_GET['revenge'] ?? 0);
 $allInLimit = getAllInDailyLimit($pdo);
 $allInUsed = getAllInUsage($pdo, (int)$myId);
 
-function duelRevengeIsAvailable(PDO $pdo, int $parentId, int $userId, int $opponentId): bool {
-    if ($parentId <= 0) return false;
-    $stmt = $pdo->prepare("
-        SELECT challenger_id, opponent_id, status, challenger_finished_at, opponent_finished_at
-        FROM duels
-        WHERE id = ?
-        LIMIT 1
-    ");
-    $stmt->execute([$parentId]);
-    $duel = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$duel || ($duel['status'] ?? '') !== 'finished') return false;
-    $participants = [(int)$duel['challenger_id'], (int)$duel['opponent_id']];
-    if (!in_array($userId, $participants, true) || !in_array($opponentId, $participants, true) || $userId === $opponentId) {
-        return false;
-    }
-    $finishedTs = 0;
-    foreach ([$duel['challenger_finished_at'] ?? null, $duel['opponent_finished_at'] ?? null] as $finishedAt) {
-        if (!empty($finishedAt)) $finishedTs = max($finishedTs, strtotime((string)$finishedAt) ?: 0);
-    }
-    return $finishedTs > 0 && (time() - $finishedTs) <= 600;
-}
 
 if ($opponentId <= 0 || $opponentId === $myId) {
     setSessionMessage('error', 'Nieprawidłowy przeciwnik.');
