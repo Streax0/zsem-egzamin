@@ -41,7 +41,7 @@ if (isGuestMode()) {
                 <section class="dashboard-panel p-4 p-lg-5" style="border-radius:8px; background:linear-gradient(135deg,#0f172a,#155e75 58%,#166534); color:#fff;">
                     <div class="row g-4 align-items-center">
                         <div class="col-lg-7">
-                            <h1 class="fw-900 mb-3">Tryb gościa</h1>
+                            <h1 class="fw-900 mb-3 text-white">Tryb gościa</h1>
                             <p class="fs-5 opacity-75 mb-4">Możesz rozwiązywać testy bez konta. Wyniki zostają tylko w tej sesji przeglądarki i nie trafiają do historii, rankingu ani misji.</p>
                             <div class="d-flex gap-2 flex-wrap">
                                 <a href="test.php?setup=1&new=1" class="btn btn-light btn-lg rounded-pill px-4 fw-bold"><i class="bi bi-play-fill me-1"></i>Rozpocznij test</a>

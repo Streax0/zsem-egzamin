@@ -264,8 +264,40 @@
         syncWrong();
 
         const id = cardId(card);
-        const days = level === 'easy' ? 5 : (level === 'medium' ? 2 : 0.25);
-        progress[id] = { level, due: Date.now() + days * 86400000 };
+        let state = progress[id] || { reps: 0, efactor: 2.5, interval: 0, due: 0 };
+
+        // Backward compatibility: migrate old states that only had 'level' and 'due'
+        if (state.reps === undefined) {
+            state.reps = 0;
+            state.efactor = 2.5;
+            state.interval = 0;
+        }
+
+        let quality = 3; // medium
+        if (level === 'hard') quality = 1;
+        if (level === 'easy') quality = 5;
+
+        if (quality >= 3) {
+            if (state.reps === 0) {
+                state.interval = 1;
+            } else if (state.reps === 1) {
+                state.interval = 6;
+            } else {
+                state.interval = Math.round(state.interval * state.efactor);
+            }
+            state.reps += 1;
+        } else {
+            state.reps = 0;
+            state.interval = 1;
+        }
+
+        state.efactor = state.efactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+        if (state.efactor < 1.3) state.efactor = 1.3;
+
+        state.due = Date.now() + state.interval * 86400000;
+        state.level = level;
+
+        progress[id] = state;
         localStorage.setItem(progressKey, JSON.stringify(progress));
 
         if (level === 'hard') {
@@ -283,6 +315,8 @@
             index = (index + 1) % Math.max(1, pool.length);
             flipped = false;
             render();
+            cardBox.style.transition = '';
+            cardBox.style.transform = '';
         }, 250);
     }
 
@@ -442,10 +476,13 @@
         active = true;
         startX = event.clientX;
         cardBox.setPointerCapture(event.pointerId);
+        cardBox.style.transition = 'none';
     });
     cardBox.addEventListener('pointermove', (event) => {
         if (!active) return;
         const dx = event.clientX - startX;
+        const rotate = dx * 0.05;
+        cardBox.style.transform = `translateX(${dx}px) rotate(${rotate}deg)`;
         cardBox.classList.toggle('is-swipe-right', dx > 45);
         cardBox.classList.toggle('is-swipe-left', dx < -45);
     });
@@ -454,12 +491,20 @@
         active = false;
         const dx = event.clientX - startX;
         cardBox.classList.remove('is-swipe-left', 'is-swipe-right');
-        if (dx > 90) rate('easy', 'right');
-        if (dx < -90) rate('hard', 'left');
+        if (dx > 90) {
+            rate('easy', 'right');
+        } else if (dx < -90) {
+            rate('hard', 'left');
+        } else {
+            cardBox.style.transition = 'transform 0.3s ease';
+            cardBox.style.transform = '';
+        }
     });
     cardBox.addEventListener('pointercancel', () => {
         active = false;
         cardBox.classList.remove('is-swipe-left', 'is-swipe-right');
+        cardBox.style.transition = 'transform 0.3s ease';
+        cardBox.style.transform = '';
     });
 
     rebuild();

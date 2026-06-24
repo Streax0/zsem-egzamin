@@ -429,6 +429,8 @@ function ensurePlatformEnhancements(PDO $pdo): void {
             } catch (PDOException $e) {
                 error_log('Role enum migration skipped: ' . $e->getMessage());
             }
+            dbAddColumnIfMissing($pdo, 'users', 'first_name', "VARCHAR(50) DEFAULT NULL AFTER role");
+            dbAddColumnIfMissing($pdo, 'users', 'last_name', "VARCHAR(50) DEFAULT NULL AFTER first_name");
             dbAddColumnIfMissing($pdo, 'users', 'ranking_visible', "TINYINT(1) NOT NULL DEFAULT 0 AFTER is_verified");
             dbAddColumnIfMissing($pdo, 'users', 'verified_at', "DATETIME DEFAULT NULL AFTER is_verified");
             dbAddColumnIfMissing($pdo, 'users', 'verified_by_admin_id', "INT DEFAULT NULL AFTER verified_at");
@@ -438,6 +440,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
             dbAddColumnIfMissing($pdo, 'users', 'trust_status', "VARCHAR(30) NOT NULL DEFAULT 'trusted' AFTER is_banned");
             dbAddColumnIfMissing($pdo, 'users', 'risk_flags', "TEXT DEFAULT NULL AFTER trust_status");
             dbAddColumnIfMissing($pdo, 'users', 'registration_ip', "VARCHAR(45) DEFAULT NULL AFTER risk_flags");
+            dbAddColumnIfMissing($pdo, 'users', 'show_missions', "TINYINT(1) DEFAULT 1 AFTER searchable");
+            dbAddColumnIfMissing($pdo, 'users', 'show_online_status', "TINYINT(1) DEFAULT 1 AFTER show_missions");
+            dbAddColumnIfMissing($pdo, 'users', 'show_recent_activity', "TINYINT(1) DEFAULT 1 AFTER show_online_status");
             dbAddColumnIfMissing($pdo, 'users', 'session_version', "INT NOT NULL DEFAULT 1 AFTER last_activity");
             dbAddIndexIfMissing($pdo, 'users', 'idx_role_xp_activity', '(role, xp, last_activity)');
             dbAddIndexIfMissing($pdo, 'users', 'idx_trust_status', '(trust_status)');
