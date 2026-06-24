@@ -769,6 +769,38 @@ $flashMsg = getSessionMessage();
             color: var(--primary-color);
             margin-bottom: .25rem;
         }
+
+        .answer-distractors {
+            border-top: 1px dashed rgba(59,130,246,.24);
+            margin-top: .65rem;
+            padding-top: .65rem;
+            color: var(--text-muted, #64748b);
+        }
+        .answer-card-view-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .5rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(59,130,246,.2);
+            background: rgba(59,130,246,.06);
+            color: var(--primary-color-dark, #3b82f6);
+            font-size: .8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .25s ease;
+            margin-top: .5rem;
+        }
+        .answer-card-view-btn:hover {
+            background: rgba(59,130,246,.14);
+            border-color: rgba(59,130,246,.35);
+            transform: translateY(-1px);
+        }
+        body.dark-mode .answer-card-view-btn {
+            border-color: rgba(96,165,250,.25);
+            background: rgba(96,165,250,.08);
+            color: #60a5fa;
+        }
         body.dark-mode .answer-explanation {
             background: rgba(96, 165, 250, .08);
             border-color: rgba(96, 165, 250, .18);
@@ -2839,6 +2871,15 @@ $flashMsg = getSessionMessage();
                 if ($reviewExplanation === '') {
                     $reviewExplanation = buildQuestionExplanation($currentQuestion, $userAnswer, !empty($lr['is_correct']));
                 }
+
+                $answer_explanation_main = $reviewExplanation;
+                $answer_distractors = '';
+                $why_marker = 'Dlaczego nie reszta?';
+                $why_pos = mb_strpos($reviewExplanation, $why_marker, 0, 'UTF-8');
+                if ($why_pos !== false) {
+                    $answer_explanation_main = trim(mb_substr($reviewExplanation, 0, $why_pos, 'UTF-8'));
+                    $answer_distractors = trim(mb_substr($reviewExplanation, $why_pos, mb_strlen($reviewExplanation, 'UTF-8'), 'UTF-8'));
+                }
             ?>
                 <div id="answersContainer" class="d-flex flex-column gap-2">
                     <?php foreach (['A', 'B', 'C', 'D'] as $opt):
@@ -2913,7 +2954,15 @@ $flashMsg = getSessionMessage();
                         <i class="bi bi-info-circle-fill"></i>
                         Wyjaśnienie
                     </div>
-                    <div><?= nl2br(htmlspecialchars($reviewExplanation)) ?></div>
+                    <div><?= nl2br(htmlspecialchars($answer_explanation_main)) ?></div>
+                    <?php if ($answer_distractors !== ''): ?>
+                        <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); toggleAnswerDistractors(this)">
+                            <i class="bi bi-list-check"></i> Dlaczego nie reszta?
+                        </button>
+                        <div class="answer-distractors d-none" data-distractors-panel>
+                            <?= nl2br(htmlspecialchars($answer_distractors)) ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -3112,6 +3161,16 @@ function confirmEndTest() {
     pendingFinishForm = null;
     confirmFinish(null);
 }
+</script>
+
+<script>
+    function toggleAnswerDistractors(button) {
+        const panel = button.closest('.answer-explanation')?.querySelector('[data-distractors-panel]');
+        if (!panel) return;
+        const willShow = panel.classList.contains('d-none');
+        panel.classList.toggle('d-none', !willShow);
+        button.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+    }
 </script>
 </body>
 </html>
