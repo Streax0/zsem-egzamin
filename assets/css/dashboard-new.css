@@ -1127,6 +1127,14 @@ body.dashboard-view-compact .btn-qs {
   min-width: 0;
 }
 
+.dashboard-panel .text-primary {
+  color: var(--primary-color, #3b82f6) !important;
+}
+
+.dashboard-panel .bg-primary.bg-opacity-10 {
+  background-color: color-mix(in srgb, var(--primary-color, #3b82f6) 10%, transparent) !important;
+}
+
 .panel-header {
   display: flex;
   align-items: center;

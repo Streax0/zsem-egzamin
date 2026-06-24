@@ -93,7 +93,7 @@
     function updateProgress() {
         const target = document.querySelector('[data-flashcard-progress]');
         if (!target) return;
-        target.innerHTML = qualificationProgress() || '<div class="small text-muted">Brak postepu dla kwalifikacji.</div>';
+        target.innerHTML = qualificationProgress() || '<div class="small text-muted">Brak postępu dla kwalifikacji.</div>';
     }
 
     function syncQualificationCards() {
@@ -112,37 +112,113 @@
         const visible = pool.slice(0, visibleListCount);
         list.innerHTML = visible.length
             ? visible.map((card, idx) => `<button type="button" data-flashcard-list-index="${idx}"><strong>${esc(card.front)}</strong><span>${esc(card.qualification || 'Inne')} | ${esc(card.source)} | ${esc(card.difficulty)}</span></button>`).join('')
-            : '<div class="small text-muted">Brak fiszek dla wybranych filtrow.</div>';
+            : '<div class="small text-muted">Brak fiszek dla wybranych filtrów.</div>';
         loadMore.hidden = visibleListCount >= pool.length;
         if (count) count.textContent = `${Math.min(visibleListCount, pool.length)}/${pool.length}`;
     }
 
+    let autoplayInterval = null;
+    let autoplayActive = false;
+
+    function stopAutoplay() {
+        if (!autoplayActive) return;
+        autoplayActive = false;
+        const playBtn = byId('flashcardPlay');
+        if (playBtn) {
+            playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+            playBtn.classList.remove('active');
+        }
+        if (autoplayInterval) {
+            clearInterval(autoplayInterval);
+            autoplayInterval = null;
+        }
+    }
+
+    function startAutoplay() {
+        if (autoplayActive) return;
+        autoplayActive = true;
+        const playBtn = byId('flashcardPlay');
+        if (playBtn) {
+            playBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+            playBtn.classList.add('active');
+        }
+        autoplayInterval = setInterval(() => {
+            if (pool.length === 0) return;
+            if (!flipped) {
+                flipped = true;
+                render();
+            } else {
+                index = (index + 1) % pool.length;
+                flipped = false;
+                render();
+            }
+        }, 3000);
+    }
+
+    function speakText(text) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/<[^>]*>/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'pl-PL';
+        window.speechSynthesis.speak(utterance);
+    }
+
     function render() {
         const card = pool[index];
+        const frontText = byId('flashcardFrontText');
+        const backText = byId('flashcardBackText');
+        const cardInner = cardBox.querySelector('.flashcard-card-inner');
+
         if (!card) {
             cardBox.classList.remove('is-flipped');
-            cardBox.innerHTML = '<strong>Brak fiszek</strong><p>Zmien filtr albo wroc po zatwierdzeniu nowych kart.</p>';
+            if (frontText) frontText.innerHTML = 'Brak fiszek';
+            if (backText) backText.innerHTML = 'Zmień filtry lub wróć po zatwierdzeniu nowych kart.';
+            if (cardInner) cardInner.style.display = 'none';
+
+            const counter = byId('flashcardCounter');
+            if (counter) counter.textContent = '0 / 0';
+            const bar = byId('flashcardProgressBar');
+            if (bar) bar.style.width = '0%';
             return;
         }
+
+        if (cardInner) cardInner.style.display = '';
 
         cardBox.classList.toggle('is-flipped', flipped);
         cardBox.classList.remove('is-leaving-left', 'is-leaving-right', 'is-swipe-left', 'is-swipe-right');
         cardBox.classList.add('is-entering');
-        setTimeout(() => cardBox.classList.remove('is-entering'), 240);
-        cardBox.innerHTML = flipped
-            ? `<strong>${esc(card.front)}</strong><p>${htmlLines(card.back)}</p>`
-            : `<strong>${esc(card.front)}</strong><p>Kliknij karte, aby pokazac odpowiedz.</p>`;
+        setTimeout(() => cardBox.classList.remove('is-entering'), 250);
+
+        if (frontText) frontText.innerHTML = esc(card.front);
+        if (backText) backText.innerHTML = htmlLines(card.back);
 
         const meta = byId('flashcardMeta');
         if (meta) {
             const until = new Date(wrong.expires).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-            meta.textContent = `${index + 1}/${pool.length} | ${card.source} | ${card.qualification || 'Inne'} | bledne wazne do: ${until}`;
+            meta.textContent = `${index + 1}/${pool.length} | ${card.source} | ${card.qualification || 'Inne'} | błędne ważne do: ${until}`;
+        }
+
+        // Update control panel stats
+        const counter = byId('flashcardCounter');
+        if (counter) counter.textContent = `${index + 1} / ${pool.length}`;
+
+        const bar = byId('flashcardProgressBar');
+        if (bar) {
+            const pct = pool.length > 0 ? ((index + 1) / pool.length) * 100 : 0;
+            bar.style.width = `${pct}%`;
         }
 
         const wiki = byId('flashcardWiki');
         const youtube = byId('flashcardYoutube');
-        if (wiki) wiki.href = safeHttpUrl(card.wiki);
-        if (youtube) youtube.href = safeHttpUrl(card.youtube);
+        if (wiki) {
+            wiki.href = safeHttpUrl(card.wiki);
+            wiki.style.display = card.wiki ? '' : 'none';
+        }
+        if (youtube) {
+            youtube.href = safeHttpUrl(card.youtube);
+            youtube.style.display = card.youtube ? '' : 'none';
+        }
     }
 
     function rebuild(resetList = true) {
@@ -182,6 +258,7 @@
     }
 
     function rate(level, direction = '') {
+        stopAutoplay();
         const card = pool[index];
         if (!card) return;
         syncWrong();
@@ -206,10 +283,13 @@
             index = (index + 1) % Math.max(1, pool.length);
             flipped = false;
             render();
-        }, 210);
+        }, 250);
     }
 
-    cardBox.addEventListener('click', () => {
+    // Event Listeners
+    cardBox.addEventListener('click', (event) => {
+        if (event.target.closest('.btn-tts')) return;
+        stopAutoplay();
         flipped = !flipped;
         render();
     });
@@ -217,9 +297,72 @@
     cardBox.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
+            stopAutoplay();
             flipped = !flipped;
             render();
         }
+    });
+
+    // Control buttons listeners
+    byId('flashcardPrev')?.addEventListener('click', () => {
+        stopAutoplay();
+        if (pool.length === 0) return;
+        index = (index - 1 + pool.length) % pool.length;
+        flipped = false;
+        render();
+    });
+
+    byId('flashcardNext')?.addEventListener('click', () => {
+        stopAutoplay();
+        if (pool.length === 0) return;
+        index = (index + 1) % pool.length;
+        flipped = false;
+        render();
+    });
+
+    byId('flashcardPlay')?.addEventListener('click', () => {
+        if (autoplayActive) {
+            stopAutoplay();
+        } else {
+            startAutoplay();
+        }
+    });
+
+    // Fullscreen API implementation
+    const studyShell = byId('flashcardStudyShell');
+    byId('flashcardFullscreen')?.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            studyShell?.requestFullscreen().catch((err) => {
+                console.error('Error entering fullscreen:', err);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        const fsBtn = byId('flashcardFullscreen');
+        if (!fsBtn) return;
+        if (document.fullscreenElement) {
+            fsBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+            fsBtn.classList.add('active');
+        } else {
+            fsBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+            fsBtn.classList.remove('active');
+        }
+    });
+
+    // Audio TTS listener triggers
+    byId('flashcardTtsFront')?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const card = pool[index];
+        if (card) speakText(card.front);
+    });
+
+    byId('flashcardTtsBack')?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const card = pool[index];
+        if (card) speakText(card.back);
     });
 
     document.addEventListener('keydown', (event) => {
@@ -238,6 +381,7 @@
         }
         if (event.key === 'ArrowUp' || event.key === ' ') {
             event.preventDefault();
+            stopAutoplay();
             flipped = !flipped;
             render();
         }
@@ -280,6 +424,7 @@
     byId('flashcardList')?.addEventListener('click', (event) => {
         const item = event.target.closest('[data-flashcard-list-index]');
         if (!item) return;
+        stopAutoplay();
         index = Number(item.dataset.flashcardListIndex) || 0;
         flipped = false;
         render();
@@ -293,6 +438,7 @@
     let startX = 0;
     let active = false;
     cardBox.addEventListener('pointerdown', (event) => {
+        if (event.target.closest('.btn-tts')) return;
         active = true;
         startX = event.clientX;
         cardBox.setPointerCapture(event.pointerId);

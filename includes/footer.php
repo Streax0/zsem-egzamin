@@ -3,7 +3,7 @@ if (!isset($base_url)) {
     $base_url = file_exists('config/db.php') ? '' : '../';
 }
 ?>
-<footer class="main-footer mt-auto py-5 border-top" role="contentinfo">
+<footer class="main-footer mt-auto pt-5 border-top" role="contentinfo">
     <div class="container-fluid px-4">
         <!-- Modern rotating call-to-action -->
         <div class="footer-cta-card mb-4 animate-in" id="footerRotatingCta">
@@ -197,7 +197,7 @@ if (!isset($base_url)) {
     z-index: auto;
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
     border-top: 1px solid rgba(148, 163, 184, 0.25) !important;
-    padding-bottom: 7rem !important; /* Spacing to prevent help-fab overlap on bottom links */
+    padding-bottom: 3.5rem !important; /* Spacing to prevent help-fab overlap on bottom links */
 }
 body.dark-mode .main-footer {
     background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
@@ -217,6 +217,23 @@ body.dark-mode .main-footer {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+}
+body.welcome-style-gradient .footer-cta-card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #10b981 100%) !important;
+    animation: none !important;
+}
+body.welcome-style-pure .footer-cta-card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 25%, #0d0b21) 100%) !important;
+    animation: none !important;
+}
+body.welcome-style-aurora .footer-cta-card {
+    background: linear-gradient(135deg, #0d0b21 0%, var(--primary-color) 50%, #03001c 100%) !important;
+    background-size: 200% 200% !important;
+    animation: ctaMeshMovement 10s ease infinite !important;
+}
+body.welcome-style-glass .footer-cta-card {
+    background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color) 100%) !important;
+    animation: none !important;
 }
 .footer-cta-card::before {
     content: '';
@@ -386,10 +403,10 @@ body.dark-mode .footer-main-card:hover {
     gap: .25rem;
 }
 .footer-brand .text-primary {
-    color: #4f46e5 !important;
+    color: var(--primary-color) !important;
 }
 body.dark-mode .footer-brand .text-primary {
-    color: #818cf8 !important;
+    color: var(--primary-color) !important;
 }
 .main-footer .btn {
     white-space: normal;
@@ -421,18 +438,18 @@ body.dark-mode .footer-brand .text-primary {
     color: #a5b4fc;
 }
 .footer-nav a:hover {
-    color: #4f46e5 !important;
+    color: var(--primary-color) !important;
     transform: translateX(4px);
 }
 .footer-nav a:hover i {
     transform: translateX(2px);
-    color: #4f46e5;
+    color: var(--primary-color);
 }
 body.dark-mode .footer-nav a {
     color: #94a3b8;
 }
 body.dark-mode .footer-nav a:hover {
-    color: #818cf8 !important;
+    color: var(--primary-color) !important;
 }
 .footer-social-btn {
     width: 42px;
@@ -496,32 +513,32 @@ body.dark-mode .footer-social-btn {
 .footer-contact-item .icon-box {
     width: 44px;
     height: 44px;
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
-    color: #4f46e5;
+    background: color-mix(in srgb, var(--primary-color) 8%, transparent) !important;
+    color: var(--primary-color) !important;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.25rem;
     flex-shrink: 0;
-    border: 1px solid rgba(79, 70, 229, 0.12);
-    transition: all 0.3s ease;
+    border: 1px solid color-mix(in srgb, var(--primary-color) 15%, transparent) !important;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 .footer-contact-item:hover .icon-box {
-    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
-    color: #fff;
-    border-color: transparent;
-    transform: scale(1.05) rotate(-5deg);
-    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.2);
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    transform: scale(1.06) rotate(-5deg) !important;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--primary-color) 25%, transparent) !important;
 }
 body.dark-mode .footer-contact-item .icon-box {
-    background: linear-gradient(135deg, rgba(129, 140, 248, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-    color: #818cf8;
-    border-color: rgba(129, 140, 248, 0.15);
+    background: color-mix(in srgb, var(--primary-color) 12%, transparent) !important;
+    color: var(--primary-color) !important;
+    border-color: color-mix(in srgb, var(--primary-color) 20%, transparent) !important;
 }
 body.dark-mode .footer-contact-item:hover .icon-box {
-    background: linear-gradient(135deg, #818cf8 0%, #06b6d4 100%);
-    color: #fff;
+    background: var(--primary-color) !important;
+    color: #fff !important;
 }
 .footer-contact-item .label {
     font-size: 0.7rem;
@@ -542,15 +559,15 @@ body.dark-mode .footer-contact-item .value {
     color: #e2e8f0;
 }
 .footer-support-section .btn-primary {
-    background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%);
-    border: none;
-    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 88%, #fff) 0%, color-mix(in srgb, var(--primary-color) 85%, #000) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 10px color-mix(in srgb, var(--primary-color) 25%, transparent) !important;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 .footer-support-section .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(79, 70, 229, 0.35);
-    background: linear-gradient(135deg, #4338ca 0%, #7c3aed 100%);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14), 0 6px 16px color-mix(in srgb, var(--primary-color) 45%, transparent) !important;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 80%, #fff) 0%, color-mix(in srgb, var(--primary-color) 80%, #000) 100%) !important;
 }
 .footer-divider {
     border: 0;
@@ -578,21 +595,21 @@ body.dark-mode .footer-divider {
 }
 .footer-legal-list a:hover,
 .footer-legal-list button:hover {
-    color: #4f46e5 !important;
+    color: var(--primary-color) !important;
     transform: translateY(-1px);
 }
 body.dark-mode .footer-legal-list a:hover,
 body.dark-mode .footer-legal-list button:hover {
-    color: #818cf8 !important;
+    color: var(--primary-color) !important;
 }
 .footer-bottom-links {
-    padding-right: 60px;
+    padding-right: 80px;
 }
 .help-fab {
-    background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%) !important;
-    border: none !important;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 88%, #fff) 0%, color-mix(in srgb, var(--primary-color) 85%, #000) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: white !important;
-    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 12px color-mix(in srgb, var(--primary-color) 35%, transparent) !important;
     position: fixed !important;
     right: 2rem !important;
     bottom: 2rem !important;
@@ -608,19 +625,19 @@ body.dark-mode .footer-legal-list button:hover {
     place-items: center !important;
     border-radius: 999px !important;
     z-index: 1060 !important;
-    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease !important;
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 .help-fab:hover {
-    transform: scale(1.1) rotate(5deg) !important;
-    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.55) !important;
+    transform: scale(1.08) translateY(-2px) rotate(3deg) !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 0 6px 16px color-mix(in srgb, var(--primary-color) 55%, transparent) !important;
 }
 body.dark-mode .help-fab {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 4px 12px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
 }
 @media (max-width: 767.98px) {
     .main-footer {
         padding-top: 2rem !important;
-        padding-bottom: 7rem !important;
+        padding-bottom: 3.5rem !important;
     }
     .footer-main-col {
         text-align: left;

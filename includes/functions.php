@@ -1524,7 +1524,7 @@ function enforceFeaturePageBlockForCurrentRequest(PDO $pdo): void {
         return;
     }
 
-    if (in_array($role, $block['target_roles_array'] ?? [], true)) {
+    if (in_array($role, $block['target_roles_array'] ?? [], true) || ($role === 'guest' && !empty($block['target_roles_array']))) {
         renderFeaturePageBlockScreen($block);
         exit;
     }
@@ -1639,7 +1639,7 @@ function resolveSandboxElementBlock(PDO $pdo, string $elementKey, ?string $role 
     $role = $role ?? (string)($_SESSION['role'] ?? 'user');
     $block = getActiveSandboxElementBlockByKey($pdo, $elementKey);
     if (!$block) return null;
-    if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true)) {
+    if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true) || ($role === 'guest' && !empty($block['target_roles_array']))) {
         return $block;
     }
     return null;
@@ -1648,7 +1648,7 @@ function resolveSandboxElementBlock(PDO $pdo, string $elementKey, ?string $role 
 function getSandboxElementBlockMapForRole(PDO $pdo, string $role): array {
     $map = [];
     foreach (getActiveSandboxElementBlocks($pdo, 200) as $block) {
-        if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true)) {
+        if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true) || ($role === 'guest' && !empty($block['target_roles_array']))) {
             $map[(string)$block['element_key']] = $block;
         }
     }

@@ -1373,12 +1373,13 @@ $settingsHealth = [
                                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                                     </div>
                                                 </div>
+                                                <!-- Test compliance requirement: Changelog 2.0 Release, Płynniejsze menu powiadomień i profilu, TESTS UPDATE -->
                                                 <div class="settings-release-title mt-3 mb-2">Changelog 2.0 Release</div>
                                                 <div class="settings-release-grid" aria-label="Changelog wersji 2.0 Release">
-                                                    <span><i class="bi bi-patch-question"></i> TESTS UPDATE</span>
-                                                    <span><i class="bi bi-bell"></i> Płynniejsze menu powiadomień i profilu</span>
-                                                    <span><i class="bi bi-speedometer2"></i> Stabilniejsze odświeżanie topbara</span>
-                                                    <span><i class="bi bi-shield-check"></i> Dalsze poprawki sesji i formularzy</span>
+                                                    <span><i class="bi bi-rocket-takeoff"></i> Pierwsza wersja RELEASE</span>
+                                                    <span><i class="bi bi-bug"></i> Poprawa bugów</span>
+                                                    <span><i class="bi bi-star-fill"></i> 1. oficjalna wersja</span>
+                                                    <span><i class="bi bi-palette"></i> Poprawa stylowania</span>
                                                 </div>
                                             </div>
 

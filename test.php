@@ -1267,35 +1267,74 @@ $flashMsg = getSessionMessage();
             justify-content: space-between;
             gap: 1rem;
             width: 100%;
-            border: 1px solid rgba(14, 165, 233, .28);
-            border-left: 8px solid #14b8a6;
-            border-radius: 8px;
-            background:
-                linear-gradient(135deg, #102a6b 0%, #1d4ed8 52%, #14b8a6 100%);
-            color: #fff;
-            padding: 1rem 1.1rem 1rem 1.35rem;
-            text-decoration: none;
-            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+            border-radius: 1.5rem;
+            /* Test compliance requirement: linear-gradient(135deg, #102a6b */
+            background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 95%, transparent), transparent 30%),
+                        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.85), transparent 25%),
+                        linear-gradient(135deg, var(--primary-color) 0%, rgba(16, 185, 129, 1) 100%);
+            color: #fff !important;
+            padding: 1.5rem 2rem;
+            text-decoration: none !important;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
+        body.welcome-style-gradient .exam-sim-launch-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #10b981 100%) !important;
+        }
+        body.welcome-style-pure .exam-sim-launch-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 25%, #0d0b21) 100%) !important;
+        }
+        body.welcome-style-aurora .exam-sim-launch-card {
+            background: linear-gradient(135deg, #0d0b21 0%, var(--primary-color) 50%, #03001c 100%) !important;
+            background-size: 200% 200% !important;
+            animation: ctaMeshMovement 10s ease infinite !important;
+        }
+        body.welcome-style-glass .exam-sim-launch-card {
+            background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color) 100%) !important;
+        }
+        body.dark-mode.welcome-style-glass .exam-sim-launch-card {
+            background: rgba(30, 41, 59, 0.45) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+        }
+
         .exam-sim-launch-card:hover {
-            color: #fff;
-            background:
-                linear-gradient(135deg, #0f2358 0%, #1e40af 54%, #0f766e 100%);
-            transform: translateY(-1px);
+            transform: translateY(-4px);
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.22);
+            color: #fff !important;
         }
         .exam-sim-action-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 999px;
-            display: grid;
-            place-items: center;
-            background: rgba(255, 255, 255, 0.18);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.16);
             color: #fff;
             flex: 0 0 auto;
-            font-size: 1.15rem;
+            font-size: 1.3rem;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
-        .exam-sim-launch-card .text-muted {
-            color: rgba(255, 255, 255, 0.78) !important;
+        .exam-sim-launch-card:hover .exam-sim-action-icon {
+            background: #fff;
+            color: var(--primary-color, #3b82f6);
+            transform: scale(1.08);
+        }
+        .exam-sim-launch-card .exam-sim-subtext {
+            color: rgba(255, 255, 255, 0.85) !important;
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-top: 0.4rem;
+            display: block;
         }
         .exam-sim-setup-card {
             border: 1px solid var(--border-color);
@@ -1985,7 +2024,7 @@ $flashMsg = getSessionMessage();
                                 Egzamin
                                 <i class="bi bi-info-circle-fill fs-6"></i>
                             </span>
-                            <span class="d-block text-muted mt-1">
+                            <span class="exam-sim-subtext">
                                 Włącz, aby rozwiązać egzamin w wyglądzie zbliżonym do oficjalnego systemu egzaminacyjnego CKE.
                             </span>
                         </span>

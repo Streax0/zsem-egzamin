@@ -239,8 +239,53 @@ if ($flashMessage) {
                             </div>
                             <div class="flashcard-progress" data-flashcard-progress aria-live="polite"></div>
                         </div>
-                        <div class="flashcard-deck">
-                            <div id="flashcardCard" class="flashcard-card" tabindex="0" role="button" aria-live="polite"></div>
+                        <div id="flashcardStudyShell" class="flashcard-study-shell">
+                            <div class="flashcard-deck">
+                                <div id="flashcardCard" class="flashcard-card-wrapper" tabindex="0" role="button" aria-live="polite">
+                                    <div class="flashcard-card-inner">
+                                        <div class="flashcard-card-front">
+                                            <span class="flashcard-card-kicker">POJĘCIE</span>
+                                            <strong class="flashcard-text" id="flashcardFrontText">Pojęcie</strong>
+                                            <button type="button" class="btn-tts" id="flashcardTtsFront" title="Odsłuchaj pojęcie" aria-label="Odsłuchaj pojęcie">
+                                                <i class="bi bi-volume-up-fill"></i>
+                                            </button>
+                                        </div>
+                                        <div class="flashcard-card-back">
+                                            <span class="flashcard-card-kicker">DEFINICJA</span>
+                                            <div class="flashcard-text" id="flashcardBackText">Definicja</div>
+                                            <button type="button" class="btn-tts" id="flashcardTtsBack" title="Odsłuchaj definicję" aria-label="Odsłuchaj definicję">
+                                                <i class="bi bi-volume-up-fill"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flashcard-controls-panel mb-3">
+                                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                    <button type="button" class="ctrl-btn" id="flashcardPrev" title="Poprzednia fiszka" aria-label="Poprzednia fiszka">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    
+                                    <div class="d-flex flex-column align-items-center flex-grow-1 px-md-4 px-2" style="min-width: 140px;">
+                                        <span class="flashcard-index-counter fw-bold mb-2" id="flashcardCounter">0 / 0</span>
+                                        <div class="flashcard-progress-track">
+                                            <div class="flashcard-progress-fill" id="flashcardProgressBar"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="ctrl-btn" id="flashcardPlay" title="Autoodtwarzanie" aria-label="Włącz autoodtwarzanie">
+                                            <i class="bi bi-play-fill"></i>
+                                        </button>
+                                        <button type="button" class="ctrl-btn" id="flashcardNext" title="Następna fiszka" aria-label="Następna fiszka">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                        <button type="button" class="ctrl-btn" id="flashcardFullscreen" title="Pełny ekran" aria-label="Tryb pełnoekranowy">
+                                            <i class="bi bi-arrows-fullscreen"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="flashcard-hint-row" aria-hidden="true">
                             <span><i class="bi bi-arrow-left"></i> przesuń w lewo = źle</span>
