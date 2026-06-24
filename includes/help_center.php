@@ -205,6 +205,12 @@ if (!isset($base_url)) {
     transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease !important;
 }
 .help-fab i { line-height: 1; }
+#helpCenterOffcanvas.show ~ .help-fab,
+#helpCenterOffcanvas.showing ~ .help-fab {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0) !important;
+}
 </style>
 
 <script>
@@ -228,6 +234,10 @@ document.addEventListener('DOMContentLoaded', function() {
         fab.setAttribute('aria-expanded', open ? 'true' : 'false');
         document.body.style.overflow = open ? 'hidden' : '';
 
+        fab.style.opacity = open ? '0' : '1';
+        fab.style.pointerEvents = open ? 'none' : 'auto';
+        fab.style.transform = open ? 'scale(0)' : 'scale(1)';
+
         if (open && !fallbackBackdrop) {
             fallbackBackdrop = document.createElement('div');
             fallbackBackdrop.className = 'offcanvas-backdrop fade show';
@@ -250,7 +260,23 @@ document.addEventListener('DOMContentLoaded', function() {
         setFallbackOpen(true);
     });
 
-    panel?.addEventListener('hidden.bs.offcanvas', () => fab?.setAttribute('aria-expanded', 'false'));
+    panel?.addEventListener('show.bs.offcanvas', function() {
+        if (fab) {
+            fab.style.opacity = '0';
+            fab.style.pointerEvents = 'none';
+            fab.style.transform = 'scale(0)';
+        }
+    });
+
+    panel?.addEventListener('hidden.bs.offcanvas', function() {
+        if (fab) {
+            fab.setAttribute('aria-expanded', 'false');
+            fab.style.opacity = '1';
+            fab.style.pointerEvents = 'auto';
+            fab.style.transform = 'scale(1)';
+        }
+    });
+
     panel?.querySelector('[data-bs-dismiss="offcanvas"]')?.addEventListener('click', function(event) {
         if (window.bootstrap?.Offcanvas) return;
         event.preventDefault();

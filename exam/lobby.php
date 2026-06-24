@@ -56,9 +56,33 @@ if ($session['status'] === 'finished') {
 $stmt = $pdo->prepare("SELECT first_name, last_name, class, status FROM exam_participants WHERE session_id = ? AND status != 'removed' ORDER BY joined_at");
 $stmt->execute([$sessionId]);
 $participants = $stmt->fetchAll();
+
+// Get current UI preferences from cookies for server-side theme rendering
+$currentTheme = $_COOKIE['user_theme'] ?? 'light';
+$currentFontSize = $_COOKIE['user_font_size'] ?? '16';
+$currentDensity = $_COOKIE['user_density'] ?? 'comfortable';
+$currentAccent = $_COOKIE['user_accent'] ?? '#3b82f6';
+if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
+    $currentAccent = '#3b82f6';
+}
+$reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
+$dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
+$welcomeBannerStyle = $_COOKIE['welcome_banner_style'] ?? 'gradient';
+
+$bodyClasses = [];
+$bodyClasses[] = ($currentTheme === 'dark') ? 'dark-mode' : 'light-mode';
+if ($currentDensity === 'compact') {
+    $bodyClasses[] = 'ui-compact';
+}
+if ($reduceMotion) {
+    $bodyClasses[] = 'reduce-motion';
+}
+$bodyClasses[] = 'dashboard-view-' . (in_array($dashboardView, ['balanced', 'learning', 'compact']) ? $dashboardView : 'balanced');
+$bodyClasses[] = 'welcome-style-' . (in_array($welcomeBannerStyle, ['gradient', 'pure', 'aurora', 'glass']) ? $welcomeBannerStyle : 'gradient');
+$bodyClassStr = implode(' ', $bodyClasses);
 ?>
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" style="color-scheme: <?php echo $currentTheme === 'dark' ? 'dark' : 'light'; ?>; font-size: <?php echo htmlspecialchars($currentFontSize); ?>px; --primary-color: <?php echo htmlspecialchars($currentAccent); ?>; --kolor-glowy: <?php echo htmlspecialchars($currentAccent); ?>;">
 <head>
     <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
@@ -67,12 +91,10 @@ $participants = $stmt->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="../assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('../assets/js/theme-handler.js')); ?>"></script>
     <style>
-        body {
-            background: radial-gradient(circle at top, #111827 0%, #0b1220 45%, #05070f 100%);
-        }
         .lobby-shell {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 380px;
@@ -80,26 +102,6 @@ $participants = $stmt->fetchAll();
             max-width: 1180px;
             margin: 0 auto;
             padding: 2rem 0;
-        }
-        .lobby-hero {
-            border-radius: 28px;
-            padding: clamp(1.5rem, 4vw, 3rem);
-            color: #f8fafc;
-            background: radial-gradient(circle at top left, rgba(255,255,255,.12), transparent 28%), linear-gradient(135deg, #0f172a 0%, #0c4a6e 46%, #1e293b 100%);
-            min-height: 560px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, .35);
-            overflow: hidden;
-        }
-        .lobby-hero h1,
-        .lobby-hero p,
-        .lobby-hero .small,
-        .lobby-hero strong,
-        .lobby-hero .alert,
-        .lobby-hero .waiting-ribbon {
-            color: #f8fafc;
         }
         .lobby-pulse { animation: lobbyPulse 2s ease-in-out infinite; }
         @keyframes lobbyPulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.05);opacity:0.8} }
@@ -157,11 +159,6 @@ $participants = $stmt->fetchAll();
             font-weight: 800;
             color: #f8fafc;
         }
-        .lobby-hero .alert {
-            background: rgba(255,255,255,.12);
-            color: #f8fafc;
-            border: 1px solid rgba(255,255,255,.16);
-        }
         .panel-header {
             display: flex;
             align-items: center;
@@ -180,15 +177,13 @@ $participants = $stmt->fetchAll();
         }
         @media (max-width: 991.98px) {
             .lobby-shell { grid-template-columns: 1fr; }
-            .lobby-hero { min-height: auto; }
         }
         @media (max-width: 575.98px) {
             .lobby-stat-grid { grid-template-columns: 1fr; }
-            .lobby-hero { border-radius: 20px; }
         }
     </style>
 </head>
-<body>
+<body class="<?php echo htmlspecialchars($bodyClassStr); ?>">
 
     <div class="dashboard-layout">
         <?php include '../includes/sidebar.php'; ?>

@@ -985,6 +985,8 @@ def test_external_cdn_resources_have_sri() -> None:
             "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e",
         "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js":
             "sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM",
+        "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js":
+            "sha384-HAH79XdRvHr6axVGh4xQWVCp14kcd32bNk4Xu0sHDHtFQ42n6BAM8ykvB47dGz6D",
     }
     violations = []
     seen_urls = set()

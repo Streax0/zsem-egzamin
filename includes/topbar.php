@@ -6,6 +6,7 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
 // Determine base path by looking for a root-level file
 $base_url = file_exists('config/db.php') ? '' : '../';
 $isGuestTopbar = function_exists('isGuestMode') && isGuestMode();
+$isFullyLoggedOut = !isset($_SESSION['user_id']) && !$isGuestTopbar;
 $pageBlockAdminNotice = $_SESSION['feature_block_notice'] ?? null;
 unset($_SESSION['feature_block_notice']);
 $sandboxElementAdminNotice = $_SESSION['sandbox_element_block_notice'] ?? null;
@@ -25,8 +26,8 @@ unset($_SESSION['sandbox_element_block_notice']);
     $notifications = [];
     $mfaPromptNotification = null;
     $topbarUser = [
-        'role' => $isGuestTopbar ? 'guest' : ($_SESSION['role'] ?? 'user'),
-        'username' => $isGuestTopbar ? 'Gosc' : ($_SESSION['username'] ?? ''),
+        'role' => $isFullyLoggedOut ? 'guest' : ($isGuestTopbar ? 'guest' : ($_SESSION['role'] ?? 'user')),
+        'username' => $isFullyLoggedOut ? 'Niezalogowany' : ($isGuestTopbar ? 'Gosc' : ($_SESSION['username'] ?? '')),
         'first_name' => '',
         'last_name' => '',
         'is_verified' => 0,
@@ -147,7 +148,7 @@ unset($_SESSION['sandbox_element_block_notice']);
             <i class="bi bi-chevron-down user-profile-chevron d-none d-sm-inline" aria-hidden="true"></i>
         </button>
         <ul class="dropdown-menu dropdown-menu-end topbar-dropdown user-profile-dropdown" aria-labelledby="userDropdown">
-            <?php if ($isGuestTopbar): ?>
+            <?php if ($isFullyLoggedOut || $isGuestTopbar): ?>
             <li><a class="dropdown-item" href="<?php echo $base_url; ?>test.php?setup=1&new=1"><i class="bi bi-journal-text"></i>Test jako gość</a></li>
             <li><a class="dropdown-item" href="<?php echo $base_url; ?>login.php"><i class="bi bi-box-arrow-in-right"></i>Zaloguj</a></li>
             <li><a class="dropdown-item" href="<?php echo $base_url; ?>register.php"><i class="bi bi-person-plus"></i>Załóż konto</a></li>
@@ -156,6 +157,7 @@ unset($_SESSION['sandbox_element_block_notice']);
             <li><a class="dropdown-item" href="<?php echo $base_url; ?>settings.php"><i class="bi bi-gear"></i>Ustawienia</a></li>
             <li><a class="dropdown-item" href="<?php echo $base_url; ?>progress.php"><i class="bi bi-graph-up"></i>Statystyki</a></li>
             <?php endif; ?>
+            <?php if (!$isFullyLoggedOut): ?>
             <li><hr class="dropdown-divider"></li>
             <li>
                 <form action="<?php echo $base_url; ?>actions/logout.php" method="POST" class="m-0">
@@ -165,6 +167,7 @@ unset($_SESSION['sandbox_element_block_notice']);
                     </button>
                 </form>
             </li>
+            <?php endif; ?>
         </ul>
     </div>
     </div>

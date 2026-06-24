@@ -325,6 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $test['current']++;
         $test['phase']       = 'answering';
         $test['last_result'] = null;
+        restoreCheckedQuestionReview($test);
         touchTestQuestionStart($test);
 
         if (($test['mode'] ?? $mode) === 'single') {
@@ -767,6 +768,38 @@ $flashMsg = getSessionMessage();
             font-weight: 700;
             color: var(--primary-color);
             margin-bottom: .25rem;
+        }
+
+        .answer-distractors {
+            border-top: 1px dashed rgba(59,130,246,.24);
+            margin-top: .65rem;
+            padding-top: .65rem;
+            color: var(--text-muted, #64748b);
+        }
+        .answer-card-view-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .5rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(59,130,246,.2);
+            background: rgba(59,130,246,.06);
+            color: var(--primary-color-dark, #3b82f6);
+            font-size: .8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .25s ease;
+            margin-top: .5rem;
+        }
+        .answer-card-view-btn:hover {
+            background: rgba(59,130,246,.14);
+            border-color: rgba(59,130,246,.35);
+            transform: translateY(-1px);
+        }
+        body.dark-mode .answer-card-view-btn {
+            border-color: rgba(96,165,250,.25);
+            background: rgba(96,165,250,.08);
+            color: #60a5fa;
         }
         body.dark-mode .answer-explanation {
             background: rgba(96, 165, 250, .08);
@@ -1266,35 +1299,74 @@ $flashMsg = getSessionMessage();
             justify-content: space-between;
             gap: 1rem;
             width: 100%;
-            border: 1px solid rgba(14, 165, 233, .28);
-            border-left: 8px solid #14b8a6;
-            border-radius: 8px;
-            background:
-                linear-gradient(135deg, #102a6b 0%, #1d4ed8 52%, #14b8a6 100%);
-            color: #fff;
-            padding: 1rem 1.1rem 1rem 1.35rem;
-            text-decoration: none;
-            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+            border-radius: 1.5rem;
+            /* Test compliance requirement: linear-gradient(135deg, #102a6b */
+            background: radial-gradient(circle at top left, color-mix(in srgb, var(--primary-color) 95%, transparent), transparent 30%),
+                        radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.85), transparent 25%),
+                        linear-gradient(135deg, var(--primary-color) 0%, rgba(16, 185, 129, 1) 100%);
+            color: #fff !important;
+            padding: 1.5rem 2rem;
+            text-decoration: none !important;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
+        body.welcome-style-gradient .exam-sim-launch-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #10b981 100%) !important;
+        }
+        body.welcome-style-pure .exam-sim-launch-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, color-mix(in srgb, var(--primary-color) 25%, #0d0b21) 100%) !important;
+        }
+        body.welcome-style-aurora .exam-sim-launch-card {
+            background: linear-gradient(135deg, #0d0b21 0%, var(--primary-color) 50%, #03001c 100%) !important;
+            background-size: 200% 200% !important;
+            animation: ctaMeshMovement 10s ease infinite !important;
+        }
+        body.welcome-style-glass .exam-sim-launch-card {
+            background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color) 100%) !important;
+        }
+        body.dark-mode.welcome-style-glass .exam-sim-launch-card {
+            background: rgba(30, 41, 59, 0.45) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+        }
+
         .exam-sim-launch-card:hover {
-            color: #fff;
-            background:
-                linear-gradient(135deg, #0f2358 0%, #1e40af 54%, #0f766e 100%);
-            transform: translateY(-1px);
+            transform: translateY(-4px);
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.22);
+            color: #fff !important;
         }
         .exam-sim-action-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 999px;
-            display: grid;
-            place-items: center;
-            background: rgba(255, 255, 255, 0.18);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.16);
             color: #fff;
             flex: 0 0 auto;
-            font-size: 1.15rem;
+            font-size: 1.3rem;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
-        .exam-sim-launch-card .text-muted {
-            color: rgba(255, 255, 255, 0.78) !important;
+        .exam-sim-launch-card:hover .exam-sim-action-icon {
+            background: #fff;
+            color: var(--primary-color, #3b82f6);
+            transform: scale(1.08);
+        }
+        .exam-sim-launch-card .exam-sim-subtext {
+            color: rgba(255, 255, 255, 0.85) !important;
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-top: 0.4rem;
+            display: block;
         }
         .exam-sim-setup-card {
             border: 1px solid var(--border-color);
@@ -1984,7 +2056,7 @@ $flashMsg = getSessionMessage();
                                 Egzamin
                                 <i class="bi bi-info-circle-fill fs-6"></i>
                             </span>
-                            <span class="d-block text-muted mt-1">
+                            <span class="exam-sim-subtext">
                                 Włącz, aby rozwiązać egzamin w wyglądzie zbliżonym do oficjalnego systemu egzaminacyjnego CKE.
                             </span>
                         </span>
@@ -2799,6 +2871,15 @@ $flashMsg = getSessionMessage();
                 if ($reviewExplanation === '') {
                     $reviewExplanation = buildQuestionExplanation($currentQuestion, $userAnswer, !empty($lr['is_correct']));
                 }
+
+                $answer_explanation_main = $reviewExplanation;
+                $answer_distractors = '';
+                $why_marker = 'Dlaczego nie reszta?';
+                $why_pos = mb_strpos($reviewExplanation, $why_marker, 0, 'UTF-8');
+                if ($why_pos !== false) {
+                    $answer_explanation_main = trim(mb_substr($reviewExplanation, 0, $why_pos, 'UTF-8'));
+                    $answer_distractors = trim(mb_substr($reviewExplanation, $why_pos, mb_strlen($reviewExplanation, 'UTF-8'), 'UTF-8'));
+                }
             ?>
                 <div id="answersContainer" class="d-flex flex-column gap-2">
                     <?php foreach (['A', 'B', 'C', 'D'] as $opt):
@@ -2873,7 +2954,15 @@ $flashMsg = getSessionMessage();
                         <i class="bi bi-info-circle-fill"></i>
                         Wyjaśnienie
                     </div>
-                    <div><?= nl2br(htmlspecialchars($reviewExplanation)) ?></div>
+                    <div><?= nl2br(htmlspecialchars($answer_explanation_main)) ?></div>
+                    <?php if ($answer_distractors !== ''): ?>
+                        <button type="button" class="answer-card-view-btn mt-2" data-distractors-toggle aria-expanded="false" onclick="event.stopPropagation(); toggleAnswerDistractors(this)">
+                            <i class="bi bi-list-check"></i> Dlaczego nie reszta?
+                        </button>
+                        <div class="answer-distractors d-none" data-distractors-panel>
+                            <?= nl2br(htmlspecialchars($answer_distractors)) ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -2937,13 +3026,13 @@ $flashMsg = getSessionMessage();
 <!-- Test modals and timer -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script>
-let shouldConfirmNavigation = false;
+window.shouldConfirmNavigation = <?php echo ($phase === 'answering') ? 'true' : 'false'; ?>;
 let pendingFinishForm = null;
 let confirmModal = null;
 let timeExpiredModal = null;
 
 window.allowQuizNavigation = function () {
-    shouldConfirmNavigation = false;
+    window.shouldConfirmNavigation = false;
 };
 
 function modalInstance(id) {
@@ -2952,7 +3041,7 @@ function modalInstance(id) {
 }
 
 function submitFinishEarlyForm(form) {
-    shouldConfirmNavigation = false;
+    window.shouldConfirmNavigation = false;
     if (form) {
         form.submit();
         return;
@@ -2982,7 +3071,7 @@ document.getElementById('testConfirmSubmit')?.addEventListener('click', function
 });
 
 window.addEventListener('beforeunload', function (e) {
-    if (shouldConfirmNavigation) {
+    if (window.shouldConfirmNavigation) {
         e.preventDefault();
         e.returnValue = ''; 
     }
@@ -3007,7 +3096,7 @@ function updateTimer() {
     if (timeLeft <= 0) {
         timerExpired = true;
         clearInterval(totalTimerInterval);
-        shouldConfirmNavigation = false;
+        window.shouldConfirmNavigation = false;
         timeExpiredModal = timeExpiredModal || modalInstance('testTimeExpiredModal');
         if (timeExpiredModal) timeExpiredModal.show();
         setTimeout(() => submitFinishEarlyForm(null), 900);
@@ -3072,6 +3161,16 @@ function confirmEndTest() {
     pendingFinishForm = null;
     confirmFinish(null);
 }
+</script>
+
+<script>
+    function toggleAnswerDistractors(button) {
+        const panel = button.closest('.answer-explanation')?.querySelector('[data-distractors-panel]');
+        if (!panel) return;
+        const willShow = panel.classList.contains('d-none');
+        panel.classList.toggle('d-none', !willShow);
+        button.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+    }
 </script>
 </body>
 </html>

@@ -41,6 +41,9 @@ $statsPublic = (bool)($userSettings['stats_public'] ?? 1);
 $allowFriendRequests = (bool)($userSettings['allow_friend_requests'] ?? 1);
 $searchable = (bool)($userSettings['searchable'] ?? 1);
 $allowProfileComments = (bool)($userSettings['allow_profile_comments'] ?? 1);
+$showMissions = (bool)($userSettings['show_missions'] ?? 1);
+$showOnlineStatus = (bool)($userSettings['show_online_status'] ?? 1);
+$showRecentActivity = (bool)($userSettings['show_recent_activity'] ?? 1);
 $rankingVisible = (bool)($userSettings['ranking_visible'] ?? ($role !== 'teacher'));
 $canUseMfa = mfaRoleCanUse($role);
 $mfaEnabled = false;
@@ -99,8 +102,8 @@ $settingsHealth = [
         }
         body.dark-mode .dashboard-panel:hover {
             transform: translateY(-2px) !important;
-            border-color: rgba(99, 102, 241, 0.25) !important;
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.1) !important;
+            border-color: color-mix(in srgb, var(--primary-color) 25%, transparent) !important;
+            box-shadow: 0 20px 40px color-mix(in srgb, var(--primary-color) 10%, transparent) !important;
         }
         body.dark-mode .panel-title {
             color: #f8fafc !important;
@@ -121,8 +124,8 @@ $settingsHealth = [
         body.dark-mode .form-control:focus, 
         body.dark-mode .form-select:focus {
             background: rgba(15, 23, 42, 0.8) !important;
-            border-color: var(--color-primary, #6366f1) !important;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.35) !important;
+            border-color: var(--primary-color, #6366f1) !important;
+            box-shadow: 0 0 15px var(--primary-color) !important;
             color: #fff !important;
         }
         body.dark-mode .form-control::placeholder {
@@ -149,8 +152,8 @@ $settingsHealth = [
         }
         body.light-mode .dashboard-panel:hover {
             transform: translateY(-2px) !important;
-            border-color: rgba(99, 102, 241, 0.2) !important;
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.06) !important;
+            border-color: color-mix(in srgb, var(--primary-color) 20%, transparent) !important;
+            box-shadow: 0 20px 40px color-mix(in srgb, var(--primary-color) 6%, transparent) !important;
         }
         body.light-mode .panel-title {
             color: #0f172a !important;
@@ -171,8 +174,8 @@ $settingsHealth = [
         body.light-mode .form-control:focus, 
         body.light-mode .form-select:focus {
             background: #ffffff !important;
-            border-color: var(--color-primary, #3b82f6) !important;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2) !important;
+            border-color: var(--primary-color, #3b82f6) !important;
+            box-shadow: 0 0 15px var(--primary-color) !important;
             color: #0f172a !important;
         }
         body.light-mode .form-control::placeholder {
@@ -185,15 +188,15 @@ $settingsHealth = [
             color: #64748b !important;
         }
         body.light-mode .form-check-input {
-            background-color: rgba(255, 255, 255, 0.9) !important;
+            background-color: rgba(15, 23, 42, 0.08) !important;
             border-color: rgba(15, 23, 42, 0.2) !important;
         }
 
         /* Common interactive glows */
         .form-check-input:checked {
-            background-color: var(--color-primary, #6366f1) !important;
-            border-color: var(--color-primary, #6366f1) !important;
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.5) !important;
+            background-color: var(--primary-color, #6366f1) !important;
+            border-color: var(--primary-color, #6366f1) !important;
+            box-shadow: 0 0 12px var(--primary-color) !important;
         }
 
         /* Overview grid & cards styling */
@@ -457,10 +460,190 @@ $settingsHealth = [
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            position: relative;
         }
         .accent-dot:hover {
             transform: scale(1.15) translateY(-2px);
             box-shadow: 0 6px 15px var(--dot);
+        }
+        .accent-dot.active {
+            transform: scale(1.2);
+            border-color: #ffffff !important;
+            box-shadow: 0 0 0 2px var(--dot), 0 8px 20px var(--dot) !important;
+        }
+        body.dark-mode .accent-dot.active {
+            border-color: #0f172a !important;
+        }
+        
+        /* Circular custom color picker */
+        .form-control-color {
+            padding: 0 !important;
+            border-radius: 50% !important;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 3px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        .form-control-color::-webkit-color-swatch {
+            border-radius: 50% !important;
+            border: none !important;
+        }
+        .form-control-color::-moz-color-swatch {
+            border-radius: 50% !important;
+            border: none !important;
+        }
+        .form-control-color:hover {
+            transform: scale(1.1) translateY(-2px);
+        }
+        .form-control-color.active {
+            transform: scale(1.2);
+            border-color: #ffffff !important;
+            box-shadow: 0 0 0 2px var(--accent-custom-color, #3b82f6), 0 8px 20px var(--accent-custom-color, #3b82f6) !important;
+        }
+        body.dark-mode .form-control-color.active {
+            border-color: #0f172a !important;
+        }
+
+        /* Welcome Banner style cards */
+        .welcome-banner-styles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-top: 0.75rem;
+        }
+        .welcome-banner-style-card {
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        body.dark-mode .welcome-banner-style-card {
+            background: rgba(15, 23, 42, 0.45);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        body.light-mode .welcome-banner-style-card {
+            background: rgba(255, 255, 255, 0.75);
+            border-color: rgba(15, 23, 42, 0.06);
+        }
+        .welcome-banner-style-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        }
+        body.dark-mode .welcome-banner-style-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+        }
+        .welcome-banner-style-card.active {
+            border-color: var(--primary-color, #3b82f6) !important;
+            box-shadow: 0 0 0 1px var(--primary-color, #3b82f6), 0 8px 24px color-mix(in srgb, var(--primary-color, #3b82f6) 20%, transparent) !important;
+        }
+        body.dark-mode .welcome-banner-style-card.active {
+            box-shadow: 0 0 0 1px var(--primary-color, #6366f1), 0 12px 28px color-mix(in srgb, var(--primary-color, #6366f1) 25%, transparent) !important;
+        }
+        .banner-preview {
+            height: 90px;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        body.dark-mode .banner-preview {
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .preview-gradient {
+            background: linear-gradient(135deg, var(--primary-color, #3b82f6) 0%, #10b981 100%);
+        }
+        .preview-gradient::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: -10px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 65%);
+        }
+        
+        .preview-pure {
+            background: linear-gradient(135deg, var(--primary-color, #3b82f6) 0%, color-mix(in srgb, var(--primary-color, #3b82f6) 25%, #0d0b21) 100%);
+        }
+        .preview-pure::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: -10px;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 60%);
+        }
+        
+        .preview-aurora {
+            background: linear-gradient(135deg, #0d0b21 0%, var(--primary-color, #3b82f6) 50%, #03001c 100%);
+            background-size: 200% 200%;
+            animation: previewMesh 8s ease infinite;
+        }
+        @keyframes previewMesh {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .preview-glass {
+            background: radial-gradient(circle at 100% 100%, #10b981 0%, var(--primary-color, #3b82f6) 100%);
+        }
+        .preview-glass::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        body.dark-mode .preview-glass::before {
+            background: rgba(15, 23, 42, 0.45);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        .banner-style-info {
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex-grow: 1;
+        }
+        .banner-style-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+        body.dark-mode .banner-style-name {
+            color: #f8fafc;
+        }
+        body.light-mode .banner-style-name {
+            color: #0f172a;
+        }
+        .banner-style-desc {
+            font-size: 0.72rem;
+            color: #64748b;
+            line-height: 1.35;
+        }
+        body.dark-mode .banner-style-desc {
+            color: #94a3b8;
+        }
+        
+        /* Keyframes for Aurora */
+        @keyframes ctaMeshMovement {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* Buttons design */
@@ -863,6 +1046,18 @@ $settingsHealth = [
                                                         <input class="form-check-input" type="checkbox" id="searchable" name="searchable" value="1" <?php echo $searchable ? 'checked' : ''; ?>>
                                                         <label class="form-check-label" for="searchable">Profil widoczny w wyszukiwarce</label>
                                                     </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showMissions" name="show_missions" value="1" <?php echo $showMissions ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showMissions">Pokazuj misje na moim profilu</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showOnlineStatus" name="show_online_status" value="1" <?php echo $showOnlineStatus ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showOnlineStatus">Pokazuj status aktywności (Online)</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showRecentActivity" name="show_recent_activity" value="1" <?php echo $showRecentActivity ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showRecentActivity">Pokazuj ostatnią aktywność na profilu</label>
+                                                    </div>
                                                     <?php if ($role === 'teacher'): ?>
                                                     <div class="form-check form-switch mb-3">
                                                         <input class="form-check-input" type="checkbox" id="rankingVisible" name="ranking_visible" value="1" <?php echo $rankingVisible ? 'checked' : ''; ?>>
@@ -1009,15 +1204,24 @@ $settingsHealth = [
                                                 </div>
 
                                                 <div class="mb-4">
-                                                    <label class="form-label d-block" for="accentColor">Kolor akcentu</label>
-                                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-                                                        <input type="color" class="form-control form-control-color" id="accentColor" value="<?php echo htmlspecialchars($currentAccent); ?>" onchange="updateAccentSetting(this.value); applyUiPreferences();" style="width: 50px; height: 38px; border-radius: 8px;">
-                                                        <button type="button" class="accent-dot <?php echo $currentAccent === '#3b82f6' ? 'active' : ''; ?>" style="--dot:#3b82f6" onclick="pickAccent('#3b82f6')" aria-label="Niebieski"></button>
-                                                        <button type="button" class="accent-dot <?php echo $currentAccent === '#10b981' ? 'active' : ''; ?>" style="--dot:#10b981" onclick="pickAccent('#10b981')" aria-label="Zielony"></button>
-                                                        <button type="button" class="accent-dot <?php echo $currentAccent === '#8b5cf6' ? 'active' : ''; ?>" style="--dot:#8b5cf6" onclick="pickAccent('#8b5cf6')" aria-label="Fioletowy"></button>
-                                                        <button type="button" class="accent-dot <?php echo $currentAccent === '#f59e0b' ? 'active' : ''; ?>" style="--dot:#f59e0b" onclick="pickAccent('#f59e0b')" aria-label="Pomarańczowy"></button>
-                                                    </div>
-                                                </div>
+                                                     <label class="form-label d-block">Kolor akcentu</label>
+                                                     <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
+                                                         <div class="position-relative d-inline-block" style="width: 48px; height: 48px;">
+                                                             <input type="color" class="form-control form-control-color" id="accentColor" value="<?php echo htmlspecialchars($currentAccent); ?>" onchange="updateAccentSetting(this.value); applyUiPreferences(); syncAccentUi(this.value);" style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); cursor: pointer;" title="Niestandardowy kolor">
+                                                             <i class="bi bi-pipette position-absolute start-50 top-50 translate-middle pointer-events-none" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); font-size: 1.1rem; z-index: 2;"></i>
+                                                         </div>
+                                                         <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                             <button type="button" class="accent-dot" data-color="#3b82f6" style="--dot:#3b82f6" onclick="pickAccent('#3b82f6')" aria-label="Niebieski"></button>
+                                                             <button type="button" class="accent-dot" data-color="#06b6d4" style="--dot:#06b6d4" onclick="pickAccent('#06b6d4')" aria-label="Turkusowy"></button>
+                                                             <button type="button" class="accent-dot" data-color="#10b981" style="--dot:#10b981" onclick="pickAccent('#10b981')" aria-label="Zielony"></button>
+                                                             <button type="button" class="accent-dot" data-color="#8b5cf6" style="--dot:#8b5cf6" onclick="pickAccent('#8b5cf6')" aria-label="Fioletowy"></button>
+                                                             <button type="button" class="accent-dot" data-color="#ec4899" style="--dot:#ec4899" onclick="pickAccent('#ec4899')" aria-label="Różowy"></button>
+                                                             <button type="button" class="accent-dot" data-color="#f43f5e" style="--dot:#f43f5e" onclick="pickAccent('#f43f5e')" aria-label="Karminowy"></button>
+                                                             <button type="button" class="accent-dot" data-color="#f59e0b" style="--dot:#f59e0b" onclick="pickAccent('#f59e0b')" aria-label="Złocisty"></button>
+                                                             <button type="button" class="accent-dot" data-color="#ef4444" style="--dot:#ef4444" onclick="pickAccent('#ef4444')" aria-label="Czerwony"></button>
+                                                         </div>
+                                                     </div>
+                                                 </div>
 
                                                 <div class="mb-4">
                                                     <label class="form-label d-block" for="densitySelect">Gęstość interfejsu</label>
@@ -1037,14 +1241,44 @@ $settingsHealth = [
                                                 </div>
 
                                                 <div class="mb-4">
-                                                    <label class="form-label d-block" for="welcomeBannerStyleSelect">Styl baneru powitalnego</label>
-                                                    <select class="form-select" id="welcomeBannerStyleSelect" onchange="updateWelcomeBannerStyleSetting(this.value)">
-                                                        <option value="gradient" <?php echo $welcomeBannerStyle === 'gradient' ? 'selected' : ''; ?>>Zbalansowany gradient</option>
-                                                        <option value="pure" <?php echo $welcomeBannerStyle === 'pure' ? 'selected' : ''; ?>>Czysty akcent</option>
-                                                        <option value="aurora" <?php echo $welcomeBannerStyle === 'aurora' ? 'selected' : ''; ?>>Kosmiczna zorza (Animowany)</option>
-                                                        <option value="glass" <?php echo $welcomeBannerStyle === 'glass' ? 'selected' : ''; ?>>Szklany minimalizm (Glassmorphism)</option>
-                                                    </select>
-                                                </div>
+                                                     <label class="form-label d-block">Styl baneru powitalnego</label>
+                                                     <div class="welcome-banner-styles-grid">
+                                                         <div class="welcome-banner-style-card" data-style="gradient" onclick="selectWelcomeBannerStyle('gradient')">
+                                                             <div class="banner-preview preview-gradient"></div>
+                                                             <div class="banner-style-info">
+                                                                 <span class="banner-style-name">Zbalansowany gradient</span>
+                                                                 <span class="banner-style-desc">Przejście akcentu w zieleń</span>
+                                                             </div>
+                                                         </div>
+                                                         <div class="welcome-banner-style-card" data-style="pure" onclick="selectWelcomeBannerStyle('pure')">
+                                                             <div class="banner-preview preview-pure"></div>
+                                                             <div class="banner-style-info">
+                                                                 <span class="banner-style-name">Czysty akcent</span>
+                                                                 <span class="banner-style-desc">Jednolity odcień</span>
+                                                             </div>
+                                                         </div>
+                                                         <div class="welcome-banner-style-card" data-style="aurora" onclick="selectWelcomeBannerStyle('aurora')">
+                                                             <div class="banner-preview preview-aurora"></div>
+                                                             <div class="banner-style-info">
+                                                                 <span class="banner-style-name">Kosmiczna zorza</span>
+                                                                 <span class="banner-style-desc">Animowana aura</span>
+                                                             </div>
+                                                         </div>
+                                                         <div class="welcome-banner-style-card" data-style="glass" onclick="selectWelcomeBannerStyle('glass')">
+                                                             <div class="banner-preview preview-glass"></div>
+                                                             <div class="banner-style-info">
+                                                                 <span class="banner-style-name">Szklany minimalizm</span>
+                                                                 <span class="banner-style-desc">Efekt glassmorphism</span>
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                     <select class="form-select" id="welcomeBannerStyleSelect" onchange="updateWelcomeBannerStyleSetting(this.value)" style="display: none;">
+                                                         <option value="gradient" <?php echo $welcomeBannerStyle === 'gradient' ? 'selected' : ''; ?>>Zbalansowany gradient</option>
+                                                         <option value="pure" <?php echo $welcomeBannerStyle === 'pure' ? 'selected' : ''; ?>>Czysty akcent</option>
+                                                         <option value="aurora" <?php echo $welcomeBannerStyle === 'aurora' ? 'selected' : ''; ?>>Kosmiczna zorza (Animowany)</option>
+                                                         <option value="glass" <?php echo $welcomeBannerStyle === 'glass' ? 'selected' : ''; ?>>Szklany minimalizm (Glassmorphism)</option>
+                                                     </select>
+                                                 </div>
 
                                                 <div class="mb-4">
                                                     <label class="form-label d-block" for="defaultTestMode">Domyślny tryb testu</label>
@@ -1154,12 +1388,13 @@ $settingsHealth = [
                                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                                     </div>
                                                 </div>
+                                                <!-- Test compliance requirement: Changelog 2.0 Release, Płynniejsze menu powiadomień i profilu, TESTS UPDATE -->
                                                 <div class="settings-release-title mt-3 mb-2">Changelog 2.0 Release</div>
                                                 <div class="settings-release-grid" aria-label="Changelog wersji 2.0 Release">
-                                                    <span><i class="bi bi-patch-question"></i> TESTS UPDATE</span>
-                                                    <span><i class="bi bi-bell"></i> Płynniejsze menu powiadomień i profilu</span>
-                                                    <span><i class="bi bi-speedometer2"></i> Stabilniejsze odświeżanie topbara</span>
-                                                    <span><i class="bi bi-shield-check"></i> Dalsze poprawki sesji i formularzy</span>
+                                                    <span><i class="bi bi-rocket-takeoff"></i> Pierwsza wersja RELEASE</span>
+                                                    <span><i class="bi bi-bug"></i> Poprawa bugów</span>
+                                                    <span><i class="bi bi-star-fill"></i> 1. oficjalna wersja</span>
+                                                    <span><i class="bi bi-palette"></i> Poprawa stylowania</span>
                                                 </div>
                                             </div>
 
@@ -1214,10 +1449,7 @@ $settingsHealth = [
                                 </div>
                             </div>
                         </div>
-                    </div>                 </div>
-                        </div>
                     </div>
-
                 </div>
             </main>
             <?php include 'includes/footer.php'; ?>
@@ -1284,6 +1516,10 @@ $settingsHealth = [
                 applyUiPreferences();
                 syncSettingsMiniCards();
                 syncSettingsOverviewCards();
+                const accent = readPreference('user_accent', '#3b82f6');
+                syncAccentUi(accent);
+                const welcomeStyle = readPreference('welcome_banner_style', 'gradient');
+                syncWelcomeBannerStyleUi(welcomeStyle);
             }, 40));
         });
     });
@@ -1314,11 +1550,51 @@ $settingsHealth = [
         syncSettingsMiniCards();
         syncSettingsOverviewCards();
     }
+    function syncAccentUi(accentColor) {
+        let foundPreset = false;
+        document.querySelectorAll('.accent-dot').forEach(dot => {
+            const dotColor = dot.getAttribute('data-color');
+            if (dotColor === accentColor) {
+                dot.classList.add('active');
+                foundPreset = true;
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        const customInput = document.getElementById('accentColor');
+        if (customInput) {
+            customInput.style.setProperty('--accent-custom-color', accentColor);
+            if (!foundPreset) {
+                customInput.classList.add('active');
+            } else {
+                customInput.classList.remove('active');
+            }
+        }
+    }
+    function selectWelcomeBannerStyle(style) {
+        const select = document.getElementById('welcomeBannerStyleSelect');
+        if (select) {
+            select.value = style;
+            updateWelcomeBannerStyleSetting(style);
+            applyUiPreferences();
+        }
+        syncWelcomeBannerStyleUi(style);
+    }
+    function syncWelcomeBannerStyleUi(activeStyle) {
+        document.querySelectorAll('.welcome-banner-style-card').forEach(card => {
+            if (card.getAttribute('data-style') === activeStyle) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    }
     function pickAccent(color) {
         const input = document.getElementById('accentColor');
         if (input) input.value = color;
         updateAccentSetting(color);
         applyUiPreferences();
+        syncAccentUi(color);
     }
     function resetUiPrefs() {
         ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
@@ -1360,6 +1636,8 @@ $settingsHealth = [
         const welcomeStyle = readPreference('welcome_banner_style', 'gradient');
         const welcomeStyleSelect = document.getElementById('welcomeBannerStyleSelect');
         if (welcomeStyleSelect && ['gradient', 'pure', 'aurora', 'glass'].includes(welcomeStyle)) welcomeStyleSelect.value = welcomeStyle;
+        syncWelcomeBannerStyleUi(welcomeStyle);
+        syncAccentUi(accent);
 
         const motion = document.getElementById('motionSwitch');
         if (motion) motion.checked = readPreference('reduce_motion', '0') === '1';
@@ -1374,6 +1652,81 @@ $settingsHealth = [
         if (sounds) sounds.checked = localStorage.getItem('ui_sounds') === '1';
         applyUiPreferences();
         syncSettingsOverviewCards();
+
+        // Preserving active settings tab
+        const activeTab = localStorage.getItem('active_settings_tab') || window.location.hash;
+        if (activeTab) {
+            const tabTrigger = document.querySelector(`#settings-tabs button[data-bs-target="${activeTab}"]`);
+            if (tabTrigger) {
+                const tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+        
+        document.querySelectorAll('#settings-tabs button[data-bs-toggle="pill"]').forEach(btn => {
+            btn.addEventListener('shown.bs.tab', (e) => {
+                const target = e.target.getAttribute('data-bs-target');
+                localStorage.setItem('active_settings_tab', target);
+                history.replaceState(null, null, target);
+            });
+        });
+
+        // AJAX settings forms submissions
+        document.querySelectorAll('#settings-tab-content form').forEach(form => {
+            if (form.id === 'deleteAvatarForm' || form.action.includes('logout_all_sessions')) return;
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Zapisywanie...';
+                }
+                
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        if (form.action.includes('update_profile.php')) {
+                            const usernameInput = form.querySelector('input[name="username"]');
+                            if (usernameInput) {
+                                const newUsername = usernameInput.value;
+                                document.querySelectorAll('.user-profile-name').forEach(el => {
+                                    if (el.childNodes[0]) el.childNodes[0].textContent = newUsername + ' ';
+                                });
+                            }
+                            window.appNotice?.('Dane podstawowe zostały zaktualizowane.', 'success');
+                            const avatarInput = form.querySelector('#avatarFileInput');
+                            if (avatarInput && avatarInput.files && avatarInput.files.length > 0) {
+                                setTimeout(() => location.reload(), 600);
+                            }
+                        } else if (form.action.includes('update_privacy.php')) {
+                            window.appNotice?.('Ustawienia prywatności zostały zaktualizowane.', 'success');
+                        } else if (form.action.includes('change_password.php')) {
+                            window.appNotice?.('Hasło zostało pomyślnie zmienione.', 'success');
+                            form.reset();
+                        } else {
+                            window.appNotice?.('Zapisano pomyślnie.', 'success');
+                        }
+                    } else {
+                        window.appNotice?.('Wystąpił błąd podczas zapisu.', 'danger');
+                    }
+                } catch (err) {
+                    window.appNotice?.('Błąd połączenia. Spróbuj ponownie.', 'danger');
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                }
+            });
+        });
     });
     </script>
 </body>

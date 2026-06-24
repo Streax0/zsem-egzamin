@@ -388,7 +388,7 @@ $resultIndex = $spinResult ? lukiOutcomeIndex($segments, (string)$spinResult['ar
             background:
                 radial-gradient(circle at 20% 10%, rgba(245, 158, 11, .10), transparent 34%),
                 radial-gradient(circle at 90% 18%, rgba(99, 102, 241, .12), transparent 34%),
-                #eef3f8;
+                transparent;
         }
         .luki-hero {
             position: relative;

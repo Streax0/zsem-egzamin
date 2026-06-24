@@ -3,6 +3,7 @@ $current_page = basename($_SERVER['PHP_SELF'], ".php");
 // Determine base path by looking for a root-level file
 $base_url = file_exists('config/db.php') ? '' : '../';
 $isGuestSidebar = function_exists('isGuestMode') && isGuestMode();
+$isFullyLoggedOut = !isset($_SESSION['user_id']) && !$isGuestSidebar;
 ?>
 <a class="skip-link" href="#main-content">Przejdź do treści</a>
 <script>
@@ -49,7 +50,17 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="bi bi-journal-text"></i>
             <span>Testy</span>
         </a>
-        <?php if ($isGuestSidebar): ?>
+        <?php if ($isFullyLoggedOut): ?>
+        <div class="sidebar-divider my-3 opacity-25 border-top border-white mx-3"></div>
+        <a href="<?php echo $base_url; ?>login.php" class="sidebar-item">
+            <i class="bi bi-box-arrow-in-right"></i>
+            <span>Zaloguj</span>
+        </a>
+        <a href="<?php echo $base_url; ?>register.php" class="sidebar-item">
+            <i class="bi bi-person-plus"></i>
+            <span>Załóż konto</span>
+        </a>
+        <?php elseif ($isGuestSidebar): ?>
         <a href="<?php echo $base_url; ?>categories.php" class="sidebar-item <?php echo $current_page == 'categories' ? 'active' : ''; ?>">
             <i class="bi bi-tags"></i>
             <span>Kategorie</span>
@@ -199,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function () {
     </nav>
     
     <div class="sidebar-footer">
+        <?php if (!$isFullyLoggedOut): ?>
         <form action="<?php echo $base_url; ?>actions/logout.php" method="POST" class="m-0">
             <?php echo csrfTokenField('logout'); ?>
             <button type="submit" class="sidebar-item text-danger w-100 border-0 bg-transparent">
@@ -206,5 +218,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span><?php echo $isGuestSidebar ? 'Wyjdź' : 'Wyloguj'; ?></span>
             </button>
         </form>
+        <?php endif; ?>
     </div>
 </aside>

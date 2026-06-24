@@ -80,6 +80,7 @@ foreach ($allQuestions as $q) {
 }
 
 $answerQualifications = [];
+$categoryStats = [];
 foreach ($answers as &$answer) {
     $questionId = (int)($answer['question_id'] ?? 0);
     $qualification = trim((string)($answer['question_category'] ?? ''));
@@ -89,8 +90,20 @@ foreach ($answers as &$answer) {
     if ($qualification === 'EE.08') $qualification = 'INF.02';
     if ($qualification === 'EE.09') $qualification = 'INF.03';
     $answer['qualification_label'] = $qualification;
+
+    $user_answer = strtoupper(trim((string)($answer['user_answer'] ?? '')));
+    $correct_answer = strtoupper(trim((string)($answer['correct_answer'] ?? '')));
+    $is_correct = ((int)($answer['is_correct'] ?? 0) === 1) || ($user_answer !== '-' && $correct_answer !== '' && $user_answer === $correct_answer);
+
     if ($qualification !== '') {
         $answerQualifications[$qualification] = true;
+        if (!isset($categoryStats[$qualification])) {
+            $categoryStats[$qualification] = ['total' => 0, 'correct' => 0];
+        }
+        $categoryStats[$qualification]['total']++;
+        if ($is_correct) {
+            $categoryStats[$qualification]['correct']++;
+        }
     }
 }
 unset($answer);
@@ -210,39 +223,53 @@ $shareCardData = [
         .score-value { font-size: 3rem; font-weight: 800; line-height: 1; }
         .score-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 600; }
         .stat-pill {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0.65rem 1rem;
-            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 0.75rem 1.25rem;
+            border-radius: 14px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            backdrop-filter: blur(5px);
+            gap: 14px;
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s ease, background 0.2s ease;
         }
-        .stat-pill i { font-size: 1.25rem; opacity: 0.9; }
+        .stat-pill:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .stat-pill i { font-size: 1.35rem; opacity: 1; }
 
         /* ===== Action Buttons ===== */
         .result-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: .75rem;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
         }
         .result-actions .btn {
-            border-radius: 14px;
-            padding: .65rem 1.5rem;
+            border-radius: 16px;
+            padding: .75rem 1.75rem;
             font-weight: 600;
-            font-size: .9rem;
-            transition: all .25s cubic-bezier(.4,0,.2,1);
-            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+            font-size: .95rem;
+            transition: all .3s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .result-actions .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,.12);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,.15);
         }
         .result-actions .btn-outline-dark {
             background: var(--panel-bg, #fff);
-            border-color: rgba(148,163,184,.25);
+            border-color: rgba(148,163,184,.3);
             color: var(--text-main, #1e293b);
+        }
+        .result-actions .btn-outline-dark:hover {
+            border-color: var(--primary-color, #3b82f6);
+            color: var(--primary-color-dark, #1d4ed8);
         }
 
         /* ===== Insight Cards ===== */
@@ -529,7 +556,15 @@ $shareCardData = [
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes progress {
+            0% { stroke-dasharray: 0 100; }
+        }
+
         /* ===== Dark Mode ===== */
+        body.dark-mode .category-breakdown-panel {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+        }
         body.dark-mode .result-insight-card {
             background: #1e293b;
             border-color: #334155;
@@ -788,9 +823,26 @@ $shareCardData = [
                                 </div>
                             </div>
                             <div class="col-lg-4 d-flex justify-content-center mt-5 mt-lg-0">
-                                <div class="score-circle">
-                                    <span class="score-value"><?php echo round($score_percent); ?>%</span>
-                                    <span class="score-label">Twój wynik</span>
+                                <div class="score-circle" style="position: relative; width: 180px; height: 180px; background: transparent; border: none; box-shadow: none;">
+                                    <svg viewBox="0 0 36 36" class="circular-chart" style="width: 100%; height: 100%;">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            style="fill: none; stroke: rgba(255, 255, 255, 0.2); stroke-width: 2.5;"
+                                        />
+                                        <path class="circle"
+                                            stroke-dasharray="<?php echo round($score_percent); ?>, 100"
+                                            d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            style="fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; animation: progress 1.5s ease-out forwards;"
+                                        />
+                                    </svg>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%;">
+                                        <span class="score-value" style="font-size: 2.5rem; font-weight: 800; display: block; line-height: 1;"><?php echo round($score_percent); ?>%</span>
+                                        <span class="score-label" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 600;">Twój wynik</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -842,6 +894,37 @@ $shareCardData = [
                             </div>
                         </div>
                     </div>
+
+                    <?php if (!empty($categoryStats)): ?>
+                    <!-- Category Breakdown -->
+                    <div class="dashboard-panel category-breakdown-panel mb-4 animate-in" style="animation-delay: 0.18s; border-radius: 18px; padding: 1.5rem; background: var(--panel-bg, #fff); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 4px 16px rgba(15, 23, 42, .05);">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="bi bi-diagram-3 text-primary fs-4"></i>
+                            <h5 class="panel-title mb-0">Wyniki według kwalifikacji</h5>
+                        </div>
+                        <div class="row g-3">
+                            <?php foreach ($categoryStats as $cat => $stats): ?>
+                                <?php
+                                $catTotal = $stats['total'];
+                                $catCorrect = $stats['correct'];
+                                $catPercent = $catTotal > 0 ? round(($catCorrect / $catTotal) * 100) : 0;
+                                $barColor = $catPercent >= 70 ? 'bg-success' : ($catPercent >= 50 ? 'bg-warning' : 'bg-danger');
+                                ?>
+                                <div class="col-md-6">
+                                    <div class="p-3 rounded" style="background: rgba(148,163,184,.05); border: 1px solid rgba(148,163,184,.1);">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold"><?php echo htmlspecialchars($cat); ?></span>
+                                            <span class="fw-bold"><?php echo $catPercent; ?>% (<?php echo $catCorrect; ?>/<?php echo $catTotal; ?>)</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px; background-color: rgba(148,163,184,.2);">
+                                            <div class="progress-bar <?php echo $barColor; ?>" role="progressbar" style="width: <?php echo $catPercent; ?>%" aria-valuenow="<?php echo $catPercent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
 
                     <!-- Detailed Answers -->
                     <?php if (!empty($answers)): ?>
@@ -1185,8 +1268,34 @@ $shareCardData = [
             questionModal.show();
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" integrity="sha384-HAH79XdRvHr6axVGh4xQWVCp14kcd32bNk4Xu0sHDHtFQ42n6BAM8ykvB47dGz6D" crossorigin="anonymous"></script>
     <script>
     window.resultShareCardData = <?php echo json_encode($shareCardData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+
+    // Confetti Effect for Passing Score
+    <?php if ($passed): ?>
+    document.addEventListener('DOMContentLoaded', () => {
+        const duration = 3 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+        }, 250);
+    });
+    <?php endif; ?>
     </script>
     <script src="assets/js/result-share-card.js?v=<?php echo (int)@filemtime(__DIR__ . '/assets/js/result-share-card.js'); ?>"></script>
     <?php include 'includes/help_center.php'; ?>

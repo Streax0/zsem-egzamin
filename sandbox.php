@@ -15,6 +15,7 @@ $tools = [
     'numbers' => ['title' => 'Systemy liczbowe', 'icon' => 'bi-123', 'desc' => 'Konwertuj BIN/OCT/DEC/HEX, sprawdzaj zapis 8-bitowy, U2 i operacje bitowe.'],
     'ohm' => ['title' => 'Prawo Ohma', 'icon' => 'bi-lightning-charge', 'desc' => 'Licz napięcie, prąd, opór, moc oraz najbliższy rezystor do zasilania LED.'],
     'live' => ['title' => 'Live HTML/CSS/JS', 'icon' => 'bi-code-slash', 'desc' => 'Testuj HTML, CSS i JavaScript w izolowanym podglądzie z zapisem szkicu po odświeżeniu.'],
+    'crypto' => ['title' => 'Krypto i Hasła', 'icon' => 'bi-shield-lock', 'desc' => 'Generuj silne hasła, koduj/dekoduj tekst w Base64 oraz przeliczaj encje URL.'],
 ];
 $tool = $_GET['tool'] ?? 'home';
 if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
@@ -317,23 +318,83 @@ button { padding: 10px 16px; border-radius: 8px; }</textarea></label>
                         </div>
                         <iframe id="codePreview" class="preview-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
                     </section>
+                <?php elseif ($tool === 'crypto'): ?>
+                    <section class="sandbox-workbench crypto-workbench" data-tool="crypto">
+                        <div class="sandbox-panel">
+                            <h2 class="fw-800 mb-3 fs-5">Generator Haseł</h2>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label">Długość hasła</label>
+                                    <input id="pwdLength" class="form-control" type="number" min="8" max="128" value="16">
+                                </div>
+                                <div class="col-md-7 d-flex gap-3 align-items-center mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="pwdUpper" checked>
+                                        <label class="form-check-label" for="pwdUpper">A-Z</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="pwdLower" checked>
+                                        <label class="form-check-label" for="pwdLower">a-z</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="pwdNum" checked>
+                                        <label class="form-check-label" for="pwdNum">0-9</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="pwdSym" checked>
+                                        <label class="form-check-label" for="pwdSym">!@#$</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-md-end">
+                                    <button id="pwdGenerate" class="btn btn-primary w-100 rounded-pill"><i class="bi bi-arrow-clockwise me-1"></i>Generuj</button>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="input-group input-group-lg">
+                                    <input type="text" id="pwdResult" class="form-control font-monospace" readonly placeholder="Kliknij Generuj...">
+                                    <button class="btn btn-outline-secondary" type="button" id="pwdCopy" title="Kopiuj do schowka"><i class="bi bi-clipboard"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sandbox-panel">
+                            <h2 class="fw-800 mb-3 fs-5">Konwerter tekstowy</h2>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tekst wejściowy</label>
+                                    <textarea id="cryptoInput" class="form-control font-monospace" rows="4" placeholder="Wpisz tekst tutaj..."></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Wynik</label>
+                                    <textarea id="cryptoOutput" class="form-control font-monospace" rows="4" readonly></textarea>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <button type="button" class="btn btn-outline-primary rounded-pill btn-sm" id="cryptoB64Enc">Base64 Encode</button>
+                                <button type="button" class="btn btn-outline-primary rounded-pill btn-sm" id="cryptoB64Dec">Base64 Decode</button>
+                                <button type="button" class="btn btn-outline-secondary rounded-pill btn-sm" id="cryptoUrlEnc">URL Encode</button>
+                                <button type="button" class="btn btn-outline-secondary rounded-pill btn-sm" id="cryptoUrlDec">URL Decode</button>
+                                <button type="button" class="btn btn-light border rounded-pill btn-sm" id="cryptoClear"><i class="bi bi-eraser me-1"></i>Wyczyść</button>
+                            </div>
+                        </div>
+                    </section>
                 <?php endif; ?>
             </div>
+            <script>
+            window.sandboxBlockedElements = <?php echo json_encode(array_map(static function (array $block): array {
+                return [
+                    'title' => (string)($block['title'] ?? 'Element wyłączony'),
+                    'body' => (string)($block['body'] ?? ''),
+                    'label' => (string)($block['element_label'] ?? ($block['element_key'] ?? 'Element sandboxa')),
+                ];
+            }, $sandboxBlockedElements), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+            </script>
+            <script src="<?php echo htmlspecialchars(assetUrl('assets/js/sandbox.js')); ?>"></script>
         </main>
         <?php include 'includes/footer.php'; ?>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
-<script>
-window.sandboxBlockedElements = <?php echo json_encode(array_map(static function (array $block): array {
-    return [
-        'title' => (string)($block['title'] ?? 'Element wyłączony'),
-        'body' => (string)($block['body'] ?? ''),
-        'label' => (string)($block['element_label'] ?? ($block['element_key'] ?? 'Element sandboxa')),
-    ];
-}, $sandboxBlockedElements), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
-</script>
-<script src="<?php echo htmlspecialchars(assetUrl('assets/js/sandbox.js')); ?>"></script>
 </body>
 </html>

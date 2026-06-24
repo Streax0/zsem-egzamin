@@ -5,10 +5,34 @@ require_once 'includes/auth.php';
 require_once 'includes/functions.php';
 
 startSecureSession();
-requireLogin();
+$showSidebar = true;
+
+// Get current UI preferences from cookies for server-side theme rendering
+$currentTheme = $_COOKIE['user_theme'] ?? 'light';
+$currentFontSize = $_COOKIE['user_font_size'] ?? '16';
+$currentDensity = $_COOKIE['user_density'] ?? 'comfortable';
+$currentAccent = $_COOKIE['user_accent'] ?? '#3b82f6';
+if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
+    $currentAccent = '#3b82f6';
+}
+$reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
+$dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
+$welcomeBannerStyle = $_COOKIE['welcome_banner_style'] ?? 'gradient';
+
+$bodyClasses = [];
+$bodyClasses[] = ($currentTheme === 'dark') ? 'dark-mode' : 'light-mode';
+if ($currentDensity === 'compact') {
+    $bodyClasses[] = 'ui-compact';
+}
+if ($reduceMotion) {
+    $bodyClasses[] = 'reduce-motion';
+}
+$bodyClasses[] = 'dashboard-view-' . (in_array($dashboardView, ['balanced', 'learning', 'compact']) ? $dashboardView : 'balanced');
+$bodyClasses[] = 'welcome-style-' . (in_array($welcomeBannerStyle, ['gradient', 'pure', 'aurora', 'glass']) ? $welcomeBannerStyle : 'gradient');
+$bodyClassStr = implode(' ', $bodyClasses);
 ?>
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" style="color-scheme: <?php echo $currentTheme === 'dark' ? 'dark' : 'light'; ?>; font-size: <?php echo htmlspecialchars($currentFontSize); ?>px; --primary-color: <?php echo htmlspecialchars($currentAccent); ?>; --kolor-glowy: <?php echo htmlspecialchars($currentAccent); ?>;">
 <head>
     <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
@@ -17,24 +41,37 @@ requireLogin();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
 </head>
-<body>
+<body class="<?php echo htmlspecialchars($bodyClassStr); ?>">
 <div class="dashboard-layout">
-    <?php include 'includes/sidebar.php'; ?>
-    <div class="main-container">
-        <?php include 'includes/topbar.php'; ?>
+    <?php if ($showSidebar) include 'includes/sidebar.php'; ?>
+    <div class="main-container" style="<?php echo !$showSidebar ? 'margin-left: 0;' : ''; ?>">
+        <?php if ($showSidebar) include 'includes/topbar.php'; ?>
         <main class="content-body">
             <div class="container-fluid p-0">
-                <section class="dashboard-panel mb-4 p-4 p-lg-5" style="background:linear-gradient(135deg,var(--primary-color-dark),#0f172a);color:#fff;border-radius:28px;">
-                    <span class="badge bg-white bg-opacity-25 rounded-pill mb-3">Dołącz do projektu</span>
-                    <h1 class="fw-800 mb-3"; style="color: #fff;">Rozwijaj ZSEM Tech razem z nami</h1>
-                    <p class="lead mb-4" style="max-width:760px;">Szukamy osób, które chcą pomagać przy kodzie, UI, testach, treściach i aktualizacjach platformy.</p>
-                    <a href="mailto:zsemtech@zsem.edu.pl?subject=Chcę%20dołączyć%20do%20ZSEM%20Tech" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
-                        <i class="bi bi-envelope me-2"></i>Zgłoś się
-                    </a>
+                <section class="welcome-card dashboard-hero mb-4 animate-in" style="overflow: hidden;">
+                    <div class="dashboard-hero-inner">
+                        <div class="hero-left" style="text-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);">
+                            <div class="hero-rank-pill" style="border-color: rgba(255, 255, 255, 0.18); background: rgba(15, 23, 42, 0.35); color: #ffffff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                                <i class="bi bi-rocket-takeoff-fill"></i>
+                                <span style="color: #ffffff; font-weight: 800;">Kariera</span>
+                            </div>
+                            <h1 class="h2" style="font-weight: 800; color: #ffffff;"><i class="bi bi-code-slash me-2"></i>Rozwijaj ZSEM Tech razem z nami</h1>
+                            <p class="mb-4 text-white" style="font-size: 1.05rem; line-height: 1.6; font-weight: 500; opacity: 0.95; max-width:760px;">Szukamy osób, które chcą pomagać przy kodzie, UI, testach, treściach i aktualizacjach platformy.</p>
+                            <div class="welcome-actions">
+                                <a href="mailto:zsemtech@zsem.edu.pl?subject=Chcę%20dołączyć%20do%20ZSEM%20Tech" class="btn-welcome btn-welcome-primary" style="box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);">
+                                    <i class="bi bi-envelope-fill"></i>
+                                    Zgłoś się
+                                </a>
+                            </div>
+                        </div>
+                        <div class="hero-right d-none d-lg-flex align-items-center justify-content-end">
+                            <i class="bi bi-rocket-takeoff text-white" style="font-size: 5.5rem; opacity: 0.22; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));"></i>
+                        </div>
+                    </div>
                 </section>
 
                 <div class="row g-4">

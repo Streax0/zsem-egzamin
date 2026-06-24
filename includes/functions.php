@@ -429,6 +429,8 @@ function ensurePlatformEnhancements(PDO $pdo): void {
             } catch (PDOException $e) {
                 error_log('Role enum migration skipped: ' . $e->getMessage());
             }
+            dbAddColumnIfMissing($pdo, 'users', 'first_name', "VARCHAR(50) DEFAULT NULL AFTER role");
+            dbAddColumnIfMissing($pdo, 'users', 'last_name', "VARCHAR(50) DEFAULT NULL AFTER first_name");
             dbAddColumnIfMissing($pdo, 'users', 'ranking_visible', "TINYINT(1) NOT NULL DEFAULT 0 AFTER is_verified");
             dbAddColumnIfMissing($pdo, 'users', 'verified_at', "DATETIME DEFAULT NULL AFTER is_verified");
             dbAddColumnIfMissing($pdo, 'users', 'verified_by_admin_id', "INT DEFAULT NULL AFTER verified_at");
@@ -438,6 +440,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
             dbAddColumnIfMissing($pdo, 'users', 'trust_status', "VARCHAR(30) NOT NULL DEFAULT 'trusted' AFTER is_banned");
             dbAddColumnIfMissing($pdo, 'users', 'risk_flags', "TEXT DEFAULT NULL AFTER trust_status");
             dbAddColumnIfMissing($pdo, 'users', 'registration_ip', "VARCHAR(45) DEFAULT NULL AFTER risk_flags");
+            dbAddColumnIfMissing($pdo, 'users', 'show_missions', "TINYINT(1) DEFAULT 1 AFTER searchable");
+            dbAddColumnIfMissing($pdo, 'users', 'show_online_status', "TINYINT(1) DEFAULT 1 AFTER show_missions");
+            dbAddColumnIfMissing($pdo, 'users', 'show_recent_activity', "TINYINT(1) DEFAULT 1 AFTER show_online_status");
             dbAddColumnIfMissing($pdo, 'users', 'session_version', "INT NOT NULL DEFAULT 1 AFTER last_activity");
             dbAddIndexIfMissing($pdo, 'users', 'idx_role_xp_activity', '(role, xp, last_activity)');
             dbAddIndexIfMissing($pdo, 'users', 'idx_trust_status', '(trust_status)');
@@ -1524,7 +1529,7 @@ function enforceFeaturePageBlockForCurrentRequest(PDO $pdo): void {
         return;
     }
 
-    if (in_array($role, $block['target_roles_array'] ?? [], true)) {
+    if (in_array($role, $block['target_roles_array'] ?? [], true) || ($role === 'guest' && !empty($block['target_roles_array']))) {
         renderFeaturePageBlockScreen($block);
         exit;
     }
@@ -1639,7 +1644,7 @@ function resolveSandboxElementBlock(PDO $pdo, string $elementKey, ?string $role 
     $role = $role ?? (string)($_SESSION['role'] ?? 'user');
     $block = getActiveSandboxElementBlockByKey($pdo, $elementKey);
     if (!$block) return null;
-    if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true)) {
+    if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true) || ($role === 'guest' && !empty($block['target_roles_array']))) {
         return $block;
     }
     return null;
@@ -1648,7 +1653,7 @@ function resolveSandboxElementBlock(PDO $pdo, string $elementKey, ?string $role 
 function getSandboxElementBlockMapForRole(PDO $pdo, string $role): array {
     $map = [];
     foreach (getActiveSandboxElementBlocks($pdo, 200) as $block) {
-        if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true)) {
+        if (roleHasAdminAccess($role) || in_array($role, $block['target_roles_array'] ?? [], true) || ($role === 'guest' && !empty($block['target_roles_array']))) {
             $map[(string)$block['element_key']] = $block;
         }
     }
@@ -3340,16 +3345,17 @@ function setUserRole($pdo, $userId, $role) {
         if (dbColumnExists($pdo, 'users', 'verified_at')) {
             $stmt = $pdo->prepare("
                 UPDATE users
-                SET role = :role,
-                    ranking_visible = :ranking_visible,
-                    is_verified = GREATEST(is_verified, :verified),
-                    verified_at = CASE WHEN :verified = 1 AND verified_at IS NULL THEN NOW() ELSE verified_at END
-                WHERE id = :id
+                SET role = ?,
+                    ranking_visible = ?,
+                    is_verified = GREATEST(is_verified, ?),
+                    verified_at = CASE WHEN ? = 1 AND verified_at IS NULL THEN NOW() ELSE verified_at END
+                WHERE id = ?
             ");
+            $success = $stmt->execute([$role, $rankingVisible, $verified, $verified, $userId]);
         } else {
-            $stmt = $pdo->prepare("UPDATE users SET role = :role, ranking_visible = :ranking_visible, is_verified = GREATEST(is_verified, :verified) WHERE id = :id");
+            $stmt = $pdo->prepare("UPDATE users SET role = ?, ranking_visible = ?, is_verified = GREATEST(is_verified, ?) WHERE id = ?");
+            $success = $stmt->execute([$role, $rankingVisible, $verified, $userId]);
         }
-        $success = $stmt->execute([':role' => $role, ':ranking_visible' => $rankingVisible, ':verified' => $verified, ':id' => $userId]);
         if ($success && in_array($role, privilegedStaffRoles(), true)) {
             if ($role === 'teacher') {
                 $pdo->prepare("UPDATE users SET class = NULL, class_year = NULL, class_suffix = NULL WHERE id = ?")->execute([$userId]);
@@ -4329,7 +4335,20 @@ function testReviewResultFromAnswer(array $test, int $currentIdx): array {
 function restoreCheckedQuestionReview(array &$test): bool {
     $currentIdx = max(0, (int)($test['current'] ?? 0));
     $answer = is_array($test['answers'][$currentIdx] ?? null) ? $test['answers'][$currentIdx] : [];
-    if (empty($answer['revealed_by_check'])) {
+    
+    $shouldRestore = false;
+    $mode = (string)($test['mode'] ?? 'exam');
+    if (in_array($mode, ['practice', 'single'], true)) {
+        if (isset($answer['user_answer']) && $answer['user_answer'] !== '') {
+            $shouldRestore = true;
+        }
+    } else {
+        if (!empty($answer['revealed_by_check'])) {
+            $shouldRestore = true;
+        }
+    }
+
+    if (!$shouldRestore) {
         return false;
     }
     if (($test['phase'] ?? '') === 'reviewing' && !empty($test['last_result'])) {

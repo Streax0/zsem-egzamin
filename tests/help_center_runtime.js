@@ -126,8 +126,18 @@ handlers['fab:click']({ preventDefault() {}, stopPropagation() {} });
 if (!panel.classList.contains('show')) throw new Error('help panel did not open');
 if (panel.style.visibility !== 'visible') throw new Error('help panel is not visible');
 if (fab.attrs['aria-expanded'] !== 'true') throw new Error('help button state was not updated');
+if (fab.style.opacity !== '0' || fab.style.pointerEvents !== 'none') {
+    throw new Error('help button did not hide after opening panel');
+}
 if (!body.children.some((node) => node.className === 'offcanvas-backdrop fade show')) {
     throw new Error('help panel backdrop missing');
+}
+
+// Simulate closing the help panel via the close button trigger
+handlers['close:click']({ preventDefault() {} });
+if (panel.classList.contains('show')) throw new Error('help panel did not close');
+if (fab.style.opacity !== '1' || fab.style.pointerEvents !== 'auto') {
+    throw new Error('help button did not restore after closing panel');
 }
 
 console.log('help center runtime OK');
