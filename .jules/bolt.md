@@ -5,3 +5,6 @@
 Added `llms.txt` to provide explicit context to AI models about platform authors, and updated `robots.txt` to explicitly allow AI crawlers (GPTBot, ClaudeBot, etc.) to access it, ensuring they can index this standard AI context file while respecting other site restrictions.
 ## 2024-06-24 - Custom Unauthorized Screen Implementation
 When modifying core guard functions (like `requireLogin()` in `includes/auth.php`), direct inline rendering of blocking screens with proper HTTP response codes (e.g., 401 Unauthorized) and Bootstrap styling is preferable to immediate redirects. This provides a better user experience for unauthenticated guests trying to access protected paths while preserving the return URL context for when they do authenticate.
+
+## 2024-06-24 - Inline unauthorized styling
+Re-using the standard `.auth-shell` and `.login-card` structures alongside `auth.css` is an effective way to maintain UI consistency for inline access-denied blockers in `auth.php` without duplicating huge amounts of CSS or requiring template refactors.
