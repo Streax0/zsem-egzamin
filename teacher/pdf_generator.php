@@ -305,6 +305,11 @@ if (!in_array($generatorMode, ['db', 'txt', 'manual'], true)) {
 }
 $shuffleQuestions = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['shuffle_questions']);
 $includeKey = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['include_key']);
+$shuffleAnswers = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["shuffle_answers"]);
+$showPoints = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_points"]);
+$showDateSpace = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_date_space"]);
+$showGradeSpace = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_grade_space"]);
+
 $showExplanations = isset($_POST['show_explanations']);
 $selected = [];
 $worksheetGroups = [];
