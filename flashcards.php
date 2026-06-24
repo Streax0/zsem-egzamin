@@ -118,56 +118,6 @@ if ($flashMessage) {
     <link href="assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
-    <style>
-        .flashcard-shell { max-width: 1160px; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        .flashcard-stage { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1rem; }
-        .flashcard-deck { perspective: 1200px; }
-        .flashcard-card { position: relative; min-height: 410px; overflow: hidden; border: 1px solid rgba(37,99,235,.18); border-radius: 8px; background: linear-gradient(145deg, #ffffff 0%, #f8fbff 62%, #eef6ff 100%); box-shadow: 0 24px 60px rgba(15,23,42,.10); display: grid; align-content: center; padding: clamp(1.25rem, 4vw, 2.6rem); cursor: grab; touch-action: pan-y; transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease, border-color .18s ease; }
-        .flashcard-card::after { content: ""; position: absolute; inset: auto -18% -34% 42%; height: 190px; background: radial-gradient(circle, rgba(20,184,166,.18), transparent 68%); pointer-events: none; }
-        .flashcard-card:active { cursor: grabbing; }
-        .flashcard-card.is-swipe-right { transform: translateX(90px) rotate(5deg); border-color: rgba(34,197,94,.45); }
-        .flashcard-card.is-swipe-left { transform: translateX(-90px) rotate(-5deg); border-color: rgba(239,68,68,.45); }
-        .flashcard-card.is-entering { animation: flashcardIn .22s ease-out; }
-        .flashcard-card.is-leaving-right { animation: flashcardRight .24s ease-in forwards; }
-        .flashcard-card.is-leaving-left { animation: flashcardLeft .24s ease-in forwards; }
-        @keyframes flashcardIn { from { opacity: 0; transform: translateY(22px) scale(.96) rotateX(5deg); } to { opacity: 1; transform: none; } }
-        @keyframes flashcardRight { to { opacity: 0; transform: translateX(240px) rotate(10deg) scale(.96); } }
-        @keyframes flashcardLeft { to { opacity: 0; transform: translateX(-240px) rotate(-10deg) scale(.96); } }
-        .flashcard-card strong { position: relative; z-index: 1; display: block; font-size: clamp(1.65rem, 4vw, 3rem); line-height: 1.08; color: #0f172a; letter-spacing: 0; }
-        .flashcard-card p { position: relative; z-index: 1; margin: 1rem 0 0; color: #334155; white-space: pre-line; font-size: 1.02rem; line-height: 1.65; }
-        .flashcard-tools, .flashcard-side { border: 1px solid rgba(148,163,184,.24); border-radius: 8px; background: #fff; padding: 1rem; box-shadow: 0 12px 30px rgba(15,23,42,.06); }
-        .flashcard-qualification-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
-        .flashcard-qualification-grid button, .flashcard-study-builder button, .flashcard-difficulty-filter button { border: 1px solid rgba(148,163,184,.28); border-radius: 8px; background: #fff; padding: .75rem .85rem; text-align: left; font-weight: 800; color: #0f172a; }
-        .flashcard-qualification-grid button span { display: block; color: #64748b; font-size: .75rem; margin-top: .15rem; }
-        .flashcard-study-builder { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; }
-        .flashcard-difficulty-filter { display: flex; flex-wrap: wrap; gap: .45rem; }
-        .flashcard-difficulty-filter button { padding: .45rem .7rem; font-size: .8rem; }
-        .flashcard-difficulty-filter button.active, .flashcard-study-builder button.active, .flashcard-qualification-grid button.active { border-color: #2563eb; background: rgba(37,99,235,.10); color: #1d4ed8; }
-        .flashcard-list-panel { border: 1px solid rgba(148,163,184,.24); border-radius: 8px; background: #fff; padding: 1rem; box-shadow: 0 12px 30px rgba(15,23,42,.06); }
-        .flashcard-list { display: grid; gap: .5rem; max-height: 340px; overflow: auto; }
-        .flashcard-list button { border: 1px solid rgba(148,163,184,.22); border-radius: 8px; background: #f8fafc; padding: .65rem .75rem; text-align: left; color: #0f172a; }
-        .flashcard-list button strong { display: block; font-size: .9rem; }
-        .flashcard-list button span { display: block; color: #64748b; font-size: .75rem; margin-top: .18rem; }
-        .flashcard-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: .65rem; }
-        .flashcard-actions button { min-height: 48px; font-weight: 800; }
-        .flashcard-progress { display: grid; gap: .55rem; margin-top: 1rem; }
-        .flashcard-progress-row { display: grid; grid-template-columns: minmax(86px, 140px) minmax(0, 1fr) auto; gap: .55rem; align-items: center; font-size: .82rem; font-weight: 800; color: #475569; }
-        .flashcard-progress-track { height: 8px; border-radius: 999px; background: rgba(148,163,184,.22); overflow: hidden; }
-        .flashcard-progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #2563eb, #14b8a6); width: 0%; transition: width .22s ease; }
-        .flashcard-shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .45rem; margin-top: .75rem; }
-        .flashcard-shortcuts span { border: 1px solid rgba(148,163,184,.24); border-radius: 8px; padding: .45rem .5rem; background: rgba(248,250,252,.85); color: #475569; font-size: .72rem; font-weight: 900; text-align: center; }
-        .flashcard-hint-row { display: flex; justify-content: space-between; gap: .75rem; color: #64748b; font-size: .82rem; font-weight: 800; margin-top: .8rem; }
-        .flashcard-hint-row span:first-child { color: #dc2626; }
-        .flashcard-hint-row span:last-child { color: #16a34a; }
-        .flashcard-request-form { display: grid; grid-template-columns: 1fr; gap: .65rem; }
-        .flashcard-request-note { border: 1px dashed rgba(37,99,235,.28); border-radius: 8px; padding: .8rem; background: rgba(37,99,235,.06); color: #334155; font-size: .86rem; }
-        body.dark-mode .flashcard-card, body.dark-mode .flashcard-tools, body.dark-mode .flashcard-side, body.dark-mode .flashcard-list-panel { background: #1e293b; border-color: rgba(148,163,184,.24); }
-        body.dark-mode .flashcard-card strong { color: #f8fafc; }
-        body.dark-mode .flashcard-card p { color: #cbd5e1; }
-        body.dark-mode .flashcard-request-note, body.dark-mode .flashcard-shortcuts span, body.dark-mode .flashcard-qualification-grid button, body.dark-mode .flashcard-study-builder button, body.dark-mode .flashcard-difficulty-filter button, body.dark-mode .flashcard-list button { background: #0f172a; color: #cbd5e1; border-color: rgba(148,163,184,.24); }
-        @media (max-width: 991.98px) { .flashcard-stage { grid-template-columns: 1fr; } }
-        @media (max-width: 575.98px) { .flashcard-actions, .flashcard-shortcuts, .flashcard-study-builder { grid-template-columns: 1fr 1fr; } .flashcard-progress-row { grid-template-columns: 1fr; } }
-    </style>
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/flashcards.css')); ?>">
 </head>
 <body>
@@ -239,8 +189,53 @@ if ($flashMessage) {
                             </div>
                             <div class="flashcard-progress" data-flashcard-progress aria-live="polite"></div>
                         </div>
-                        <div class="flashcard-deck">
-                            <div id="flashcardCard" class="flashcard-card" tabindex="0" role="button" aria-live="polite"></div>
+                        <div id="flashcardStudyShell" class="flashcard-study-shell">
+                            <div class="flashcard-deck">
+                                <div id="flashcardCard" class="flashcard-card-wrapper" tabindex="0" role="button" aria-live="polite">
+                                    <div class="flashcard-card-inner">
+                                        <div class="flashcard-card-front">
+                                            <span class="flashcard-card-kicker">POJĘCIE</span>
+                                            <strong class="flashcard-text" id="flashcardFrontText">Pojęcie</strong>
+                                            <button type="button" class="btn-tts" id="flashcardTtsFront" title="Odsłuchaj pojęcie" aria-label="Odsłuchaj pojęcie">
+                                                <i class="bi bi-volume-up-fill"></i>
+                                            </button>
+                                        </div>
+                                        <div class="flashcard-card-back">
+                                            <span class="flashcard-card-kicker">DEFINICJA</span>
+                                            <div class="flashcard-text" id="flashcardBackText">Definicja</div>
+                                            <button type="button" class="btn-tts" id="flashcardTtsBack" title="Odsłuchaj definicję" aria-label="Odsłuchaj definicję">
+                                                <i class="bi bi-volume-up-fill"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flashcard-controls-panel mb-3">
+                                <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                                    <button type="button" class="ctrl-btn" id="flashcardPrev" title="Poprzednia fiszka" aria-label="Poprzednia fiszka">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    
+                                    <div class="d-flex flex-column align-items-center flex-grow-1 px-md-4 px-2" style="min-width: 140px;">
+                                        <span class="flashcard-index-counter fw-bold mb-2" id="flashcardCounter">0 / 0</span>
+                                        <div class="flashcard-progress-track">
+                                            <div class="flashcard-progress-fill" id="flashcardProgressBar"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="ctrl-btn" id="flashcardPlay" title="Autoodtwarzanie" aria-label="Włącz autoodtwarzanie">
+                                            <i class="bi bi-play-fill"></i>
+                                        </button>
+                                        <button type="button" class="ctrl-btn" id="flashcardNext" title="Następna fiszka" aria-label="Następna fiszka">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                        <button type="button" class="ctrl-btn" id="flashcardFullscreen" title="Pełny ekran" aria-label="Tryb pełnoekranowy">
+                                            <i class="bi bi-arrows-fullscreen"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="flashcard-hint-row" aria-hidden="true">
                             <span><i class="bi bi-arrow-left"></i> przesuń w lewo = źle</span>

@@ -54,19 +54,7 @@
     }
 
     function optionalCookiesAllowed() {
-        try {
-            let consent = getCookie('cookie_consent_v2');
-            if (!consent) {
-                consent = window.localStorage.getItem('cookie_consent_v2');
-            }
-            if (consent) {
-                const parsed = JSON.parse(consent);
-                return !!(parsed.categories && parsed.categories.preferences);
-            }
-        } catch (error) {
-            return false;
-        }
-        return getCookie('cookie_consent') === 'accepted' || window.localStorage.getItem('cookie_consent') === 'accepted';
+        return true;
     }
 
     function getPreference(name, fallback) {
@@ -320,6 +308,8 @@
     window.playUiPreferenceChime = playUiPreferenceChime;
     window.applyStoredUiPreferences = applySettings;
     window.applyUiPreferences = applySettings;
+
+
 
     window.addEventListener('cookie-consent-updated', function(event) {
         const categories = event.detail && event.detail.categories;

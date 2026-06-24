@@ -4,9 +4,33 @@ require_once 'includes/session.php';
 require_once 'includes/functions.php';
 
 startSecureSession();
+
+// Get current UI preferences from cookies for server-side theme rendering
+$currentTheme = $_COOKIE['user_theme'] ?? 'light';
+$currentFontSize = $_COOKIE['user_font_size'] ?? '16';
+$currentDensity = $_COOKIE['user_density'] ?? 'comfortable';
+$currentAccent = $_COOKIE['user_accent'] ?? '#3b82f6';
+if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
+    $currentAccent = '#3b82f6';
+}
+$reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
+$dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
+$welcomeBannerStyle = $_COOKIE['welcome_banner_style'] ?? 'gradient';
+
+$bodyClasses = [];
+$bodyClasses[] = ($currentTheme === 'dark') ? 'dark-mode' : 'light-mode';
+if ($currentDensity === 'compact') {
+    $bodyClasses[] = 'ui-compact';
+}
+if ($reduceMotion) {
+    $bodyClasses[] = 'reduce-motion';
+}
+$bodyClasses[] = 'dashboard-view-' . (in_array($dashboardView, ['balanced', 'learning', 'compact']) ? $dashboardView : 'balanced');
+$bodyClasses[] = 'welcome-style-' . (in_array($welcomeBannerStyle, ['gradient', 'pure', 'aurora', 'glass']) ? $welcomeBannerStyle : 'gradient');
+$bodyClassStr = implode(' ', $bodyClasses);
 ?>
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" style="color-scheme: <?php echo $currentTheme === 'dark' ? 'dark' : 'light'; ?>; font-size: <?php echo htmlspecialchars($currentFontSize); ?>px; --primary-color: <?php echo htmlspecialchars($currentAccent); ?>; --kolor-glowy: <?php echo htmlspecialchars($currentAccent); ?>;">
 <head>
     <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
@@ -15,29 +39,10 @@ startSecureSession();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/dashboard-new.css">
-    <script src="assets/js/theme-handler.js"></script>
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <style>
-        .contact-hero-panel {
-            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-            border-radius: 1.5rem;
-            color: #fff;
-            box-shadow: 0 15px 35px rgba(13, 110, 253, 0.2);
-            overflow: hidden;
-            position: relative;
-        }
-        .contact-hero-panel::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
         .contact-icon-box {
             width: 50px;
             height: 50px;
@@ -71,7 +76,7 @@ startSecureSession();
         }
     </style>
 </head>
-<body>
+<body class="<?php echo htmlspecialchars($bodyClassStr); ?>">
 
     <div class="dashboard-layout">
         <?php if (isset($_SESSION['user_id'])) include 'includes/sidebar.php'; ?>
@@ -82,59 +87,72 @@ startSecureSession();
             <main role="main" class="content-body">
                 <div class="container py-4">
                     
-                    <div class="mb-4 animate-in">
-                        <h1 class="fw-bold mb-1 h2"><i class="bi bi-headset text-primary me-2" aria-hidden="true"></i>Kontakt</h1>
-                        <p class="text-muted">Skontaktuj się z nami w razie pytań lub problemów technicznych.</p>
-                    </div>
+                    <section class="welcome-card dashboard-hero mb-4 animate-in" style="overflow: hidden;">
+                        <div class="dashboard-hero-inner">
+                            <div class="hero-left" style="text-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);">
+                                <div class="hero-rank-pill" style="border-color: rgba(255, 255, 255, 0.18); background: rgba(15, 23, 42, 0.35); color: #ffffff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                                    <i class="bi bi-headset"></i>
+                                    <span style="color: #ffffff; font-weight: 800;">Pomoc</span>
+                                </div>
+                                <h1 class="h2" style="font-weight: 800; color: #ffffff;"><i class="bi bi-headset me-2" aria-hidden="true"></i>Kontakt i wsparcie</h1>
+                                <p class="mb-0 text-white" style="font-size: 1.05rem; line-height: 1.6; font-weight: 500; opacity: 0.95;">Skontaktuj się z nami w razie pytań lub problemów technicznych.</p>
+                            </div>
+                            <div class="hero-right d-none d-lg-flex align-items-center justify-content-end">
+                                <i class="bi bi-envelope-at text-white" style="font-size: 5.5rem; opacity: 0.22; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));"></i>
+                            </div>
+                        </div>
+                    </section>
 
                     <div class="row g-4 align-items-stretch">
                         <!-- Contact Info Column -->
                         <div class="col-lg-5 col-xl-4">
-                            <div class="contact-hero-panel p-4 p-xl-5 h-100 d-flex flex-column animate-in">
-                                <h3 class="fw-bold mb-3">ZSEM Tech</h3>
-                                <p class="mb-5 fs-6">
-                                    Masz pytania dotyczące platformy? Chcesz zgłosić błąd lub zaproponować nową funkcjonalność? Jesteśmy do Twojej dyspozycji.
-                                </p>
-                                
-                                <div class="d-flex flex-column gap-4 mt-auto">
-                                    <div class="d-flex align-items-center gap-3 contact-info-row">
-                                        <div class="contact-icon-box">
-                                            <i class="bi bi-envelope-at-fill"></i>
+                            <div class="welcome-card dashboard-hero h-100 p-0 animate-in" style="align-items: stretch; flex-direction: column;">
+                                <div class="dashboard-hero-inner d-flex flex-column h-100 p-4 p-xl-5" style="width: 100%; z-index: 1;">
+                                    <h3 class="fw-bold mb-3 text-white">ZSEM Tech</h3>
+                                    <p class="mb-5 fs-6 text-white" style="opacity: 0.9;">
+                                        Masz pytania dotyczące platformy? Chcesz zgłosić błąd lub zaproponować nową funkcjonalność? Jesteśmy do Twojej dyspozycji.
+                                    </p>
+                                    
+                                    <div class="d-flex flex-column gap-4 mt-auto">
+                                        <div class="d-flex align-items-center gap-3 contact-info-row">
+                                            <div class="contact-icon-box">
+                                                <i class="bi bi-envelope-at-fill text-white"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">E-mail do nas</div>
+                                                <a href="mailto:zsemtech@zsem.edu.pl" class="text-white text-decoration-none fw-bold fs-5">zsemtech@zsem.edu.pl</a>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">E-mail do nas</div>
-                                            <a href="mailto:zsemtech@zsem.edu.pl" class="text-white text-decoration-none fw-bold fs-5">zsemtech@zsem.edu.pl</a>
-                                        </div>
-                                    </div>
 
-                                    <div class="d-flex align-items-center gap-3 contact-info-row">
-                                        <div class="contact-icon-box">
-                                            <i class="bi bi-building-fill" aria-hidden="true"></i>
+                                        <div class="d-flex align-items-center gap-3 contact-info-row">
+                                            <div class="contact-icon-box">
+                                                <i class="bi bi-building-fill text-white" aria-hidden="true"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dane identyfikacyjne</div>
+                                                <div class="text-white fw-bold">Zespół Szkół Elektryczno-Mechanicznych im. gen. Józefa Kustronia</div>
+                                                <div class="text-white small" style="opacity: 0.8;">Platforma edukacyjna ZSEM Tech</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dane identyfikacyjne</div>
-                                            <div class="text-white fw-bold">Zespół Szkół Elektryczno-Mechanicznych im. gen. Józefa Kustronia</div>
-                                            <div class="text-white small">Platforma edukacyjna ZSEM Tech</div>
-                                        </div>
-                                    </div>
 
-                                    <div class="d-flex align-items-center gap-3 contact-info-row">
-                                        <div class="contact-icon-box">
-                                            <i class="bi bi-geo-alt-fill"></i>
+                                        <div class="d-flex align-items-center gap-3 contact-info-row">
+                                            <div class="contact-icon-box">
+                                                <i class="bi bi-geo-alt-fill text-white"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Lokalizacja</div>
+                                                <div class="text-white fw-bold fs-5">Nowy Sącz, Polska</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Lokalizacja</div>
-                                            <div class="text-white fw-bold fs-5">Nowy Sącz, Polska</div>
-                                        </div>
-                                    </div>
 
-                                    <div class="d-flex align-items-center gap-3 contact-info-row">
-                                        <div class="contact-icon-box">
-                                            <i class="bi bi-clock-fill"></i>
-                                        </div>
-                                        <div>
-                                            <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Godziny pracy</div>
-                                            <div class="text-white fw-bold fs-5">Pon - Pt: 7:00 - 17:00</div>
+                                        <div class="d-flex align-items-center gap-3 contact-info-row">
+                                            <div class="contact-icon-box">
+                                                <i class="bi bi-clock-fill text-white"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-white text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Godziny pracy</div>
+                                                <div class="text-white fw-bold fs-5">Pon - Pt: 7:00 - 17:00</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

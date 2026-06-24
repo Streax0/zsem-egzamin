@@ -125,7 +125,7 @@ $stmt->execute([$myId, $myId, $myId]);
 $suggestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $stmt = $pdo->prepare("
-    SELECT u.id, u.username, u.xp, u.role, u.is_verified, u.last_activity, u.avatar_path
+    SELECT u.id, u.username, u.xp, u.role, u.is_verified, u.avatar_path, u.last_activity, u.show_online_status, f.status
     FROM users u
     JOIN friends f ON (u.id = f.user_id OR u.id = f.friend_id)
     WHERE (f.user_id = ? OR f.friend_id = ?)
@@ -781,7 +781,8 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php else: ?>
                                 <div class="row g-4" id="friendsGrid">
                                     <?php foreach (array_slice($friends, 0, $initialFriendsVisible) as $friendIndex => $friend):
-                                        $isOnline = isUserOnline($friend['last_activity']);
+                                        $showOnlineStatusFriend = (bool)($friend['show_online_status'] ?? 1);
+                                        $isOnline = $showOnlineStatusFriend ? isUserOnline($friend['last_activity']) : false;
                                         $avatarClass = 'avatar-' . strtolower(substr($friend['username'], 0, 1));
                                         $avatarSrc = userAvatarSrc($friend['avatar_path'] ?? '');
                                     ?>
@@ -951,10 +952,11 @@ $recentFriendActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <div class="vstack gap-3">
                                         <?php foreach ($recentFriendActivity as $activity): ?>
                                             <?php
+                                                $showOnlineStatusFriend = (bool)($activity['show_online_status'] ?? 1);
                                                 $avatarClass = 'avatar-' . strtolower(substr($activity['username'], 0, 1));
                                                 $avatarSrc = userAvatarSrc($activity['avatar_path'] ?? '');
                                                 $lastActivity = !empty($activity['last_activity']) ? strtotime($activity['last_activity']) : null;
-                                                $isOnline = isUserOnline($activity['last_activity'] ?? null);
+                                                $isOnline = $showOnlineStatusFriend ? isUserOnline($activity['last_activity'] ?? null) : false;
                                             ?>
                                             <div class="d-flex align-items-center gap-3 p-3 border rounded-4 bg-light bg-opacity-10">
                                                 <?php if ($avatarSrc): ?>

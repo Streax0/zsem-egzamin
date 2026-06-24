@@ -107,6 +107,33 @@ startSecureSession();
             <article><span>03</span><strong>Zobacz wynik</strong><p>Konto zapisze progres, gość zobaczy wynik tylko w sesji.</p></article>
         </div>
     </section>
+
+    <section class="landing-creators">
+        <div class="creators-copy">
+            <h2>Twórcy platformy</h2>
+            <p>ZSEM Tech to projekt uczniów Zespołu Szkół Elektryczno-Mechanicznych w Nowym Sączu. Poznaj osoby stojące za platformą.</p>
+        </div>
+        <div class="creators-grid">
+            <a href="author_damian.php" class="creator-card">
+                <div class="creator-avatar">DP</div>
+                <div class="creator-info">
+                    <strong>Damian Podgórski</strong>
+                    <span>Zastępca Przewodniczącego ZSEM Tech</span>
+                    <span class="creator-role">Główny Programista &amp; Współtwórca</span>
+                </div>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+            <a href="author_michal.php" class="creator-card">
+                <div class="creator-avatar">MM</div>
+                <div class="creator-info">
+                    <strong>Michał Michalik</strong>
+                    <span>Przewodniczący ZSEM Tech</span>
+                    <span class="creator-role">Koordynator Projektu &amp; Współtwórca</span>
+                </div>
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </section>
 </main>
 <?php include __DIR__ . '/includes/cookie_consent.php'; ?>
 </body>

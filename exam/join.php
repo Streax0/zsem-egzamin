@@ -150,9 +150,33 @@ if (!$isGuest && !$savedData) {
         }
     } catch (PDOException $e) {}
 }
+
+// Get current UI preferences from cookies for server-side theme rendering
+$currentTheme = $_COOKIE['user_theme'] ?? 'light';
+$currentFontSize = $_COOKIE['user_font_size'] ?? '16';
+$currentDensity = $_COOKIE['user_density'] ?? 'comfortable';
+$currentAccent = $_COOKIE['user_accent'] ?? '#3b82f6';
+if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
+    $currentAccent = '#3b82f6';
+}
+$reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
+$dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
+$welcomeBannerStyle = $_COOKIE['welcome_banner_style'] ?? 'gradient';
+
+$bodyClasses = [];
+$bodyClasses[] = ($currentTheme === 'dark') ? 'dark-mode' : 'light-mode';
+if ($currentDensity === 'compact') {
+    $bodyClasses[] = 'ui-compact';
+}
+if ($reduceMotion) {
+    $bodyClasses[] = 'reduce-motion';
+}
+$bodyClasses[] = 'dashboard-view-' . (in_array($dashboardView, ['balanced', 'learning', 'compact']) ? $dashboardView : 'balanced');
+$bodyClasses[] = 'welcome-style-' . (in_array($welcomeBannerStyle, ['gradient', 'pure', 'aurora', 'glass']) ? $welcomeBannerStyle : 'gradient');
+$bodyClassStr = implode(' ', $bodyClasses);
 ?>
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" style="color-scheme: <?php echo $currentTheme === 'dark' ? 'dark' : 'light'; ?>; font-size: <?php echo htmlspecialchars($currentFontSize); ?>px; --primary-color: <?php echo htmlspecialchars($currentAccent); ?>; --kolor-glowy: <?php echo htmlspecialchars($currentAccent); ?>;">
 <head>
     <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
@@ -161,8 +185,9 @@ if (!$isGuest && !$savedData) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="../assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/dashboard-new.css')); ?>">
+    <script src="<?php echo htmlspecialchars(assetUrl('../assets/js/theme-handler.js')); ?>"></script>
     <style>
         .qr-scan-toggle {
             display: flex;
@@ -234,7 +259,7 @@ if (!$isGuest && !$savedData) {
         }
     </style>
 </head>
-<body>
+<body class="<?php echo htmlspecialchars($bodyClassStr); ?>">
 
     <div class="dashboard-layout">
         <?php include '../includes/sidebar.php'; ?>
