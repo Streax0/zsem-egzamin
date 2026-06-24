@@ -39,6 +39,9 @@ $isProfilePublic = (bool)($userData['profile_public'] ?? 1);
 $isStatsPublic = (bool)($userData['stats_public'] ?? 1);
 $allowFriendRequests = (bool)($userData['allow_friend_requests'] ?? 1);
 $allowProfileComments = (bool)($userData['allow_profile_comments'] ?? 1);
+$showMissions = (bool)($userData['show_missions'] ?? 1);
+$showOnlineStatus = (bool)($userData['show_online_status'] ?? 1);
+$showRecentActivity = (bool)($userData['show_recent_activity'] ?? 1);
 
 // Admins override privacy, owners override privacy
 $myRole = $_SESSION['role'] ?? 'user';
@@ -1158,6 +1161,7 @@ $socialPlatforms = [
             <?php endif; ?>
         </div>
 
+        <?php if ($showRecentActivity || $isOwnProfile || roleHasAdminAccess($myRole)): ?>
         <!-- Test Results Table -->
         <div class="dashboard-panel mb-4 overflow-hidden border-0 shadow-sm">
             <div class="panel-header mb-0 d-flex justify-content-between align-items-center p-4" style="background: rgba(255,255,255,0.5); border-bottom: 1px solid var(--border-color);">
@@ -1298,6 +1302,8 @@ $socialPlatforms = [
             <?php endif; ?>
         </div>
         
+                <?php endif; ?>
+
         <?php endif; // End of privacy check ?>
 
             </div> <!-- /col-lg-8 -->
@@ -1330,7 +1336,7 @@ $socialPlatforms = [
                     <div class="friends-list">
                         <?php
                         $stmt = $pdo->prepare("
-                            SELECT u.id, u.username, u.last_activity, f.status 
+                            SELECT u.id, u.username, u.last_activity, u.show_online_status, f.status
                             FROM users u
                             JOIN friends f ON (u.id = f.user_id OR u.id = f.friend_id)
                             WHERE (f.user_id = ? OR f.friend_id = ?) 
@@ -1343,7 +1349,8 @@ $socialPlatforms = [
                         
                         if ($friends):
                             foreach ($friends as $friend): 
-                                $isOnline = isUserOnline($friend['last_activity']);
+                                $showOnlineStatusFriend = (bool)($friend['show_online_status'] ?? 1);
+                                $isOnline = $showOnlineStatusFriend ? isUserOnline($friend['last_activity']) : false;
                             ?>
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <div class="user-avatar-small text-primary fw-bold" style="width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: var(--bg-color);">
@@ -1374,6 +1381,7 @@ $socialPlatforms = [
                     </a>
                 </div>
 
+                <?php if ($showMissions || $isOwnProfile || roleHasAdminAccess($myRole)): ?>
                 <!-- Recent Activity or Missions Preview -->
                 <div class="dashboard-panel animate-in" style="animation-delay: 0.3s;">
                     <div class="panel-header mb-3">
@@ -1400,6 +1408,7 @@ $socialPlatforms = [
                     
                     <a href="goals.php" class="btn btn-outline-warning btn-sm w-100">Wszystkie misje</a>
                 </div>
+                <?php endif; ?>
             </div> <!-- /col-lg-4 -->
         </div> <!-- /row -->
 
