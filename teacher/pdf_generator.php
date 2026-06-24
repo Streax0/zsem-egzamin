@@ -305,6 +305,13 @@ if (!in_array($generatorMode, ['db', 'txt', 'manual'], true)) {
 }
 $shuffleQuestions = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['shuffle_questions']);
 $includeKey = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['include_key']);
+$fontSize = (string)($_POST["font_size"] ?? "normal");
+
+$shuffleAnswers = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["shuffle_answers"]);
+$showPoints = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_points"]);
+$showDateSpace = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_date_space"]);
+$showGradeSpace = $_SERVER["REQUEST_METHOD"] !== "POST" || isset($_POST["show_grade_space"]);
+
 $showExplanations = isset($_POST['show_explanations']);
 $selected = [];
 $worksheetGroups = [];
@@ -551,6 +558,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
         .generator-preset strong { display: block; font-size: 1rem; color: #1e293b; margin-bottom: 0.25rem; }
         .generator-preset span { display: block; color: #64748b; font-size: 0.8rem; line-height: 1.4; }
 
+        .nav-pills-custom { background: #f8fafc !important; border: 1px solid rgba(203, 213, 225, 0.8); }
         .nav-pills-custom .nav-link {
             border-radius: 8px;
             padding: 0.75rem 1.25rem;
@@ -613,13 +621,10 @@ $questionSelectorLimit = min(260, count($allQuestions));
         }
         body.dark-mode .generator-preset strong { color: #f8fafc; }
         body.dark-mode .generator-preset:hover::before { background: #60a5fa; }
-        body.dark-mode .nav-pills-custom .nav-link { color: #94a3b8; }
-        body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b; }
-        body.dark-mode .nav-pills-custom .nav-link.active {
-            background: rgba(37, 99, 235, 0.2);
-            color: #60a5fa;
-            border-color: rgba(37, 99, 235, 0.4);
-        }
+        body.dark-mode .nav-pills-custom { background: #0f172a !important; border: 1px solid rgba(148, 163, 184, 0.1) !important; }
+        body.dark-mode .nav-pills-custom .nav-link { color: #cbd5e1 !important; }
+        body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b !important; color: #f8fafc !important; }
+        body.dark-mode .nav-pills-custom .nav-link.active { background: rgba(37, 99, 235, 0.2) !important; color: #60a5fa !important; border: 1px solid rgba(37, 99, 235, 0.4) !important; }
 
         .generator-title-row {
             display:flex;
@@ -1336,7 +1341,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
                         </div>
                         <div class="generator-card-body">
 
-                            <ul class="nav nav-pills nav-pills-custom mb-4 gap-2 bg-light p-1 rounded-3 d-inline-flex" id="questionTabs" role="tablist">
+                            <ul class="nav nav-pills nav-pills-custom mb-4 gap-2 p-1 rounded-3 d-inline-flex" id="questionTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link <?php echo $generatorMode === 'db' ? 'active' : ''; ?>" id="db-tab" data-bs-toggle="tab" data-bs-target="#db-questions" type="button" role="tab">
                                         <i class="bi bi-database me-2"></i>Baza Pytań
