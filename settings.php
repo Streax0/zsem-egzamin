@@ -1214,6 +1214,7 @@ $settingsHealth = [
                                                              <button type="button" class="accent-dot" data-color="#3b82f6" style="--dot:#3b82f6" onclick="pickAccent('#3b82f6')" aria-label="Niebieski"></button>
                                                              <button type="button" class="accent-dot" data-color="#06b6d4" style="--dot:#06b6d4" onclick="pickAccent('#06b6d4')" aria-label="Turkusowy"></button>
                                                              <button type="button" class="accent-dot" data-color="#10b981" style="--dot:#10b981" onclick="pickAccent('#10b981')" aria-label="Zielony"></button>
+                                                             <button type="button" class="accent-dot" data-color="#6366f1" style="--dot:#6366f1" onclick="pickAccent('#6366f1')" aria-label="Indygo"></button>
                                                              <button type="button" class="accent-dot" data-color="#8b5cf6" style="--dot:#8b5cf6" onclick="pickAccent('#8b5cf6')" aria-label="Fioletowy"></button>
                                                              <button type="button" class="accent-dot" data-color="#ec4899" style="--dot:#ec4899" onclick="pickAccent('#ec4899')" aria-label="Różowy"></button>
                                                              <button type="button" class="accent-dot" data-color="#f43f5e" style="--dot:#f43f5e" onclick="pickAccent('#f43f5e')" aria-label="Karminowy"></button>
