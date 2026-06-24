@@ -225,9 +225,33 @@
     });
 
     window.updateThemeSetting = function(theme) {
-        setPreference('user_theme', theme === 'dark' ? 'dark' : 'light');
+        const isDark = theme === 'dark';
+        setPreference('user_theme', isDark ? 'dark' : 'light');
+
+        // Zgodnie z wytycznymi, po zmianie na ciemny motyw resetujemy akcent i wygląd panelu do domyślnych dla tego motywu
+        if (isDark) {
+            setPreference('user_accent', '#6366f1'); // domyślny akcent ciemnego motywu
+            setPreference('welcome_banner_style', 'glass');
+        } else {
+            setPreference('user_accent', '#3b82f6'); // domyślny akcent jasnego motywu
+            setPreference('welcome_banner_style', 'gradient');
+        }
+
         applySettings();
-        window.testPreferenceFeedback?.('Motyw zapisany.');
+
+        // Zaktualizuj elementy interfejsu (jeśli jesteśmy w panelu ustawień)
+        if (typeof window.syncAccentUi === 'function') {
+            window.syncAccentUi(isDark ? '#6366f1' : '#3b82f6');
+        }
+        if (typeof window.syncWelcomeBannerStyleUi === 'function') {
+            window.syncWelcomeBannerStyleUi(isDark ? 'glass' : 'gradient');
+            const welcomeStyleSelect = document.getElementById('welcomeBannerStyleSelect');
+            if (welcomeStyleSelect) {
+                welcomeStyleSelect.value = isDark ? 'glass' : 'gradient';
+            }
+        }
+
+        window.testPreferenceFeedback?.('Motyw zapisany (przywrócono domyślne opcje motywu).');
     };
 
     window.updateFontSizeSetting = function(size) {
