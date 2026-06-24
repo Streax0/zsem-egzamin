@@ -801,7 +801,8 @@ $questionSelectorLimit = min(260, count($allQuestions));
         body.dark-mode .source-method-card,
         body.dark-mode .generator-preset,
         body.dark-mode .generator-live-estimate,
-        body.dark-mode .manual-q-item {
+        body.dark-mode .manual-q-item,
+        body.dark-mode .card.bg-light {
             background:#111827 !important;
             border-color:rgba(148,163,184,.24) !important;
             color:#e5e7eb;
@@ -1084,35 +1085,57 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                         <option value="large" <?php echo $fontSize === 'large' ? 'selected' : ''; ?>>Duża (12pt)</option>
                                     </select>
                                 </div>
-                                <div class="col-md-12 d-flex align-items-end">
-                                    <div class="d-flex flex-wrap gap-3 pb-1 mt-2">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQuestions" <?php echo $shuffleQuestions ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="shuffleQuestions">Mieszaj pytania</label>
+
+                                <div class="col-12 mt-4">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="card h-100 border-0 bg-light bg-opacity-50">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-subtitle mb-2 text-muted fw-bold"><i class="bi bi-shuffle me-2"></i>Mieszanie</h6>
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQuestions" <?php echo $shuffleQuestions ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="shuffleQuestions">Mieszaj pytania</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0">
+                                                        <input class="form-check-input" type="checkbox" name="shuffle_answers" id="shuffleAnswers" <?php echo $shuffleAnswers ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="shuffleAnswers">Mieszaj odpowiedzi</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="shuffle_answers" id="shuffleAnswers" <?php echo $shuffleAnswers ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="shuffleAnswers">Mieszaj odpowiedzi</label>
+                                        <div class="col-md-4">
+                                            <div class="card h-100 border-0 bg-light bg-opacity-50">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-subtitle mb-2 text-muted fw-bold"><i class="bi bi-layout-text-sidebar-reverse me-2"></i>Wygląd arkusza</h6>
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="show_points" id="showPoints" <?php echo $showPoints ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showPoints">Pokazuj punktację</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="show_date_space" id="showDateSpace" <?php echo $showDateSpace ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showDateSpace">Miejsce na datę</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0">
+                                                        <input class="form-check-input" type="checkbox" name="show_grade_space" id="showGradeSpace" <?php echo $showGradeSpace ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showGradeSpace">Miejsce na ocenę</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_points" id="showPoints" <?php echo $showPoints ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showPoints">Punktacja</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_date_space" id="showDateSpace" <?php echo $showDateSpace ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showDateSpace">Miejsce na datę</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_grade_space" id="showGradeSpace" <?php echo $showGradeSpace ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showGradeSpace">Miejsce na ocenę</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="include_key" id="includeKey" <?php echo $includeKey ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="includeKey">Klucz odpowiedzi</label>
-                                        </div>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" name="show_explanations" id="showExplanations" <?php echo $showExplanations ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showExplanations">Wyjaśnienia</label>
+                                        <div class="col-md-4">
+                                            <div class="card h-100 border-0 bg-light bg-opacity-50">
+                                                <div class="card-body p-3">
+                                                    <h6 class="card-subtitle mb-2 text-muted fw-bold"><i class="bi bi-key me-2"></i>Klucz odpowiedzi</h6>
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="include_key" id="includeKey" <?php echo $includeKey ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="includeKey">Dołącz klucz odpowiedzi</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0">
+                                                        <input class="form-check-input" type="checkbox" name="show_explanations" id="showExplanations" <?php echo $showExplanations ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label" for="showExplanations">Dołącz wyjaśnienia w kluczu</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
