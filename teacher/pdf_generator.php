@@ -132,7 +132,49 @@ function worksheetGroupLabels(int $count): array {
     return array_slice(range('A', 'J'), 0, $count);
 }
 
-function worksheetBuildGroups(array $questions, int $questionCount, int $groupCount, string $groupStrategy): array {
+
+// Optymalizacja: Dodano tasowanie odpowiedzi dla pytań zamkniętych w celu utrudnienia ściągania
+function worksheetShuffleOptions(array $question): array {
+    if (worksheetQuestionIsOpen($question)) {
+        return $question;
+    }
+    $options = [
+        'A' => $question['option_a'] ?? '',
+        'B' => $question['option_b'] ?? '',
+        'C' => $question['option_c'] ?? '',
+        'D' => $question['option_d'] ?? '',
+    ];
+    $validOptions = array_filter($options, fn($val) => trim((string)$val) !== '');
+    if (count($validOptions) < 2) {
+        return $question;
+    }
+
+    $keys = array_keys($validOptions);
+    shuffle($keys);
+
+    $newOptions = $options; // Start with original to keep empty ones
+    $newCorrect = '';
+    $correctOrig = $question['correct_answer'] ?? 'A';
+
+    $originalKeys = array_keys($validOptions);
+    foreach ($keys as $i => $oldKey) {
+        $newKey = $originalKeys[$i];
+        $newOptions[$newKey] = $options[$oldKey];
+        if ($oldKey === $correctOrig) {
+            $newCorrect = substr($newKey, 0, 1);
+        }
+    }
+
+    return array_merge($question, [
+        'option_a' => $newOptions['A'],
+        'option_b' => $newOptions['B'],
+        'option_c' => $newOptions['C'],
+        'option_d' => $newOptions['D'],
+        'correct_answer' => $newCorrect ?: $correctOrig
+    ]);
+}
+
+function worksheetBuildGroups(array $questions, int $questionCount, int $groupCount, string $groupStrategy, bool $shuffleAnswers = false): array {
     $labels = worksheetGroupLabels($groupCount);
     $questionCount = max(1, min(120, $questionCount));
     $groupStrategy = in_array($groupStrategy, ['same', 'rotate', 'unique'], true) ? $groupStrategy : 'unique';
@@ -155,6 +197,13 @@ function worksheetBuildGroups(array $questions, int $questionCount, int $groupCo
             $slice = array_slice($pool, 0, $questionCount);
         } else {
             $slice = array_slice($questions, 0, $questionCount);
+        }
+
+        if ($shuffleAnswers) {
+            foreach ($slice as &$q) {
+                $q = worksheetShuffleOptions($q);
+            }
+            unset($q);
         }
 
         $groups[] = [
@@ -214,7 +263,7 @@ function worksheetPreviewQuestionsFromPayload(string $payload): array {
     return is_array($rows) ? array_slice($rows, 0, 120) : [];
 }
 
-function worksheetSavePreviewAsCustomExam(array $questions, int $teacherId, string $title, string $description, string $difficulty): bool {
+function worksheetSavePreviewAsCustomExam(array $questions, int $teacherId, string $title, string $description, string $difficulty, bool $shuffleAnswers = false): bool {
     if ($teacherId <= 0 || empty($questions)) {
         return false;
     }
@@ -258,7 +307,7 @@ function worksheetSavePreviewAsCustomExam(array $questions, int $teacherId, stri
         'pass_threshold' => 50,
         'difficulty' => in_array($difficulty, ['easy','medium','hard','mixed'], true) ? $difficulty : 'mixed',
         'shuffle_questions' => true,
-        'shuffle_answers' => false,
+        'shuffle_answers' => $shuffleAnswers,
         'show_answers_after' => true,
         'tags' => ['do druku', 'PDF'],
         'print_only' => true,
@@ -304,6 +353,14 @@ if (!in_array($generatorMode, ['db', 'txt', 'manual'], true)) {
     $generatorMode = 'db';
 }
 $shuffleQuestions = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['shuffle_questions']);
+$shuffleAnswers = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['shuffle_answers']);
+$showPoints = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['show_points']);
+$showDateSpace = isset($_POST['show_date_space']);
+$showGradeSpace = isset($_POST['show_grade_space']);
+$fontSize = (string)($_POST['font_size'] ?? 'normal');
+if (!in_array($fontSize, ['small', 'normal', 'large'], true)) {
+    $fontSize = 'normal';
+}
 $includeKey = $_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['include_key']);
 $showExplanations = isset($_POST['show_explanations']);
 $selected = [];
@@ -318,7 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $worksheetAction === 'save_preview'
         redirect('pdf_generator.php');
     }
     $payloadQuestions = worksheetPreviewQuestionsFromPayload((string)($_POST['questions_payload'] ?? ''));
-    if (worksheetSavePreviewAsCustomExam($payloadQuestions, $userId, $title, $description, $difficultyLevel)) {
+    if (worksheetSavePreviewAsCustomExam($payloadQuestions, $userId, $title, $description, $difficultyLevel, $shuffleAnswers)) {
         setSessionMessage('success', 'Podgląd zapisano w Moich sprawdzianach.');
         redirect('custom_exams.php');
     }
@@ -402,7 +459,7 @@ if ($submitted) {
 }
 
 if (!empty($selected)) {
-    $worksheetGroups = worksheetBuildGroups($selected, $questionCount, $groupCount, $groupStrategy);
+    $worksheetGroups = worksheetBuildGroups($selected, $questionCount, $groupCount, $groupStrategy, $shuffleAnswers ?? false);
 }
 
 $currentUserStmt = $pdo->prepare("SELECT username, first_name, last_name FROM users WHERE id = ? LIMIT 1");
@@ -892,7 +949,22 @@ $questionSelectorLimit = min(260, count($allQuestions));
     </style>
     <style id="worksheetPrintCss">
         @page { size:A4; margin:12mm; }
+        <?php if ($fontSize === 'small'): ?>
+        body { margin:0; background:#fff; color:#111827; font-family:Inter, Arial, sans-serif; font-size:10pt; line-height:1.3; }
+        .h3 { font-size:18pt; }
+        .h4 { font-size:14pt; }
+        .h6 { font-size:11pt; }
+        <?php elseif ($fontSize === 'large'): ?>
+        body { margin:0; background:#fff; color:#111827; font-family:Inter, Arial, sans-serif; font-size:12pt; line-height:1.4; }
+        .h3 { font-size:22pt; }
+        .h4 { font-size:16pt; }
+        .h6 { font-size:12pt; }
+        <?php else: ?>
         body { margin:0; background:#fff; color:#111827; font-family:Inter, Arial, sans-serif; font-size:11pt; line-height:1.35; }
+        .h3 { font-size:20pt; }
+        .h4 { font-size:15pt; }
+        .h6 { font-size:11.5pt; }
+        <?php endif; ?>
         .d-flex { display:flex; }
         .justify-content-between { justify-content:space-between; }
         .align-items-start { align-items:flex-start; }
@@ -1004,11 +1076,35 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold" for="fontSize">Rozmiar czcionki</label>
+                                    <select class="form-select" id="fontSize" name="font_size">
+                                        <option value="small" <?php echo $fontSize === 'small' ? 'selected' : ''; ?>>Mała (10pt)</option>
+                                        <option value="normal" <?php echo $fontSize === 'normal' ? 'selected' : ''; ?>>Normalna (11pt)</option>
+                                        <option value="large" <?php echo $fontSize === 'large' ? 'selected' : ''; ?>>Duża (12pt)</option>
+                                    </select>
+                                </div>
                                 <div class="col-md-12 d-flex align-items-end">
-                                    <div class="d-flex flex-wrap gap-3 pb-1">
+                                    <div class="d-flex flex-wrap gap-3 pb-1 mt-2">
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffleQuestions" <?php echo $shuffleQuestions ? 'checked' : ''; ?>>
                                             <label class="form-check-label" for="shuffleQuestions">Mieszaj pytania</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="shuffle_answers" id="shuffleAnswers" <?php echo $shuffleAnswers ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="shuffleAnswers">Mieszaj odpowiedzi</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="show_points" id="showPoints" <?php echo $showPoints ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="showPoints">Punktacja</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="show_date_space" id="showDateSpace" <?php echo $showDateSpace ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="showDateSpace">Miejsce na datę</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="show_grade_space" id="showGradeSpace" <?php echo $showGradeSpace ? 'checked' : ''; ?>>
+                                            <label class="form-check-label" for="showGradeSpace">Miejsce na ocenę</label>
                                         </div>
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" name="include_key" id="includeKey" <?php echo $includeKey ? 'checked' : ''; ?>>
@@ -1016,7 +1112,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                         </div>
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" name="show_explanations" id="showExplanations" <?php echo $showExplanations ? 'checked' : ''; ?>>
-                                            <label class="form-check-label" for="showExplanations">Wyjaśnienia w kluczu</label>
+                                            <label class="form-check-label" for="showExplanations">Wyjaśnienia</label>
                                         </div>
                                     </div>
                                 </div>
@@ -1230,6 +1326,8 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                 <div class="worksheet-student-lines">
                                     <div>Grupa <span class="worksheet-group-chip"><?php echo htmlspecialchars($worksheetHeaderGroup); ?></span> Klasa ....................................</div>
                                     <div>Imię i nazwisko ....................................................................................</div>
+                                    <?php if ($showDateSpace): ?><div>Data ....................................</div><?php endif; ?>
+                                    <?php if ($showGradeSpace): ?><div>Ocena ....................................</div><?php endif; ?>
                                 </div>
                                 <div class="worksheet-points-total">Liczba punktów ........ / <?php echo (int)$worksheetTotalPoints; ?></div>
                             </div>
@@ -1265,7 +1363,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
                                     <h2 class="fw-bold">
                                         <span class="worksheet-question-number"><?php echo $index + 1; ?></span>
                                         <span><?php echo htmlspecialchars($question['question_text'] ?? ''); ?></span>
-                                        <span class="worksheet-question-points"><?php echo worksheetQuestionIsOpen($question) ? '2 p.' : '1 p.'; ?></span>
+                                        <?php if ($showPoints): ?><span class="worksheet-question-points"><?php echo worksheetQuestionIsOpen($question) ? '2 p.' : '1 p.'; ?></span><?php endif; ?>
                                     </h2>
                                     <?php if (!empty($question['image_url'])): ?>
                                         <?php $imageSrc = questionImageSrc($question['image_url'], '../'); ?>
