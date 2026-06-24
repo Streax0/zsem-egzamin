@@ -418,6 +418,19 @@ function ensurePlatformEnhancements(PDO $pdo): void {
         return;
     }
 
+    _ensurePlatformUsers($pdo);
+    _ensurePlatformTests($pdo);
+    _ensurePlatformSocial($pdo);
+    _ensurePlatformExams($pdo);
+    _ensurePlatformSystem($pdo);
+    _ensurePlatformSecurity($pdo);
+    _ensurePlatformRanking($pdo);
+    _ensurePlatformAdmin($pdo);
+
+    $done = true;
+}
+
+function _ensurePlatformUsers(PDO $pdo): void {
     // 1. Users table
     try {
         if (dbTableExists($pdo, 'users')) {
@@ -457,7 +470,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('Users table enhancements failed: ' . $e->getMessage());
     }
+}
 
+function _ensurePlatformTests(PDO $pdo): void {
     // 2. Test results table
     try {
         if (dbTableExists($pdo, 'test_results')) {
@@ -487,7 +502,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('Test answer/progress index enhancements failed: ' . $e->getMessage());
     }
+}
 
+function _ensurePlatformSocial(PDO $pdo): void {
     // 3. Notifications table
     try {
         if (dbTableExists($pdo, 'notifications')) {
@@ -530,7 +547,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('user_social_links enhancements failed: ' . $e->getMessage());
     }
+}
 
+function _ensurePlatformExams(PDO $pdo): void {
     // 7. Exams table
     try {
         if (dbTableExists($pdo, 'exams')) {
@@ -573,7 +592,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('Exam participant/answer index enhancements failed: ' . $e->getMessage());
     }
+}
 
+function _ensurePlatformSystem(PDO $pdo): void {
     // 9. App Settings table and initialization
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS app_settings (
@@ -670,7 +691,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('Sandbox element blocks table creation failed: ' . $e->getMessage());
     }
+}
 
+function _ensurePlatformSecurity(PDO $pdo): void {
     // 12. Rate limit events table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS rate_limit_events (
@@ -735,7 +758,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('User MFA table creation failed: ' . $e->getMessage());
     }
+}
 
+function _ensurePlatformRanking(PDO $pdo): void {
     // 15. All in duel usage table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS all_in_duel_usage (
@@ -786,7 +811,9 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('Ranking events table creation failed: ' . $e->getMessage());
     }
+}
 
+function _ensurePlatformAdmin(PDO $pdo): void {
     // 18. Admin request replies table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS admin_request_replies (
@@ -885,8 +912,6 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     } catch (Throwable $e) {
         error_log('Seeding ranking event templates failed: ' . $e->getMessage());
     }
-
-    $done = true;
 }
 
 function getAppSetting(PDO $pdo, string $key, $default = null) {
