@@ -618,6 +618,7 @@ $questionSelectorLimit = min(260, count($allQuestions));
         }
         body.dark-mode .generator-preset strong { color: #f8fafc; }
         body.dark-mode .generator-preset:hover::before { background: #60a5fa; }
+        body.dark-mode .nav-pills-custom { background: rgba(255, 255, 255, 0.08) !important; }
         body.dark-mode .nav-pills-custom .nav-link { color: #94a3b8; }
         body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b; }
         body.dark-mode .nav-pills-custom .nav-link.active {
