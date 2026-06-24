@@ -1,4 +1,4 @@
-# 🚀 ZSEM Tech – Platforma Edukacyjna INF.02
+# 🚀 ZSEM Tech – Platforma Edukacyjna
 
 ZSEM Tech to zaawansowana, nowoczesna platforma edukacyjna stworzona z myślą o kompleksowym przygotowaniu uczniów do egzaminu zawodowego w kwalifikacji **INF.02** (oraz pokrewnych obszarów sprzętowo-sieciowych). System łączy funkcje e-learningu z mechanizmami grywalizacji, symulatorem sieciowym, interaktywnymi narzędziami fizyczno-logicznymi, rozbudowanym modułem nauczyciela i zaawansowanym panelem administracyjnym.
 
