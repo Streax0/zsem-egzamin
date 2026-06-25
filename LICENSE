@@ -1,18 +1,105 @@
-ZSEM Tech - licencja prywatna 1.8 Beta
+# ZSEM TECH END-USER LICENSE AGREEMENT AND PROPRIETARY INTELLECTUAL PROPERTY POLICY
 
-Copyright (c) 2026. Wszelkie prawa zastrzezone.
+**Document Version:** 3.0 (Enterprise & Developer Tier)
 
-Ten kod, tresci, grafiki, baza pytan, uklad interfejsu oraz materialy edukacyjne sa objete prawami autorskimi. Projekt jest udostepniony wylacznie do prywatnego uzytku wlasciciela i upowaznionych osob.
+**Effective Date:** June 25, 2026
 
-Dozwolone:
-- prywatne uruchamianie i utrzymanie serwisu,
-- wykorzystanie do celow niekomercyjnych oraz non-profit za zgoda wlasciciela,
-- tworzenie kopii zapasowych i zmian technicznych potrzebnych do utrzymania strony.
+**Licensor:** The Project Administrators and Owners of ZSEM Tech (hereinafter referred to as the "Licensor" or "Administrators")
 
-Zabronione bez pisemnej zgody wlasciciela:
-- wykorzystanie komercyjne,
-- odsprzedaz, sublicencjonowanie lub publiczne udostepnianie kodu,
-- kopiowanie bazy pytan, tresci i elementow identyfikacji serwisu,
-- usuwanie informacji o prawach autorskich.
+**IMPORTANT — READ WITH CRITICAL CARE:** THIS END-USER LICENSE AGREEMENT (HEREINAFTER REFERRED TO AS THE "AGREEMENT" OR "LICENSE") IS A LEGALLY BINDING, COMPREHENSIVE CONTRACT BETWEEN YOU (THE "LICENSEE," WHETHER AN INDIVIDUAL DEVELOPER, STUDENT, TECHNICAL ENTITY, OR SINGLE ORGANIZATIONAL INFRASTRUCTURE) AND THE LICENSOR.
 
-Licencja nie przenosi praw autorskich ani praw do marki. Wszystkie prawa, ktore nie zostaly tu wyraznie przyznane, pozostaja zastrzezone.
+BY ACCESSING, DOWNLOADING, CLONING, COMPILING, DEPLOYING, RUNNING, OR MODIFYING ANY ASSET, CODEBASE, OR DATABASE ASSOCIATED WITH THE "ZSEM TECH" PROJECT, YOU UNCONDITIONALLY AGREE TO BE BOUND BY EVERY CLAUSE, RESTRICTION, AND COMPLIANCE MANDATE OUTLINED IN THIS DOCUMENT. IF YOU DO NOT AGREE TO THESE TERMS, YOU ARE STRICKTLY PROHIBITED FROM UTILIŻING, VIEWING, OR EXECUTING THE PROJECT OR ANY OF ITS CONSTITUENT PARTS.
+
+---
+
+### § 1. DEFINITIONS AND SCOPE OF PROTECTED PROPERTY
+
+1. **The Project:** Refers collectively and individually to all assets developed under or for the "ZSEM Tech" platform. This encompasses, without limitation:
+* **The Codebase:** All backend source code, frontend scripts, stylesheets, configuration schemas, API designs, and compiled binaries.
+* **The Database:** The proprietary, compiled multi-category question database, query structures, data relational schemas, and stored technical procedures.
+* **The Design System:** The complete user interface layout (UI), user experience flow architectures (UX), tailored vector graphics, icons, identity assets, and digital branding elements.
+* **The Educational Content:** All textual summaries, instructional explanations, and pedagogical materials bundled with the application.
+
+
+2. **Released Versions:** Official, production-ready iterations of the Project formally designated and tagged by the Administrators as stable public/private milestones.
+3. **Beta Versions:** Pre-release, testing, developer-branch, or experimental software builds (including those explicitly marked as "Beta", "Alpha", "RC", or "Dev-Builds") intended exclusively for stabilization, diagnostic evaluation, and framework benchmarking.
+4. **Authorized User:** A person or third-party entity holding a verifiable, cryptographically signed, or formally written certificate of permission issued directly by a primary Project Administrator.
+
+---
+
+### § 2. INTELLECTUAL PROPERTY & OWNERSHIP RETENTION
+
+1. **Absolute Retention:** The Project and all constituent global intellectual property rights—including copyrights, trade secrets, trademarks, patents, and structural design concepts—are, and shall at all times remain, the exclusive property of the Licensor.
+2. **No Transfer:** This Agreement operates strictly as a restrictive license to use, not a contract of sale. No clause within this document shall be interpreted as transferring, conveying, or assigning any proprietary copyrights, moral rights, or corporate branding privileges to the Licensee.
+3. **Reservation of Rights:** Any technical execution, deployment method, or administrative usage that is not explicitly and unambiguously granted to the Licensee within this text is strictly and fundamentally reserved by the Administrators.
+
+---
+
+### § 3. OPERATIONAL MANDATES FOR RELEASED VERSIONS
+
+For all official software builds classified under **Released Versions**, the Licensee must strictly adhere to the following conditional boundaries:
+
+1. **Permitted Isolated Deployment:** The Licensee is granted a non-exclusive, revocable, non-transferable, and highly localized right to privately host, execute, and maintain the platform's environment. This environment must reside strictly within the Licensee's personal hardware, local area network (LAN), or a sandboxed intranet topology.
+2. **Strict GitHub and Version Control Hosting Policy:**
+* **The Private-Only Mandate:** The Licensee is authorized to store, push, or maintain the source code of Released Versions **solely and exclusively within strictly configured Private Repositories on GitHub** (or similar Git-based platforms).
+* **Privacy Infrastructure:** The Licensee carries the absolute technical and legal responsibility to guarantee that repository visibility is set to "Private" at all times. No public collaborators may be added without administrative pre-approval.
+* **Public Leak Prohibition:** Uploading, forking, mirror-hosting, or archiving any fragment of the code or database assets into a public repository, a public Gist, an open-source forum, or a shared cloud drive constitutes an immediate, irreversible, and material breach of this contract, invoking immediate termination and potential legal liabilities.
+
+
+3. **The Version-Bound Authorization Rule for Commercialization:**
+* Commercial deployment, public hosting on wide-area networks (WAN/Internet), or any direct or indirect profit-generating applications are completely forbidden by default.
+* **Granular Administrative Consent:** To bypass this restriction, the Licensee must secure explicit, dated, written permission from the Project Administrators.
+* **Version Multi-Tenancy Exclusion:** Any authorization granted by the Administrators applies **solely, strictly, and exclusively to the exact software version matrix string specified in the written document (e.g., Version 1.8.0-Release)**. An administrative authorization granted for one specific build does not automatically extend to, imply authorization for, or retroactively validate the use of prior builds, downstream forks, or subsequent software upgrades. Each version requires an independent evaluation and formal sign-off.
+
+
+
+---
+
+### § 4. OPERATIONAL MANDATES FOR BETA VERSIONS (DIAGNOSTICS & BUG FIXING)
+
+For all pre-release builds categorized as **Beta Versions**, the Licensor enforces an absolute zero-tolerance policy against external exposure, balancing it with a structured pipeline for local debugging:
+
+1. **Absolute Limitation of Operational Scope:** For any user lacking explicit administrative clearance for a specific Beta build, the permitted scope of use is restricted entirely to **local home testing, architectural sandboxing, and performance profiling**.
+2. **Authorized Code Modification for Bug Rectification:**
+* **The Debugging Exception:** The Licensee is granted the right to inspect and modify the source code of a Beta Version **for the exclusive, singular purpose of diagnosing faults, fixing software regressions, resolving compilation failures, or patching security vulnerabilities**.
+* **Mandatory Upstream Submission Pipeline:** Any such modifications, code fragments, refactored loops, or database structural patches developed by the Licensee **must be documented transparently and submitted directly back to the Project Administrators** via the official developer contact pipeline within a reasonable timeframe.
+* **Intellectual Waiver on Contributions:** By transmitting these code modifications to the Administrators, the Licensee permanently waives all current and future intellectual property claims over the contributed code. The Licensee agrees that the contribution is entirely voluntary and grants the Licensor an unencumbered, worldwide, perpetual, royalty-free right to incorporate, modify, or delete the submission within the core Project infrastructure.
+
+
+3. **Absolute Prohibition on Beta Redistribution and Archiving:**
+* Modified or unmodified Beta source code, compiled assets, or database dumps **must never, under any circumstances, be redistributed, shared, or leaked**.
+* Unlike Released Versions, **Beta Versions are strictly prohibited from being uploaded to any remote version control system, including private GitHub repositories.** Beta code must remain entirely isolated on the physical, local development machine used for testing until the diagnostic reports are successfully delivered directly to the Administrators.
+
+
+
+---
+
+### § 5. GLOBAL CATEGORICAL PROHIBITIONS
+
+Across all software branches, editions, patches, and configurations of the Project, the following actions remain strictly illegal and contractually prohibited without a signed, notarized secondary agreement from the Administrators:
+
+1. **Unlicensed Financial Monetization:** Generating direct revenue (via subscription paywalls, microtransactions, or advertisements) or indirect revenue (via corporate training integration or commercial branding events) leveraging the ZSEM Tech system.
+2. **Sublicensing and Downstream Distribution:** Whitelabeling, renting, leasing, sublicensing, packaging into commercial software suits, or publicly trading the source code, layout, or associated database assets.
+3. **Data Scrape and Extraction:** Exhuming, scraping, querying out, migrating, or parsing the proprietary question database or the structural design components of the UI/UX to seed external projects, competitive testing platforms, or localized large language model (LLM) training datasets.
+4. **Identity and Copyright Deletion:** Altering, obfuscating, stripping, or overwriting copyright headers, notice files (`LICENSE.md`), metadata tags, author attribution arrays, or the ZSEM Tech branding footprints embedded within the UI header components or source comments.
+
+---
+
+### § 6. ENFORCEMENT AND CONTRACT TERMINATION
+
+1. **Automatic Revocation:** This Agreement and the Licensee’s operational rights automatically terminate without notice from the Licensor the exact microsecond the Licensee violates any single constraint, clause, or policy set forth in this document.
+2. **Remediation Mandate:** Upon termination, the Licensee is legally commanded to immediately cease all executions of the software, permanently terminate all local deployments, pull down all private GitHub instances, and securely wipe all source files, cached data, configurations, and database dumps from their storage infrastructure.
+
+---
+
+### § 7. EXCLUSION OF WARRANTIES AND LIMITATION OF LIABILITY
+
+1. **The "As-Is" Baseline:** The Project is provided to the Licensee on an "AS IS" and "AS AVAILABLE" basis, carrying all systemic imperfections, defects, logical faults, and operational errors. The Licensor disclaims all explicit or statutory warranties.
+2. **Beta Risk Acknowledgment:** The Licensee explicitly recognizes that Beta Versions represent unstable, highly volatile software architecture. Executing Beta code could result in hardware strain, sudden data corruption, local server network loops, or total database erasure. The entire operational risk rests on the Licensee.
+3. **Liability Ceiling:** In no event shall the Project Administrators, owners, or affiliate student-developers be held liable for any direct, indirect, incidental, punitive, or consequential technical damages (including loss of server uptimes, data leakage, network overhead costs, or hardware failures) arising out of the use, modification, or inability to deploy the Project.
+
+---
+
+**Official Project Escalation Channel:**
+
+To submit official bug-fix patches for Beta builds or to request a formal version-specific commercial deployment waiver, contact the primary Project Administrators through the verified ZSEM Tech infrastructure channels.
