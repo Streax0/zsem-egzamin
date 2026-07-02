@@ -13,22 +13,10 @@ require_once 'includes/functions.php';
 startSecureSession();
 if (isGuestMode()) {
     $flashMessage = getSessionMessage();
+    $pageTitle = 'Tryb gościa - ZSEM Tech';
+    $extraCss = ['assets/css/dashboard-new.css'];
+    include 'includes/header.php';
     ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tryb gościa - ZSEM Tech</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link href="assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
-    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
-</head>
-<body>
 <div class="dashboard-layout">
     <?php include 'includes/sidebar.php'; ?>
     <div class="main-container">
@@ -110,7 +98,7 @@ if (isGuestMode()) {
                                 <hr class="border-white opacity-10 my-4">
 
                                 <div class="text-center">
-                                    <a href="register.php" class="text-white text-decoration-none small fw-bold d-inline-flex align-items-center gap-1 hover-opacity">
+                                    <a href="auth/register.php" class="text-white text-decoration-none small fw-bold d-inline-flex align-items-center gap-1 hover-opacity">
                                         Załóż darmowe konto <i class="bi bi-arrow-right"></i>
                                     </a>
                                 </div>
@@ -196,12 +184,10 @@ try {
     $activeDuels = [];
 }
 ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<?php
+$pageTitle = 'Dashboard - ZSEM Tech';
+$extraCss = ['assets/css/dashboard-new.css'];
+$extraHead = '
     <meta name="description" content="Dashboard ZSEM Tech: testy, lekcje, praktyka, ranking i postęp nauki.">
     <meta property="og:title" content="ZSEM Tech">
     <meta property="og:description" content="Platforma edukacyjna do testów INF, sprawdzianów, lekcji i praktyki technicznej.">
@@ -212,15 +198,9 @@ try {
     <meta name="twitter:title" content="ZSEM Tech">
     <meta name="twitter:description" content="Testy INF, lekcje, ranking, pojedynki i sandbox techniczny.">
     <meta name="twitter:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
-    <title>Dashboard - ZSEM Tech</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link href="assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
-    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
-</head>
-<body>
+';
+include 'includes/header.php';
+?>
 
     <div class="dashboard-layout">
         <?php include 'includes/sidebar.php'; ?>
@@ -255,7 +235,7 @@ try {
                                     <i class="bi bi-play-fill"></i>
                                     <span data-default-test-label>Rozpocznij test</span>
                                 </a>
-                                <a href="progress.php" class="btn-welcome btn-welcome-outline" style="background: rgba(15, 23, 42, 0.25); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);">
+                                <a href="user/progress.php" class="btn-welcome btn-welcome-outline" style="background: rgba(15, 23, 42, 0.25); border: 1px solid rgba(255, 255, 255, 0.35); color: #ffffff; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.08);">
                                     <i class="bi bi-bar-chart"></i>
                                     Statystyki
                                 </a>
@@ -334,7 +314,7 @@ try {
                     <div class="dashboard-panel">
                         <div class="panel-header">
                             <h2 class="panel-title h3">Ostatnie testy</h2>
-                            <a href="history.php" class="text-primary text-decoration-none small fw-bold">Zobacz wszystkie</a>
+                            <a href="user/history.php" class="text-primary text-decoration-none small fw-bold">Zobacz wszystkie</a>
                         </div>
 
                         <?php
@@ -444,7 +424,7 @@ try {
                         <div class="dashboard-panel animate-in" style="animation-delay: 0.1s; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%); border-left: 4px solid #ef4444;">
                             <div class="panel-header">
                                 <h2 class="panel-title text-danger h3"><i class="bi bi-fire me-2"></i>Bitwy znajomych</h2>
-                                <a href="social.php" class="text-danger text-decoration-none small fw-bold">Znajomi</a>
+                                <a href="user/social.php" class="text-danger text-decoration-none small fw-bold">Znajomi</a>
                             </div>
                             <div class="vstack gap-3 mt-2">
                                 <?php if (empty($pendingDuels) && empty($activeDuels)): ?>

@@ -68,18 +68,10 @@ $sections = [
         ],
     ],
 ];
-?>
-<!doctype html>
-<html lang="pl">
-<head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pomoc nauczyciela - ZSEM Tech</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+
+$pageTitle = 'Pomoc nauczyciela - ZSEM Tech';
+$extraCss = ['assets/css/dashboard-new.css'];
+$extraHead = <<<HTML
     <style>
         .teacher-help-shell { max-width: 1180px; margin: 0 auto; }
         .teacher-help-hero {
@@ -89,13 +81,18 @@ $sections = [
             background: linear-gradient(135deg, #1d4ed8, #0f172a);
             box-shadow: 0 20px 48px rgba(37, 99, 235, .16);
         }
-        .teacher-help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .help-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
         .teacher-help-card { border-radius: 8px; border: 1px solid rgba(148,163,184,.22); background: var(--panel-bg); padding: 1.1rem; }
         .teacher-help-card i { font-size: 1.45rem; color: var(--primary-color); }
         .teacher-help-card li { margin-bottom: .45rem; }
     </style>
-</head>
-<body>
+HTML;
+include '../includes/header.php';
+?>
 <div class="dashboard-layout">
     <?php include '../includes/sidebar.php'; ?>
     <div class="main-container">

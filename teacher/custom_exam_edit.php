@@ -134,25 +134,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $flashMsg = getSessionMessage();
 ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $isEdit ? 'Edytuj' : 'Nowy' ?> sprawdzian – ZSEM Tech</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link href="../assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
-    <style>
+<?php
+$pageTitle = '<?= $isEdit ? 'Edytuj' : 'Nowy' ?> sprawdzian – ZSEM Tech';
+$extraCss = ['assets/css/dashboard-new.css'];
+$extraHead = <<<HTML
+<style>
         .q-card { border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; background: #fafbfc; transition: all 0.2s; position: relative; }
         .q-card:hover { border-color: var(--primary-color); box-shadow: 0 4px 12px rgba(59,130,246,0.08); }
         .q-card .q-number { position: absolute; top: -10px; left: 16px; background: var(--primary-color); color: white; border-radius: 99px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
     </style>
-</head>
-<body>
+HTML;
+include '../includes/header.php';
+?>
     <div class="dashboard-layout">
         <?php include '../includes/sidebar.php'; ?>
         <div class="main-container">

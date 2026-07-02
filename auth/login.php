@@ -1,0 +1,159 @@
+<?php
+ob_start();
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+
+startSecureSession();
+
+if (isLoggedIn()) {
+    header('Location: ../index.php');
+    exit;
+}
+
+$errors = [];
+$username = '';
+$flashMsg = getSessionMessage();
+if (!$flashMsg && isset($_GET['logged_out_all'])) {
+    $flashMsg = ['type' => 'success', 'message' => 'Wylogowano wszystkie sesje konta.'];
+}
+if (!$flashMsg && isset($_GET['session_expired'])) {
+    $flashMsg = ['type' => 'info', 'message' => 'Ta sesja została zakończona, ponieważ konto ma limit dwóch aktywnych urządzeń.'];
+}
+$clientIp = clientIpAddress();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Nieprawidłowy token CSRF.';
+    }
+
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $remember = isset($_POST['remember']);
+
+    if (empty($username)) $errors[] = 'Nazwa użytkownika jest wymagana.';
+    if (empty($password)) $errors[] = 'Hasło jest wymagane.';
+    $captchaRequired = shouldRequireLoginCaptcha($clientIp, $username);
+    if ($captchaRequired && !validateLoginCaptcha((string)($_POST['login_captcha_answer'] ?? ''))) {
+        $errors[] = 'Przepisz poprawny wynik zabezpieczenia anty-bot.';
+    }
+
+    if (empty($errors)) {
+        $result = login($username, $password, $remember);
+        if ($result['success']) {
+            regenerateSessionId();
+            if (isset($result['user_id'])) {
+                registerCurrentUserSession($pdo, (int)$result['user_id']);
+                updateLastLogin($result['user_id']);
+            }
+            if (!empty($result['mfa_required'])) {
+                header("Location: mfa.php");
+                exit;
+            }
+            header('Location: ../index.php');
+            exit;
+        } else {
+            $errors[] = $result['message'] ?? 'Nieprawidłowe dane logowania.';
+        }
+    }
+}
+$csrf_token = generateCsrfToken();
+$captchaRequired = shouldRequireLoginCaptcha($clientIp, $username);
+$captcha = $captchaRequired ? generateLoginCaptcha() : null;
+?>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logowanie – ZSEM Tech</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
+    <link href="../assets/css/fonts.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body class="auth-page">
+    <div class="auth-shell">
+        <section class="auth-info-panel" aria-label="ZSEM Tech">
+            <div>
+                <div class="auth-brand"><i class="bi bi-mortarboard-fill"></i> ZSEM Tech</div>
+                <h1>Wejdź do panelu ZSEM Tech</h1>
+                <p class="text-muted fs-5 mb-0">Testy, arkusze, wyniki i sprawdziany nauczyciela w jednym miejscu.</p>
+            </div>
+            <div class="auth-feature-grid mt-4">
+                <div class="auth-feature-card"><strong>Testy</strong><br><span class="small text-muted">INF.02 i arkusze</span></div>
+                <div class="auth-feature-card"><strong>Wyniki</strong><br><span class="small text-muted">postęp i ranking</span></div>
+            </div>
+        </section>
+
+        <main class="login-card auth-form-panel" role="main">
+            <div class="text-center mb-5">
+                <div class="brand-logo"><i class="bi bi-mortarboard-fill"></i> ZSEM Tech</div>
+                <p class="text-muted">Witaj ponownie! Zaloguj się, aby kontynuować.</p>
+            </div>
+
+            <?php if (!empty($errors)): ?>
+                <div class="alert alert-custom mb-4">
+                    <ul class="mb-0 ps-3">
+                        <?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+            <?php if ($flashMsg): ?>
+                <div class="alert alert-<?= ($flashMsg['type'] ?? '') === 'success' ? 'success' : 'info' ?> mb-4 border-0 rounded-3">
+                    <?= htmlspecialchars($flashMsg['message'] ?? '') ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
+                
+                <div class="mb-4">
+                    <label class="form-label" for="login_username">Login lub e-mail</label>
+                    <input type="text" name="username" id="login_username" class="form-control" placeholder="login albo adres e-mail" value="<?= htmlspecialchars($username) ?>" required autofocus>
+                </div>
+
+                <div class="mb-4 position-relative password-field">
+                    <label class="form-label" for="password">Hasło</label>
+                    <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                    <button type="button" class="password-toggle auth-password-toggle" data-password-toggle="password" aria-label="Pokaż lub ukryj hasło"><i class="bi bi-eye"></i></button>
+                </div>
+
+                <?php if ($captchaRequired && $captcha): ?>
+                <div class="mb-4">
+                    <label class="form-label" for="loginCaptcha">Zabezpieczenie po nieudanych próbach: <?= htmlspecialchars($captcha['question']) ?> = ?</label>
+                    <input type="text" name="login_captcha_answer" id="loginCaptcha" class="form-control" inputmode="numeric" pattern="-?[0-9]+" autocomplete="off" required>
+                </div>
+                <?php endif; ?>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                        <label class="form-check-label small text-muted" for="remember">Zapamiętaj mnie</label>
+                    </div>
+                    <a href="auth/forgot_password.php" class="small text-primary text-decoration-none">Zapomniałeś hasła?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-4">Zaloguj się</button>
+
+                <div class="text-center">
+                    <p class="small text-muted">Nie masz konta? <a href="auth/register.php" class="text-primary text-decoration-none fw-semibold">Załóż je teraz</a></p>
+                </div>
+            </form>
+            <form action="actions/start_guest.php" method="POST" class="mt-3">
+                <?php echo csrfTokenField('guest_start'); ?>
+                <input type="hidden" name="target" value="test">
+                <button type="submit" class="btn btn-outline-light guest-mode-btn w-100">
+                    <i class="bi bi-person-walking me-1"></i>Tryb gościa
+                </button>
+            </form>
+        </main>
+    </div>
+
+    <script src="assets/js/auth.js"></script>
+    <?php include __DIR__ . '/../includes/cookie_consent.php'; ?>
+</body>
+</html>
+

@@ -120,19 +120,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $flashMsg = getSessionMessage();
 ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utwórz sprawdzian – ZSEM Tech</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link href="../assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
-    <style>
+<?php
+$pageTitle = 'Utwórz sprawdzian – ZSEM Tech';
+$extraCss = ['assets/css/dashboard-new.css'];
+$extraHead = <<<HTML
+<style>
         .config-section { border-left: 3px solid var(--bs-primary); padding-left: 1rem; margin-bottom: 2rem; }
         .config-section h5 { color: var(--bs-primary); }
         .question-selector { max-height: 400px; overflow-y: auto; }
@@ -147,8 +139,9 @@ $flashMsg = getSessionMessage();
         }
         .category-btn-wrapper label:hover { transform: translateY(-2px); }
     </style>
-</head>
-<body>
+HTML;
+include '../includes/header.php';
+?>
 
     <div class="dashboard-layout">
         <?php include '../includes/sidebar.php'; ?>

@@ -465,7 +465,7 @@ if (!function_exists('requireLogin')) {
         if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
             $script = $_SERVER['PHP_SELF'] ?? '';
             $prefix = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false || strpos($script, '/actions/') !== false || strpos($script, '/ajax/') !== false) ? '../' : '';
-            header('Location: ' . $prefix . 'mfa.php');
+            header('Location: ' . $prefix . 'auth/mfa.php');
             exit();
         }
 
@@ -1149,7 +1149,7 @@ function mfaAccessRequired(): bool {
     if (!$requiresByRole && !$requiresByUser) return false;
     if (!empty($_SESSION['mfa_verified'])) return false;
     $current = basename($_SERVER['PHP_SELF'] ?? '');
-    return !in_array($current, ['mfa.php', 'logout.php', 'login.php'], true);
+    return !in_array($current, ['auth/mfa.php', 'logout.php', 'login.php'], true);
 }
 
 function base32Encode(string $bytes): string {

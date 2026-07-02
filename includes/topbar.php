@@ -67,6 +67,9 @@ unset($_SESSION['sandbox_element_block_notice']);
     }
     ?>
     <div class="topbar-actions ms-auto d-flex align-items-center">
+    <a href="https://zsemtech.zsem.edu.pl" target="_blank" rel="noopener noreferrer" class="topbar-icon" title="ZSEM Tech" aria-label="ZSEM Tech">
+        <i class="bi bi-laptop"></i>
+    </a>
     <a href="https://zsem.edu.pl" target="_blank" rel="noopener noreferrer" class="topbar-icon" title="Strona szkoły" aria-label="Strona szkoły">
         <i class="bi bi-mortarboard"></i>
     </a>
@@ -102,7 +105,7 @@ unset($_SESSION['sandbox_element_block_notice']);
                 <?php endif; ?>
             </div>
             <div class="notification-dropdown-footer">
-                <a href="<?php echo $base_url; ?>notifications.php" class="notification-see-all">Zobacz wszystkie <i class="bi bi-arrow-right-short"></i></a>
+                <a href="<?php echo $base_url; ?>user/notifications.php" class="notification-see-all">Zobacz wszystkie <i class="bi bi-arrow-right-short"></i></a>
             </div>
         </div>
     </div>
@@ -150,12 +153,12 @@ unset($_SESSION['sandbox_element_block_notice']);
         <ul class="dropdown-menu dropdown-menu-end topbar-dropdown user-profile-dropdown" aria-labelledby="userDropdown">
             <?php if ($isFullyLoggedOut || $isGuestTopbar): ?>
             <li><a class="dropdown-item" href="<?php echo $base_url; ?>test.php?setup=1&new=1"><i class="bi bi-journal-text"></i>Test jako gość</a></li>
-            <li><a class="dropdown-item" href="<?php echo $base_url; ?>login.php"><i class="bi bi-box-arrow-in-right"></i>Zaloguj</a></li>
-            <li><a class="dropdown-item" href="<?php echo $base_url; ?>register.php"><i class="bi bi-person-plus"></i>Załóż konto</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>auth/login.php"><i class="bi bi-box-arrow-in-right"></i>Zaloguj</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>auth/register.php"><i class="bi bi-person-plus"></i>Załóż konto</a></li>
             <?php else: ?>
-            <li><a class="dropdown-item" href="<?php echo $base_url; ?>profile.php"><i class="bi bi-person"></i>Mój profil</a></li>
-            <li><a class="dropdown-item" href="<?php echo $base_url; ?>settings.php"><i class="bi bi-gear"></i>Ustawienia</a></li>
-            <li><a class="dropdown-item" href="<?php echo $base_url; ?>progress.php"><i class="bi bi-graph-up"></i>Statystyki</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>user/profile.php"><i class="bi bi-person"></i>Mój profil</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>user/settings.php"><i class="bi bi-gear"></i>Ustawienia</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_url; ?>user/progress.php"><i class="bi bi-graph-up"></i>Statystyki</a></li>
             <?php endif; ?>
             <?php if (!$isFullyLoggedOut): ?>
             <li><hr class="dropdown-divider"></li>
@@ -566,7 +569,7 @@ body.dark-mode .role-decision-close:hover {
             <?php endif; ?>
         </dl>
         <div class="role-decision-actions">
-            <a href="<?php echo $base_url; ?>notifications.php" class="btn btn-outline-primary" data-role-decision-go>Powiadomienia</a>
+            <a href="<?php echo $base_url; ?>user/notifications.php" class="btn btn-outline-primary" data-role-decision-go>Powiadomienia</a>
             <button type="button" class="btn btn-primary" data-role-decision-close>OK</button>
         </div>
     </section>

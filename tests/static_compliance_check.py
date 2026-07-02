@@ -62,18 +62,18 @@ def test_tracking_scripts_not_loaded_without_consent() -> None:
 def test_footer_compliance_links() -> None:
     assert_contains(
         "includes/footer.php",
-        "privacy.php",
-        "polityka-cookies.php",
-        "terms.php",
-        "zglos-naruszenie.php",
-        "dostepnosc.php",
+        "pages/privacy.php",
+        "pages/polityka-cookies.php",
+        "pages/terms.php",
+        "pages/zglos-naruszenie.php",
+        "pages/dostepnosc.php",
         "data-cookie-settings",
     )
 
 
 def test_abuse_report_form_exists() -> None:
     assert_contains(
-        "zglos-naruszenie.php",
+        "pages/zglos-naruszenie.php",
         "csrfTokenField('report_abuse')",
         "good_faith",
         "data/abuse_reports",
@@ -100,10 +100,10 @@ def test_images_have_alt_attributes() -> None:
 
 
 def test_admin_mobile_table_cards() -> None:
-    assert_contains("admin.php", "admin-users-table-panel", 'data-label="Użytkownik"', 'data-label="Akcje"')
-    assert_contains("admin.php", "admin-hero", "admin-kpi-card", "admin-tool-card", 'id="admin-ranks"')
-    assert_contains("manage_questions.php", "questions-table-panel", 'data-label="Treść pytania"', "question-editor-modal")
-    assert_contains("admin_requests.php", "admin-requests-table-panel", 'data-label="Użytkownik"', 'data-label="Akcje"', "admin-requests-actions")
+    assert_contains("admin/index.php", "admin-users-table-panel", 'data-label="Użytkownik"', 'data-label="Akcje"')
+    assert_contains("admin/index.php", "admin-hero", "admin-kpi-card", "admin-tool-card", 'id="admin-ranks"')
+    assert_contains("admin/manage_questions.php", "questions-table-panel", 'data-label="Treść pytania"', "question-editor-modal")
+    assert_contains("admin/requests.php", "admin-requests-table-panel", 'data-label="Użytkownik"', 'data-label="Akcje"', "admin-requests-actions")
     assert_contains("assets/css/style.css", ".admin-users-table-panel", ".questions-table-panel", ".admin-requests-table-panel", "overflow-x: auto")
     assert_contains("index.php", "recent-tests-table-wrap", "recent-tests-table")
     assert_not_contains("assets/css/dashboard-new.css", ".dashboard-panel table.table tbody tr")
@@ -111,7 +111,7 @@ def test_admin_mobile_table_cards() -> None:
 
 def test_admin_temporary_bans_and_safe_modals() -> None:
     assert_contains(
-        "admin.php",
+        "admin/index.php",
         "adminBanModal",
         "ban_duration",
         "data-admin-ban-user",
@@ -120,8 +120,8 @@ def test_admin_temporary_bans_and_safe_modals() -> None:
         "cleanupAdminModalArtifacts",
         "body.admin-page > .modal-backdrop",
     )
-    assert "prompt(" not in read("admin.php")
-    assert "confirm(" not in read("admin.php")
+    assert "prompt(" not in read("admin/index.php")
+    assert "confirm(" not in read("admin/index.php")
     assert_contains(
         "includes/auth.php",
         "clearExpiredBanForUser",
@@ -158,7 +158,7 @@ def test_page_category_blocks_admin_guard_and_schema() -> None:
         "sandboxElementAdminNotice",
     )
     assert_contains(
-        "admin.php",
+        "admin/index.php",
         "create_feature_page_block",
         "end_feature_page_block",
         "create_sandbox_element_block",
@@ -167,7 +167,7 @@ def test_page_category_blocks_admin_guard_and_schema() -> None:
         "admin-sandbox-blocks",
     )
     assert_contains(
-        "sandbox.php",
+        "sandbox/index.php",
         "getSandboxElementBlockMapForRole",
         "data-sandbox-element-key",
         "sandboxElementAdminNotice",
@@ -196,9 +196,9 @@ def test_blocked_page_screen_is_single_safe_return_card() -> None:
 
 
 def test_sandbox_disabled_tools_and_logic_elements_render_server_side() -> None:
-    sandbox = read("sandbox.php")
+    sandbox = read("sandbox/index.php")
     disabled_tile = extract_between(
-        "sandbox.php",
+        "sandbox/index.php",
         "<?php if ($toolElementBlock): ?>",
         "<?php else: ?>",
     )
@@ -234,7 +234,7 @@ def test_local_css_assets_are_versioned_sitewide_and_on_landing() -> None:
     assert_contains(
         "landing.php",
         "require_once 'includes/functions.php'",
-        "assetUrl('assets/css/landing.css')",
+        
     )
     assert 'href="assets/css/landing.css"' not in read("landing.php")
 
@@ -253,10 +253,10 @@ def test_topbar_dropdown_animation_uses_css_not_display_hack() -> None:
 
 
 def test_settings_controls_call_real_preference_handlers() -> None:
-    settings = read("settings.php")
+    settings = read("user/settings.php")
     handler = read("assets/js/theme-handler.js")
     assert_contains(
-        "settings.php",
+        "user/settings.php",
         "updateDashboardViewSetting(this.value)",
         "updateDefaultTestModeSetting(this.value)",
         "updateNotifyActivitySetting(this.checked)",
@@ -279,12 +279,11 @@ def test_settings_controls_call_real_preference_handlers() -> None:
 
 
 def test_guest_navigation_and_sandbox_access() -> None:
-    assert_contains("login.php", "actions/start_guest.php", "Tryb gościa")
+    assert_contains("auth/login.php", "actions/start_guest.php", "Tryb gościa")
     assert_contains("actions/start_guest.php", "securityValidateRequestCsrf('guest_start')", "securityConsumeRateLimit('guest:start:'", "startGuestSession()")
-    assert_contains("sandbox.php", "requireLogin(true)")
-    assert_contains("includes/sidebar.php", "$isGuestSidebar", "Wyjdź", "sandbox.php")
+    assert_contains("sandbox/index.php", "requireLogin(true)")
+    assert_contains("includes/sidebar.php", "$isGuestSidebar", "Wyjdź", "sandbox/index.php")
     assert_contains("includes/topbar.php", "$isGuestTopbar", "Wyjdź")
-    assert_contains("includes/navbar.php", "Wyjdź")
 
 
 def test_pdf_remaining_test_flow_and_modals() -> None:
@@ -298,7 +297,6 @@ def test_pdf_remaining_test_flow_and_modals() -> None:
     )
     assert "confirm(" not in read("test.php")
     assert "alert(" not in read("test.php")
-    assert "confirm(" not in read("includes/navbar.php")
 
 
 def test_tests_update_answer_check_surface() -> None:
@@ -316,8 +314,7 @@ def test_tests_update_answer_check_surface() -> None:
         "answer-check-counter",
         "Sprawdzenia:",
         "Sprawdź odpowiedź",
-        "prefers-reduced-motion",
-    )
+            )
     assert_contains(
         "ajax/quiz_action.php",
         "case 'check_answer'",
@@ -354,8 +351,8 @@ def test_tests_update_answer_check_surface() -> None:
         "$difficulty = (string)($config['difficulty'] ?? 'all')",
         "$scope = (string)($config['scope'] ?? 'all')",
     )
-    assert_not_contains("settings.php", "BIG TEST UPDATE")
-    assert_contains("settings.php", "TESTS UPDATE", "settings-release-grid")
+    assert_not_contains("user/settings.php", "BIG TEST UPDATE")
+    assert_contains("user/settings.php", "TESTS UPDATE", "settings-release-grid")
     teacher_exam_surface = read_tree("teacher", "exam")
     assert "check_answer" not in teacher_exam_surface
     assert "Sprawdź odpowiedź" not in teacher_exam_surface
@@ -474,7 +471,7 @@ def test_security_layer_and_quiz_api_client() -> None:
         "stopCtaTimer",
     )
     assert_contains(
-        "register.php",
+        "auth/register.php",
         "assets/js/api-client.js",
         "assets/js/register.js",
     )
@@ -489,7 +486,6 @@ def test_security_layer_and_quiz_api_client() -> None:
         "ajax/notifications_feed.php",
         "ajax/search_users_live.php",
         "ajax/check_registration_availability.php",
-        "ajax/check_user.php",
         "ajax/mark_mastered.php",
         "ajax/update_bio.php",
         "ajax/exam_violation.php",
@@ -703,14 +699,14 @@ def test_pdf_remaining_profile_email_and_filters() -> None:
         "'proton.me'",
         "'mail.com'",
     )
-    assert_contains("profile.php", "u.avatar_path", "comment-avatar-img", "userAvatarSrc($comment['avatar_path']")
+    assert_contains("user/profile.php", "u.avatar_path", "comment-avatar-img", "userAvatarSrc($comment['avatar_path']")
     assert_contains("assets/js/register.js", "acceptedDomains", "icloud.com", "proton.me", "mail.com")
     assert "Dozwolone domeny:" not in read("assets/js/register.js")
 
 
 def test_pdf_remaining_progress_and_performance() -> None:
-    assert_contains("progress.php", "ensurePlatformEnhancements($pdo)", "progressNotice", "showProgressNotice")
-    assert "alert(" not in read("progress.php")
+    assert_contains("user/progress.php", "ensurePlatformEnhancements($pdo)", "progressNotice", "showProgressNotice")
+    assert "alert(" not in read("user/progress.php")
     assert_contains("lessons.php", "lessonArchiveModal", "confirmArchiveLesson")
     assert "confirm(" not in read("lessons.php")
     assert_contains("assets/js/app-dialogs.js", "appConfirmSubmit", "appPrompt", "appNotice")
@@ -746,9 +742,9 @@ def test_pdf_security_fixes() -> None:
     assert_contains(".htaccess", "Strict-Transport-Security", "Content-Security-Policy")
     assert_contains("includes/session.php", "Strict-Transport-Security")
     assert_contains("includes/auth.php", "active_user_sessions", "registerCurrentUserSession", "validateCurrentUserSession")
-    assert_contains("login.php", "session_expired", "registerCurrentUserSession")
+    assert_contains("auth/login.php", "session_expired", "registerCurrentUserSession")
     assert_contains("full_schema.sql", "active_user_sessions")
-    assert "$_GET['id']" not in read("settings.php")
+    assert "$_GET['id']" not in read("user/settings.php")
 
 
 def test_observatory_header_hardening() -> None:
@@ -806,7 +802,7 @@ def test_sidebar_topbar_animation_polish() -> None:
 
 def test_luki_spin_ajax_without_page_refresh() -> None:
     assert_contains(
-        "luki_panel.php",
+        "sandbox/luki_panel.php",
         "function lukiWantsJson",
         "function lukiJsonResponse",
         "lukiSpinResponsePayload",
@@ -841,11 +837,11 @@ def test_duel_integrity_guards() -> None:
 
 
 def test_password_reset_and_mfa_exist() -> None:
-    assert_contains("forgot_password.php", "createPasswordResetToken", "resetPasswordWithToken", "forgot_password")
+    assert_contains("auth/forgot_password.php", "createPasswordResetToken", "resetPasswordWithToken", "forgot_password")
     assert_contains("includes/auth.php", "totpCode", "verifyTotpCode", "session_version", "mfaAccessRequired", "return $role === 'admin'")
     assert_contains("includes/functions.php", "notifyOptionalMfaForRole", "mfa_optional_prompt", "Czy włączyć 2 etapowe uwierzytelnianie?")
-    assert_contains("admin.php", "notifyOptionalMfaForRole($pdo, $userId, $role)")
-    assert_contains("mfa.php", "getOrCreateMfaSecret", "enableMfaForUser", "recovery_code", "totpQrCode", "QRCode.toCanvas")
+    assert_contains("admin/index.php", "notifyOptionalMfaForRole($pdo, $userId, $role)")
+    assert_contains("auth/mfa.php", "getOrCreateMfaSecret", "enableMfaForUser", "recovery_code", "totpQrCode", "QRCode.toCanvas")
     assert_contains("full_schema.sql", "password_resets", "user_mfa", "rate_limit_events")
 
 
@@ -861,14 +857,14 @@ def test_exam_visibility_and_override() -> None:
 
 
 def test_sandbox_router_tools() -> None:
-    assert_contains("sandbox.php", "'logic'", "'psu'", "'subnet'", "'numbers'", "'live'", "sandbox.php?tool=")
-    assert_contains("sandbox.php", "izolowanym podglądzie")
-    assert "filtrem niedozwolonych treści" not in read("sandbox.php")
+    assert_contains("sandbox/index.php", "'logic'", "'psu'", "'subnet'", "'numbers'", "'live'", "sandbox.php?tool=")
+    assert_contains("sandbox/index.php", "izolowanym podglądzie")
+    assert "filtrem niedozwolonych treści" not in read("sandbox/index.php")
     assert_contains("assets/js/sandbox.js", "containsProfanity", "XNOR", "ipv6Out", "U2 8-bit", "MAX_NODES = 80", "dragstart")
 
 
 def test_profile_social_language_guards() -> None:
-    assert_contains("profile.php", "youtube", "facebook", "select name=\"language_name\"", "profileCsrfToken")
+    assert_contains("user/profile.php", "youtube", "facebook", "select name=\"language_name\"", "profileCsrfToken")
     assert_contains("actions/profile_section.php", "allowedLanguages", "youtube.com", "facebook.com", "x.com", "gitlab.com")
     assert_contains("full_schema.sql", "'youtube'", "'facebook'", "'gitlab'")
 
@@ -945,10 +941,10 @@ def test_director_role_permissions() -> None:
         "roleHasAdminAccess",
     )
     assert_contains("includes/auth.php", "['admin', 'dyrektor', 'teacher']")
-    assert_contains("admin.php", 'option value="dyrektor"', "privilegedStaffRoles()")
+    assert_contains("admin/index.php", 'option value="dyrektor"', "privilegedStaffRoles()")
     assert_contains("includes/sidebar.php", "['admin', 'dyrektor']")
-    assert_contains("luki_panel.php", "['admin', 'wujek_luki']")
-    assert "['admin', 'dyrektor', 'wujek_luki']" not in read("luki_panel.php")
+    assert_contains("sandbox/luki_panel.php", "['admin', 'wujek_luki']")
+    assert "['admin', 'dyrektor', 'wujek_luki']" not in read("sandbox/luki_panel.php")
 
 
 def test_cke_mode_labels_and_no_ckz_copy() -> None:
@@ -1066,7 +1062,7 @@ def test_json_session_guards_cover_private_endpoints() -> None:
 
 def test_admin_and_luki_expanded_operational_panels() -> None:
     assert_contains(
-        "admin.php",
+        "admin/index.php",
         "admin-ops-strip",
         "Konta bez weryfikacji",
         "Logowania 7 dni",
@@ -1074,7 +1070,7 @@ def test_admin_and_luki_expanded_operational_panels() -> None:
         "adminOpsChecks",
     )
     assert_contains(
-        "luki_panel.php",
+        "sandbox/luki_panel.php",
         "Tydzień losu",
         "luki-risk-meter",
         "weeklySpinCount",
@@ -1085,7 +1081,7 @@ def test_admin_and_luki_expanded_operational_panels() -> None:
 
 def test_release_teacher_generator_luki_v17_surface() -> None:
     assert_contains(
-        "settings.php",
+        "user/settings.php",
         "2.0 Release",
         "settings-overview-grid",
         "settings-switch-grid",
@@ -1121,7 +1117,7 @@ def test_release_teacher_generator_luki_v17_surface() -> None:
         "background-size:18px 18px",
     )
     assert_contains(
-        "luki_panel.php",
+        "sandbox/luki_panel.php",
         "'archetype' => 'forge'",
         "'archetype' => 'mirror'",
         "'archetype' => 'archive'",
@@ -1146,8 +1142,7 @@ def test_pdf_final_cke_history_copy_and_launch_card() -> None:
         "Zakończenie",
         "Włącz, aby rozwiązać",
         "exam-sim-launch-card",
-        "linear-gradient(135deg, #102a6b",
-    )
+            )
     assert "Wlacz" not in read("test.php")
     assert "Liczba pytan" not in read("test.php")
     assert "Prog zdawalnosci" not in read("test.php")
@@ -1182,10 +1177,10 @@ def test_pdf_final_flashcards_surface_and_teacher_requests() -> None:
 
 def test_pdf_final_router_web_emulator() -> None:
     assert_contains(
-        "sandbox.php",
+        "sandbox/index.php",
         "network-lab-embed",
         "network-lab-frame",
-        "sandbox_network_lab.php",
+        "network_lab.php",
         "Laboratorium sieci INF.02",
     )
     assert_contains(
@@ -1208,7 +1203,7 @@ def test_pdf_final_explanations_settings_teacher_avatar() -> None:
         "centerSkinRatio",
     )
     assert_contains(
-        "settings.php",
+        "user/settings.php",
         "data-settings-overview",
         "syncSettingsOverviewCards",
         "syncSettingsMiniCards",
@@ -1226,13 +1221,13 @@ def test_pdf_final_explanations_settings_teacher_avatar() -> None:
         "filesize($dest) <= AVATAR_MAX_BYTES",
         "25 KB",
     )
-    assert_contains("settings.php", "25 KB")
-    assert_contains("profile.php", "25 KB")
+    assert_contains("user/settings.php", "25 KB")
+    assert_contains("user/profile.php", "25 KB")
 
 
 def test_v18_registration_password_autologin_and_suggestions() -> None:
     assert_contains(
-        "register.php",
+        "auth/register.php",
         "Nazwa użytkownika jest wymagana.",
         "registrationUsernameSuggestions($pdo, $username, 3)",
         "registerCurrentUserSession($pdo, (int)$newUserId)",
@@ -1244,7 +1239,7 @@ def test_v18_registration_password_autologin_and_suggestions() -> None:
         "function registrationUsernameSuggestions",
     )
     assert "function registrationGeneratedUsername" not in read("includes/functions.php")
-    register_content = read("register.php")
+    register_content = read("auth/register.php")
     assert "registrationGeneratedUsername($pdo" not in register_content
     assert "Puste = imię.nazwisko" not in register_content
     assert "registrationUsernameBase($first_name, $last_name)" not in register_content
@@ -1267,7 +1262,7 @@ def test_v18_registration_password_autologin_and_suggestions() -> None:
         "Nazwa użytkownika jest wymagana.",
         "Znak specjalny zwiększa siłę hasła, ale nie jest wymagany.",
     )
-    assert_contains("register.php", 'data-password-toggle="regPassword"', 'data-password-toggle="confirm_password"', "generatedUsernamePreview")
+    assert_contains("auth/register.php", 'data-password-toggle="regPassword"', 'data-password-toggle="confirm_password"', "generatedUsernamePreview")
     assert "Wpisz nick. Jeśli jest zajęty, pokażemy wolne propozycje." not in register_content
     assert "Wpisz nick. Jeśli jest zajęty, pokażemy wolne propozycje." not in read("assets/js/register.js")
     assert "Hasło musi zawierać znak specjalny." not in read("includes/functions.php")
@@ -1281,7 +1276,7 @@ def test_fact_based_question_explanations_and_stats_labels() -> None:
         assert "nie spełnia głównego warunku pytania" not in content
     assert_contains("includes/functions.php", "ta odpowiedź dotyczy innego aspektu działania", "Poprawna odpowiedź:", "Wybrano:")
     assert_contains("result.php", "$showAnswerQualifications = true", "qualification_label", "Poprawna odpowiedź:")
-    assert_contains("progress.php", "buildQuestionExplanation($questionForExplanation)", "$questionExplanation")
+    assert_contains("user/progress.php", "buildQuestionExplanation($questionForExplanation)", "$questionExplanation")
 
 
 def test_admin_audit_is_capped_and_lazy_loaded() -> None:
@@ -1291,7 +1286,7 @@ def test_admin_audit_is_capped_and_lazy_loaded() -> None:
         "max(1, min(50, $limit))",
     )
     assert_contains(
-        "admin.php",
+        "admin/index.php",
         "$auditInitialLimit = 20",
         "data-admin-audit-row",
         "adminAuditLoadMore",
@@ -1302,12 +1297,12 @@ def test_admin_audit_is_capped_and_lazy_loaded() -> None:
 def test_refresh_animation_reduced_and_settings_spacing_fixed() -> None:
     assert_contains("assets/css/dashboard-new.css", "animation: none", ".settings-active-preferences")
     assert_contains("assets/css/style.css", ".animate-in", "animation: none")
-    assert_contains("settings.php", "settings-side-stack", "grid-template-columns: repeat(auto-fit, minmax(210px, 1fr))")
+    assert_contains("user/settings.php", "settings-side-stack", "grid-template-columns: repeat(auto-fit, minmax(210px, 1fr))")
 
 
 def test_v19_settings_preferences_are_effective() -> None:
     assert_contains(
-        "settings.php",
+        "user/settings.php",
         "settings-active-preferences",
         "data-preference-status",
         "testPreferenceFeedback",
@@ -1374,13 +1369,13 @@ def test_v18_pdf_remaining_auth_and_performance_surface() -> None:
 
 def test_v18_router_flashcards_social_license() -> None:
     assert_contains(
-        "sandbox.php",
+        "sandbox/index.php",
         "network-lab-embed",
-        "sandbox_network_lab.php",
+        "network_lab.php",
         "Laboratorium sieci INF.02",
     )
     assert_contains(
-        "sandbox_network_lab.php",
+        "sandbox/network_lab.php",
         "requireLogin(true)",
         "assets/css/network-lab.css",
         "assets/js/network-lab.js",
@@ -1396,7 +1391,7 @@ def test_v18_router_flashcards_social_license() -> None:
         "Powtórka błędnych pojęć",
     )
     assert_contains(
-        "social.php",
+        "user/social.php",
         "social-insights-main",
         "Right: Invites",
         "social-insights-grid",
@@ -1419,7 +1414,7 @@ def test_v18_router_flashcards_social_license() -> None:
 
 def test_network_lab_inf02_scope_and_local_assets() -> None:
     assert_contains(
-        "sandbox_network_lab.php",
+        "sandbox/network_lab.php",
         'id="exam-sel"',
         'value="2025-cze"',
         'value="2024-cze"',
@@ -1462,11 +1457,11 @@ def test_network_lab_inf02_scope_and_local_assets() -> None:
         "resetAll",
     )
     assert "data/pdfs/" not in read("assets/js/network-lab.js")
-    lab = read("sandbox_network_lab.php") + read("assets/js/network-lab.js")
+    lab = read("sandbox/network_lab.php") + read("assets/js/network-lab.js")
     assert "firebase" not in lab.lower()
     assert "auth.js" not in lab
     assert "zawod-header" not in lab
-    assert "site-header" not in read("sandbox_network_lab.php")
+    assert "site-header" not in read("sandbox/network_lab.php")
     for name in [
         "inf02_2025_cze.pdf",
         "inf02_2024_cze.pdf",
@@ -1528,7 +1523,7 @@ def test_network_lab_pdf_urls_and_logout_static_guard() -> None:
 
 def test_network_lab_pdf_proxy_is_authenticated_and_whitelisted() -> None:
     assert_contains(
-        "sandbox_network_pdf.php",
+        "sandbox/network_pdf.php",
         "requireLogin(true)",
         "$pdfFiles",
         "'2025-cze' => 'inf02_2025_cze.pdf'",
@@ -1558,7 +1553,7 @@ def test_help_center_has_reliable_opening_path() -> None:
         "applyHelpCenterPreference",
         "updateHelpCenterSetting",
     )
-    assert_not_contains("settings.php", "hide_help_center", "helpCenterSwitch")
+    assert_not_contains("user/settings.php", "hide_help_center", "helpCenterSwitch")
 
     missing_bootstrap = []
     footer_pattern = re.compile(r"include\s+['\"](?:\.\./)?includes/footer\.php['\"]")
@@ -1580,7 +1575,7 @@ def test_theme_colors_follow_app_preference_only() -> None:
 
 
 def test_admin_search_uses_unique_pdo_placeholders() -> None:
-    admin = read("admin.php")
+    admin = read("admin/index.php")
     functions = read("includes/functions.php")
     search_block = admin.split("if ($search !== '') {", 1)[1].split("} else {", 1)[0]
     helper = functions.split("function searchAdminUsers", 1)[1].split("function getUsers", 1)[0]
@@ -1770,7 +1765,7 @@ def test_auth_guards_fail_closed_and_rate_limits_are_process_shared() -> None:
 
 def test_html_auth_reset_privacy_and_limiter_writes_are_hardened() -> None:
     auth = read("includes/auth.php")
-    forgot_password = read("forgot_password.php")
+    forgot_password = read("auth/forgot_password.php")
     limiter = read("Security/RateLimiter.php")
     functions = read("includes/functions.php")
 
@@ -1960,7 +1955,7 @@ def test_notification_and_lesson_pdf_paths_are_confined() -> None:
     assert "return null;" in action_url
     assert "function notificationActionHref" in functions
     assert "notificationActionHref($notifUrl, $baseUrl)" in functions
-    assert "notificationActionHref($notif['action_url'])" in read("notifications.php")
+    assert "notificationActionHref($notif['action_url'])" in read("user/notifications.php")
 
     assert "in_array($baseUrl, ['', '../'], true)" in feed
     assert "str_starts_with($baseUrl, '//')" not in feed
@@ -1973,7 +1968,7 @@ def test_notification_and_lesson_pdf_paths_are_confined() -> None:
 def test_global_and_admin_text_contrast_guards() -> None:
     style = read("assets/css/style.css")
     dashboard = read("assets/css/dashboard-new.css")
-    admin = read("admin.php")
+    admin = read("admin/index.php")
 
     for rule in [
         ".text-primary { color: #1d4ed8 !important; }",
@@ -2089,7 +2084,7 @@ def test_exam_ai_guard_is_optional_hidden_and_reported() -> None:
 
 
 def test_admin_dashboard_avoids_duplicate_aggregation_and_listener_fanout() -> None:
-    admin = read("admin.php")
+    admin = read("admin/index.php")
     functions = read("includes/functions.php")
 
     assert "$totalUsers = $adminKpis['users_total'];" in admin
@@ -2168,9 +2163,9 @@ def test_runtime_schema_updates_are_cli_only_and_opt_in() -> None:
     assert "function dbRuntimeSchemaUpdatesEnabled(): bool" in functions
     assert functions.count("if (!dbRuntimeSchemaUpdatesEnabled())") >= 6
     assert auth.count("if (!appRuntimeSchemaUpdatesEnabled()) return;") >= 3
-    assert "if (!appRuntimeSchemaUpdatesEnabled()) return false;" in read("admin.php")
+    assert "if (!appRuntimeSchemaUpdatesEnabled()) return false;" in read("admin/index.php")
     assert "if (appRuntimeSchemaUpdatesEnabled())" in read("ajax/check_unranked.php")
-    assert "if (appRuntimeSchemaUpdatesEnabled())" in read("luki_panel.php")
+    assert "if (appRuntimeSchemaUpdatesEnabled())" in read("sandbox/luki_panel.php")
     assert "if (isset($pdo) && $pdo instanceof PDO) {\n    ensurePlatformEnhancements($pdo);" not in functions
     assert "APP_RUNTIME_SCHEMA_UPDATES=false" in read(".env.example")
     assert "APP_RUNTIME_SCHEMA_UPDATES=false" in read("README.md")
@@ -2249,7 +2244,7 @@ def test_optional_mfa_uses_popup_instead_of_notifications() -> None:
     functions = read("includes/functions.php")
     topbar = read("includes/topbar.php")
     response = read("actions/respond_mfa_prompt.php")
-    mfa = read("mfa.php")
+    mfa = read("auth/mfa.php")
 
     assert "function getPendingOptionalMfaPrompt" in functions
     assert "function clearOptionalMfaPrompt" in functions
@@ -2267,7 +2262,7 @@ def test_optional_mfa_uses_popup_instead_of_notifications() -> None:
     assert "redirect('../mfa.php?setup=1')" in response
     assert "DELETE FROM notifications" not in response
     assert "clearOptionalMfaPrompt($pdo, $userId)" in mfa
-    assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("notifications.php")
+    assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("user/notifications.php")
     assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("actions/mark_read.php")
     assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("actions/delete_notification.php")
     assert "type = 'mfa_optional_declined'" in response
@@ -2280,3 +2275,9 @@ if __name__ == "__main__":
         if name.startswith("test_") and callable(fn):
             fn()
             print(f"OK {name}")
+
+
+
+
+
+

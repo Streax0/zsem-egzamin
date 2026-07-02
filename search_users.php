@@ -194,7 +194,7 @@ if (!empty($query)) {
                                     $avatarSrc = userAvatarSrc($user['avatar_path'] ?? '');
                                 ?>
                                     <article class="user-result-card">
-                                        <a href="profile.php?id=<?php echo (int)$user['id']; ?>" class="user-result-main">
+                                        <a href="user/profile.php?id=<?php echo (int)$user['id']; ?>" class="user-result-main">
                                             <?php if ($avatarSrc): ?>
                                                 <img class="user-avatar-search" src="<?php echo htmlspecialchars($avatarSrc); ?>" alt="" loading="lazy" decoding="async">
                                             <?php else: ?>
@@ -225,7 +225,7 @@ if (!empty($query)) {
                                                 </button>
                                             </form>
                                             <?php elseif ($status === 'friends'): ?>
-                                                <a href="profile.php?id=<?php echo (int)$user['id']; ?>" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">
+                                                <a href="user/profile.php?id=<?php echo (int)$user['id']; ?>" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold">
                                                     <i class="bi bi-check2-circle me-1"></i>Znajomy
                                                 </a>
                                             <?php elseif ($status === 'sent'): ?>
@@ -233,7 +233,7 @@ if (!empty($query)) {
                                                     <i class="bi bi-clock-history"></i>Wysłane
                                                 </span>
                                             <?php elseif ($status === 'pending'): ?>
-                                                <form action="social.php" method="POST" class="d-flex gap-2 m-0">
+                                                <form action="user/social.php" method="POST" class="d-flex gap-2 m-0">
                                                     <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                                                     <input type="hidden" name="friend_id" value="<?php echo (int)$user['id']; ?>">
                                                     <button type="submit" name="action" value="accept" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
@@ -252,7 +252,7 @@ if (!empty($query)) {
                             <div class="text-center py-5">
                                 <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
                                 <p class="mt-3 text-muted">Nie znaleziono użytkowników pasujących do zapytania.</p>
-                                <a href="profile.php" class="btn btn-primary">Powrót do profilu</a>
+                                <a href="user/profile.php" class="btn btn-primary">Powrót do profilu</a>
                             </div>
                         <?php endif; ?>
                     </div>

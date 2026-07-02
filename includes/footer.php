@@ -60,7 +60,8 @@ if (!isset($base_url)) {
                             <li><a href="<?php echo $base_url; ?>ranking.php"><i class="bi bi-chevron-right small"></i> Ranking</a></li>
                             <li><a href="<?php echo $base_url; ?>categories.php"><i class="bi bi-chevron-right small"></i> Kwalifikacje</a></li>
                             <li><a href="<?php echo $base_url; ?>practice.php"><i class="bi bi-chevron-right small"></i> Praktyka</a></li>
-                            <li><a href="<?php echo $base_url; ?>careers.php"><i class="bi bi-chevron-right small"></i> Kariery</a></li>
+                            <li><a href="<?php echo $base_url; ?>courses.php"><i class="bi bi-chevron-right small"></i> Kursy</a></li>
+                            <li><a href="<?php echo $base_url; ?>pages/careers.php"><i class="bi bi-chevron-right small"></i> Kariery</a></li>
                         </ul>
                     </div>
                 </div>
@@ -70,10 +71,10 @@ if (!isset($base_url)) {
                     <div class="footer-nav-section">
                         <h6 class="footer-heading">Konto</h6>
                         <ul class="list-unstyled footer-nav">
-                            <li><a href="<?php echo $base_url; ?>profile.php"><i class="bi bi-chevron-right small"></i> Twój profil</a></li>
-                            <li><a href="<?php echo $base_url; ?>social.php"><i class="bi bi-chevron-right small"></i> Znajomi</a></li>
-                            <li><a href="<?php echo $base_url; ?>goals.php"><i class="bi bi-chevron-right small"></i> Misje</a></li>
-                            <li><a href="<?php echo $base_url; ?>settings.php"><i class="bi bi-chevron-right small"></i> Ustawienia</a></li>
+                            <li><a href="<?php echo $base_url; ?>user/profile.php"><i class="bi bi-chevron-right small"></i> Twój profil</a></li>
+                            <li><a href="<?php echo $base_url; ?>user/social.php"><i class="bi bi-chevron-right small"></i> Znajomi</a></li>
+                            <li><a href="<?php echo $base_url; ?>user/goals.php"><i class="bi bi-chevron-right small"></i> Misje</a></li>
+                            <li><a href="<?php echo $base_url; ?>user/settings.php"><i class="bi bi-chevron-right small"></i> Ustawienia</a></li>
                         </ul>
                     </div>
                 </div>
@@ -96,7 +97,7 @@ if (!isset($base_url)) {
                                 <span class="value">Nowy Sącz, ul. Limanowskiego 4</span>
                             </div>
                         </div>
-                        <a href="<?php echo $base_url; ?>contact.php" class="btn btn-primary rounded-pill w-100 fw-bold">
+                        <a href="<?php echo $base_url; ?>pages/contact.php" class="btn btn-primary rounded-pill w-100 fw-bold">
                             Centrum Pomocy
                         </a>
                     </div>
@@ -111,19 +112,19 @@ if (!isset($base_url)) {
                     <div class="col-md-5 text-center text-md-start">
                         <p class="mb-0 text-muted small">
                             &copy; 2026 <strong>Zespół Szkół Elektryczno-Mechanicznych im. gen. Józefa Kustronia</strong>.
-                            <br>Projekt platformy: <a href="<?php echo $base_url; ?>author_damian.php" class="text-primary text-decoration-none fw-bold">Damian Podgórski</a> & <a href="<?php echo $base_url; ?>author_michal.php" class="text-primary text-decoration-none fw-bold">Michał Michalik</a>
+                            <br>Projekt platformy: <a href="<?php echo $base_url; ?>pages/author_damian.php" class="text-primary text-decoration-none fw-bold">Damian Podgórski</a> & <a href="<?php echo $base_url; ?>pages/author_michal.php" class="text-primary text-decoration-none fw-bold">Michał Michalik</a>
                         </p>
                     </div>
                     <div class="col-md-7 mt-3 mt-md-0 footer-bottom-links">
                         <ul class="list-inline mb-0 footer-legal-list small">
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>privacy.php" class="text-muted text-decoration-none hover-primary">Prywatność</a></li>
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>polityka-cookies.php" class="text-muted text-decoration-none hover-primary">Cookies</a></li>
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>careers.php" class="text-muted text-decoration-none hover-primary">Kariery</a></li>
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>terms.php" class="text-muted text-decoration-none hover-primary">Regulamin</a></li>
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>zglos-naruszenie.php" class="text-muted text-decoration-none hover-primary">Zgłoś naruszenie</a></li>
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>cooperation.php" class="text-muted text-decoration-none hover-primary">Współpraca</a></li>
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>dostepnosc.php" class="text-muted text-decoration-none hover-primary">Dostępność</a></li>
-                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>contact.php" class="text-muted text-decoration-none hover-primary">Kontakt</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/privacy.php" class="text-muted text-decoration-none hover-primary">Prywatność</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/polityka-cookies.php" class="text-muted text-decoration-none hover-primary">Cookies</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/careers.php" class="text-muted text-decoration-none hover-primary">Kariery</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/terms.php" class="text-muted text-decoration-none hover-primary">Regulamin</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/zglos-naruszenie.php" class="text-muted text-decoration-none hover-primary">Zgłoś naruszenie</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/cooperation.php" class="text-muted text-decoration-none hover-primary">Współpraca</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/dostepnosc.php" class="text-muted text-decoration-none hover-primary">Dostępność</a></li>
+                            <li class="list-inline-item"><a href="<?php echo $base_url; ?>pages/contact.php" class="text-muted text-decoration-none hover-primary">Kontakt</a></li>
                             <li class="list-inline-item"><button type="button" class="btn btn-link p-0 text-muted text-decoration-none hover-primary small align-baseline" data-cookie-settings>Ustawienia cookies</button></li>
                         </ul>
                     </div>

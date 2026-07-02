@@ -357,7 +357,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                                             </div>
                                                         <?php endif; ?>
                                                         <div style="min-width: 0;">
-                                                            <a class="fw-bold username-text text-decoration-none text-reset" href="profile.php?id=<?php echo (int)$u['id']; ?>" title="<?php echo htmlspecialchars($u['username']); ?>">
+                                                            <a class="fw-bold username-text text-decoration-none text-reset" href="user/profile.php?id=<?php echo (int)$u['id']; ?>" title="<?php echo htmlspecialchars($u['username']); ?>">
                                                                 <?php echo htmlspecialchars($u['username']); ?><?php echo getUserBadgeHtml($u['role'] ?? 'user', (int)($u['is_verified'] ?? 0)); ?>
                                                                 <span class="streak-badge <?php echo htmlspecialchars($rowStreak['class']); ?>" title="Seria wyników z pełnych testów"><?php echo htmlspecialchars($rowStreak['label']); ?></span>
                                                             </a>

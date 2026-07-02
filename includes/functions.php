@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/autoloader.php';
 /**
  * Helper functions library
  * Provides utility functions for the quiz application
@@ -1355,6 +1356,7 @@ function getFeaturePageBlockCategories(): array {
         'history' => ['label' => 'Historia', 'icon' => 'bi-clock-history'],
         'exam' => ['label' => 'Sprawdzian', 'icon' => 'bi-qr-code-scan'],
         'teacher' => ['label' => 'Panel nauczyciela', 'icon' => 'bi-clipboard2-pulse-fill'],
+        'courses' => ['label' => 'Kursy', 'icon' => 'bi-mortarboard'],
     ];
 }
 
@@ -1377,10 +1379,11 @@ function resolveFeaturePageCategoryForPath(?string $path = null): ?string {
     if ($ends('dictionary.php')) return 'dictionary';
     if ($ends('flashcards.php')) return 'flashcards';
     if ($ends('sandbox.php')) return 'sandbox';
-    if ($ends('social.php') || $ends('profile.php') || $ends('search_users.php')) return 'social';
+    if ($ends('user/social.php') || $ends('profile.php') || $ends('search_users.php')) return 'social';
     if ($ends('progress.php')) return 'progress';
-    if ($ends('goals.php')) return 'missions';
+    if ($ends('user/goals.php')) return 'missions';
     if ($ends('history.php') || $ends('result.php')) return 'history';
+    if ($ends('courses.php') || $ends('course_view.php')) return 'courses';
     return null;
 }
 
@@ -2563,12 +2566,7 @@ function calculateScore($correct, $total) {
  * @param int $seconds Time in seconds
  * @return string Formatted time string
  */
-function formatTime($seconds) {
-    $seconds = max(0, (int)$seconds);
-    $minutes = floor($seconds / 60);
-    $remainingSeconds = $seconds % 60;
-    return sprintf('%02d:%02d', $minutes, $remainingSeconds);
-}
+function formatTime($seconds) { return \App\User\StringUtils::formatTime($seconds); }
 
 // ============================================
 // Progress Tracking Functions
@@ -3426,7 +3424,7 @@ function notifyOptionalMfaForRole(PDO $pdo, int $userId, string $role): bool {
         $userId,
         'mfa_optional_prompt',
         'Czy włączyć 2 etapowe uwierzytelnianie?',
-        'mfa.php',
+        'auth/mfa.php',
         'mfa_optional_prompt:' . $userId . ':' . $role
     );
 }
@@ -3833,7 +3831,7 @@ function syncUserMissionsForPeriod($pdo, $userId, $period = 'daily', $missionCou
         
         if ($wasEmpty && !empty($userMissions)) {
             $label = ['daily' => 'codzienne', 'weekly' => 'tygodniowe', 'monthly' => 'miesięczne'][$period];
-            addNotification($pdo, $userId, $period . '_missions_refresh', "Twoje {$label} misje zostały odświeżone! Sprawdź nowe wyzwania.", 'goals.php');
+            addNotification($pdo, $userId, $period . '_missions_refresh', "Twoje {$label} misje zostały odświeżone! Sprawdź nowe wyzwania.", 'user/goals.php');
         }
     }
 
@@ -3881,7 +3879,7 @@ function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuest
             $pdo->prepare("UPDATE user_daily_missions SET completed_at = NOW() WHERE id = ? AND completed_at IS NULL")
                 ->execute([(int)$mission['id']]);
             $title = $pool[$mission['mission_type']]['title'] ?? 'Misja';
-            addNotification($pdo, $userId, 'mission_complete', "Gratulacje! Ukończyłeś misję: $title. Otrzymujesz +$reward XP.", 'goals.php');
+            addNotification($pdo, $userId, 'mission_complete', "Gratulacje! Ukończyłeś misję: $title. Otrzymujesz +$reward XP.", 'user/goals.php');
         }
     }
 }
@@ -5335,7 +5333,7 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
             $notif['message'] = $appStatusPayload['title'];
         }
         $notifUrl = !empty($notif['action_url']) ? normalizeNotificationActionUrl($notif['action_url']) : null;
-        $notifHref = notificationActionHref($notifUrl, $baseUrl) ?? ($baseUrl . 'notifications.php');
+        $notifHref = notificationActionHref($notifUrl, $baseUrl) ?? ($baseUrl . 'user/notifications.php');
         $duelId = 0;
         $pendingDuel = null;
         if (($notif['type'] ?? '') === 'duel_challenge') {
@@ -5350,64 +5348,96 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
             $itemClass .= ' notification-has-duel-actions';
         }
         ?>
-        <div class="<?php echo htmlspecialchars($itemClass); ?>">
-            <?php if ($appStatusPayload): ?>
+        <div class="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($itemClass); ?>">
+            <?php
+require_once __DIR__ . '/autoloader.php'; if ($appStatusPayload): ?>
             <div class="notification-menu-link notification-status-link text-reset">
-                <div class="notification-menu-icon text-<?php echo htmlspecialchars($tone); ?>">
-                    <i class="bi <?php echo htmlspecialchars($icon); ?>"></i>
+                <div class="notification-menu-icon text-<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($tone); ?>">
+                    <i class="bi <?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($icon); ?>"></i>
                 </div>
                 <div class="notification-menu-body flex-grow-1">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                        <span class="notification-menu-label"><?php echo htmlspecialchars($label); ?></span>
-                        <?php if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php endif; ?>
+                        <span class="notification-menu-label"><?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($label); ?></span>
+                        <?php
+require_once __DIR__ . '/autoloader.php'; if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php
+require_once __DIR__ . '/autoloader.php'; endif; ?>
                     </div>
-                    <div class="notification-menu-message text-wrap"><?php echo htmlspecialchars($notif['message'] ?? ''); ?></div>
+                    <div class="notification-menu-message text-wrap"><?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($notif['message'] ?? ''); ?></div>
                     <div class="notification-menu-time">
-                        <i class="bi bi-clock me-1"></i><?php echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
+                        <i class="bi bi-clock me-1"></i><?php
+require_once __DIR__ . '/autoloader.php'; echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
                     </div>
                     <button type="button"
                             class="btn btn-sm btn-outline-primary rounded-pill notification-status-more mt-2"
                             data-app-status-open
-                            data-status-title="<?php echo htmlspecialchars($appStatusPayload['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-body="<?php echo htmlspecialchars($appStatusPayload['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-level="<?php echo htmlspecialchars($appStatusPayload['level'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-date="<?php echo htmlspecialchars($appStatusPayload['date'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-moderator="<?php echo htmlspecialchars($appStatusPayload['moderator'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                            data-status-title="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-body="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-level="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['level'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-date="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['date'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-moderator="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['moderator'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                         Więcej
                     </button>
                 </div>
             </div>
-            <?php else: ?>
-            <a href="<?php echo htmlspecialchars($notifHref); ?>" class="notification-menu-link text-decoration-none text-reset">
-                <div class="notification-menu-icon text-<?php echo htmlspecialchars($tone); ?>">
-                    <i class="bi <?php echo htmlspecialchars($icon); ?>"></i>
+            <?php
+require_once __DIR__ . '/autoloader.php'; else: ?>
+            <a href="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($notifHref); ?>" class="notification-menu-link text-decoration-none text-reset">
+                <div class="notification-menu-icon text-<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($tone); ?>">
+                    <i class="bi <?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($icon); ?>"></i>
                 </div>
                 <div class="notification-menu-body flex-grow-1">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                        <span class="notification-menu-label"><?php echo htmlspecialchars($label); ?></span>
-                        <?php if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php endif; ?>
+                        <span class="notification-menu-label"><?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($label); ?></span>
+                        <?php
+require_once __DIR__ . '/autoloader.php'; if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php
+require_once __DIR__ . '/autoloader.php'; endif; ?>
                     </div>
-                    <div class="notification-menu-message text-wrap"><?php echo htmlspecialchars($notif['message'] ?? ''); ?></div>
+                    <div class="notification-menu-message text-wrap"><?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($notif['message'] ?? ''); ?></div>
                     <div class="notification-menu-time">
-                        <i class="bi bi-clock me-1"></i><?php echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
+                        <i class="bi bi-clock me-1"></i><?php
+require_once __DIR__ . '/autoloader.php'; echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
                     </div>
                 </div>
             </a>
-            <?php endif; ?>
-            <?php if ($pendingDuel): ?>
-            <div class="notification-duel-actions px-3 pb-3 pt-0" data-duel-id="<?php echo (int)$duelId; ?>">
-                <button type="button" class="btn btn-sm btn-success rounded-pill px-3" data-duel-action="accept" data-duel-id="<?php echo (int)$duelId; ?>">
+            <?php
+require_once __DIR__ . '/autoloader.php'; endif; ?>
+            <?php
+require_once __DIR__ . '/autoloader.php'; if ($pendingDuel): ?>
+            <div class="notification-duel-actions px-3 pb-3 pt-0" data-duel-id="<?php
+require_once __DIR__ . '/autoloader.php'; echo (int)$duelId; ?>">
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-3" data-duel-action="accept" data-duel-id="<?php
+require_once __DIR__ . '/autoloader.php'; echo (int)$duelId; ?>">
                     <i class="bi bi-check2-circle me-1"></i>Akceptuj
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-duel-action="decline" data-duel-id="<?php echo (int)$duelId; ?>">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-duel-action="decline" data-duel-id="<?php
+require_once __DIR__ . '/autoloader.php'; echo (int)$duelId; ?>">
                     Odrzuć
                 </button>
-                <a href="<?php echo htmlspecialchars($baseUrl . 'duels/lobby.php?id=' . (int)$duelId); ?>" class="btn btn-sm btn-link text-decoration-none">Lobby</a>
-                <input type="hidden" name="csrf_token" value="<?php echo $csrf; ?>">
+                <a href="<?php
+require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($baseUrl . 'duels/lobby.php?id=' . (int)$duelId); ?>" class="btn btn-sm btn-link text-decoration-none">Lobby</a>
+                <input type="hidden" name="csrf_token" value="<?php
+require_once __DIR__ . '/autoloader.php'; echo $csrf; ?>">
             </div>
-            <?php endif; ?>
+            <?php
+require_once __DIR__ . '/autoloader.php'; endif; ?>
         </div>
         <?php
+require_once __DIR__ . '/autoloader.php';
     }
     return (string)ob_get_clean();
 }
@@ -5815,7 +5845,7 @@ function resolveTeacherApplication(PDO $pdo, int $requestId, int $adminId, strin
         $pdo->commit();
 
         clearTeacherApplicationNotifications($pdo, $requestId);
-        addNotification($pdo, (int)$request['teacher_id'], $notificationType, $message, $decision === 'approve' ? 'teacher/index.php' : 'notifications.php');
+        addNotification($pdo, (int)$request['teacher_id'], $notificationType, $message, $decision === 'approve' ? 'teacher/index.php' : 'user/notifications.php');
         if ($decision === 'approve') {
             notifyOptionalMfaForRole($pdo, (int)$request['teacher_id'], 'teacher');
         }
@@ -5980,7 +6010,7 @@ function sendFriendRequest($pdo, $fromId, $toId, ?string &$failureReason = null)
         $stmt->execute([$fromId, $toId]);
         
         $username = $_SESSION['username'] ?? 'Ktoś';
-        addNotification($pdo, $toId, 'friend_request', "Użytkownik $username wysłał Ci zaproszenie do znajomych.", 'social.php');
+        addNotification($pdo, $toId, 'friend_request', "Użytkownik $username wysłał Ci zaproszenie do znajomych.", 'user/social.php');
         return true;
     } catch (PDOException $e) {
         $failureReason = 'friend_request_failed';
@@ -6008,7 +6038,7 @@ function acceptFriendRequest($pdo, $userId, $friendId) {
         
         if ($stmt->rowCount() > 0) {
             $username = $_SESSION['username'] ?? 'Twój znajomy';
-            addNotification($pdo, $friendId, 'friend_request', "Użytkownik $username zaakceptował Twoje zaproszenie!", 'profile.php?id=' . (int)$userId);
+            addNotification($pdo, $friendId, 'friend_request', "Użytkownik $username zaakceptował Twoje zaproszenie!", 'user/profile.php?id=' . (int)$userId);
             return true;
         }
         return false;
@@ -6236,7 +6266,7 @@ function notifyAdminsAboutTeacherApplication(PDO $pdo, int $requestId, int $user
             ? "ALERT: aplikacja nauczyciela #{$requestId} może być duplikatem tożsamości ({$label}). Konto oznaczono jako untrusted / possible fraud / duplicate identity."
             : "Nowa aplikacja na nauczyciela #{$requestId}: {$label}.";
         foreach ($admins as $adminId) {
-            addNotification($pdo, (int)$adminId, $type, $message, 'admin_requests.php#request-' . $requestId);
+            addNotification($pdo, (int)$adminId, $type, $message, 'admin/requests.php#request-' . $requestId);
         }
     } catch (PDOException $e) {
         error_log('Teacher application admin notification failed: ' . $e->getMessage());
@@ -6246,7 +6276,7 @@ function notifyAdminsAboutTeacherApplication(PDO $pdo, int $requestId, int $user
 function clearTeacherApplicationNotifications(PDO $pdo, int $requestId): void {
     try {
         ensurePlatformEnhancements($pdo);
-        $action = 'admin_requests.php#request-' . $requestId;
+        $action = 'admin/requests.php#request-' . $requestId;
         $stmt = $pdo->prepare("
             DELETE FROM notifications
             WHERE type IN ('teacher_application','teacher_application_duplicate')
@@ -6257,7 +6287,7 @@ function clearTeacherApplicationNotifications(PDO $pdo, int $requestId): void {
 
         $open = $pdo->query("SELECT COUNT(*) FROM admin_requests WHERE type = 'teacher_application' AND status IN ('sent','read')")->fetchColumn();
         if ((int)$open === 0) {
-            $pdo->exec("DELETE FROM notifications WHERE type IN ('teacher_application','teacher_application_duplicate') AND is_read = 0 AND (action_url IS NULL OR action_url = 'admin_requests.php')");
+            $pdo->exec("DELETE FROM notifications WHERE type IN ('teacher_application','teacher_application_duplicate') AND is_read = 0 AND (action_url IS NULL OR action_url = 'admin/requests.php')");
         }
     } catch (PDOException $e) {
         error_log('Teacher application notification cleanup failed: ' . $e->getMessage());
@@ -6736,3 +6766,5 @@ function duelRevengeIsAvailable(PDO $pdo, int $parentId, int $userId, int $oppon
     }
     return $finishedTs > 0 && (time() - $finishedTs) <= 600;
 }
+
+

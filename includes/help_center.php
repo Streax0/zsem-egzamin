@@ -32,7 +32,7 @@ if (!isset($base_url)) {
                     <i class="bi bi-qr-code-scan"></i>
                     <span>Sprawdzian</span>
                 </a>
-                <a href="<?php echo $base_url; ?>settings.php" class="help-quick-card">
+                <a href="<?php echo $base_url; ?>user/settings.php" class="help-quick-card">
                     <i class="bi bi-sliders"></i>
                     <span>Ustawienia</span>
                 </a>
@@ -171,7 +171,7 @@ if (!isset($base_url)) {
                 <strong>Nie znalazłeś odpowiedzi?</strong>
                 <p class="mb-0 small text-muted">Napisz przez formularz kontaktowy albo opisz problem w zgłoszeniu.</p>
             </div>
-            <a href="<?php echo $base_url; ?>contact.php" class="btn btn-primary btn-sm rounded-pill">Kontakt</a>
+            <a href="<?php echo $base_url; ?>pages/contact.php" class="btn btn-primary btn-sm rounded-pill">Kontakt</a>
         </div>
 
         <div id="noResultsHelp" class="text-center p-4 d-none">

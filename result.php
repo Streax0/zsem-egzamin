@@ -856,7 +856,7 @@ $shareCardData = [
                         <a href="index.php" class="btn btn-outline-dark">
                             <i class="bi bi-grid-fill me-2"></i>Dashboard
                         </a>
-                        <a href="progress.php" class="btn btn-outline-dark">
+                        <a href="user/progress.php" class="btn btn-outline-dark">
                             <i class="bi bi-clock-history me-2"></i>Historia
                         </a>
                         <button type="button" class="btn btn-outline-primary" id="saveResultImageBtn" data-bs-toggle="modal" data-bs-target="#resultShareModal">

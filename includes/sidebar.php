@@ -1,9 +1,13 @@
 <?php
-$current_page = basename($_SERVER['PHP_SELF'], ".php");
+$php_self = $_SERVER['PHP_SELF'];
 // Determine base path by looking for a root-level file
 $base_url = file_exists('config/db.php') ? '' : '../';
 $isGuestSidebar = function_exists('isGuestMode') && isGuestMode();
 $isFullyLoggedOut = !isset($_SESSION['user_id']) && !$isGuestSidebar;
+
+function isActive($path, $php_self) {
+    return strpos($php_self, $path) !== false ? 'active' : '';
+}
 ?>
 <a class="skip-link" href="#main-content">Przejdź do treści</a>
 <script>
@@ -42,11 +46,11 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
     
     <nav class="sidebar-menu" role="navigation" aria-label="Menu główne">
-        <a href="<?php echo $base_url; ?>index.php" class="sidebar-item <?php echo $current_page == 'index' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>index.php" class="sidebar-item <?php echo (strpos($php_self, '/index.php') !== false && strpos($php_self, '/admin/') === false && strpos($php_self, '/teacher/') === false && strpos($php_self, '/sandbox/') === false) ? 'active' : ''; ?>">
             <i class="bi bi-grid-1x2-fill"></i>
             <span>Dashboard</span>
         </a>
-        <a href="<?php echo $base_url; ?>test.php?setup=1&new=1" class="sidebar-item <?php echo $current_page == 'test' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>test.php?setup=1&new=1" class="sidebar-item <?php echo isActive('/test.php', $php_self); ?>">
             <i class="bi bi-journal-text"></i>
             <span>Testy</span>
         </a>
@@ -61,35 +65,39 @@ document.addEventListener('DOMContentLoaded', function () {
             <span>Załóż konto</span>
         </a>
         <?php elseif ($isGuestSidebar): ?>
-        <a href="<?php echo $base_url; ?>categories.php" class="sidebar-item <?php echo $current_page == 'categories' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>categories.php" class="sidebar-item <?php echo isActive('/categories.php', $php_self); ?>">
             <i class="bi bi-tags"></i>
             <span>Kategorie</span>
         </a>
-        <a href="<?php echo $base_url; ?>practice.php" class="sidebar-item <?php echo $current_page == 'practice' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>practice.php" class="sidebar-item <?php echo isActive('/practice.php', $php_self); ?>">
             <i class="bi bi-tools"></i>
             <span>Praktyka</span>
         </a>
-        <a href="<?php echo $base_url; ?>lessons.php" class="sidebar-item <?php echo $current_page == 'lessons' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>lessons.php" class="sidebar-item <?php echo isActive('/lessons.php', $php_self); ?>">
             <i class="bi bi-easel2"></i>
             <span>Lekcje</span>
         </a>
-        <a href="<?php echo $base_url; ?>ranking.php" class="sidebar-item <?php echo $current_page == 'ranking' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>ranking.php" class="sidebar-item <?php echo isActive('/ranking.php', $php_self); ?>">
             <i class="bi bi-trophy"></i>
             <span>Ranking</span>
         </a>
-        <a href="<?php echo $base_url; ?>dictionary.php" class="sidebar-item <?php echo $current_page == 'dictionary' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>dictionary.php" class="sidebar-item <?php echo isActive('/dictionary.php', $php_self); ?>">
             <i class="bi bi-book"></i>
             <span>Słownik pojęć</span>
         </a>
-        <a href="<?php echo $base_url; ?>flashcards.php" class="sidebar-item <?php echo $current_page == 'flashcards' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>flashcards.php" class="sidebar-item <?php echo isActive('/flashcards.php', $php_self); ?>">
             <i class="bi bi-card-text"></i>
             <span>Fiszki</span>
         </a>
-        <a href="<?php echo $base_url; ?>sandbox.php" class="sidebar-item <?php echo $current_page == 'sandbox' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>sandbox/index.php" class="sidebar-item <?php echo isActive('/sandbox/index.php', $php_self); ?>">
             <i class="bi bi-cpu"></i>
             <span>Sandbox</span>
         </a>
-        <a href="<?php echo $base_url; ?>progress.php" class="sidebar-item <?php echo $current_page == 'progress' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>courses.php" class="sidebar-item <?php echo isActive('/courses.php', $php_self); ?>">
+            <i class="bi bi-mortarboard"></i>
+            <span>Kursy</span>
+        </a>
+        <a href="<?php echo $base_url; ?>user/progress.php" class="sidebar-item <?php echo isActive('/user/progress.php', $php_self); ?>">
             <i class="bi bi-bar-chart-line"></i>
             <span>Statystyki</span>
         </a>
@@ -107,47 +115,51 @@ document.addEventListener('DOMContentLoaded', function () {
             <span>Załóż konto</span>
         </a>
         <?php else: ?>
-        <a href="<?php echo $base_url; ?>categories.php" class="sidebar-item <?php echo $current_page == 'categories' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>categories.php" class="sidebar-item <?php echo isActive('/categories.php', $php_self); ?>">
             <i class="bi bi-tags"></i>
             <span>Kategorie</span>
         </a>
-        <a href="<?php echo $base_url; ?>practice.php" class="sidebar-item <?php echo $current_page == 'practice' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>practice.php" class="sidebar-item <?php echo isActive('/practice.php', $php_self); ?>">
             <i class="bi bi-tools"></i>
             <span>Praktyka</span>
         </a>
-        <a href="<?php echo $base_url; ?>lessons.php" class="sidebar-item <?php echo $current_page == 'lessons' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>lessons.php" class="sidebar-item <?php echo isActive('/lessons.php', $php_self); ?>">
             <i class="bi bi-easel2"></i>
             <span>Lekcje</span>
         </a>
-        <a href="<?php echo $base_url; ?>ranking.php" class="sidebar-item <?php echo $current_page == 'ranking' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>ranking.php" class="sidebar-item <?php echo isActive('/ranking.php', $php_self); ?>">
             <i class="bi bi-trophy"></i>
             <span>Ranking</span>
         </a>
-        <a href="<?php echo $base_url; ?>dictionary.php" class="sidebar-item <?php echo $current_page == 'dictionary' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>dictionary.php" class="sidebar-item <?php echo isActive('/dictionary.php', $php_self); ?>">
             <i class="bi bi-book"></i>
             <span>Słownik pojęć</span>
         </a>
-        <a href="<?php echo $base_url; ?>flashcards.php" class="sidebar-item <?php echo $current_page == 'flashcards' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>flashcards.php" class="sidebar-item <?php echo isActive('/flashcards.php', $php_self); ?>">
             <i class="bi bi-card-text"></i>
             <span>Fiszki</span>
         </a>
-        <a href="<?php echo $base_url; ?>sandbox.php" class="sidebar-item <?php echo $current_page == 'sandbox' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>sandbox/index.php" class="sidebar-item <?php echo isActive('/sandbox/index.php', $php_self); ?>">
             <i class="bi bi-cpu"></i>
             <span>Sandbox</span>
         </a>
-        <a href="<?php echo $base_url; ?>social.php" class="sidebar-item <?php echo $current_page == 'social' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>courses.php" class="sidebar-item <?php echo isActive('/courses.php', $php_self); ?>">
+            <i class="bi bi-mortarboard"></i>
+            <span>Kursy</span>
+        </a>
+        <a href="<?php echo $base_url; ?>user/social.php" class="sidebar-item <?php echo isActive('/user/social.php', $php_self); ?>">
             <i class="bi bi-people"></i>
             <span>Społeczność</span>
         </a>
-        <a href="<?php echo $base_url; ?>progress.php" class="sidebar-item <?php echo $current_page == 'progress' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>user/progress.php" class="sidebar-item <?php echo isActive('/user/progress.php', $php_self); ?>">
             <i class="bi bi-bar-chart-line"></i>
             <span>Statystyki</span>
         </a>
-        <a href="<?php echo $base_url; ?>goals.php" class="sidebar-item <?php echo $current_page == 'goals' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>user/goals.php" class="sidebar-item <?php echo isActive('/user/goals.php', $php_self); ?>">
             <i class="bi bi-lightning-charge"></i>
             <span>Misje</span>
         </a>
-        <a href="<?php echo $base_url; ?>history.php" class="sidebar-item <?php echo $current_page == 'history' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>user/history.php" class="sidebar-item <?php echo isActive('/user/history.php', $php_self); ?>">
             <i class="bi bi-clock-history"></i>
             <span>Historia</span>
         </a>
@@ -155,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="bi bi-qr-code-scan text-info"></i>
             <span>Sprawdzian</span>
         </a>
-        <a href="<?php echo $base_url; ?>settings.php" class="sidebar-item <?php echo $current_page == 'settings' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>user/settings.php" class="sidebar-item <?php echo isActive('/user/settings.php', $php_self); ?>">
             <i class="bi bi-gear"></i>
             <span>Ustawienia</span>
         </a>
@@ -184,15 +196,19 @@ document.addEventListener('DOMContentLoaded', function () {
         <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?>
         <div class="sidebar-divider my-3 opacity-25 border-top border-white mx-3"></div>
         <div class="px-4 mb-2 small text-uppercase fw-bold opacity-50 text-white" style="font-size: 0.65rem;">Administracja</div>
-        <a href="<?php echo $base_url; ?>admin.php" class="sidebar-item <?php echo $current_page == 'admin' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>admin/index.php" class="sidebar-item <?php echo isActive('/admin/index.php', $php_self); ?>">
             <i class="bi bi-shield-lock-fill text-danger"></i>
             <span>Panel Admin</span>
         </a>
-        <a href="<?php echo $base_url; ?>manage_questions.php" class="sidebar-item <?php echo $current_page == 'manage_questions' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>admin/manage_questions.php" class="sidebar-item <?php echo isActive('/admin/manage_questions.php', $php_self); ?>">
             <i class="bi bi-database-fill-gear text-warning"></i>
             <span>Baza Pytań</span>
         </a>
-        <a href="<?php echo $base_url; ?>admin_requests.php" class="sidebar-item <?php echo $current_page == 'admin_requests' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>admin/manage_courses.php" class="sidebar-item <?php echo isActive('/admin/manage_courses.php', $php_self); ?>">
+            <i class="bi bi-kanban text-success"></i>
+            <span>Zarządzanie kursami</span>
+        </a>
+        <a href="<?php echo $base_url; ?>admin/requests.php" class="sidebar-item <?php echo isActive('/admin/requests.php', $php_self); ?>">
             <i class="bi bi-envelope-open text-primary"></i>
             <span>Wnioski i role</span>
         </a>
@@ -201,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['wujek_luki', 'admin'], true)): ?>
         <div class="sidebar-divider my-3 opacity-25 border-top border-white mx-3"></div>
         <div class="px-4 mb-2 small text-uppercase fw-bold opacity-50 text-white" style="font-size: 0.65rem;">Specjalne</div>
-        <a href="<?php echo $base_url; ?>luki_panel.php" class="sidebar-item <?php echo $current_page == 'luki_panel' ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>sandbox/luki_panel.php" class="sidebar-item <?php echo isActive('/sandbox/luki_panel.php', $php_self); ?>">
             <i class="bi bi-star-fill text-warning"></i>
             <span>Panel Lukiego</span>
         </a>
