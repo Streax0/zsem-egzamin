@@ -185,39 +185,208 @@ include 'includes/header.php';
 ?>
 
 <style>
-    .learn-layout {
+    /* Standalone Cisco NetAcad Player Layout */
+    .netacad-player-container {
         display: flex;
-        min-height: calc(100vh - 65px);
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
         background-color: var(--body-bg);
+        overflow: hidden;
     }
-    .learn-sidebar {
-        width: 320px;
-        border-right: 1px solid var(--border-color);
+    .netacad-topbar {
+        height: 60px;
         background-color: var(--panel-bg);
+        border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
+    }
+    .netacad-body-layout {
+        display: flex;
+        flex-direction: row;
+        height: calc(100vh - 60px);
+        width: 100%;
+        overflow: hidden;
+    }
+    .netacad-sidebar {
+        width: 320px;
+        background-color: var(--panel-bg);
+        border-right: 1px solid var(--border-color);
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .learn-content {
+    .netacad-sidebar.collapsed {
+        margin-left: -320px;
+    }
+    .netacad-sidebar-content {
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+    .netacad-content-wrapper {
         flex-grow: 1;
         display: flex;
         flex-direction: column;
-        overflow-y: auto;
+        position: relative;
+        overflow: hidden;
+        background-color: var(--body-bg);
     }
-    .learn-sidebar-header {
-        padding: 1.5rem;
+    .netacad-content-header {
+        height: 50px;
+        background-color: var(--panel-bg);
         border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.5rem;
     }
-    .learn-sidebar-body {
-        overflow-y: auto;
+    .netacad-canvas-area {
         flex-grow: 1;
+        overflow-y: auto;
+        position: relative;
+        padding: 40px;
+        display: flex;
+        justify-content: center;
     }
+    .netacad-canvas-content {
+        width: 100%;
+        max-width: 1000px;
+        background-color: var(--panel-bg);
+        min-height: 800px;
+        position: relative; /* Kluczowe dla pozycji absolutnych wygenerowanych z buildera */
+        box-shadow: 0 5px 25px rgba(0,0,0,0.03);
+        border-radius: 12px;
+        padding: 40px;
+        box-sizing: border-box;
+        border: 1px solid var(--border-color);
+    }
+    
+    /* Navigator arrows on the left and right */
+    .netacad-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 45px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        cursor: pointer;
+        z-index: 1000;
+        transition: all 0.2s;
+        color: var(--text-main);
+        text-decoration: none;
+    }
+    .netacad-nav-btn:hover {
+        background-color: var(--primary-color);
+        color: white !important;
+        border-color: var(--primary-color);
+    }
+    .netacad-nav-btn.prev-btn {
+        left: 20px;
+    }
+    .netacad-nav-btn.next-btn {
+        right: 20px;
+    }
+    
+    /* Cisco Outline Connector Lines */
+    .netacad-outline-list {
+        list-style: none;
+        padding-left: 2.5rem;
+        position: relative;
+        margin: 0;
+    }
+    .netacad-outline-list::before {
+        content: '';
+        position: absolute;
+        left: 1.45rem;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        border-left: 1px dashed var(--border-color);
+        z-index: 1;
+    }
+    .netacad-outline-item {
+        position: relative;
+        margin-bottom: 2px;
+    }
+    .netacad-outline-node {
+        position: absolute;
+        left: -1.35rem;
+        top: 0.65rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: var(--panel-bg);
+        border: 2px solid var(--border-color);
+        z-index: 2;
+        transition: all 0.2s;
+    }
+    .lesson-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.6rem 1rem 0.6rem 1.5rem;
+        text-decoration: none;
+        color: var(--text-main);
+        font-size: 0.85rem;
+        border-radius: 8px;
+        margin: 2px 8px;
+        transition: all 0.2s;
+    }
+    .lesson-link:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+    .lesson-link.active {
+        background-color: rgba(16, 185, 129, 0.08) !important;
+        color: #10b981 !important;
+        font-weight: 600;
+    }
+    .lesson-link.active .netacad-outline-node {
+        background-color: #10b981 !important;
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+    .lesson-link.completed .netacad-outline-node {
+        background-color: #10b981 !important;
+        border-color: #10b981 !important;
+    }
+    .lesson-link.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    /* Header strip styling */
+    .netacad-header-strip {
+        height: 60px;
+        background: linear-gradient(90deg, #1f2937 0%, #111827 100%);
+        border-radius: 8px 8px 0 0;
+        margin: -40px -40px 30px -40px;
+        display: flex;
+        align-items: center;
+        padding-left: 40px;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
     .module-item {
         border-bottom: 1px solid var(--border-color);
     }
     .module-btn {
         width: 100%;
-        padding: 1rem 1.5rem;
+        padding: 1rem 1.25rem;
         background: none;
         border: none;
         text-align: left;
@@ -230,81 +399,10 @@ include 'includes/header.php';
     .module-btn:hover {
         background-color: rgba(0,0,0,0.02);
     }
-    .lesson-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        background-color: rgba(0,0,0,0.01);
-    }
-    .lesson-link {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.75rem 1.5rem 0.75rem 2rem;
-        text-decoration: none;
-        color: var(--text-main);
-        font-size: 0.88rem;
-        border-left: 3px solid transparent;
-        transition: all 0.2s;
-    }
-    .lesson-link:hover {
-        background-color: rgba(0,0,0,0.03);
-    }
-    .lesson-link.active {
-        background-color: rgba(59, 130, 246, 0.05);
-        color: var(--primary-color);
-        border-left-color: var(--primary-color);
-        font-weight: 600;
-    }
-    .lesson-link.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-    .lesson-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .lesson-icon {
-        font-size: 1.05rem;
-        color: var(--kolor-tekst-jasny);
-    }
-    .lesson-link.active .lesson-icon {
-        color: var(--primary-color);
-    }
-    .lesson-link.completed .lesson-status-icon {
-        color: var(--kolor-sukces);
-    }
-    .lesson-link.locked .lesson-status-icon {
-        color: var(--kolor-tekst-jasny);
-    }
-    .content-area {
-        max-width: 900px;
-        width: 100%;
-        margin: 0 auto;
-        padding: 2.5rem 1.5rem;
-    }
-    .content-area-lab {
-        max-width: 100%;
-        width: 100%;
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-    .nav-footer {
-        border-top: 1px solid var(--border-color);
-        background-color: var(--panel-bg);
-        padding: 1.25rem 2.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
     .quiz-question-card {
         border: 1px solid var(--border-color);
         background-color: var(--panel-bg);
-        border-radius: var(--radius-duzy);
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
     }
@@ -344,102 +442,160 @@ include 'includes/header.php';
         width: 100%;
         height: 650px;
         border: 1px solid var(--border-color);
-        border-radius: var(--radius-duzy);
+        border-radius: 12px;
         background-color: white;
     }
 </style>
 
-<div class="dashboard-layout">
-    <?php include 'includes/sidebar.php'; ?>
+<div class="netacad-player-container">
+    <!-- Top Bar z logo i tytułem kursu (jak na screenie) -->
+    <div class="netacad-topbar">
+        <div class="d-flex align-items-center gap-3">
+            <div class="fw-bold" style="color: var(--text-main); font-size: 1.1rem; letter-spacing: -0.5px;">
+                Cisco <span style="font-weight: 400;">Academy</span>
+            </div>
+            <div class="text-muted">|</div>
+            <div class="fw-semibold text-truncate" style="max-width: 400px; color: var(--text-main); font-size: 0.95rem;">
+                <?php echo htmlspecialchars($course['title']); ?>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <a href="course_view.php?id=<?php echo $courseId; ?>" class="btn btn-link text-decoration-none p-0" style="color: var(--text-main);" title="Zamknij kurs i wróć">
+                <i class="bi bi-x-lg fs-5"></i>
+            </a>
+        </div>
+    </div>
 
-    <div class="main-container">
-        <?php include 'includes/topbar.php'; ?>
-
-        <div class="learn-layout">
-            <!-- Left E-learning Sidebar -->
-            <div class="learn-sidebar">
-                <div class="learn-sidebar-header">
-                    <h6 class="fw-bold mb-2"><?php echo htmlspecialchars($course['title']); ?></h6>
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="small text-muted">Twój postęp</span>
-                        <span class="small fw-bold text-primary" id="sidebarProgressText"><?php echo $progressPercent; ?>%</span>
-                    </div>
-                    <div class="progress" style="height: 6px; border-radius: 3px;">
-                        <div class="progress-bar" id="sidebarProgressBar" role="progressbar" style="width: <?php echo $progressPercent; ?>%;" aria-valuenow="<?php echo $progressPercent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
+    <div class="netacad-body-layout">
+        <!-- Lewy Panel (Outline / Spis treści) -->
+        <div class="netacad-sidebar" id="netacadSidebar">
+            <div class="d-flex border-bottom" style="height: 50px;">
+                <button class="bg-transparent border-0 w-50 fw-bold py-2 text-primary border-bottom border-3 border-primary" style="font-size: 0.85rem;">Spis treści</button>
+                <button class="bg-transparent border-0 w-50 fw-semibold py-2 text-muted" style="font-size: 0.85rem;">Zasoby</button>
+            </div>
+            <div class="p-3 border-bottom">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0" placeholder="Szukaj lekcji..." onkeyup="filterSidebar(this)" style="font-size: 0.85rem;">
                 </div>
-
-                <div class="learn-sidebar-body">
-                    <?php foreach ($modules as $modIndex => $mod): ?>
-                        <div class="module-item">
-                            <button class="module-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMod-<?php echo $mod['id']; ?>" aria-expanded="true">
-                                <span><?php echo htmlspecialchars($mod['title']); ?></span>
-                                <i class="bi bi-chevron-down small"></i>
-                            </button>
-                            <div class="collapse show" id="collapseMod-<?php echo $mod['id']; ?>">
-                                <ul class="lesson-list">
-                                    <?php foreach ($mod['items'] as $item): ?>
-                                        <?php 
-                                        $itemId = (int)$item['id'];
-                                        $isCompleted = isset($progressMap[$itemId]) && $progressMap[$itemId]['status'] === 'completed';
-                                        $isLocked = $lockedMap[$itemId];
-                                        
-                                        $classes = [];
-                                        if ($itemId === $activeItemId) $classes[] = 'active';
-                                        if ($isCompleted) $classes[] = 'completed';
-                                        if ($isLocked) $classes[] = 'disabled locked';
-
-                                        $icon = 'bi-file-text-fill';
-                                        if ($item['type'] === 'video') $icon = 'bi-play-btn-fill';
-                                        if ($item['type'] === 'quiz') $icon = 'bi-question-square-fill';
-                                        if ($item['type'] === 'exam') $icon = 'bi-award-fill text-warning';
-                                        if ($item['type'] === 'lab') $icon = 'bi-cpu-fill';
-                                        ?>
-                                        <li>
-                                            <a href="course_learn.php?course_id=<?php echo $courseId; ?>&item_id=<?php echo $itemId; ?>" class="lesson-link <?php echo implode(' ', $classes); ?>">
-                                                <div class="lesson-meta">
-                                                    <i class="bi <?php echo $icon; ?> lesson-icon"></i>
-                                                    <span><?php echo htmlspecialchars($item['title']); ?></span>
-                                                </div>
-                                                <span class="lesson-status-icon">
-                                                    <?php if ($isLocked): ?>
-                                                        <i class="bi bi-lock-fill"></i>
-                                                    <?php elseif ($isCompleted): ?>
-                                                        <i class="bi bi-check-circle-fill"></i>
-                                                    <?php else: ?>
-                                                        <i class="bi bi-circle"></i>
-                                                    <?php endif; ?>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
+            </div>
+            
+            <div class="netacad-sidebar-content">
+                <?php foreach ($modules as $modIndex => $mod): ?>
+                    <?php
+                    $totalModItems = count($mod['items']);
+                    $completedModItems = 0;
+                    foreach ($mod['items'] as $item) {
+                        if (isset($progressMap[(int)$item['id']]) && $progressMap[(int)$item['id']]['status'] === 'completed') {
+                            $completedModItems++;
+                        }
+                    }
+                    $allModCompleted = ($totalModItems > 0 && $completedModItems === $totalModItems);
+                    ?>
+                    <div class="module-item">
+                        <button class="module-btn" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMod-<?php echo $mod['id']; ?>">
+                            <div class="d-flex align-items-center gap-2">
+                                <?php if ($allModCompleted): ?>
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 0.95rem;"></i>
+                                <?php else: ?>
+                                    <i class="bi bi-circle text-muted" style="font-size: 0.95rem;"></i>
+                                <?php endif; ?>
+                                <span class="fw-bold text-truncate" style="max-width: 180px; font-size: 0.88rem;"><?php echo htmlspecialchars($mod['title']); ?></span>
                             </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small text-muted" style="font-size: 0.75rem;"><?php echo $completedModItems; ?>/<?php echo $totalModItems; ?></span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </div>
+                        </button>
+                        <div class="collapse show" id="collapseMod-<?php echo $mod['id']; ?>">
+                            <ul class="netacad-outline-list">
+                                <?php foreach ($mod['items'] as $item): ?>
+                                    <?php 
+                                    $itemId = (int)$item['id'];
+                                    $isCompleted = isset($progressMap[$itemId]) && $progressMap[$itemId]['status'] === 'completed';
+                                    $isLocked = $lockedMap[$itemId];
+                                    
+                                    $classes = [];
+                                    if ($itemId === $activeItemId) $classes[] = 'active';
+                                    if ($isCompleted) $classes[] = 'completed';
+                                    if ($isLocked) $classes[] = 'disabled locked';
+                                    ?>
+                                    <li class="netacad-outline-item">
+                                        <a href="course_learn.php?course_id=<?php echo $courseId; ?>&item_id=<?php echo $itemId; ?>" class="lesson-link <?php echo implode(' ', $classes); ?>">
+                                            <div class="netacad-outline-node"></div>
+                                            <span class="text-truncate" style="max-width: 185px;"><?php echo htmlspecialchars($item['title']); ?></span>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- Prawy panel (Obszar nauki) -->
+        <div class="netacad-content-wrapper">
+            <div class="netacad-content-header">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-link p-0 me-2" style="color: var(--text-main);" onclick="toggleSidebarOutline()" title="Ukryj/Pokaż spis treści">
+                        <i class="bi bi-layout-sidebar-inset fs-5"></i>
+                    </button>
+                    <span class="fw-semibold text-muted" style="font-size: 0.88rem;"><?php echo htmlspecialchars($activeItem['title']); ?></span>
+                </div>
+                <div class="d-flex align-items-center gap-3 text-muted">
+                    <i class="bi bi-moon fs-5" style="cursor:pointer;" onclick="toggleThemeMode()" title="Tryb ciemny/jasny"></i>
+                    <i class="bi bi-search fs-5" style="cursor:pointer;" title="Szukaj"></i>
+                    <span style="cursor:pointer; font-weight:700; font-size:0.85rem;">PL</span>
+                    <i class="bi bi-person-badge fs-5" style="cursor:pointer;" title="Ułatwienia dostępu"></i>
+                    <i class="bi bi-fullscreen fs-5" style="cursor:pointer;" onclick="toggleFullscreenMode()" title="Pełny ekran"></i>
                 </div>
             </div>
 
-            <!-- Right Content Container -->
-            <div class="learn-content">
-                <div class="<?php echo $activeItem['type'] === 'lab' ? 'content-area-lab' : 'content-area'; ?>">
-                    
-                    <h2 class="fw-bold mb-3"><?php echo htmlspecialchars($activeItem['title']); ?></h2>
+            <div class="netacad-canvas-area">
+                <!-- Strzałki poprzecznego przewijania lekcji -->
+                <?php 
+                $prevItem = null;
+                $nextItem = null;
+                foreach ($allItems as $index => $item) {
+                    if ((int)$item['id'] === $activeItemId) {
+                        if ($index > 0) $prevItem = $allItems[$index - 1];
+                        if ($index + 1 < count($allItems)) $nextItem = $allItems[$index + 1];
+                        break;
+                    }
+                }
+                ?>
+                
+                <?php if ($prevItem && !$lockedMap[(int)$prevItem['id']]): ?>
+                    <a href="course_learn.php?course_id=<?php echo $courseId; ?>&item_id=<?php echo $prevItem['id']; ?>" class="netacad-nav-btn prev-btn" title="Poprzednia lekcja">
+                        <i class="bi bi-chevron-left fs-4"></i>
+                    </a>
+                <?php endif; ?>
 
-                    <!-- TEXT/BLOCK CONTENT -->
+                <?php if ($nextItem && !$lockedMap[(int)$nextItem['id']]): ?>
+                    <a href="course_learn.php?course_id=<?php echo $courseId; ?>&item_id=<?php echo $nextItem['id']; ?>" class="netacad-nav-btn next-btn" title="Kolejna lekcja">
+                        <i class="bi bi-chevron-right fs-4"></i>
+                    </a>
+                <?php endif; ?>
+
+                <div class="netacad-canvas-content">
+                    <!-- Nagłówek lekcji / Pasek dekoracyjny w stylu Cisco -->
+                    <div class="netacad-header-strip">
+                        <?php echo htmlspecialchars($activeItem['title']); ?>
+                    </div>
+
+                    <!-- 1. TEXT/BLOCK CONTENT (Renderowanie kodu wygenerowanego z buildera) -->
                     <?php if ($activeItem['type'] === 'text'): ?>
-                        <div class="dashboard-panel p-4 mb-4" style="line-height: 1.7; font-size: 1.05rem;">
+                        <div style="position: relative; width: 100%; min-height: 800px;">
                             <?php 
                             $decodedBlocks = json_decode($activeItemContent, true);
                             if (json_last_error() === JSON_ERROR_NONE && is_array($decodedBlocks)) {
                                 if (isset($decodedBlocks['html'])) {
-                                    // GrapesJS format
                                     if (!empty($decodedBlocks['css'])) {
                                         echo '<style>' . $decodedBlocks['css'] . '</style>';
                                     }
                                     echo $decodedBlocks['html'];
                                 } else {
-                                    // Old simple blocks format
                                     foreach ($decodedBlocks as $b) {
                                         if ($b['type'] === 'text') {
                                             echo '<div class="mb-4">' . $b['content'] . '</div>';
@@ -454,14 +610,13 @@ include 'includes/header.php';
                                     }
                                 }
                             } else {
-                                // Legacy HTML
                                 echo $activeItemContent;
                             }
                             ?>
                         </div>
                     <?php endif; ?>
 
-                    <!-- VIDEO CONTENT -->
+                    <!-- 2. VIDEO CONTENT -->
                     <?php if ($activeItem['type'] === 'video'): ?>
                         <div class="ratio ratio-16x9 mb-4 overflow-hidden rounded-3 border">
                             <?php 
@@ -478,7 +633,7 @@ include 'includes/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <!-- QUIZ / EXAM CONTENT -->
+                    <!-- 3. QUIZ / EXAM CONTENT -->
                     <?php if ($activeItem['type'] === 'quiz' || $activeItem['type'] === 'exam'): ?>
                         <div id="quizContainer">
                             <?php if (empty($quizQuestions)): ?>
@@ -528,7 +683,7 @@ include 'includes/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <!-- LAB CONTENT -->
+                    <!-- 4. LAB CONTENT -->
                     <?php if ($activeItem['type'] === 'lab'): ?>
                         <div class="flex-grow-1 d-flex flex-column">
                             <?php if ($labInstructions): ?>
@@ -560,55 +715,35 @@ include 'includes/header.php';
                         </div>
                     <?php endif; ?>
 
-                </div>
-
-                <!-- Navigation Bottom Bar -->
-                <div class="nav-footer mt-auto">
-                    <div>
-                        <?php 
-                        // Find previous item
-                        $prevItem = null;
-                        foreach ($allItems as $index => $item) {
-                            if ((int)$item['id'] === $activeItemId && $index > 0) {
-                                $prevItem = $allItems[$index - 1];
-                            }
-                        }
-                        if ($prevItem && !$lockedMap[(int)$prevItem['id']]): 
-                        ?>
-                            <a href="course_learn.php?course_id=<?php echo $courseId; ?>&item_id=<?php echo $prevItem['id']; ?>" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-1"></i> Poprzednia lekcja
-                            </a>
-                        <?php endif; ?>
-                    </div>
-
-                    <div>
-                        <?php 
-                        $status = $progressMap[$activeItemId]['status'] ?? 'started';
-                        $isCompleted = ($status === 'completed');
-                        $showCompleteBtn = ($activeItem['type'] !== 'quiz'); // quizzes auto-complete when passed
-                        ?>
-                        
-                        <?php if ($showCompleteBtn): ?>
-                            <button type="button" class="btn <?php echo $isCompleted ? 'btn-outline-success' : 'btn-success'; ?> fw-bold px-4" onclick="markActiveItemComplete()">
+                    <!-- Przycisk ukończenia lekcji na dole samej karty lekcji -->
+                    <?php 
+                    $status = $progressMap[$activeItemId]['status'] ?? 'started';
+                    $isCompleted = ($status === 'completed');
+                    $showCompleteBtn = ($activeItem['type'] !== 'quiz' && $activeItem['type'] !== 'exam'); 
+                    ?>
+                    <?php if ($showCompleteBtn): ?>
+                        <div class="text-center mt-5 pt-4 border-top">
+                            <button type="button" class="btn <?php echo $isCompleted ? 'btn-outline-success' : 'btn-success'; ?> btn-lg fw-bold px-5 py-3 rounded-pill shadow-sm" onclick="markActiveItemComplete()">
                                 <?php if ($isCompleted): ?>
-                                    <i class="bi bi-check-circle-fill me-1"></i> Ukończono
+                                    <i class="bi bi-check-circle-fill me-2"></i> Lekcja Ukończona
                                 <?php else: ?>
-                                    Oznacz jako ukończone i przejdź dalej <i class="bi bi-arrow-right ms-1"></i>
+                                    Oznacz jako ukończone <i class="bi bi-arrow-right ms-2"></i>
                                 <?php endif; ?>
                             </button>
-                        <?php else: ?>
-                            <!-- For quiz, if already completed, show next lesson button directly -->
-                            <?php if ($isCompleted): ?>
-                                <button type="button" class="btn btn-primary fw-bold px-4" onclick="navigateToNextLesson()">
-                                    Przejdź do kolejnej lekcji <i class="bi bi-arrow-right ms-1"></i>
+                        </div>
+                    <?php else: ?>
+                        <?php if ($isCompleted): ?>
+                            <div class="text-center mt-5 pt-4 border-top">
+                                <button type="button" class="btn btn-primary btn-lg fw-bold px-5 py-3 rounded-pill shadow-sm" onclick="navigateToNextLesson()">
+                                    Kolejna lekcja <i class="bi bi-arrow-right ms-2"></i>
                                 </button>
-                            <?php endif; ?>
+                            </div>
                         <?php endif; ?>
-                    </div>
+                    <?php endif; ?>
+
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -801,6 +936,44 @@ include 'includes/header.php';
             }[s];
         });
     }
-</script>
 
-<?php include 'includes/footer.php'; ?>
+    // Nowe funkcje nawigacyjne dla odtwarzacza NetAcad
+    function toggleSidebarOutline() {
+        const sidebar = document.getElementById('netacadSidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('collapsed');
+        }
+    }
+
+    function toggleThemeMode() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-bs-theme') || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    }
+
+    function toggleFullscreenMode() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Błąd wejścia w tryb pełnoekranowy: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    function filterSidebar(input) {
+        const query = input.value.toLowerCase();
+        document.querySelectorAll('.netacad-outline-item').forEach(item => {
+            const text = item.querySelector('span').innerText.toLowerCase();
+            if (text.includes(query)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+</script>
+</body>
+</html>

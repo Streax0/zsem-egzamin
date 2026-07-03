@@ -69,11 +69,13 @@ include '../includes/header.php';
 ?>
 
 <style>
+    /* Premium Builder Layout */
     .builder-layout {
         display: flex;
-        flex-direction: row-reverse; /* Sidebar on the right */
+        flex-direction: row;
         min-height: calc(100vh - 65px);
         background-color: var(--body-bg);
+        font-family: 'Inter', sans-serif;
     }
     .builder-sidebar {
         width: 320px;
@@ -82,122 +84,217 @@ include '../includes/header.php';
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.02);
+        z-index: 10;
     }
     .builder-content {
         flex-grow: 1;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
+        background-color: var(--body-bg);
     }
     .builder-sidebar-header {
         padding: 1.5rem;
         border-bottom: 1px solid var(--border-color);
+        background-color: var(--panel-bg);
     }
     .builder-sidebar-body {
         overflow-y: auto;
         flex-grow: 1;
+        padding: 0.5rem 0;
     }
+    
+    /* Accordion & Modules styling */
     .module-item {
         border-bottom: 1px solid var(--border-color);
+        background: transparent !important;
     }
     .module-header {
         width: 100%;
-        padding: 0.75rem 1rem;
+        padding: 0.65rem 1rem;
         background: none;
         border: none;
-        text-align: left;
         display: flex;
         align-items: center;
         justify-content: space-between;
+    }
+    .accordion-button {
+        font-size: 0.92rem;
         font-weight: 700;
-        color: var(--text-main);
+        color: var(--text-main) !important;
+        padding-right: 0.5rem;
     }
-    .module-header:hover {
-        background-color: rgba(0,0,0,0.02);
+    .accordion-button:not(.collapsed) {
+        background-color: transparent !important;
+        color: var(--primary-color) !important;
+        box-shadow: none !important;
     }
+    .accordion-button::after {
+        width: 1rem;
+        height: 1rem;
+        background-size: 1rem;
+    }
+    
+    /* Lesson Links */
     .lesson-list {
         list-style: none;
-        padding: 0;
+        padding: 0 0.5rem;
         margin: 0;
-        background-color: rgba(0,0,0,0.01);
+    }
+    .lesson-list li {
+        margin: 4px 0;
     }
     .lesson-link {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.5rem 1rem 0.5rem 2rem;
+        padding: 0.6rem 0.85rem 0.6rem 1.5rem;
         text-decoration: none;
         color: var(--text-main);
-        font-size: 0.88rem;
-        border-left: 3px solid transparent;
-        transition: all 0.2s;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-radius: 10px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .lesson-link:hover {
-        background-color: rgba(0,0,0,0.03);
+        background-color: rgba(0, 0, 0, 0.03);
+        color: var(--primary-color);
     }
     .lesson-link.active {
-        background-color: rgba(59, 130, 246, 0.05);
-        color: var(--primary-color);
-        border-left-color: var(--primary-color);
-        font-weight: 600;
+        background-color: var(--primary-color) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(var(--primary-color-rgb, 59, 130, 246), 0.25);
+    }
+    .lesson-link.active .lesson-icon,
+    .lesson-link.active span,
+    .lesson-link.active .btn {
+        color: #ffffff !important;
     }
     
-    /* GrapesJS Modern UI Overrides */
-    .gjs-one-bg { background-color: #1e1e2d !important; } /* Main panel bg */
-    .gjs-two-color { color: #a1a5b7 !important; } /* Text color */
-    .gjs-three-bg { background-color: #e33e5c !important; color: white !important; } /* Active elements */
-    .gjs-four-color, .gjs-four-color-h:hover { color: #e33e5c !important; } /* Icons hover */
-    .gjs-pn-panel { border: none !important; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-    .gjs-block {
-        border-radius: 8px !important;
-        border: 1px solid rgba(255,255,255,0.05) !important;
-        background: #2b2b40 !important;
-        transition: all 0.2s ease !important;
-        box-shadow: none !important;
-        padding: 15px 10px !important;
-    }
-    .gjs-block:hover {
-        border-color: #e33e5c !important;
-        background: #32324b !important;
-        transform: translateY(-2px);
-    }
-    .gjs-block-label { font-weight: 600 !important; font-family: 'Inter', sans-serif !important; margin-top: 5px !important; font-size: 0.8rem !important; }
-    .gjs-cv-canvas { background-color: #f4f6f9 !important; } /* Canvas wrapper bg */
-    .gjs-category-title { background-color: #151521 !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; font-weight: 600 !important; font-family: 'Inter', sans-serif !important; }
-    .gjs-title { font-family: 'Inter', sans-serif !important; }
-
     .lesson-meta {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
     }
     .lesson-icon {
-        font-size: 1.05rem;
+        font-size: 1.1rem;
         color: var(--kolor-tekst-jasny);
-    }
-    .lesson-link.active .lesson-icon {
-        color: var(--primary-color);
+        transition: color 0.2s;
     }
     .action-icons {
         display: flex;
-        gap: 0.25rem;
+        gap: 0.3rem;
     }
     .action-icons .btn {
-        padding: 0.15rem 0.35rem;
-        font-size: 0.8rem;
+        padding: 0.2rem 0.4rem;
+        font-size: 0.82rem;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background-color: var(--panel-bg);
+        color: var(--text-main);
+        transition: all 0.15s;
     }
-    .content-area {
-        max-width: 1000px;
-        width: 100%;
-        margin: 0 auto;
-        padding: 2.5rem 1.5rem;
+    .action-icons .btn:hover {
+        background-color: var(--primary-color);
+        color: white !important;
+        border-color: var(--primary-color);
     }
     
-    /* TinyMCE customization */
-    .tox-tinymce {
+    /* GrapesJS - Total Modern Integration */
+
+    .gjs-one-bg { background-color: var(--panel-bg) !important; }
+    .gjs-two-color { color: var(--text-main) !important; }
+    .gjs-three-bg { background-color: var(--primary-color) !important; color: white !important; }
+    .gjs-four-color, .gjs-four-color-h:hover { color: var(--primary-color) !important; }
+    
+    .gjs-pn-panel { 
+        background-color: var(--panel-bg) !important; 
+        border-color: var(--border-color) !important; 
+        box-shadow: none !important; 
+    }
+    .gjs-pn-views-container { border-left: 1px solid var(--border-color) !important; }
+    .gjs-pn-options { border-bottom: 1px solid var(--border-color) !important; }
+    
+    /* Modernizaja przycisków bloków (narzędzi) */
+    .gjs-block {
         border-radius: 12px !important;
         border: 1px solid var(--border-color) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+        background: var(--panel-bg) !important;
+        color: var(--text-main) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+        padding: 18px 12px !important;
+        font-weight: 600 !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+    .gjs-block:hover {
+        border-color: var(--primary-color) !important;
+        color: var(--primary-color) !important;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+        transform: translateY(-3px) !important;
+    }
+    .gjs-block-label { 
+        font-weight: 600 !important; 
+        margin-top: 8px !important; 
+        font-size: 0.82rem !important; 
+    }
+    .gjs-block svg {
+        width: 28px;
+        height: 28px;
+        color: var(--primary-color);
+        transition: transform 0.2s;
+    }
+    .gjs-block:hover svg {
+        transform: scale(1.1);
+    }
+    
+    /* Zaznaczenia (Highlighters) w kolorze przewodnim */
+    .gjs-highlighter {
+        border: 2px solid var(--primary-color) !important;
+    }
+    .gjs-badge {
+        background-color: var(--primary-color) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 6px !important;
+        padding: 2px 6px !important;
+    }
+    .gjs-cv-canvas .gjs-highlight {
+        outline: 2px solid var(--primary-color) !important;
+    }
+    .gjs-active {
+        outline: 2px dashed var(--primary-color) !important;
+    }
+    
+    /* Top Header Bar */
+    .content-area {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .editor-top-bar {
+        background-color: var(--panel-bg);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+    
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.2);
     }
 </style>
 
@@ -270,19 +367,19 @@ include '../includes/header.php';
     <!-- Prawy panel (Obszar edycji) -->
     <div class="builder-content">
         <?php if (!$activeItem): ?>
-            <div class="d-flex align-items-center justify-content-center h-100 flex-column text-muted">
-                <i class="bi bi-layout-text-window-reverse" style="font-size: 4rem; opacity: 0.5;"></i>
-                <h4 class="mt-3">Wybierz lekcję do edycji</h4>
-                <p>Kliknij na lekcję w panelu po lewej lub stwórz nową.</p>
+            <div class="d-flex align-items-center justify-content-center h-100 flex-column text-muted" style="background-color: var(--body-bg);">
+                <i class="bi bi-layout-sidebar" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h4 class="mt-4 fw-bold" style="color: var(--text-main);">Wybierz lekcję z menu</h4>
+                <p style="color: var(--kolor-tekst-jasny);">Kliknij na lekcję w panelu po lewej lub stwórz nową.</p>
             </div>
         <?php else: ?>
             <div class="content-area animate-in d-flex flex-column h-100">
                 
-                <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-white">
+                <div class="editor-top-bar d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-3">
                         <div>
                             <span class="badge bg-primary bg-opacity-10 text-primary mb-1 d-block" style="width: fit-content;">Moduł: <?php echo htmlspecialchars($activeModule['title']); ?></span>
-                            <h5 class="fw-bold mb-0 text-truncate" style="max-width: 300px;">Edycja: <?php echo htmlspecialchars($activeItem['title']); ?></h5>
+                            <h5 class="fw-bold mb-0 text-truncate" style="max-width: 300px; color: var(--text-main);">Edycja: <?php echo htmlspecialchars($activeItem['title']); ?></h5>
                         </div>
                     </div>
                     <div>
@@ -458,14 +555,8 @@ include '../includes/header.php';
             container: '#gjs',
             height: '100%',
             width: 'auto',
-            plugins: ['gjs-blocks-basic'],
-            pluginsOpts: {
-                'gjs-blocks-basic': {
-                    flexGrid: true,
-                    stylePrefix: 'gjs-',
-                    addBasicStyle: true
-                }
-            },
+            plugins: ['gjs-blocks-basic'], 
+            dragMode: 'absolute',
             storageManager: false,
             canvas: {
                 styles: [
@@ -477,55 +568,121 @@ include '../includes/header.php';
         });
 
         editor.on('load', () => {
-            // Set canvas background to white for document feel
+            // Czysty reset wrapper-a - układ karty jest teraz całkowicie wewnątrz iframe'a
             const wrapper = editor.getWrapper();
             if (wrapper) {
+                wrapper.set('droppable', true); // Wymuszenie akceptowania zrzutów
                 wrapper.setStyle({ 
-                    'background-color': '#ffffff', 
-                    'min-height': '100vh', 
+                    'background-color': '#ffffff',
+                    'max-width': '1000px',
+                    'margin': '40px auto',
+                    'min-height': 'calc(100vh - 80px)', 
                     'padding': '40px',
+                    'border-radius': '12px',
+                    'box-shadow': '0 5px 25px rgba(0,0,0,0.05)',
                     'font-family': "'Inter', sans-serif",
-                    'color': '#333'
+                    'color': '#111827',
+                    'box-sizing': 'border-box'
                 });
             }
 
-            // Custom Blocks for Course
-            const bm = editor.BlockManager;
-            
-            bm.add('alert-info', {
-                label: '<i class="bi bi-info-square fs-3 mb-1 d-block text-info"></i> Informacja',
-                category: 'Komponenty Kursu',
-                content: '<div class="alert alert-info border-start border-4 border-info shadow-sm p-4 mb-4"><h5 class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Ważna Informacja</h5><p class="mb-0">Wpisz treść informacji tutaj...</p></div>',
-            });
+            // Stylizacja body dokumentu iframe (tło szare poza kartą wrappera)
+            const doc = editor.Canvas.getDocument();
+            if (doc) {
+                const style = doc.createElement('style');
+                style.innerHTML = `
+                    html, body { 
+                        height: 100%; 
+                        background-color: #f3f4f6 !important; 
+                        margin: 0;
+                        padding: 0;
+                    }
+                    * { box-sizing: border-box; }
+                `;
+                doc.head.appendChild(style);
+            }
 
-            bm.add('alert-warning', {
-                label: '<i class="bi bi-exclamation-triangle fs-3 mb-1 d-block text-warning"></i> Ostrzeżenie',
-                category: 'Komponenty Kursu',
-                content: '<div class="alert alert-warning border-start border-4 border-warning shadow-sm p-4 mb-4"><h5 class="fw-bold mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Uwaga</h5><p class="mb-0">Wpisz tekst ostrzeżenia...</p></div>',
-            });
 
-            bm.add('code-snippet', {
-                label: '<i class="bi bi-code-slash fs-3 mb-1 d-block text-secondary"></i> Kod (Snippet)',
-                category: 'Komponenty Kursu',
-                content: '<div class="bg-dark text-light p-3 rounded mb-4 font-monospace shadow-sm"><pre class="m-0" style="color: #00ff00;"><code>// Twój kod tutaj...</code></pre></div>',
-            });
 
-            bm.add('course-card', {
-                label: '<i class="bi bi-card-text fs-3 mb-1 d-block text-primary"></i> Karta',
-                category: 'Komponenty Kursu',
-                content: '<div class="card shadow-sm border-0 mb-4"><div class="card-body"><h5 class="card-title fw-bold">Tytuł karty</h5><p class="card-text">Treść karty...</p></div></div>'
-            });
-
-            bm.add('fancy-title', {
-                label: '<i class="bi bi-type-h2 fs-3 mb-1 d-block text-success"></i> Ozdobny Tytuł',
-                category: 'Komponenty Kursu',
-                content: '<h2 class="fw-bold mb-4" style="color: #e33e5c; border-bottom: 2px solid #eee; padding-bottom: 10px;">Tytuł sekcji</h2>'
-            });
-
-            // Open block manager automatically
             const pn = editor.Panels;
             const openBlocksBtn = pn.getButton('views', 'open-blocks');
-            if (openBlocksBtn) openBlocksBtn.set('active', 1);
+            if (openBlocksBtn) {
+                openBlocksBtn.set('active', 1);
+            }
+            // Wymuś komendę otwarcia Sortera Klocków (Block Manager)
+            editor.runCommand('show-blocks');
+        });
+
+        const bm = editor.BlockManager;
+
+        // 1. Nagłówek (Heading)
+        bm.add('heading', {
+            category: 'Podstawowe',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M5 4v3h5.5v12h3V7H19V4z"/></svg><div class="gjs-block-label">Nagłówek</div>',
+            content: '<h2 style="font-family: \'Inter\', sans-serif; color: var(--text-main); font-size: 2rem; font-weight: bold; margin: 0 0 16px 0;">Twój Nagłówek</h2>'
+        });
+
+        // 2. Tekst (Paragraph)
+        bm.add('text', {
+            category: 'Podstawowe',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M14 17H4v2h10v-2zm6-8H4v2h16V9zM4 15h16v-2H4v2zM4 5v2h16V5H4z"/></svg><div class="gjs-block-label">Tekst</div>',
+            content: '<p style="font-family: \'Inter\', sans-serif; color: var(--text-main); line-height: 1.6; margin: 0 0 16px 0;">Wpisz swój tekst tutaj. Możesz go dowolnie edytować i formatować.</p>'
+        });
+
+        // 3. Obraz (Image)
+        bm.add('image', {
+            category: 'Podstawowe',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c0-1.1-.9-2-2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z"/></svg><div class="gjs-block-label">Obraz</div>',
+            content: '<img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 16px;" />'
+        });
+
+        // 4. Wideo (Video)
+        bm.add('video', {
+            category: 'Podstawowe',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM14 16H6V8h8v8z"/></svg><div class="gjs-block-label">Wideo</div>',
+            content: '<video src="https://www.w3schools.com/html/mov_bbb.mp4" style="max-width: 100%; border-radius: 8px; background-color: #000; margin-bottom: 16px;" controls></video>'
+        });
+
+        // 5. Karta (Card)
+        bm.add('card', {
+            category: 'Zaawansowane',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg><div class="gjs-block-label">Karta</div>',
+            content: '<div style="padding: 24px; background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 16px;"><h4 style="margin-top: 0; color: var(--text-main); font-weight: 700; margin-bottom: 12px;">Tytuł Karty</h4><p style="margin-bottom: 0; color: var(--kolor-tekst-jasny); font-size: 0.95rem; line-height: 1.5;">To jest przykładowa treść wewnątrz karty. Możesz w niej umieszczać tekst, obrazy lub inne elementy.</p></div>'
+        });
+
+        // 6. Cytat (Quote)
+        bm.add('quote', {
+            category: 'Podstawowe',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg><div class="gjs-block-label">Cytat</div>',
+            content: '<blockquote style="border-left: 4px solid var(--primary-color); padding-left: 16px; margin: 0 0 16px 0; font-style: italic; color: var(--text-main); font-size: 1.1rem; line-height: 1.6;">"Wpisz tutaj ważny cytat lub myśl przewodnią..."</blockquote>'
+        });
+
+        // 7. Przycisk (Button)
+        bm.add('button', {
+            category: 'Podstawowe',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11H6v-2h12v2zm0-4H6V8h12v2z"/></svg><div class="gjs-block-label">Przycisk</div>',
+            content: '<a href="#" style="display: inline-block; padding: 10px 24px; background-color: var(--primary-color); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; text-align: center; font-size: 0.95rem; transition: background-color 0.2s; margin-bottom: 16px;">Kliknij tutaj</a>'
+        });
+
+        // 8. Lista (List)
+        bm.add('list', {
+            category: 'Podstawowe',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/></svg><div class="gjs-block-label">Lista</div>',
+            content: '<ul style="color: var(--text-main); line-height: 1.6; margin: 0 0 16px 0; padding-left: 20px;"><li style="margin-bottom: 4px;">Pierwszy element listy</li><li style="margin-bottom: 4px;">Drugi element listy</li><li style="margin-bottom: 0;">Trzeci element listy</li></ul>'
+        });
+
+        // 9. Kod (Code Box)
+        bm.add('code', {
+            category: 'Zaawansowane',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg><div class="gjs-block-label">Kod</div>',
+            content: '<pre style="background-color: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; font-family: monospace; overflow: auto; margin: 0 0 16px 0; font-size: 0.85rem; line-height: 1.5; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"><code>// Wpisz tutaj swój kod...\nfunction main() {\n    console.log("ZSEM Tech Course");\n}</code></pre>'
+        });
+
+        // 10. Dwie Kolumny (2 Columns)
+        bm.add('columns-2', {
+            category: 'Zaawansowane',
+            label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M4 4h7v16H4V4zm9 0h7v16h-7V4z"/></svg><div class="gjs-block-label">2 Kolumny</div>',
+            content: '<div style="display: flex; gap: 24px; margin-bottom: 16px; flex-wrap: wrap;"><div style="flex: 1; min-width: 250px; padding: 16px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px dashed var(--border-color);"><p style="margin:0; color: var(--text-main); font-family: \'Inter\', sans-serif;">Kolumna 1</p></div><div style="flex: 1; min-width: 250px; padding: 16px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px dashed var(--border-color);"><p style="margin:0; color: var(--text-main); font-family: \'Inter\', sans-serif;">Kolumna 2</p></div></div>'
         });
 
         // Load existing content
