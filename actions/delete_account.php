@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_destroy();
         
         // Redirect to login with success message (though session is gone, we can use a GET parameter or just a fresh start)
-        securityRedirect('../login.php?account_deleted=1', '../login.php');
+        securityRedirect('../auth/login.php?account_deleted=1', '../auth/login.php');
     } catch (Exception $e) {
         error_log('Delete account failed: ' . $e->getMessage());
         setSessionMessage('error', 'Nie udało się usunąć konta. Spróbuj ponownie za chwilę.');

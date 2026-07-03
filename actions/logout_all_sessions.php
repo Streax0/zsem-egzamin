@@ -24,7 +24,7 @@ $includeCurrent = ($_POST['include_current'] ?? '') === '1';
 forgetAllUserSessions($pdo, $userId);
 if ($includeCurrent) {
     destroySession(false);
-    securityRedirect('../login.php?logged_out_all=1', '../login.php');
+    securityRedirect('../auth/login.php?logged_out_all=1', '../auth/login.php');
 }
 $stmt = $pdo->prepare('SELECT session_version FROM users WHERE id = ?');
 $stmt->execute([$userId]);

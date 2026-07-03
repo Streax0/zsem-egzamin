@@ -9,6 +9,10 @@ if (function_exists('enforceFeaturePageBlockForCurrentRequest')) {
     enforceFeaturePageBlockForCurrentRequest($pdo);
 }
 
+if (function_exists('ensurePlatformEnhancements')) {
+    ensurePlatformEnhancements($pdo);
+}
+
 $search = trim($_GET['q'] ?? '');
 
 $params = ['active'];

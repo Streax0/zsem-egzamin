@@ -303,7 +303,8 @@ function syncSessionUserRole() {
         $stmt->execute([$_SESSION['user_id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
-            destroySession(true, '/login.php?session_expired=1');
+            $prefix = file_exists('config/db.php') ? '' : '../';
+            destroySession(true, $prefix . 'auth/login.php?session_expired=1');
         }
         if ($row && isset($row['role'])) {
             $previousRole = $_SESSION['role'] ?? 'user';
@@ -311,16 +312,17 @@ function syncSessionUserRole() {
             if ($previousRole !== $row['role'] && mfaRoleRequiresSetup($row['role'])) {
                 $_SESSION['mfa_verified'] = false;
             }
+            $prefix = file_exists('config/db.php') ? '' : '../';
             if (isset($row['session_version'])) {
                 $dbVersion = (int)$row['session_version'];
                 $sessionVersion = (int)($_SESSION['session_version'] ?? $dbVersion);
                 if ($sessionVersion !== $dbVersion) {
-                    destroySession(true, '/login.php');
+                    destroySession(true, $prefix . 'auth/login.php');
                 }
                 $_SESSION['session_version'] = $dbVersion;
             }
             if (!validateCurrentUserSession($pdo, (int)$_SESSION['user_id'])) {
-                destroySession(true, '/login.php?session_expired=1');
+                destroySession(true, $prefix . 'auth/login.php?session_expired=1');
             }
         }
     } catch (Throwable $e) {
@@ -413,10 +415,10 @@ if (!function_exists('requireLogin')) {
         if (!isLoggedIn()) {
             $return_url = urlencode($_SERVER['REQUEST_URI'] ?? '/');
             $script = $_SERVER['PHP_SELF'] ?? '';
-            $prefix = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false || strpos($script, '/actions/') !== false || strpos($script, '/ajax/') !== false) ? '../' : '';
+            $prefix = file_exists('config/db.php') ? '' : '../';
 
             http_response_code(401);
-            $login_url = $prefix . 'login.php?return=' . $return_url;
+            $login_url = $prefix . 'auth/login.php?return=' . $return_url;
             $home_url = $prefix . 'index.php';
             echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
             echo '<title>Wymagane logowanie - ZSEM Tech</title>';
@@ -1149,7 +1151,7 @@ function mfaAccessRequired(): bool {
     if (!$requiresByRole && !$requiresByUser) return false;
     if (!empty($_SESSION['mfa_verified'])) return false;
     $current = basename($_SERVER['PHP_SELF'] ?? '');
-    return !in_array($current, ['auth/mfa.php', 'logout.php', 'login.php'], true);
+    return !in_array($current, ['mfa.php', 'logout.php', 'login.php'], true);
 }
 
 function base32Encode(string $bytes): string {

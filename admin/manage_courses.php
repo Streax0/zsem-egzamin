@@ -7,6 +7,9 @@ require_once '../includes/functions.php';
 startSecureSession();
 requireLogin();
 
+if (function_exists('ensurePlatformEnhancements')) {
+    ensurePlatformEnhancements($pdo);
+}
 // Only admins or dyrektor allowed
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) {
     setSessionMessage('error', 'Brak uprawnień do zarządzania kursami.');

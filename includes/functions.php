@@ -427,6 +427,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     _ensurePlatformSecurity($pdo);
     _ensurePlatformRanking($pdo);
     _ensurePlatformAdmin($pdo);
+    _ensurePlatformCourses($pdo);
 
     $done = true;
 }
@@ -710,6 +711,22 @@ function _ensurePlatformSecurity(PDO $pdo): void {
         error_log('Rate limit events table creation failed: ' . $e->getMessage());
     }
 
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_passkeys (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            credential_id VARCHAR(255) NOT NULL UNIQUE,
+            public_key TEXT NOT NULL,
+            counter INT NOT NULL DEFAULT 0,
+            device_name VARCHAR(255) DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_used_at DATETIME DEFAULT NULL,
+            INDEX idx_user_id (user_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('User passkeys table creation failed: ' . $e->getMessage());
+    }
+
     // 12. Password resets table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS password_resets (
@@ -912,6 +929,112 @@ function _ensurePlatformAdmin(PDO $pdo): void {
         seedRankingEventTemplates($pdo);
     } catch (Throwable $e) {
         error_log('Seeding ranking event templates failed: ' . $e->getMessage());
+    }
+}
+
+function _ensurePlatformCourses(PDO $pdo): void {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS courses (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            content LONGTEXT,
+            image_url VARCHAR(255) DEFAULT NULL,
+            status ENUM('active', 'hidden') NOT NULL DEFAULT 'hidden',
+            sequential_learning TINYINT(1) NOT NULL DEFAULT 0,
+            start_date DATE DEFAULT NULL,
+            end_date DATE DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_status (status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_modules (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            course_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            INDEX idx_course_sort (course_id, sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_custom_labs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            teacher_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            tool_key VARCHAR(50) NOT NULL,
+            instructions TEXT NOT NULL,
+            topology_data LONGTEXT NULL,
+            is_private TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            module_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            type ENUM('text', 'video', 'quiz', 'lab', 'exam') NOT NULL,
+            content LONGTEXT NULL,
+            video_url VARCHAR(255) NULL,
+            quiz_passing_score INT NOT NULL DEFAULT 70,
+            lab_source ENUM('sandbox', 'custom') DEFAULT 'sandbox',
+            lab_tool_key VARCHAR(50) NULL,
+            lab_custom_id INT NULL,
+            lab_instructions TEXT NULL,
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (module_id) REFERENCES course_modules(id) ON DELETE CASCADE,
+            FOREIGN KEY (lab_custom_id) REFERENCES course_custom_labs(id) ON DELETE SET NULL,
+            INDEX idx_module_sort (module_id, sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_quiz_questions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_id INT NOT NULL,
+            question_text TEXT NOT NULL,
+            option_a VARCHAR(255) NOT NULL,
+            option_b VARCHAR(255) NOT NULL,
+            option_c VARCHAR(255) DEFAULT NULL,
+            option_d VARCHAR(255) DEFAULT NULL,
+            correct_answer ENUM('A', 'B', 'C', 'D') NOT NULL,
+            explanation TEXT NULL,
+            FOREIGN KEY (item_id) REFERENCES course_items(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_course_enrollments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            course_id INT NOT NULL,
+            status ENUM('active', 'completed') NOT NULL DEFAULT 'active',
+            progress_percent INT NOT NULL DEFAULT 0,
+            enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            completed_at DATETIME NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            UNIQUE KEY uq_user_course (user_id, course_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_course_progress (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            course_id INT NOT NULL,
+            item_id INT NOT NULL,
+            status ENUM('started', 'completed') NOT NULL DEFAULT 'started',
+            quiz_score INT NULL,
+            quiz_attempts INT NOT NULL DEFAULT 0,
+            completed_at DATETIME NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            FOREIGN KEY (item_id) REFERENCES course_items(id) ON DELETE CASCADE,
+            UNIQUE KEY uq_user_item (user_id, item_id),
+            INDEX idx_user_course_progress (user_id, course_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+    } catch (Throwable $e) {
+        error_log('Course tables creation failed: ' . $e->getMessage());
     }
 }
 
@@ -1527,7 +1650,8 @@ function renderFeaturePageBlockScreen(array $block): void {
     $script = $_SERVER['PHP_SELF'] ?? '';
     $base = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false) ? '../' : '';
     $returnUrl = featureBlockSafeReturnUrl($base . 'index.php');
-    http_response_code(403);
+    // Zwracamy kod 200, by serwery (np. Litespeed/Apache) nie przechwytywały 403/503
+    http_response_code(200);
     echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
     echo '<title>' . $esc($title) . ' - ZSEM Tech</title>';
     echo '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">';
@@ -5348,93 +5472,62 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
             $itemClass .= ' notification-has-duel-actions';
         }
         ?>
-        <div class="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($itemClass); ?>">
-            <?php
-require_once __DIR__ . '/autoloader.php'; if ($appStatusPayload): ?>
+        <div class="<?php echo htmlspecialchars($itemClass); ?>">
+            <?php if ($appStatusPayload): ?>
             <div class="notification-menu-link notification-status-link text-reset">
-                <div class="notification-menu-icon text-<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($tone); ?>">
-                    <i class="bi <?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($icon); ?>"></i>
+                <div class="notification-menu-icon text-<?php echo htmlspecialchars($tone); ?>">
+                    <i class="bi <?php echo htmlspecialchars($icon); ?>"></i>
                 </div>
                 <div class="notification-menu-body flex-grow-1">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                        <span class="notification-menu-label"><?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($label); ?></span>
-                        <?php
-require_once __DIR__ . '/autoloader.php'; if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php
-require_once __DIR__ . '/autoloader.php'; endif; ?>
+                        <span class="notification-menu-label"><?php echo htmlspecialchars($label); ?></span>
+                        <?php if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php endif; ?>
                     </div>
-                    <div class="notification-menu-message text-wrap"><?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($notif['message'] ?? ''); ?></div>
+                    <div class="notification-menu-message text-wrap"><?php echo htmlspecialchars($notif['message'] ?? ''); ?></div>
                     <div class="notification-menu-time">
-                        <i class="bi bi-clock me-1"></i><?php
-require_once __DIR__ . '/autoloader.php'; echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
+                        <i class="bi bi-clock me-1"></i><?php echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
                     </div>
                     <button type="button"
                             class="btn btn-sm btn-outline-primary rounded-pill notification-status-more mt-2"
                             data-app-status-open
-                            data-status-title="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-body="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-level="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['level'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-date="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['date'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
-                            data-status-moderator="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($appStatusPayload['moderator'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
+                            data-status-title="<?php echo htmlspecialchars($appStatusPayload['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-body="<?php echo htmlspecialchars($appStatusPayload['body'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-level="<?php echo htmlspecialchars($appStatusPayload['level'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-date="<?php echo htmlspecialchars($appStatusPayload['date'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>"
+                            data-status-moderator="<?php echo htmlspecialchars($appStatusPayload['moderator'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
                         Więcej
                     </button>
                 </div>
             </div>
-            <?php
-require_once __DIR__ . '/autoloader.php'; else: ?>
-            <a href="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($notifHref); ?>" class="notification-menu-link text-decoration-none text-reset">
-                <div class="notification-menu-icon text-<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($tone); ?>">
-                    <i class="bi <?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($icon); ?>"></i>
+            <?php else: ?>
+            <a href="<?php echo htmlspecialchars($notifHref); ?>" class="notification-menu-link text-decoration-none text-reset">
+                <div class="notification-menu-icon text-<?php echo htmlspecialchars($tone); ?>">
+                    <i class="bi <?php echo htmlspecialchars($icon); ?>"></i>
                 </div>
                 <div class="notification-menu-body flex-grow-1">
                     <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                        <span class="notification-menu-label"><?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($label); ?></span>
-                        <?php
-require_once __DIR__ . '/autoloader.php'; if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php
-require_once __DIR__ . '/autoloader.php'; endif; ?>
+                        <span class="notification-menu-label"><?php echo htmlspecialchars($label); ?></span>
+                        <?php if (!$isRead): ?><span class="notification-menu-dot" aria-label="Nieprzeczytane"></span><?php endif; ?>
                     </div>
-                    <div class="notification-menu-message text-wrap"><?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($notif['message'] ?? ''); ?></div>
+                    <div class="notification-menu-message text-wrap"><?php echo htmlspecialchars($notif['message'] ?? ''); ?></div>
                     <div class="notification-menu-time">
-                        <i class="bi bi-clock me-1"></i><?php
-require_once __DIR__ . '/autoloader.php'; echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
+                        <i class="bi bi-clock me-1"></i><?php echo date('d.m, H:i', strtotime($notif['created_at'] ?? 'now')); ?>
                     </div>
                 </div>
             </a>
-            <?php
-require_once __DIR__ . '/autoloader.php'; endif; ?>
-            <?php
-require_once __DIR__ . '/autoloader.php'; if ($pendingDuel): ?>
-            <div class="notification-duel-actions px-3 pb-3 pt-0" data-duel-id="<?php
-require_once __DIR__ . '/autoloader.php'; echo (int)$duelId; ?>">
-                <button type="button" class="btn btn-sm btn-success rounded-pill px-3" data-duel-action="accept" data-duel-id="<?php
-require_once __DIR__ . '/autoloader.php'; echo (int)$duelId; ?>">
+            <?php endif; ?>
+            <?php if ($pendingDuel): ?>
+            <div class="notification-duel-actions px-3 pb-3 pt-0" data-duel-id="<?php echo (int)$duelId; ?>">
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-3" data-duel-action="accept" data-duel-id="<?php echo (int)$duelId; ?>">
                     <i class="bi bi-check2-circle me-1"></i>Akceptuj
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-duel-action="decline" data-duel-id="<?php
-require_once __DIR__ . '/autoloader.php'; echo (int)$duelId; ?>">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-duel-action="decline" data-duel-id="<?php echo (int)$duelId; ?>">
                     Odrzuć
                 </button>
-                <a href="<?php
-require_once __DIR__ . '/autoloader.php'; echo htmlspecialchars($baseUrl . 'duels/lobby.php?id=' . (int)$duelId); ?>" class="btn btn-sm btn-link text-decoration-none">Lobby</a>
-                <input type="hidden" name="csrf_token" value="<?php
-require_once __DIR__ . '/autoloader.php'; echo $csrf; ?>">
+                <a href="<?php echo htmlspecialchars($baseUrl . 'duels/lobby.php?id=' . (int)$duelId); ?>" class="btn btn-sm btn-link text-decoration-none">Lobby</a>
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf; ?>">
             </div>
-            <?php
-require_once __DIR__ . '/autoloader.php'; endif; ?>
+            <?php endif; ?>
         </div>
         <?php
 require_once __DIR__ . '/autoloader.php';

@@ -573,6 +573,7 @@ include '../includes/header.php';
             if (wrapper) {
                 wrapper.set('droppable', true); // Wymuszenie akceptowania zrzutów
                 wrapper.setStyle({ 
+                    'position': 'relative',
                     'background-color': '#ffffff',
                     'max-width': '1000px',
                     'margin': '40px auto',
@@ -609,8 +610,132 @@ include '../includes/header.php';
             if (openBlocksBtn) {
                 openBlocksBtn.set('active', 1);
             }
-            // Wymuś komendę otwarcia Sortera Klocków (Block Manager)
             editor.runCommand('show-blocks');
+
+            // --- INICJALIZACJA TRYBU "DRAW TO CREATE" (MS PAINT STYLE) ---
+            let activeDrawTool = null;
+            let drawStartX = 0;
+            let drawStartY = 0;
+            let isDrawing = false;
+            let ghostBox = null;
+
+            // Przechwytywanie kliknięć w GrapesJS Block Manager (z użyciem delegacji zdarzeń, bo bloki są generowane dynamicznie)
+            document.addEventListener('click', (e) => {
+                const blockEl = e.target.closest('.gjs-block');
+                if (blockEl) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Oznaczanie wizualne w panelu
+                    document.querySelectorAll('.gjs-block').forEach(b => b.style.outline = 'none');
+                    blockEl.style.outline = '3px solid var(--bs-primary)';
+                    blockEl.style.borderRadius = '8px';
+
+                    // Szukanie modelu klocka w BlockManager
+                    const labelText = blockEl.innerText.trim();
+                    const allBlocks = editor.BlockManager.getAll().models;
+                    const foundBlock = allBlocks.find(b => {
+                        const bLabel = b.get('label').replace(/<[^>]*>?/gm, '').trim();
+                        return bLabel === labelText;
+                    });
+
+                    if (foundBlock) {
+                        activeDrawTool = foundBlock;
+                        editor.Canvas.getBody().style.cursor = 'crosshair';
+                    }
+                }
+            }, true);
+
+            // Wyłączanie natywnego Drag&Drop na zewnątrz (aby uniknąć pomyłki)
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.closest('.gjs-block')) {
+                    e.preventDefault();
+                }
+            });
+
+            // Zdarzenia wewnątrz płótna edytora
+            const iframeDoc = editor.Canvas.getDocument();
+            const iframeBody = iframeDoc.body;
+            
+            iframeDoc.addEventListener('mousedown', (e) => {
+                if (!activeDrawTool) return;
+                
+                isDrawing = true;
+                drawStartX = e.pageX;
+                drawStartY = e.pageY;
+
+                ghostBox = iframeDoc.createElement('div');
+                ghostBox.style.position = 'absolute';
+                ghostBox.style.left = drawStartX + 'px';
+                ghostBox.style.top = drawStartY + 'px';
+                ghostBox.style.width = '0px';
+                ghostBox.style.height = '0px';
+                ghostBox.style.border = '2px dashed #0d6efd';
+                ghostBox.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+                ghostBox.style.pointerEvents = 'none';
+                ghostBox.style.zIndex = '999999';
+                iframeBody.appendChild(ghostBox);
+                
+                e.preventDefault();
+                e.stopPropagation();
+            }, true);
+
+            iframeDoc.addEventListener('mousemove', (e) => {
+                if (!isDrawing || !ghostBox) return;
+                
+                const currentX = e.pageX;
+                const currentY = e.pageY;
+                
+                const width = Math.abs(currentX - drawStartX);
+                const height = Math.abs(currentY - drawStartY);
+                const left = Math.min(currentX, drawStartX);
+                const top = Math.min(currentY, drawStartY);
+                
+                ghostBox.style.width = width + 'px';
+                ghostBox.style.height = height + 'px';
+                ghostBox.style.left = left + 'px';
+                ghostBox.style.top = top + 'px';
+            }, true);
+
+            iframeDoc.addEventListener('mouseup', (e) => {
+                if (!isDrawing) return;
+                isDrawing = false;
+                
+                if (ghostBox) {
+                    const finalWidth = parseInt(ghostBox.style.width);
+                    const finalHeight = parseInt(ghostBox.style.height);
+                    const finalLeft = parseInt(ghostBox.style.left);
+                    const finalTop = parseInt(ghostBox.style.top);
+                    
+                    ghostBox.remove();
+                    ghostBox = null;
+                    
+                    const w = finalWidth > 20 ? finalWidth : 200;
+                    const h = finalHeight > 20 ? finalHeight : 50;
+
+                    const content = activeDrawTool.get('content');
+                    // Dodanie komponentu bezpośrednio do wrappera
+                    const addedComponent = editor.getWrapper().append(content);
+                    const comp = Array.isArray(addedComponent) ? addedComponent[0] : addedComponent;
+                    
+                    if (comp) {
+                        comp.addStyle({
+                            position: 'absolute',
+                            left: finalLeft + 'px',
+                            top: finalTop + 'px',
+                            width: w + 'px',
+                            height: h + 'px'
+                        });
+                        
+                        editor.select(comp);
+                    }
+                    
+                    // Wyczyszczenie wybranego narzędzia (powrót kursora)
+                    activeDrawTool = null;
+                    document.querySelectorAll('.gjs-block').forEach(b => b.style.outline = 'none');
+                    editor.Canvas.getBody().style.cursor = 'default';
+                }
+            }, true);
         });
 
         const bm = editor.BlockManager;

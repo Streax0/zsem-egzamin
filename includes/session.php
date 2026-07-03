@@ -241,6 +241,9 @@ function startSecureSession() {
     if (!isset($_SESSION['session_start'])) {
         $_SESSION['session_start'] = time();
     }
+
+    require_once __DIR__ . '/KappiCrypt.php';
+    KappiCrypt::decryptRequest();
 }
 
 /**
@@ -253,7 +256,7 @@ function startSecureSession() {
  * @param string $loginPage Path to login page (default: '/login.php')
  * @return void
  */
-function destroySession($redirectToLogin = false, $loginPage = '/login.php') {
+function destroySession($redirectToLogin = false, $loginPage = '/auth/login.php') {
     // Unset all session variables
     $_SESSION = array();
     

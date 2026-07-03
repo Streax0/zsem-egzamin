@@ -121,7 +121,7 @@ $csrf = generateCsrfToken('forgot_password');
                 </form>
             <?php elseif ($token !== ''): ?>
                 <div class="alert alert-warning border-0 rounded-3">Link resetowania jest nieprawidłowy albo wygasł.</div>
-                <a href="auth/forgot_password.php" class="btn btn-primary w-100">Wygeneruj nowy link</a>
+                <a href="forgot_password.php" class="btn btn-primary w-100">Wygeneruj nowy link</a>
             <?php else: ?>
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
@@ -135,7 +135,7 @@ $csrf = generateCsrfToken('forgot_password');
             <?php endif; ?>
 
             <div class="text-center">
-                <a href="auth/login.php" class="small text-primary text-decoration-none fw-bold">Wróć do logowania</a>
+                <a href="login.php" class="small text-primary text-decoration-none fw-bold">Wróć do logowania</a>
             </div>
         </main>
     </div>

@@ -107,7 +107,7 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                 </div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" data-kappicrypt="true">
                 <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                 
                 <div class="mb-4">
@@ -133,16 +133,19 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                         <input type="checkbox" name="remember" class="form-check-input" id="remember">
                         <label class="form-check-label small text-muted" for="remember">Zapamiętaj mnie</label>
                     </div>
-                    <a href="auth/forgot_password.php" class="small text-primary text-decoration-none">Zapomniałeś hasła?</a>
+                    <a href="forgot_password.php" class="small text-primary text-decoration-none">Zapomniałeś hasła?</a>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 mb-4">Zaloguj się</button>
+                <button type="submit" class="btn btn-primary w-100 mb-2">Zaloguj się</button>
+                <button type="button" class="btn btn-outline-secondary w-100 mb-4" onclick="loginPasskey()">
+                    <i class="bi bi-fingerprint me-1"></i>Zaloguj przez Passkey
+                </button>
 
                 <div class="text-center">
-                    <p class="small text-muted">Nie masz konta? <a href="auth/register.php" class="text-primary text-decoration-none fw-semibold">Załóż je teraz</a></p>
+                    <p class="small text-muted">Nie masz konta? <a href="register.php" class="text-primary text-decoration-none fw-semibold">Załóż je teraz</a></p>
                 </div>
             </form>
-            <form action="actions/start_guest.php" method="POST" class="mt-3">
+            <form action="../actions/start_guest.php" method="POST" class="mt-3">
                 <?php echo csrfTokenField('guest_start'); ?>
                 <input type="hidden" name="target" value="test">
                 <button type="submit" class="btn btn-outline-light guest-mode-btn w-100">
@@ -152,7 +155,110 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
         </main>
     </div>
 
-    <script src="assets/js/auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmxc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="../assets/js/api-client.js"></script>
+    <script src="../assets/js/app-dialogs.js"></script>
+    <script src="../assets/js/kappicrypt.js?v=2"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script>
+    // Helper functions for WebAuthn
+    function base64urlToBuffer(baseurl64) {
+        return parseWebAuthnBinary(baseurl64);
+    }
+
+    function parseWebAuthnBinary(str) {
+        if (typeof str !== 'string') return str;
+        let b64 = str;
+        if (str.startsWith('=?BINARY?B?') && str.endsWith('?=')) {
+            b64 = str.substring(11, str.length - 2);
+        }
+        b64 = b64.replace(/\-/g, '+').replace(/_/g, '/');
+        const padding = '=='.slice(0, (4 - b64.length % 4) % 4);
+        b64 += padding;
+        const raw = window.atob(b64);
+        const buffer = new ArrayBuffer(raw.length);
+        const view = new Uint8Array(buffer);
+        for(let i=0; i<raw.length; i++) {
+            view[i] = raw.charCodeAt(i);
+        }
+        return buffer;
+    }
+
+    function bufferToBase64(buffer) {
+        const byteView = new Uint8Array(buffer);
+        let str = '';
+        for (const charCode of byteView) {
+            str += String.fromCharCode(charCode);
+        }
+        return window.btoa(str);
+    }
+
+    async function loginPasskey() {
+        if (!window.PublicKeyCredential) {
+            window.appNotice('Twoja przeglądarka nie obsługuje kluczy Passkey.', 'danger');
+            return;
+        }
+
+        try {
+            // 1. Pobierz wyzwanie od serwera
+            const formData = new FormData();
+            formData.append('action', 'generate');
+
+            const generateRes = await fetch('../ajax/passkey_login.php', {
+                method: 'POST',
+                body: formData
+            });
+            const generateData = await generateRes.json();
+
+            if (generateData.status !== 'success') {
+                throw new Error(generateData.message || 'Błąd generowania żądania.');
+            }
+
+            const publicKey = generateData.options.publicKey || generateData.options;
+
+            // Konwersja base64 na Buffer dla pola challenge i allowCredentials
+            if (publicKey.challenge) publicKey.challenge = parseWebAuthnBinary(publicKey.challenge);
+            if (publicKey.allowCredentials) {
+                for (let cred of publicKey.allowCredentials) {
+                    cred.id = parseWebAuthnBinary(cred.id);
+                }
+            }
+
+            // 2. Pobierz asercję (odcisk palca / PIN / Yubikey)
+            const assertion = await navigator.credentials.get({ publicKey: publicKey });
+
+            // 3. Wyślij do weryfikacji
+            const verifyFormData = new FormData();
+            verifyFormData.append('action', 'verify');
+            verifyFormData.append('id', bufferToBase64(assertion.rawId));
+            verifyFormData.append('clientDataJSON', bufferToBase64(assertion.response.clientDataJSON));
+            verifyFormData.append('authenticatorData', bufferToBase64(assertion.response.authenticatorData));
+            verifyFormData.append('signature', bufferToBase64(assertion.response.signature));
+            if (assertion.response.userHandle) {
+                verifyFormData.append('userHandle', bufferToBase64(assertion.response.userHandle));
+            }
+
+            const verifyRes = await fetch('../ajax/passkey_login.php', {
+                method: 'POST',
+                body: verifyFormData
+            });
+            const verifyData = await verifyRes.json();
+
+            if (verifyData.status === 'success') {
+                window.location.href = verifyData.redirect || '../index.php';
+            } else {
+                throw new Error(verifyData.message || 'Błąd podczas weryfikacji.');
+            }
+        } catch (err) {
+            console.error(err);
+            if (err.name === 'NotAllowedError') {
+                window.appNotice('PassKey nie istnieje', 'danger');
+            } else {
+                window.appNotice(err.message, 'danger');
+            }
+        }
+    }
+    </script>
     <?php include __DIR__ . '/../includes/cookie_consent.php'; ?>
 </body>
 </html>

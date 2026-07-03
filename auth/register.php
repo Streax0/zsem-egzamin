@@ -134,6 +134,7 @@ $csrf_token = generateCsrfToken();
     <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/auth.css', '..')); ?>">
     <script src="<?php echo htmlspecialchars(assetUrl('assets/js/api-client.js', '..')); ?>" defer></script>
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/kappicrypt.js', '..')); ?>?v=2" defer></script>
     <script src="<?php echo htmlspecialchars(assetUrl('assets/js/register.js', '..')); ?>" defer></script>
 </head>
 <body class="auth-page">
@@ -164,7 +165,7 @@ $csrf_token = generateCsrfToken();
             </div>
         <?php endif; ?>
 
-        <form method="POST" id="registerForm">
+        <form method="POST" id="registerForm" data-kappicrypt="true">
             <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             
             <div class="row g-3">
@@ -248,7 +249,7 @@ $csrf_token = generateCsrfToken();
             <button type="submit" class="btn btn-primary w-100 mb-3">Zarejestruj się</button>
 
             <div class="text-center">
-                <p class="small text-muted">Masz już konto? <a href="auth/login.php" class="text-primary text-decoration-none fw-semibold">Zaloguj się</a></p>
+                <p class="small text-muted">Masz już konto? <a href="login.php" class="text-primary text-decoration-none fw-semibold">Zaloguj się</a></p>
             </div>
         </form>
     </main>

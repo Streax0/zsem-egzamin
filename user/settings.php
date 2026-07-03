@@ -760,6 +760,11 @@ $extraHead = <<<HTML
             position: relative;
             overflow: hidden;
             border-left: 3px solid transparent !important;
+            cursor: pointer !important;
+            z-index: 10;
+        }
+        .nav-pills .nav-link * {
+            pointer-events: none;
         }
         body.dark-mode .nav-pills .nav-link {
             color: #cbd5e1 !important;
@@ -893,22 +898,22 @@ include '../includes/header.php';
                         <div class="col-12 col-md-4 col-lg-3">
                             <div class="dashboard-panel p-3 settings-nav-panel animate-in">
                                 <div class="nav flex-column nav-pills gap-2" id="settings-tabs" role="tablist" aria-orientation="vertical">
-                                    <button class="nav-link active text-start" id="tab-profile" data-bs-toggle="pill" data-bs-target="#pane-profile" type="button" role="tab" aria-controls="pane-profile" aria-selected="true">
+                                    <a class="nav-link active text-start" id="tab-profile" data-bs-toggle="pill" href="#pane-profile" role="tab" aria-controls="pane-profile" aria-selected="true">
                                         <i class="bi bi-person-circle"></i>
                                         <span>Profil konta</span>
-                                    </button>
-                                    <button class="nav-link text-start" id="tab-privacy" data-bs-toggle="pill" data-bs-target="#pane-privacy" type="button" role="tab" aria-controls="pane-privacy" aria-selected="false">
+                                    </a>
+                                    <a class="nav-link text-start" id="tab-privacy" data-bs-toggle="pill" href="#pane-privacy" role="tab" aria-controls="pane-privacy" aria-selected="false">
                                         <i class="bi bi-eye-slash"></i>
                                         <span>Prywatność</span>
-                                    </button>
-                                    <button class="nav-link text-start" id="tab-security" data-bs-toggle="pill" data-bs-target="#pane-security" type="button" role="tab" aria-controls="pane-security" aria-selected="false">
+                                    </a>
+                                    <a class="nav-link text-start" id="tab-security" data-bs-toggle="pill" href="#pane-security" role="tab" aria-controls="pane-security" aria-selected="false">
                                         <i class="bi bi-shield-lock"></i>
                                         <span>Bezpieczeństwo</span>
-                                    </button>
-                                    <button class="nav-link text-start" id="tab-preferences" data-bs-toggle="pill" data-bs-target="#pane-preferences" type="button" role="tab" aria-controls="pane-preferences" aria-selected="false">
+                                    </a>
+                                    <a class="nav-link text-start" id="tab-preferences" data-bs-toggle="pill" href="#pane-preferences" role="tab" aria-controls="pane-preferences" aria-selected="false">
                                         <i class="bi bi-palette"></i>
                                         <span>Wygląd i preferencje</span>
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -1134,6 +1139,49 @@ include '../includes/header.php';
                                             <?php endif; ?>
                                         </div>
                                     </div>
+
+                                    <?php if (in_array($role, ['admin', 'dyrektor', 'teacher'], true)): ?>
+                                    <!-- Passkey Card -->
+                                    <div class="dashboard-panel mb-4 animate-in">
+                                        <div class="panel-header mb-4">
+                                            <h5 class="panel-title mb-0"><i class="bi bi-fingerprint me-2 text-primary"></i>Logowanie Passkey (U2F / Biometria)</h5>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                            <div>
+                                                <div class="fw-bold">Zaloguj się bezpieczniej, bez hasła</div>
+                                                <div class="text-muted small">
+                                                    Zarejestruj czytnik linii papilarnych, Face ID lub klucz U2F, aby używać ich zamiast hasła. Opcja dostępna tylko dla personelu.
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary rounded-pill px-4" onclick="registerPasskey()">
+                                                <i class="bi bi-plus-circle me-1"></i>Dodaj Passkey
+                                            </button>
+                                        </div>
+                                        
+                                        <?php
+                                        // Pobieramy passkeys usera
+                                        $stmtPk = $pdo->prepare("SELECT id, device_name, created_at FROM user_passkeys WHERE user_id = ?");
+                                        $stmtPk->execute([$userId]);
+                                        $passkeysList = $stmtPk->fetchAll(PDO::FETCH_ASSOC);
+                                        ?>
+                                        <?php if (!empty($passkeysList)): ?>
+                                        <div class="mt-4 border-top pt-3">
+                                            <h6 class="fw-bold mb-3 small">Twoje klucze Passkey:</h6>
+                                            <div class="list-group list-group-flush">
+                                                <?php foreach ($passkeysList as $pk): ?>
+                                                <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                                                    <div>
+                                                        <div class="fw-semibold"><i class="bi bi-key me-2 text-secondary"></i><?php echo htmlspecialchars($pk['device_name'] ?: 'Nieznane urządzenie'); ?></div>
+                                                        <div class="small text-muted">Dodano: <?php echo date('d.m.Y H:i', strtotime($pk['created_at'])); ?></div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="deletePasskey(<?php echo $pk['id']; ?>)">Usuń</button>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php endif; ?>
 
                                     <!-- Danger Zone -->
                                     <div class="dashboard-panel danger-zone-panel animate-in">
@@ -1371,7 +1419,7 @@ include '../includes/header.php';
                                                 <div class="small">
                                                     <div class="d-flex justify-content-between mb-2">
                                                         <span class="text-muted">Wersja aplikacji:</span>
-                                                        <span class="fw-bold">2.0 Release</span>
+                                                        <span class="fw-bold">2.1 BETA</span>
                                                     </div>
                                                     <div class="d-flex justify-content-between mb-2">
                                                         <span class="text-muted">ID Użytkownika:</span>
@@ -1382,13 +1430,13 @@ include '../includes/header.php';
                                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                                     </div>
                                                 </div>
-                                                <!-- Test compliance requirement: Changelog 2.0 Release, Płynniejsze menu powiadomień i profilu, TESTS UPDATE -->
-                                                <div class="settings-release-title mt-3 mb-2">Changelog 2.0 Release</div>
-                                                <div class="settings-release-grid" aria-label="Changelog wersji 2.0 Release">
-                                                    <span><i class="bi bi-rocket-takeoff"></i> Pierwsza wersja RELEASE</span>
-                                                    <span><i class="bi bi-bug"></i> Poprawa bugów</span>
-                                                    <span><i class="bi bi-star-fill"></i> 1. oficjalna wersja</span>
-                                                    <span><i class="bi bi-palette"></i> Poprawa stylowania</span>
+                                                <!-- Test compliance requirement: Changelog 2.1 BETA -->
+                                                <div class="settings-release-title mt-3 mb-2">Changelog 2.1 BETA</div>
+                                                <div class="settings-release-grid" aria-label="Changelog wersji 2.1 BETA">
+                                                    <span><i class="bi bi-gear-fill"></i> Zooptymalizowano backend</span>
+                                                    <span><i class="bi bi-folder2-open"></i> Zmieniono strukturę plików</span>
+                                                    <span><i class="bi bi-bug-fill"></i> Poprawiono błędy</span>
+                                                    <span><i class="bi bi-journal-bookmark-fill"></i> Zaczęto prace nad "Kursami"</span>
                                                 </div>
                                             </div>
 
@@ -1452,8 +1500,37 @@ include '../includes/header.php';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <script>
+    const safeStorage = {
+        getItem: function(key, fallback) {
+            try {
+                return localStorage.getItem(key) || fallback;
+            } catch (e) {
+                return fallback;
+            }
+        },
+        setItem: function(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch (e) {}
+        },
+        removeItem: function(key) {
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {}
+        }
+    };
+    function showNotice(msg, type) {
+        if (window.appNotice) {
+            window.appNotice(msg, type);
+        } else {
+            alert(msg);
+        }
+    }
     function preferenceCookiesAllowed() {
-        const getCookie = (name) => document.cookie.split('; ').find(row => row.startsWith(name + '='))?.slice(name.length + 1) || '';
+        const getCookie = (name) => {
+            const row = document.cookie.split('; ').find(r => r.startsWith(name + '='));
+            return row ? row.slice(name.length + 1) : '';
+        };
         try {
             const consent = getCookie('cookie_consent_v2');
             if (consent) {
@@ -1475,11 +1552,14 @@ include '../includes/header.php';
         const notify = document.querySelector('[data-settings-mini="notify"] [data-settings-mini-value]');
         const layout = document.querySelector('[data-settings-mini="layout"] [data-settings-mini-value]');
         const theme = document.querySelector('[data-settings-mini="theme"] [data-settings-mini-value]');
-        const notifyEnabled = localStorage.getItem('notify_new_tests') === '1';
-        const soundsEnabled = localStorage.getItem('ui_sounds') === '1';
-        const dashboard = document.getElementById('dashboardView')?.value || readPreference('dashboard_view', 'balanced');
-        const defaultMode = document.getElementById('defaultTestMode')?.value || readPreference('default_test_mode', 'exam');
-        const external = document.getElementById('externalTabSwitch')?.checked;
+        const notifyEnabled = safeStorage.getItem('notify_new_tests', '0') === '1';
+        const soundsEnabled = safeStorage.getItem('ui_sounds', '0') === '1';
+        const dbViewEl = document.getElementById('dashboardView');
+        const dashboard = dbViewEl ? dbViewEl.value : readPreference('dashboard_view', 'balanced');
+        const defModeEl = document.getElementById('defaultTestMode');
+        const defaultMode = defModeEl ? defModeEl.value : readPreference('default_test_mode', 'exam');
+        const extTabEl = document.getElementById('externalTabSwitch');
+        const external = extTabEl ? extTabEl.checked : false;
         const themeValue = document.body.classList.contains('dark-mode') ? 'Ciemny' : 'Jasny';
         if (notify) notify.textContent = notifyEnabled ? 'Włączone' : 'Wyłączone';
         if (layout) layout.textContent = dashboardLabels[dashboard] || 'Zbalansowany';
@@ -1497,8 +1577,10 @@ include '../includes/header.php';
             const target = document.querySelector(`[data-settings-overview="${key}"] [data-settings-overview-value]`);
             if (target) target.textContent = value;
         };
-        const themeValue = document.getElementById('themeSelect')?.value === 'dark' ? 'Ciemny' : 'Jasny';
-        const densityValue = document.getElementById('densitySelect')?.value === 'compact' ? 'Kompakt' : 'Wygodny';
+        const themeSelEl = document.getElementById('themeSelect');
+        const themeValue = (themeSelEl ? themeSelEl.value : 'light') === 'dark' ? 'Ciemny' : 'Jasny';
+        const densSelEl = document.getElementById('densitySelect');
+        const densityValue = (densSelEl ? densSelEl.value : 'comfortable') === 'compact' ? 'Kompakt' : 'Wygodny';
         setOverview('theme', themeValue);
         setOverview('density', densityValue);
     }
@@ -1530,9 +1612,10 @@ include '../includes/header.php';
     }
     function readPreference(name, fallback) {
         if (window.getUiPreference) return window.getUiPreference(name, fallback);
-        const cookie = document.cookie.split('; ').find(row => row.startsWith(name + '='))?.slice(name.length + 1);
+        const cookieRow = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+        const cookie = cookieRow ? cookieRow.slice(name.length + 1) : undefined;
         try {
-            return cookie ? decodeURIComponent(cookie) : (localStorage.getItem(name) || fallback);
+            return cookie ? decodeURIComponent(cookie) : (safeStorage.getItem(name, fallback));
         } catch (error) {
             return cookie ? decodeURIComponent(cookie) : fallback;
         }
@@ -1594,11 +1677,11 @@ include '../includes/header.php';
         ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
             const secure = location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = `${n}=; path=/; max-age=0; SameSite=Lax${secure}`;
-            try { localStorage.removeItem(n); } catch (error) {}
+            try { safeStorage.removeItem(n); } catch (error) {}
         });
-        localStorage.removeItem('notify_new_tests');
-        localStorage.removeItem('ui_sounds');
-        window.appNotice?.('Preferencje zresetowane.', 'secondary');
+        safeStorage.removeItem('notify_new_tests');
+        safeStorage.removeItem('ui_sounds');
+        showNotice('Preferencje zresetowane.', 'secondary');
         location.reload();
     }
     function syncPreferenceControls() {
@@ -1642,26 +1725,69 @@ include '../includes/header.php';
         syncPreferenceControls();
         const notify = document.getElementById('notifySwitch');
         const sounds = document.getElementById('soundsSwitch');
-        if (notify) notify.checked = localStorage.getItem('notify_new_tests') === '1';
-        if (sounds) sounds.checked = localStorage.getItem('ui_sounds') === '1';
+        if (notify) notify.checked = safeStorage.getItem('notify_new_tests', '0') === '1';
+        if (sounds) sounds.checked = safeStorage.getItem('ui_sounds', '0') === '1';
         applyUiPreferences();
         syncSettingsOverviewCards();
 
-        // Preserving active settings tab
-        const activeTab = localStorage.getItem('active_settings_tab') || window.location.hash;
+        // Preserving active settings tab (Vanilla JS implementation to bypass any Bootstrap load issues)
+        const activeTab = safeStorage.getItem('active_settings_tab', '') || window.location.hash;
         if (activeTab) {
-            const tabTrigger = document.querySelector(`#settings-tabs button[data-bs-target="${activeTab}"]`);
+            const tabTrigger = document.querySelector(`#settings-tabs [data-bs-toggle="pill"][href="${activeTab}"]`) || document.querySelector(`#settings-tabs [data-bs-toggle="pill"][data-bs-target="${activeTab}"]`);
             if (tabTrigger) {
-                const tab = new bootstrap.Tab(tabTrigger);
-                tab.show();
+                document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
+                    link.classList.remove('active');
+                    link.setAttribute('aria-selected', 'false');
+                });
+                document.querySelectorAll('#settings-tab-content .tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                });
+                
+                tabTrigger.classList.add('active');
+                tabTrigger.setAttribute('aria-selected', 'true');
+                const targetId = tabTrigger.getAttribute('href') || tabTrigger.getAttribute('data-bs-target');
+                if (targetId) {
+                    const targetPane = document.querySelector(targetId);
+                    if (targetPane) {
+                        targetPane.classList.add('show', 'active');
+                    }
+                }
             }
         }
         
-        document.querySelectorAll('#settings-tabs button[data-bs-toggle="pill"]').forEach(btn => {
-            btn.addEventListener('shown.bs.tab', (e) => {
-                const target = e.target.getAttribute('data-bs-target');
-                localStorage.setItem('active_settings_tab', target);
-                history.replaceState(null, null, target);
+        // Manual tab switching logic (prevents Bootstrap JS conflicts or event block bugs on mobile)
+        document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
+                    link.classList.remove('active');
+                    link.setAttribute('aria-selected', 'false');
+                });
+                
+                this.classList.add('active');
+                this.setAttribute('aria-selected', 'true');
+                
+                const target = this.getAttribute('href') || this.getAttribute('data-bs-target');
+                if (target) {
+                    document.querySelectorAll('#settings-tab-content .tab-pane').forEach(pane => {
+                        pane.classList.remove('show', 'active');
+                    });
+                    
+                    const pane = document.querySelector(target);
+                    if (pane) {
+                        pane.classList.add('show', 'active');
+                        
+                        if (window.innerWidth < 768) {
+                            const y = pane.getBoundingClientRect().top + window.scrollY - 80;
+                            window.scrollTo(0, y);
+                        }
+                    }
+                    
+                    safeStorage.setItem('active_settings_tab', target);
+                    history.replaceState(null, null, target);
+                }
             });
         });
 
@@ -1695,24 +1821,24 @@ include '../includes/header.php';
                                     if (el.childNodes[0]) el.childNodes[0].textContent = newUsername + ' ';
                                 });
                             }
-                            window.appNotice?.('Dane podstawowe zostały zaktualizowane.', 'success');
+                            showNotice('Dane podstawowe zostały zaktualizowane.', 'success');
                             const avatarInput = form.querySelector('#avatarFileInput');
                             if (avatarInput && avatarInput.files && avatarInput.files.length > 0) {
                                 setTimeout(() => location.reload(), 600);
                             }
                         } else if (form.action.includes('update_privacy.php')) {
-                            window.appNotice?.('Ustawienia prywatności zostały zaktualizowane.', 'success');
+                            showNotice('Ustawienia prywatności zostały zaktualizowane.', 'success');
                         } else if (form.action.includes('change_password.php')) {
-                            window.appNotice?.('Hasło zostało pomyślnie zmienione.', 'success');
+                            showNotice('Hasło zostało pomyślnie zmienione.', 'success');
                             form.reset();
                         } else {
-                            window.appNotice?.('Zapisano pomyślnie.', 'success');
+                            showNotice('Zapisano pomyślnie.', 'success');
                         }
                     } else {
-                        window.appNotice?.('Wystąpił błąd podczas zapisu.', 'danger');
+                        showNotice('Wystąpił błąd podczas zapisu.', 'danger');
                     }
                 } catch (err) {
-                    window.appNotice?.('Błąd połączenia. Spróbuj ponownie.', 'danger');
+                    showNotice('Błąd połączenia. Spróbuj ponownie.', 'danger');
                 } finally {
                     if (submitBtn) {
                         submitBtn.disabled = false;
@@ -1722,6 +1848,131 @@ include '../includes/header.php';
             });
         });
     });
+
+    // Helper functions for WebAuthn
+    function base64urlToBuffer(baseurl64) {
+        return parseWebAuthnBinary(baseurl64);
+    }
+
+    function parseWebAuthnBinary(str) {
+        if (typeof str !== 'string') return str;
+        let b64 = str;
+        if (str.startsWith('=?BINARY?B?') && str.endsWith('?=')) {
+            b64 = str.substring(11, str.length - 2);
+        }
+        b64 = b64.replace(/\-/g, '+').replace(/_/g, '/');
+        const padding = '=='.slice(0, (4 - b64.length % 4) % 4);
+        b64 += padding;
+        const raw = window.atob(b64);
+        const buffer = new ArrayBuffer(raw.length);
+        const view = new Uint8Array(buffer);
+        for(let i=0; i<raw.length; i++) {
+            view[i] = raw.charCodeAt(i);
+        }
+        return buffer;
+    }
+
+    function bufferToBase64url(buffer) {
+        const byteView = new Uint8Array(buffer);
+        let str = '';
+        for (const charCode of byteView) {
+            str += String.fromCharCode(charCode);
+        }
+        const base64 = window.btoa(str);
+        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    function bufferToBase64(buffer) {
+        const byteView = new Uint8Array(buffer);
+        let str = '';
+        for (const charCode of byteView) {
+            str += String.fromCharCode(charCode);
+        }
+        return window.btoa(str);
+    }
+
+    // Passkey Registration
+    async function registerPasskey() {
+        if (!window.PublicKeyCredential) {
+            showNotice('Twoja przeglądarka nie obsługuje kluczy Passkey.', 'danger');
+            return;
+        }
+
+        try {
+            // 1. Pobierz challenge i opcje z backendu
+            const generateRes = await fetch('../ajax/passkey_register.php?action=generate');
+            const generateData = await generateRes.json();
+            
+            if (generateData.status !== 'success') {
+                throw new Error(generateData.message || 'Błąd generowania żądania.');
+            }
+
+            const publicKey = generateData.options.publicKey;
+            
+            // Konwersja base64(url) do ArrayBuffer dla kluczowych pól
+            if (publicKey.challenge) publicKey.challenge = parseWebAuthnBinary(publicKey.challenge);
+            if (publicKey.user && publicKey.user.id) publicKey.user.id = parseWebAuthnBinary(publicKey.user.id);
+            if (publicKey.excludeCredentials) {
+                for (let cred of publicKey.excludeCredentials) {
+                    cred.id = parseWebAuthnBinary(cred.id);
+                }
+            }
+
+            // 2. Wywołaj systemowy prompt Passkey
+            const credential = await navigator.credentials.create({ publicKey: publicKey });
+
+            // 3. Wyślij odpowiedź do weryfikacji na backend
+            const formData = new FormData();
+            formData.append('action', 'verify');
+            formData.append('clientDataJSON', bufferToBase64(credential.response.clientDataJSON));
+            formData.append('attestationObject', bufferToBase64(credential.response.attestationObject));
+            
+            let deviceName = prompt('Podaj krótką nazwę dla tego urządzenia (np. "Mój telefon", "Windows Hello"):', 'Moje urządzenie');
+            if (!deviceName) deviceName = 'Moje urządzenie';
+            formData.append('deviceName', deviceName);
+
+            const verifyRes = await fetch('../ajax/passkey_register.php', {
+                method: 'POST',
+                body: formData
+            });
+            const verifyData = await verifyRes.json();
+
+            if (verifyData.status === 'success') {
+                showNotice('Klucz Passkey został pomyślnie dodany!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                throw new Error(verifyData.message || 'Błąd podczas weryfikacji.');
+            }
+        } catch (err) {
+            console.error(err);
+            showNotice('Proces rejestracji klucza nie powiódł się: ' + err.message, 'danger');
+        }
+    }
+
+    async function deletePasskey(id) {
+        if (!confirm('Czy na pewno chcesz usunąć ten klucz Passkey?')) return;
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'delete');
+            formData.append('id', id);
+            
+            const res = await fetch('../ajax/passkey_register.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                showNotice('Klucz usunięty.', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (err) {
+            showNotice('Wystąpił błąd podczas usuwania: ' + err.message, 'danger');
+        }
+    }
     </script>
 </body>
 </html>
