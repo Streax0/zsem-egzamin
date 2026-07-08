@@ -2492,7 +2492,7 @@ function getQuestionDifficultyBucket(array $question): string {
     static $cache = [];
     $qid = (int)($question['id'] ?? 0);
     $text = (string)($question['question_text'] ?? '');
-    $key = $qid . ':' . md5($text);
+    $key = $qid . ':' . hash('sha256', $text);
     if (isset($cache[$key])) {
         return $cache[$key];
     }
