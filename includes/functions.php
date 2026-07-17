@@ -349,7 +349,7 @@ function consumeRateLimit(PDO $pdo, string $bucket, string $identity, int $maxAt
 
         $stmt = $pdo->prepare("INSERT INTO rate_limit_events (bucket, identity_hash, ip_address, created_at) VALUES (?, ?, ?, NOW())");
         $stmt->execute([$bucket, $identityHash, mb_substr(clientIpAddress(), 0, 45)]);
-        if (mt_rand(1, 100) === 1) {
+        if (random_int(1, 100) === 1) {
             $pdo->exec("DELETE FROM rate_limit_events WHERE created_at < DATE_SUB(NOW(), INTERVAL 2 DAY)");
         }
         return true;
@@ -2514,7 +2514,7 @@ function getWeightedRandomQuestions($pdo, $questions, $count = 40, $userId = 0) 
         $totalW = 0.0;
         foreach ($available as $a) $totalW += $weights[$a];
         if ($totalW <= 0) break;
-        $r = mt_rand() / mt_getrandmax() * $totalW;
+        $r = (random_int(0, PHP_INT_MAX) / PHP_INT_MAX) * $totalW;
         $cum = 0.0;
         $selected = null;
         foreach ($available as $a) {
