@@ -2365,12 +2365,12 @@ function getQuestionDifficultyBucket(array $question): string {
     static $cache = [];
     $qid = (int)($question['id'] ?? 0);
     $text = (string)($question['question_text'] ?? '');
-    $key = $qid . ':' . md5($text);
+    $key = $qid . ':' . hash('sha256', $text);
     if (isset($cache[$key])) {
         return $cache[$key];
     }
 
-    $hashVal = hexdec(substr(md5($text . $qid), 0, 4));
+    $hashVal = hexdec(substr(hash('sha256', $text . $qid), 0, 4));
     $difficulty = 'medium';
     if (strlen($text) < 100 && ($hashVal % 3 === 0)) {
         $difficulty = 'easy';
