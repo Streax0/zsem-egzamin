@@ -2211,10 +2211,10 @@ function loadQuestions($pdo = null, $includeDbQuestions = true) {
                     if ($cat === 'EE.08') $cat = 'INF.02';
                     if ($cat === 'EE.09') $cat = 'INF.03';
 
-                    // Simplest and most stable ID: MD5 of normalized text only
+                    // Simplest and most stable ID: SHA-256 of normalized text only
                     // Category is excluded because it might vary (EE.08 vs INF.02)
                     $normalizedText = preg_replace('/[^a-z0-9]/', '', strtolower($text));
-                    $stableId = hexdec(substr(md5($normalizedText), 0, 7));
+                    $stableId = hexdec(substr(hash('sha256', $normalizedText), 0, 7));
 
                     $questions[] = [
                         'id' => $stableId,
@@ -2365,12 +2365,12 @@ function getQuestionDifficultyBucket(array $question): string {
     static $cache = [];
     $qid = (int)($question['id'] ?? 0);
     $text = (string)($question['question_text'] ?? '');
-    $key = $qid . ':' . md5($text);
+    $key = $qid . ':' . hash('sha256', $text);
     if (isset($cache[$key])) {
         return $cache[$key];
     }
 
-    $hashVal = hexdec(substr(md5($text . $qid), 0, 4));
+    $hashVal = hexdec(substr(hash('sha256', $text . $qid), 0, 4));
     $difficulty = 'medium';
     if (strlen($text) < 100 && ($hashVal % 3 === 0)) {
         $difficulty = 'easy';
