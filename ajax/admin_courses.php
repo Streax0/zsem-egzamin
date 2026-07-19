@@ -302,5 +302,5 @@ try {
     }
 } catch (Exception $e) {
     error_log("AJAX admin courses failed: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Błąd serwera: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Wystąpił błąd serwera. Spróbuj ponownie.']);
 }

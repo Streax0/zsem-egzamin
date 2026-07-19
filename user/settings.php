@@ -763,7 +763,7 @@ $extraHead = <<<HTML
             cursor: pointer !important;
             z-index: 10;
         }
-        .nav-pills .nav-link * {
+        #settings-tabs .nav-link * {
             pointer-events: none;
         }
         body.dark-mode .nav-pills .nav-link {
@@ -1500,25 +1500,32 @@ include '../includes/header.php';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <script>
-    const safeStorage = {
-        getItem: function(key, fallback) {
-            try {
-                return localStorage.getItem(key) || fallback;
-            } catch (e) {
-                return fallback;
+    const safeStorage = (function() {
+        const memoryStore = {};
+        return {
+            getItem: function(key, fallback) {
+                try {
+                    return localStorage.getItem(key) || fallback;
+                } catch (e) {
+                    return memoryStore.hasOwnProperty(key) ? memoryStore[key] : fallback;
+                }
+            },
+            setItem: function(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    memoryStore[key] = String(value);
+                }
+            },
+            removeItem: function(key) {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    delete memoryStore[key];
+                }
             }
-        },
-        setItem: function(key, value) {
-            try {
-                localStorage.setItem(key, value);
-            } catch (e) {}
-        },
-        removeItem: function(key) {
-            try {
-                localStorage.removeItem(key);
-            } catch (e) {}
-        }
-    };
+        };
+    })();
     function showNotice(msg, type) {
         if (window.appNotice) {
             window.appNotice(msg, type);
@@ -1731,28 +1738,32 @@ include '../includes/header.php';
         syncSettingsOverviewCards();
 
         // Preserving active settings tab (Vanilla JS implementation to bypass any Bootstrap load issues)
-        const activeTab = safeStorage.getItem('active_settings_tab', '') || window.location.hash;
-        if (activeTab) {
-            const tabTrigger = document.querySelector(`#settings-tabs [data-bs-toggle="pill"][href="${activeTab}"]`) || document.querySelector(`#settings-tabs [data-bs-toggle="pill"][data-bs-target="${activeTab}"]`);
-            if (tabTrigger) {
-                document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
-                    link.classList.remove('active');
-                    link.setAttribute('aria-selected', 'false');
-                });
-                document.querySelectorAll('#settings-tab-content .tab-pane').forEach(pane => {
-                    pane.classList.remove('show', 'active');
-                });
-                
-                tabTrigger.classList.add('active');
-                tabTrigger.setAttribute('aria-selected', 'true');
-                const targetId = tabTrigger.getAttribute('href') || tabTrigger.getAttribute('data-bs-target');
-                if (targetId) {
-                    const targetPane = document.querySelector(targetId);
-                    if (targetPane) {
-                        targetPane.classList.add('show', 'active');
+        try {
+            const activeTab = safeStorage.getItem('active_settings_tab', '') || window.location.hash;
+            if (activeTab && activeTab !== '#') {
+                const tabTrigger = document.querySelector(`#settings-tabs [data-bs-toggle="pill"][href="${activeTab}"]`) || document.querySelector(`#settings-tabs [data-bs-toggle="pill"][data-bs-target="${activeTab}"]`);
+                if (tabTrigger) {
+                    document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
+                        link.classList.remove('active');
+                        link.setAttribute('aria-selected', 'false');
+                    });
+                    document.querySelectorAll('#settings-tab-content .tab-pane').forEach(pane => {
+                        pane.classList.remove('show', 'active');
+                    });
+                    
+                    tabTrigger.classList.add('active');
+                    tabTrigger.setAttribute('aria-selected', 'true');
+                    const targetId = tabTrigger.getAttribute('href') || tabTrigger.getAttribute('data-bs-target');
+                    if (targetId) {
+                        const targetPane = document.querySelector(targetId);
+                        if (targetPane) {
+                            targetPane.classList.add('show', 'active');
+                        }
                     }
                 }
             }
+        } catch (err) {
+            console.error('Failed to restore active tab:', err);
         }
         
         // Manual tab switching logic (prevents Bootstrap JS conflicts or event block bugs on mobile)
@@ -1775,18 +1786,26 @@ include '../includes/header.php';
                         pane.classList.remove('show', 'active');
                     });
                     
-                    const pane = document.querySelector(target);
-                    if (pane) {
-                        pane.classList.add('show', 'active');
-                        
-                        if (window.innerWidth < 768) {
-                            const y = pane.getBoundingClientRect().top + window.scrollY - 80;
-                            window.scrollTo(0, y);
+                    try {
+                        const pane = document.querySelector(target);
+                        if (pane) {
+                            pane.classList.add('show', 'active');
+                            
+                            if (window.innerWidth < 768) {
+                                const y = pane.getBoundingClientRect().top + window.scrollY - 80;
+                                window.scrollTo(0, y);
+                            }
                         }
+                    } catch (selectorErr) {
+                        console.error('Invalid selector for pane:', selectorErr);
                     }
                     
                     safeStorage.setItem('active_settings_tab', target);
-                    history.replaceState(null, null, target);
+                    try {
+                        history.replaceState(null, null, target);
+                    } catch (historyErr) {
+                        console.error('Failed to replace history state:', historyErr);
+                    }
                 }
             });
         });

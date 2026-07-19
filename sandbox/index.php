@@ -407,13 +407,13 @@ button { padding: 10px 16px; border-radius: 8px; }</textarea></label>
                 ];
             }, $sandboxBlockedElements), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
             </script>
-            <script src="<?php echo htmlspecialchars(assetUrl('assets/js/sandbox.js')); ?>"></script>
+            <script src="<?php echo htmlspecialchars(assetUrl('assets/js/sandbox.js', rtrim($base_url, '/'))); ?>"></script>
         </main>
         <?php include '../includes/footer.php'; ?>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
+<script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js', rtrim($base_url, '/'))); ?>"></script>
 </body>
 </html>
 

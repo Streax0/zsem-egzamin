@@ -983,6 +983,12 @@ def test_external_cdn_resources_have_sri() -> None:
             "sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM",
         "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js":
             "sha384-HAH79XdRvHr6axVGh4xQWVCp14kcd32bNk4Xu0sHDHtFQ42n6BAM8ykvB47dGz6D",
+        "https://cdn.jsdelivr.net/npm/grapesjs@0.21.2/dist/css/grapes.min.css":
+            "sha384-Rb3hPTAPYUwHzmCPbONJD8eq8Q68caCAY1GOhqbK8gjcW2IRcfrC9tnqZ2Yap69u",
+        "https://cdn.jsdelivr.net/npm/grapesjs@0.21.2/dist/grapes.min.js":
+            "sha384-gA9v1l0ZiLk8aDBHA97GEKpownBGOhcnIUjq2zA6zUFHtWQQr7GNwedHgwCc1lxt",
+        "https://cdn.jsdelivr.net/npm/grapesjs-blocks-basic@1.0.2/dist/index.js":
+            "sha384-j8iTYN3rOdgCfrmjtMgvExwZ7D5NsWYjtK8mQQSeUX0lquvFxBmVx0En06y9oPHt",
     }
     violations = []
     seen_urls = set()

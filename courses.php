@@ -16,17 +16,17 @@ if (function_exists('ensurePlatformEnhancements')) {
 $search = trim($_GET['q'] ?? '');
 
 $params = ['active'];
-$whereClauses = ["status = ?"];
+$whereClauses = ["c.status = ?"];
 
 if ($search !== '') {
-    $whereClauses[] = "(title LIKE ? OR description LIKE ?)";
+    $whereClauses[] = "(c.title LIKE ? OR c.description LIKE ?)";
     $params[] = "%$search%";
     $params[] = "%$search%";
 }
 
 $whereSql = "WHERE " . implode(" AND ", $whereClauses);
 
-$stmt = $pdo->prepare("SELECT * FROM courses $whereSql ORDER BY id DESC");
+$stmt = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrolled_count FROM courses c $whereSql ORDER BY c.id DESC");
 $stmt->execute($params);
 $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -150,8 +150,8 @@ include 'includes/header.php';
                                         </p>
                                         <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top" style="border-color: var(--border-color) !important;">
                                             <span class="small text-muted">
-                                                <i class="bi bi-calendar-event me-1"></i>
-                                                <?php echo $course['start_date'] ? date('d.m.Y', strtotime($course['start_date'])) : 'Zawsze dostępne'; ?>
+                                                <i class="bi bi-people me-1"></i>
+                                                <?php echo (int)($course['enrolled_count'] ?? 0); ?> zapisanych
                                             </span>
                                             <a href="course_view.php?id=<?php echo $course['id']; ?>" class="btn btn-outline-primary btn-sm stretched-link">
                                                 Otwórz
@@ -170,3 +170,7 @@ include 'includes/header.php';
 </div>
 
 <?php include 'includes/footer.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
+</body>
+</html>

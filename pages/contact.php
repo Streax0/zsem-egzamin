@@ -67,9 +67,8 @@ $extraHead = <<<HTML
         }
     </style>
 HTML;
-$bodyAttributes = 'class="<?php echo htmlspecialchars($bodyClassStr); ?';
 include '../includes/header.php';
-?>">
+?>
 
     <div class="dashboard-layout">
         <?php if (isset($_SESSION['user_id'])) include '../includes/sidebar.php'; ?>

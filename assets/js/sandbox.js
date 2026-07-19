@@ -3,6 +3,21 @@
   const blockedWords = ['kurw', 'chuj', 'huj', 'pierd', 'jeb', 'spier', 'wypier', 'cwel', 'dziwk', 'kutas', 'skurw', 'zjeb', 'debil', 'idiot', 'szmata', 'dupa', 'ruchac', 'fuck', 'shit', 'bitch', 'cunt', 'asshole', 'bastard', 'retard', 'whore', 'slut', 'nigg', 'nazi', 'hitler', 'puta', 'puto', 'mierda', 'cabron', 'scheisse', 'arschloch', 'putain', 'merde', 'blyat', 'pidor'];
   const sandboxBlockedElements = window.sandboxBlockedElements || {};
 
+  const safeSessionStorage = {
+    getItem(key) {
+      try { return window.sessionStorage.getItem(key); }
+      catch (e) { return null; }
+    },
+    setItem(key, value) {
+      try { window.sessionStorage.setItem(key, value); }
+      catch (e) {}
+    },
+    removeItem(key) {
+      try { window.sessionStorage.removeItem(key); }
+      catch (e) {}
+    }
+  };
+
   function normalizeText(value) {
     return String(value || '')
       .toLowerCase()
@@ -1062,15 +1077,15 @@
     const summary = $('routerSummary');
     const save = $('routerSaveConfig');
     if (!status || !summary || !save) {
-      sessionStorage.removeItem(routerStorageKey);
+      safeSessionStorage.removeItem(routerStorageKey);
       return;
     }
 
     const navType = performance.getEntriesByType?.('navigation')?.[0]?.type || '';
-    if (sessionStorage.getItem(`${routerStorageKey}.left`) === '1' && navType !== 'reload') {
-      sessionStorage.removeItem(routerStorageKey);
+    if (safeSessionStorage.getItem(`${routerStorageKey}.left`) === '1' && navType !== 'reload') {
+      safeSessionStorage.removeItem(routerStorageKey);
     }
-    sessionStorage.removeItem(`${routerStorageKey}.left`);
+    safeSessionStorage.removeItem(`${routerStorageKey}.left`);
 
     const fields = [
       'routerWanType',
@@ -1105,7 +1120,7 @@
     const snapshot = () => Object.fromEntries(fields.map((id) => [id, read(id)]));
     const restoreConfig = () => {
       try {
-        const saved = JSON.parse(sessionStorage.getItem(routerStorageKey) || 'null');
+        const saved = JSON.parse(safeSessionStorage.getItem(routerStorageKey) || 'null');
         if (!saved || typeof saved !== 'object') return false;
         fields.forEach((id) => {
           if (Object.prototype.hasOwnProperty.call(saved, id)) write(id, saved[id]);
@@ -1114,7 +1129,7 @@
         status.classList.add('is-saved');
         return true;
       } catch (error) {
-        sessionStorage.removeItem(routerStorageKey);
+        safeSessionStorage.removeItem(routerStorageKey);
         return false;
       }
     };
@@ -1146,12 +1161,12 @@
     });
     save.addEventListener('click', () => {
       sync();
-      sessionStorage.setItem(routerStorageKey, JSON.stringify(snapshot()));
+      safeSessionStorage.setItem(routerStorageKey, JSON.stringify(snapshot()));
       status.textContent = 'Zapisano lokalnie';
       status.classList.add('is-saved');
     });
     window.addEventListener('pagehide', () => {
-      sessionStorage.setItem(`${routerStorageKey}.left`, '1');
+      safeSessionStorage.setItem(`${routerStorageKey}.left`, '1');
     });
     restoreConfig();
     sync();
@@ -1220,18 +1235,18 @@
         css: $('cssCode').value,
         js: $('jsCode').value
       };
-      sessionStorage.setItem(draftKey, JSON.stringify(payload));
+      safeSessionStorage.setItem(draftKey, JSON.stringify(payload));
     };
     const restoreDraft = () => {
       try {
-        const payload = JSON.parse(sessionStorage.getItem(draftKey) || 'null');
+        const payload = JSON.parse(safeSessionStorage.getItem(draftKey) || 'null');
         if (!payload) return;
         if (typeof payload.html === 'string') $('htmlCode').value = payload.html;
         if (typeof payload.css === 'string') $('cssCode').value = payload.css;
         if (typeof payload.js === 'string') $('jsCode').value = payload.js;
       } catch (_) {}
     };
-    const clearDraft = () => sessionStorage.removeItem(draftKey);
+    const clearDraft = () => safeSessionStorage.removeItem(draftKey);
     document.querySelectorAll('.sandbox-tabs a, .sandbox-tool-tile').forEach((link) => {
       link.addEventListener('click', () => {
         if (!String(link.getAttribute('href') || '').includes('tool=live')) clearDraft();
@@ -1378,14 +1393,14 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    initLogic();
-    initPsu();
-    initSubnet();
-    initRouterWebEmulator();
-    initRouter();
-    initNumbers();
-    initOhm();
-    initLive();
-    initCrypto();
+    try { initLogic(); } catch (e) { console.error('Failed to init Logic:', e); }
+    try { initPsu(); } catch (e) { console.error('Failed to init Psu:', e); }
+    try { initSubnet(); } catch (e) { console.error('Failed to init Subnet:', e); }
+    try { initRouterWebEmulator(); } catch (e) { console.error('Failed to init RouterWebEmulator:', e); }
+    try { initRouter(); } catch (e) { console.error('Failed to init Router:', e); }
+    try { initNumbers(); } catch (e) { console.error('Failed to init Numbers:', e); }
+    try { initOhm(); } catch (e) { console.error('Failed to init Ohm:', e); }
+    try { initLive(); } catch (e) { console.error('Failed to init Live:', e); }
+    try { initCrypto(); } catch (e) { console.error('Failed to init Crypto:', e); }
   });
 }());

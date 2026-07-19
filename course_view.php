@@ -33,6 +33,16 @@ if ($isLoggedIn) {
     $isEnrolled = (bool)$checkStmt->fetchColumn();
 }
 
+// Fetch enrollment count
+$countStmt = $pdo->prepare("SELECT COUNT(*) FROM user_course_enrollments WHERE course_id = ?");
+$countStmt->execute([$courseId]);
+$enrolledCount = (int)$countStmt->fetchColumn();
+
+// Fetch course structure for preview
+$structStmt = $pdo->prepare("SELECT cm.id as module_id, cm.title as module_title, COUNT(ci.id) as item_count FROM course_modules cm LEFT JOIN course_items ci ON ci.module_id = cm.id WHERE cm.course_id = ? GROUP BY cm.id, cm.title ORDER BY cm.sort_order ASC");
+$structStmt->execute([$courseId]);
+$courseStructure = $structStmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Handle Enroll
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'enroll') {
     if (!$isLoggedIn) {
@@ -111,11 +121,30 @@ include 'includes/header.php';
                                     else echo "Cały czas";
                                 ?>
                             </span>
+                            <span><i class="bi bi-people me-1 text-primary"></i><?php echo $enrolledCount; ?> zapisanych</span>
+                            <span><i class="bi bi-journal-text me-1 text-primary"></i><?php echo count($courseStructure); ?> modułów</span>
                         </div>
                         
                         <div class="fs-5 mb-4 text-muted" style="line-height: 1.6;">
                             <?php echo nl2br(htmlspecialchars($course['description'] ?? '')); ?>
                         </div>
+
+                        <?php if (!empty($courseStructure)): ?>
+                            <div class="mt-4 pt-4 border-top" style="border-color: var(--border-color) !important;">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-list-nested me-2 text-primary"></i>Zawartość kursu</h5>
+                                <div class="list-group list-group-flush">
+                                    <?php foreach ($courseStructure as $i => $module): ?>
+                                        <div class="list-group-item bg-transparent border-0 px-0 py-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-primary bg-opacity-10 text-primary" style="min-width: 28px;"><?php echo $i + 1; ?></span>
+                                                <span class="fw-semibold"><?php echo htmlspecialchars($module['module_title']); ?></span>
+                                                <span class="text-muted small ms-auto"><?php echo (int)$module['item_count']; ?> lekcji</span>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
 
                         <?php if (!$isLoggedIn): ?>
                             <div class="alert alert-warning border-0 shadow-sm mt-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -152,3 +181,7 @@ include 'includes/header.php';
 </div>
 
 <?php include 'includes/footer.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
+</body>
+</html>

@@ -1836,9 +1836,9 @@ $extraHead = <<<HTML
         }
     </style>
 HTML;
-$bodyAttributes = 'class="admin-page <?php echo ($currentTheme === \'dark\') ? \'dark-mode\' : \'light-mode\'; ?';
+$bodyClasses = ['admin-page', ($currentTheme === 'dark') ? 'dark-mode' : 'light-mode'];
 include '../includes/header.php';
-?>">
+?>
 
     <div class="dashboard-layout">
         <?php include '../includes/sidebar.php'; ?>

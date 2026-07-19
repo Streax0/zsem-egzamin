@@ -92,9 +92,8 @@ $extraHead = <<<HTML
         body.dark-mode .btn-check:checked + .preset-option { background:#450a0a; color:#fca5a5; }
     </style>
 HTML;
-$bodyAttributes = 'class="<?php echo htmlspecialchars($bodyClassStr); ?';
 include '../includes/header.php';
-?>">
+?>
 <div class="dashboard-layout">
     <?php if ($showSidebar) include '../includes/sidebar.php'; ?>
     <div class="main-container" style="<?php echo !$showSidebar ? 'margin-left: 0;' : ''; ?>">

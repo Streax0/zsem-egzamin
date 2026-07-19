@@ -39,9 +39,8 @@ $extraHead = <<<HTML
         /* badge-info-pill removed as it's replaced with hero-rank-pill */
     </style>
 HTML;
-$bodyAttributes = 'class="<?php echo htmlspecialchars($bodyClassStr); ?';
 include '../includes/header.php';
-?>">
+?>
 <div class="dashboard-layout">
     <?php if ($showSidebar) include '../includes/sidebar.php'; ?>
     <div class="main-container" style="<?php echo !$showSidebar ? 'margin-left: 0;' : ''; ?>">

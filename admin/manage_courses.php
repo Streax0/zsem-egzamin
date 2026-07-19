@@ -95,18 +95,18 @@ $params = [];
 $whereClauses = [];
 
 if ($search !== '') {
-    $whereClauses[] = "(title LIKE ? OR description LIKE ?)";
+    $whereClauses[] = "(c.title LIKE ? OR c.description LIKE ?)";
     $params[] = "%$search%";
     $params[] = "%$search%";
 }
 
 $whereSql = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
 
-$stmt = $pdo->prepare("SELECT * FROM courses $whereSql ORDER BY id DESC LIMIT $limit OFFSET $offset");
+$stmt = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrolled_count, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm2 ON cm2.id = ci.module_id WHERE cm2.course_id = c.id) AS item_count FROM courses c $whereSql ORDER BY c.id DESC LIMIT $limit OFFSET $offset");
 $stmt->execute($params);
 $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$countStmt = $pdo->prepare("SELECT COUNT(*) FROM courses $whereSql");
+$countStmt = $pdo->prepare("SELECT COUNT(*) FROM courses c $whereSql");
 $countStmt->execute($params);
 $totalCourses = (int)$countStmt->fetchColumn();
 
@@ -211,10 +211,13 @@ include '../includes/header.php';
                                                         echo $sd . ' - ' . $ed;
                                                     ?>
                                                 </td>
-                                                <td class="align-middle text-center">
-                                                    <a href="course_builder.php?id=<?php echo $course['id']; ?>" class="btn btn-sm btn-outline-primary fw-bold" style="border-radius: 5px;">
-                                                        <i class="bi bi-journal-text me-1"></i> Moduły & Lekcje
-                                                    </a>
+                                                <td class="text-center">
+                                                    <div class="d-flex flex-column align-items-center gap-1">
+                                                        <a href="course_builder.php?id=<?php echo $course['id']; ?>" class="btn btn-sm btn-outline-primary fw-bold" style="border-radius: 5px;">
+                                                            <i class="bi bi-journal-text me-1"></i> Moduły & Lekcje
+                                                        </a>
+                                                        <small class="text-muted"><?php echo (int)($course['module_count'] ?? 0); ?> moduł. / <?php echo (int)($course['item_count'] ?? 0); ?> lekcji / <?php echo (int)($course['enrolled_count'] ?? 0); ?> ucz.</small>
+                                                    </div>
                                                 </td>
                                                 <td class="text-end pe-4">
                                                     <div class="d-flex justify-content-end gap-2">
@@ -367,3 +370,8 @@ include '../includes/header.php';
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <?php include '../includes/footer.php'; ?>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

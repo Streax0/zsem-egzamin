@@ -425,12 +425,20 @@ include '../includes/header.php';
                                     </div>
 
                                 <?php elseif ($activeItem['type'] === 'quiz' || $activeItem['type'] === 'exam'): ?>
-                                    <div class="alert alert-info">
-                                        <i class="bi bi-info-circle me-2"></i> Ze względu na brak zaawansowanego buildera pytań, ustaw tutaj po prostu próg zaliczenia. Wygeneruj pytania <?php echo $activeItem['type'] === 'exam' ? 'egzaminacyjne' : 'quizowe'; ?> z bazy.
-                                    </div>
                                     <div class="mb-3">
                                         <label class="form-label fw-bold text-muted small">Wymagany próg zaliczenia (%)</label>
                                         <input type="number" class="form-control" name="quiz_passing_score" value="<?php echo htmlspecialchars($activeItem['quiz_passing_score']); ?>" min="1" max="100">
+                                    </div>
+                                    <div class="card mt-4 border-0 shadow-sm">
+                                        <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center pt-3 pb-0">
+                                            <h6 class="fw-bold mb-0"><i class="bi bi-question-square me-2 text-primary"></i>Pytania <?php echo $activeItem['type'] === 'exam' ? 'egzaminacyjne' : 'quizowe'; ?></h6>
+                                            <button type="button" class="btn btn-sm btn-primary" onclick="showQuestionModal()"><i class="bi bi-plus-lg me-1"></i> Dodaj pytanie</button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="questionsList" class="list-group list-group-flush">
+                                                <div class="text-center text-muted py-3">Ładowanie pytań...</div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                 <?php elseif ($activeItem['type'] === 'lab'): ?>
@@ -539,10 +547,70 @@ include '../includes/header.php';
     </div>
 </div>
 
+<!-- Question Modal -->
+<div class="modal fade" id="questionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="questionForm" onsubmit="saveQuestion(event)">
+                <input type="hidden" name="action" id="questionAction" value="add_question">
+                <input type="hidden" name="item_id" value="<?php echo isset($activeItem) ? $activeItem['id'] : 0; ?>">
+                <input type="hidden" name="question_id" id="questionId" value="0">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="questionModalLabel">Nowe Pytanie</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Treść pytania *</label>
+                        <textarea class="form-control" name="question_text" id="questionText" rows="3" required></textarea>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Opcja A *</label>
+                            <input type="text" class="form-control" name="option_a" id="optionA" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Opcja B *</label>
+                            <input type="text" class="form-control" name="option_b" id="optionB" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Opcja C</label>
+                            <input type="text" class="form-control" name="option_c" id="optionC">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Opcja D</label>
+                            <input type="text" class="form-control" name="option_d" id="optionD">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Poprawna odpowiedź *</label>
+                            <select class="form-select" name="correct_answer" id="correctAnswer" required>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Wyjaśnienie (opcjonalnie)</label>
+                        <textarea class="form-control" name="explanation" id="explanation" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- GrapesJS Dependencies -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.21.2/dist/css/grapes.min.css">
-<script src="https://cdn.jsdelivr.net/npm/grapesjs@0.21.2/dist/grapes.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/grapesjs-blocks-basic@1.0.2/dist/index.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.21.2/dist/css/grapes.min.css" integrity="sha384-Rb3hPTAPYUwHzmCPbONJD8eq8Q68caCAY1GOhqbK8gjcW2IRcfrC9tnqZ2Yap69u" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/grapesjs@0.21.2/dist/grapes.min.js" integrity="sha384-gA9v1l0ZiLk8aDBHA97GEKpownBGOhcnIUjq2zA6zUFHtWQQr7GNwedHgwCc1lxt" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/grapesjs-blocks-basic@1.0.2/dist/index.js" integrity="sha384-j8iTYN3rOdgCfrmjtMgvExwZ7D5NsWYjtK8mQQSeUX0lquvFxBmVx0En06y9oPHt" crossorigin="anonymous"></script>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
@@ -562,7 +630,7 @@ include '../includes/header.php';
                 styles: [
                     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
                     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css',
-                    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'
+                    '../assets/css/fonts.css'
                 ]
             }
         });
@@ -758,7 +826,7 @@ include '../includes/header.php';
         bm.add('image', {
             category: 'Podstawowe',
             label: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:24px;height:24px;"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c0-1.1-.9-2-2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z"/></svg><div class="gjs-block-label">Obraz</div>',
-            content: '<img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 16px;" />'
+            content: '<img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600" alt="Przykładowy obraz" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 16px;" />'
         });
 
         // 4. Wideo (Video)
@@ -961,6 +1029,119 @@ include '../includes/header.php';
         });
         labSourceSelect.dispatchEvent(new Event('change'));
     }
+    }
+    
+    function loadQuizQuestions() {
+        const itemId = <?php echo isset($activeItem['id']) ? $activeItem['id'] : 0; ?>;
+        if (!itemId) return;
+        
+        fetch(`../ajax/admin_courses.php?action=get_questions&item_id=${itemId}`)
+        .then(res => res.json())
+        .then(data => {
+            const list = document.getElementById('questionsList');
+            if (!list) return;
+            if (!data.success) {
+                list.innerHTML = `<div class="text-danger p-3">${data.message}</div>`;
+                return;
+            }
+            if (data.questions.length === 0) {
+                list.innerHTML = `<div class="text-muted text-center py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Brak pytań. Dodaj pierwsze pytanie.</div>`;
+                return;
+            }
+            
+            let html = '';
+            data.questions.forEach((q, idx) => {
+                html += `
+                <div class="list-group-item px-0 py-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1">${idx + 1}. ${escapeHtml(q.question_text)}</h6>
+                            <div class="small text-muted mb-2">
+                                <div>A: ${escapeHtml(q.option_a)} ${q.correct_answer==='A' ? '<i class="bi bi-check-circle-fill text-success"></i>' : ''}</div>
+                                <div>B: ${escapeHtml(q.option_b)} ${q.correct_answer==='B' ? '<i class="bi bi-check-circle-fill text-success"></i>' : ''}</div>
+                                ${q.option_c ? `<div>C: ${escapeHtml(q.option_c)} ${q.correct_answer==='C' ? '<i class="bi bi-check-circle-fill text-success"></i>' : ''}</div>` : ''}
+                                ${q.option_d ? `<div>D: ${escapeHtml(q.option_d)} ${q.correct_answer==='D' ? '<i class="bi bi-check-circle-fill text-success"></i>' : ''}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick='editQuestion(${JSON.stringify(q).replace(/'/g, "&#39;")})'><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteQuestion(${q.id})"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            list.innerHTML = html;
+        });
+    }
+
+    function escapeHtml(unsafe) {
+        return (unsafe || '').toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    function showQuestionModal() {
+        document.getElementById('questionForm').reset();
+        document.getElementById('questionAction').value = 'add_question';
+        document.getElementById('questionId').value = '0';
+        document.getElementById('questionModalLabel').textContent = 'Nowe Pytanie';
+        new bootstrap.Modal(document.getElementById('questionModal')).show();
+    }
+    
+    function editQuestion(q) {
+        document.getElementById('questionAction').value = 'edit_question';
+        document.getElementById('questionId').value = q.id;
+        document.getElementById('questionText').value = q.question_text;
+        document.getElementById('optionA').value = q.option_a;
+        document.getElementById('optionB').value = q.option_b;
+        document.getElementById('optionC').value = q.option_c || '';
+        document.getElementById('optionD').value = q.option_d || '';
+        document.getElementById('correctAnswer').value = q.correct_answer;
+        document.getElementById('explanation').value = q.explanation || '';
+        document.getElementById('questionModalLabel').textContent = 'Edytuj Pytanie';
+        new bootstrap.Modal(document.getElementById('questionModal')).show();
+    }
+    
+    function saveQuestion(e) {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        fd.append('csrf_token', csrfToken);
+        
+        fetch('../ajax/admin_courses.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('questionModal')).hide();
+                loadQuizQuestions();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+    
+    function deleteQuestion(id) {
+        if (!confirm('Na pewno usunąć to pytanie?')) return;
+        const fd = new FormData();
+        fd.append('action', 'delete_question');
+        fd.append('question_id', id);
+        fd.append('csrf_token', csrfToken);
+        
+        fetch('../ajax/admin_courses.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) loadQuizQuestions();
+            else alert(data.message);
+        });
+    }
+
+    <?php if (isset($activeItem) && in_array($activeItem['type'], ['quiz', 'exam'])): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadQuizQuestions();
+    });
+    <?php endif; ?>
 </script>
 </body>
 </html>

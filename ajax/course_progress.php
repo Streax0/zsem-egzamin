@@ -159,7 +159,7 @@ try {
                 SELECT ci.id, ci.quiz_passing_score, cm.course_id
                 FROM course_items ci
                 JOIN course_modules cm ON cm.id = ci.module_id
-                WHERE ci.id = ? AND ci.type = 'quiz' LIMIT 1
+                WHERE ci.id = ? AND ci.type IN ('quiz', 'exam') LIMIT 1
             ");
             $itemStmt->execute([$itemId]);
             $item = $itemStmt->fetch(PDO::FETCH_ASSOC);
@@ -256,5 +256,5 @@ try {
     }
 } catch (Exception $e) {
     error_log("AJAX course progress failed: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Błąd serwera: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Wystąpił błąd serwera. Spróbuj ponownie.']);
 }

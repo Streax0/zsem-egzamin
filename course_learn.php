@@ -474,9 +474,16 @@ include 'includes/header.php';
                 <button class="bg-transparent border-0 w-50 fw-semibold py-2 text-muted" style="font-size: 0.85rem;">Zasoby</button>
             </div>
             <div class="p-3 border-bottom">
-                <div class="input-group">
+                <div class="input-group mb-3">
                     <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" class="form-control border-start-0" placeholder="Szukaj lekcji..." onkeyup="filterSidebar(this)" style="font-size: 0.85rem;">
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <small class="fw-bold text-muted" style="font-size: 0.75rem;">Twój postęp</small>
+                    <small class="fw-bold text-primary" id="sidebarProgressText" style="font-size: 0.75rem;"><?php echo $progressPercent; ?>%</small>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" id="sidebarProgressBar" role="progressbar" style="width: <?php echo $progressPercent; ?>%;"></div>
                 </div>
             </div>
             
@@ -974,6 +981,54 @@ include 'includes/header.php';
             }
         });
     }
+
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show shadow-sm`;
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '20px';
+        alertDiv.style.right = '20px';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.style.minWidth = '300px';
+        alertDiv.innerHTML = `
+            ${escapeHtml(message)}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => {
+            if (alertDiv.parentNode) alertDiv.remove();
+        }, 5000);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        // Zabezpieczenie przed nawigacją, gdy focus jest w polu tekstowym (np. wyszukiwarka lub iframe)
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+            return;
+        }
+
+        // Klawisze A, B, C, D dla quizów/egzaminów (szuka pierwszego nieodpowiedzianego pytania)
+        if ((activeItemType === 'quiz' || activeItemType === 'exam') && ['a', 'b', 'c', 'd'].includes(e.key.toLowerCase())) {
+            const val = e.key.toUpperCase();
+            const questions = Array.from(document.querySelectorAll('.quiz-question-card'));
+            for (let q of questions) {
+                const qId = q.getAttribute('data-question-id');
+                if (!quizAnswers[qId]) {
+                    const btn = q.querySelector(`.option-btn[data-value="${val}"]`);
+                    if (btn) btn.click();
+                    break;
+                }
+            }
+        }
+
+        // Strzałki w lewo/prawo do nawigacji po lekcjach
+        if (e.key === 'ArrowRight') {
+            const nextBtn = document.querySelector('.next-btn');
+            if (nextBtn) window.location.href = nextBtn.href;
+        } else if (e.key === 'ArrowLeft') {
+            const prevBtn = document.querySelector('.prev-btn');
+            if (prevBtn) window.location.href = prevBtn.href;
+        }
+    });
 </script>
 </body>
 </html>

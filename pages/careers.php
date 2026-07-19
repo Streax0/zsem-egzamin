@@ -34,9 +34,8 @@ $bodyClassStr = implode(' ', $bodyClasses);
 <?php
 $pageTitle = 'Kariery - ZSEM Tech';
 $extraCss = ['assets/css/dashboard-new.css'];
-$bodyAttributes = 'class="<?php echo htmlspecialchars($bodyClassStr); ?';
 include '../includes/header.php';
-?>">
+?>
 <div class="dashboard-layout">
     <?php if ($showSidebar) include '../includes/sidebar.php'; ?>
     <div class="main-container" style="<?php echo !$showSidebar ? 'margin-left: 0;' : ''; ?>">
