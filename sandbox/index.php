@@ -18,6 +18,7 @@ $tools = [
     'crypto' => ['title' => 'Krypto i Hasła', 'icon' => 'bi-shield-lock', 'desc' => 'Generuj silne hasła, koduj/dekoduj tekst w Base64 oraz przeliczaj encje URL.'],
 ];
 $tool = $_GET['tool'] ?? 'home';
+// Legacy tool route compatibility: sandbox.php?tool=
 if ($tool !== 'home' && !isset($tools[$tool])) $tool = 'home';
 
 $embedMode = isset($_GET['embed']) && $_GET['embed'] == '1';

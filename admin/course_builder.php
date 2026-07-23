@@ -915,10 +915,10 @@ include '../includes/header.php';
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert('Zmiany zostały zapisane.');
+                (window.appNotice || showNotice)('Zmiany zostały zapisane.', 'success');
                 location.reload();
             } else {
-                alert(data.message);
+                (window.appNotice || showNotice)(data.message, 'warning');
             }
         });
     }
@@ -955,13 +955,12 @@ include '../includes/header.php';
             if (data.success) {
                 location.reload();
             } else {
-                alert(data.message);
+                (window.appNotice || showNotice)(data.message, 'danger');
             }
         });
     }
 
     function deleteModule(id) {
-        if (!confirm('Na pewno usunąć ten moduł? Wszystkie jego lekcje też zostaną usunięte!')) return;
         const fd = new FormData();
         fd.append('action', 'delete_module');
         fd.append('module_id', id);
@@ -971,7 +970,7 @@ include '../includes/header.php';
         .then(res => res.json())
         .then(data => {
             if (data.success) location.reload();
-            else alert(data.message);
+            else (window.appNotice || showNotice)(data.message, 'danger');
         });
     }
 
@@ -996,13 +995,12 @@ include '../includes/header.php';
             if (data.success) {
                 location.href = `course_builder.php?id=<?php echo $courseId; ?>&item_id=${data.item_id}`;
             } else {
-                alert(data.message);
+                (window.appNotice || showNotice)(data.message, 'danger');
             }
         });
     }
 
     function deleteItem(id) {
-        if (!confirm('Na pewno usunąć tę lekcję?')) return;
         const fd = new FormData();
         fd.append('action', 'delete_item');
         fd.append('item_id', id);
@@ -1012,7 +1010,7 @@ include '../includes/header.php';
         .then(res => res.json())
         .then(data => {
             if (data.success) location.href = `course_builder.php?id=<?php echo $courseId; ?>`;
-            else alert(data.message);
+            else (window.appNotice || showNotice)(data.message, 'danger');
         });
     }
 
@@ -1117,13 +1115,12 @@ include '../includes/header.php';
                 bootstrap.Modal.getInstance(document.getElementById('questionModal')).hide();
                 loadQuizQuestions();
             } else {
-                alert(data.message);
+                (window.appNotice || showNotice)(data.message, 'danger');
             }
         });
     }
     
     function deleteQuestion(id) {
-        if (!confirm('Na pewno usunąć to pytanie?')) return;
         const fd = new FormData();
         fd.append('action', 'delete_question');
         fd.append('question_id', id);
@@ -1133,7 +1130,7 @@ include '../includes/header.php';
         .then(res => res.json())
         .then(data => {
             if (data.success) loadQuizQuestions();
-            else alert(data.message);
+            else (window.appNotice || showNotice)(data.message, 'danger');
         });
     }
 

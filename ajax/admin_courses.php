@@ -5,16 +5,16 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json');
+securityApplyJsonHeaders();
 
 if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Niezalogowany użytkownik.']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Niezalogowany użytkownik.']);
     exit;
 }
 
 $role = $_SESSION['role'] ?? 'user';
 if (!in_array($role, ['admin', 'dyrektor', 'teacher'], true)) {
-    echo json_encode(['success' => false, 'message' => 'Brak uprawnień.']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Brak uprawnień.']);
     exit;
 }
 
@@ -23,7 +23,7 @@ $token = $_POST['csrf_token'] ?? $_GET['csrf_token'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' || !in_array($action, ['get_custom_labs', 'get_module_items', 'get_modules', 'get_questions'], true)) {
     if (!validateCsrfToken($token, 'manage_courses')) {
-        echo json_encode(['success' => false, 'message' => 'Nieprawidłowy token CSRF.']);
+        echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowy token CSRF.']);
         exit;
     }
 }
@@ -38,7 +38,7 @@ try {
             $desc = trim((string)($_POST['description'] ?? ''));
 
             if ($courseId <= 0 || $title === '') {
-                echo json_encode(['success' => false, 'message' => 'Tytuł jest wymagany.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Tytuł jest wymagany.']);
                 exit;
             }
 
@@ -50,7 +50,7 @@ try {
             $stmt = $pdo->prepare("INSERT INTO course_modules (course_id, title, description, sort_order) VALUES (?, ?, ?, ?)");
             $stmt->execute([$courseId, $title, $desc, $sortOrder]);
 
-            echo json_encode(['success' => true, 'message' => 'Moduł został dodany.', 'module_id' => $pdo->lastInsertId()]);
+            echo securityJsonEncode(['success' => true, 'message' => 'Moduł został dodany.', 'module_id' => $pdo->lastInsertId()]);
             break;
 
         case 'edit_module':
@@ -59,33 +59,33 @@ try {
             $desc = trim((string)($_POST['description'] ?? ''));
 
             if ($moduleId <= 0 || $title === '') {
-                echo json_encode(['success' => false, 'message' => 'Tytuł jest wymagany.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Tytuł jest wymagany.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("UPDATE course_modules SET title = ?, description = ? WHERE id = ?");
             $stmt->execute([$title, $desc, $moduleId]);
 
-            echo json_encode(['success' => true, 'message' => 'Moduł zaktualizowany.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Moduł zaktualizowany.']);
             break;
 
         case 'delete_module':
             $moduleId = (int)($_POST['module_id'] ?? 0);
             if ($moduleId <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Nieprawidłowy moduł.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowy moduł.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("DELETE FROM course_modules WHERE id = ?");
             $stmt->execute([$moduleId]);
 
-            echo json_encode(['success' => true, 'message' => 'Moduł usunięty.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Moduł usunięty.']);
             break;
 
         case 'reorder_modules':
             $modules = $_POST['modules'] ?? []; // Array of module IDs in new order
             if (!is_array($modules)) {
-                echo json_encode(['success' => false, 'message' => 'Błędne dane.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Błędne dane.']);
                 exit;
             }
 
@@ -96,7 +96,7 @@ try {
             }
             $pdo->commit();
 
-            echo json_encode(['success' => true, 'message' => 'Kolejność modułów zaktualizowana.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Kolejność modułów zaktualizowana.']);
             break;
 
         case 'add_item':
@@ -112,7 +112,7 @@ try {
             $labInstructions = $_POST['lab_instructions'] ?? '';
 
             if ($moduleId <= 0 || $title === '' || !in_array($type, ['text', 'video', 'quiz', 'lab', 'exam'], true)) {
-                echo json_encode(['success' => false, 'message' => 'Tytuł i poprawny typ są wymagane.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Tytuł i poprawny typ są wymagane.']);
                 exit;
             }
 
@@ -123,7 +123,7 @@ try {
             $stmt = $pdo->prepare("INSERT INTO course_items (module_id, title, type, content, video_url, quiz_passing_score, lab_source, lab_tool_key, lab_custom_id, lab_instructions, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$moduleId, $title, $type, $content, $videoUrl, $quizPassingScore, $labSource, $labToolKey, $labCustomId, $labInstructions, $sortOrder]);
 
-            echo json_encode(['success' => true, 'message' => 'Element dodany.', 'item_id' => $pdo->lastInsertId()]);
+            echo securityJsonEncode(['success' => true, 'message' => 'Element dodany.', 'item_id' => $pdo->lastInsertId()]);
             break;
 
         case 'edit_item':
@@ -138,33 +138,33 @@ try {
             $labInstructions = $_POST['lab_instructions'] ?? '';
 
             if ($itemId <= 0 || $title === '') {
-                echo json_encode(['success' => false, 'message' => 'Tytuł jest wymagany.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Tytuł jest wymagany.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("UPDATE course_items SET title = ?, content = ?, video_url = ?, quiz_passing_score = ?, lab_source = ?, lab_tool_key = ?, lab_custom_id = ?, lab_instructions = ? WHERE id = ?");
             $stmt->execute([$title, $content, $videoUrl, $quizPassingScore, $labSource, $labToolKey, $labCustomId, $labInstructions, $itemId]);
 
-            echo json_encode(['success' => true, 'message' => 'Lekcja zaktualizowana.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Lekcja zaktualizowana.']);
             break;
 
         case 'delete_item':
             $itemId = (int)($_POST['item_id'] ?? 0);
             if ($itemId <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Błędne ID.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Błędne ID.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("DELETE FROM course_items WHERE id = ?");
             $stmt->execute([$itemId]);
 
-            echo json_encode(['success' => true, 'message' => 'Lekcja usunięta.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Lekcja usunięta.']);
             break;
 
         case 'reorder_items':
             $items = $_POST['items'] ?? [];
             if (!is_array($items)) {
-                echo json_encode(['success' => false, 'message' => 'Błędne dane.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Błędne dane.']);
                 exit;
             }
 
@@ -175,7 +175,7 @@ try {
             }
             $pdo->commit();
 
-            echo json_encode(['success' => true, 'message' => 'Kolejność lekcji zaktualizowana.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Kolejność lekcji zaktualizowana.']);
             break;
 
         case 'add_question':
@@ -189,14 +189,14 @@ try {
             $explanation = trim((string)($_POST['explanation'] ?? ''));
 
             if ($itemId <= 0 || $qText === '' || $optA === '' || $optB === '') {
-                echo json_encode(['success' => false, 'message' => 'Treść pytania oraz opcje A i B są wymagane.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Treść pytania oraz opcje A i B są wymagane.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("INSERT INTO course_quiz_questions (item_id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$itemId, $qText, $optA, $optB, $optC !== '' ? $optC : null, $optD !== '' ? $optD : null, $correct, $explanation !== '' ? $explanation : null]);
 
-            echo json_encode(['success' => true, 'message' => 'Pytanie dodane.', 'question_id' => $pdo->lastInsertId()]);
+            echo securityJsonEncode(['success' => true, 'message' => 'Pytanie dodane.', 'question_id' => $pdo->lastInsertId()]);
             break;
 
         case 'edit_question':
@@ -210,27 +210,27 @@ try {
             $explanation = trim((string)($_POST['explanation'] ?? ''));
 
             if ($qId <= 0 || $qText === '' || $optA === '' || $optB === '') {
-                echo json_encode(['success' => false, 'message' => 'Treść pytania oraz opcje A i B są wymagane.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Treść pytania oraz opcje A i B są wymagane.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("UPDATE course_quiz_questions SET question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ? WHERE id = ?");
             $stmt->execute([$qText, $optA, $optB, $optC !== '' ? $optC : null, $optD !== '' ? $optD : null, $correct, $explanation !== '' ? $explanation : null, $qId]);
 
-            echo json_encode(['success' => true, 'message' => 'Pytanie zaktualizowane.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Pytanie zaktualizowane.']);
             break;
 
         case 'delete_question':
             $qId = (int)($_POST['question_id'] ?? 0);
             if ($qId <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Nieprawidłowe ID.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowe ID.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("DELETE FROM course_quiz_questions WHERE id = ?");
             $stmt->execute([$qId]);
 
-            echo json_encode(['success' => true, 'message' => 'Pytanie usunięte.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Pytanie usunięte.']);
             break;
 
         case 'save_custom_lab':
@@ -240,14 +240,14 @@ try {
             $isPrivate = isset($_POST['is_private']) ? 1 : 0;
 
             if ($title === '' || $toolKey === '' || $instructions === '') {
-                echo json_encode(['success' => false, 'message' => 'Tytuł, narzędzie oraz instrukcja są wymagane.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Tytuł, narzędzie oraz instrukcja są wymagane.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("INSERT INTO course_custom_labs (teacher_id, title, tool_key, instructions, is_private) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$userId, $title, $toolKey, $instructions, $isPrivate]);
 
-            echo json_encode(['success' => true, 'message' => 'Laboratorium zostało zapisane w repozytorium.', 'lab_id' => $pdo->lastInsertId()]);
+            echo securityJsonEncode(['success' => true, 'message' => 'Laboratorium zostało zapisane w repozytorium.', 'lab_id' => $pdo->lastInsertId()]);
             break;
 
         case 'get_custom_labs':
@@ -256,13 +256,13 @@ try {
             $stmt->execute([$userId]);
             $labs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode(['success' => true, 'labs' => $labs]);
+            echo securityJsonEncode(['success' => true, 'labs' => $labs]);
             exit;
 
         case 'delete_custom_lab':
             $labId = (int)($_POST['lab_id'] ?? 0);
             if ($labId <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Nieprawidłowe ID labu.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowe ID labu.']);
                 exit;
             }
 
@@ -272,20 +272,20 @@ try {
             $ownerId = (int)$checkStmt->fetchColumn();
 
             if ($ownerId !== $userId && $role !== 'admin') {
-                echo json_encode(['success' => false, 'message' => 'Brak uprawnień do usunięcia tego szablonu.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Brak uprawnień do usunięcia tego szablonu.']);
                 exit;
             }
 
             $stmt = $pdo->prepare("DELETE FROM course_custom_labs WHERE id = ?");
             $stmt->execute([$labId]);
 
-            echo json_encode(['success' => true, 'message' => 'Szablon labu został usunięty.']);
+            echo securityJsonEncode(['success' => true, 'message' => 'Szablon labu został usunięty.']);
             break;
 
         case 'get_questions':
             $itemId = (int)($_GET['item_id'] ?? 0);
             if ($itemId <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Nieprawidłowe ID lekcji.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowe ID lekcji.']);
                 exit;
             }
 
@@ -293,14 +293,14 @@ try {
             $stmt->execute([$itemId]);
             $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode(['success' => true, 'questions' => $questions]);
+            echo securityJsonEncode(['success' => true, 'questions' => $questions]);
             exit;
 
         default:
-            echo json_encode(['success' => false, 'message' => 'Nieznana akcja.']);
+            echo securityJsonEncode(['success' => false, 'message' => 'Nieznana akcja.']);
             break;
     }
 } catch (Exception $e) {
     error_log("AJAX admin courses failed: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Wystąpił błąd serwera. Spróbuj ponownie.']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Wystąpił błąd serwera. Spróbuj ponownie.']);
 }

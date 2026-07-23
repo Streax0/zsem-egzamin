@@ -9,7 +9,7 @@ use lbuchs\WebAuthn\WebAuthn;
 use lbuchs\WebAuthn\WebAuthnException;
 
 error_reporting(0);
-header('Content-Type: application/json');
+securityApplyJsonHeaders();
 
 startSecureSession();
 
@@ -28,16 +28,16 @@ if ($action === 'generate') {
         
         $_SESSION['webauthn_challenge'] = $WebAuthn->getChallenge();
         
-        echo json_encode(['status' => 'success', 'options' => $getArgs]);
+        echo securityJsonEncode(['status' => 'success', 'options' => $getArgs]);
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        echo securityJsonEncode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
 }
 
 if ($action === 'verify') {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid method']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Invalid method']);
         exit;
     }
 
@@ -49,7 +49,7 @@ if ($action === 'verify') {
     $challenge = $_SESSION['webauthn_challenge'] ?? '';
 
     if (!$challenge) {
-        echo json_encode(['status' => 'error', 'message' => 'Sesja wygasła. Spróbuj ponownie.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Sesja wygasła. Spróbuj ponownie.']);
         exit;
     }
 
@@ -64,7 +64,7 @@ if ($action === 'verify') {
     }
 
     if (!$userId) {
-        echo json_encode(['status' => 'error', 'message' => 'Klucz nie jest powiązany z żadnym kontem.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Klucz nie jest powiązany z żadnym kontem.']);
         exit;
     }
 
@@ -73,7 +73,7 @@ if ($action === 'verify') {
     $passkey = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$passkey) {
-        echo json_encode(['status' => 'error', 'message' => 'Nieprawidłowy klucz.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Nieprawidłowy klucz.']);
         exit;
     }
 
@@ -112,16 +112,16 @@ if ($action === 'verify') {
             updateLastLogin($user['id']);
         }
 
-        echo json_encode(['status' => 'success', 'message' => 'Zalogowano pomyślnie.', 'redirect' => '../index.php']);
+        echo securityJsonEncode(['status' => 'success', 'message' => 'Zalogowano pomyślnie.', 'redirect' => '../index.php']);
     } catch (WebAuthnException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Błąd weryfikacji logowania: ' . $e->getMessage()]);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd weryfikacji logowania: ' . $e->getMessage()]);
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Błąd bazy danych podczas logowania.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd bazy danych podczas logowania.']);
     } catch (Throwable $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Wystąpił nieoczekiwany błąd: ' . $e->getMessage()]);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Wystąpił nieoczekiwany błąd: ' . $e->getMessage()]);
     }
     exit;
 }
 
-echo json_encode(['status' => 'error', 'message' => 'Unknown action']);
+echo securityJsonEncode(['status' => 'error', 'message' => 'Unknown action']);
 exit;

@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/functions.php';
 startSecureSession();
+securityApplyJsonHeaders();
 require_once __DIR__ . '/../includes/KappiCrypt.php';
-
-header('Content-Type: application/json');
 
 $pubKey = KappiCrypt::getPublicKey();
 
-echo json_encode([
+echo securityJsonEncode([
     'status' => 'success',
     'publicKey' => $pubKey
 ]);

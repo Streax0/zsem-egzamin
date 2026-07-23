@@ -49,5 +49,15 @@ Disallow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /ajax/
+Disallow: /actions/
+Disallow: /config/
+Disallow: /includes/
+Disallow: /cron/
+Disallow: /tmp/
+Disallow: /Security/
+Disallow: /user/
+Disallow: /scratch/
 
 Sitemap: https://zsem-egzamin.online/sitemap.xml

@@ -9,13 +9,13 @@ use lbuchs\WebAuthn\WebAuthn;
 use lbuchs\WebAuthn\WebAuthnException;
 
 error_reporting(0);
-header('Content-Type: application/json');
+securityApplyJsonHeaders();
 
 startSecureSession();
 
 if (!isLoggedIn()) {
     http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    echo securityJsonEncode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
 
@@ -25,7 +25,7 @@ $role = $_SESSION['role'];
 // Tylko admin, dyrektor i teacher mogą korzystać z Passkeys (jak zażyczył sobie użytkownik)
 if (!in_array($role, ['admin', 'dyrektor', 'teacher'])) {
     http_response_code(403);
-    echo json_encode(['status' => 'error', 'message' => 'Forbidden for this role']);
+    echo securityJsonEncode(['status' => 'error', 'message' => 'Forbidden for this role']);
     exit;
 }
 
@@ -47,16 +47,16 @@ if ($action === 'generate') {
         $createArgs = $WebAuthn->getCreateArgs((string)$userId, $username, $username, 20, true, false, null);
         $_SESSION['webauthn_challenge'] = $WebAuthn->getChallenge();
         
-        echo json_encode(['status' => 'success', 'options' => $createArgs]);
+        echo securityJsonEncode(['status' => 'success', 'options' => $createArgs]);
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        echo securityJsonEncode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
 }
 
 if ($action === 'verify') {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid method']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Invalid method']);
         exit;
     }
 
@@ -77,20 +77,20 @@ if ($action === 'verify') {
         
         unset($_SESSION['webauthn_challenge']);
         
-        echo json_encode(['status' => 'success', 'message' => 'Passkey został dodany pomyślnie.']);
+        echo securityJsonEncode(['status' => 'success', 'message' => 'Passkey został dodany pomyślnie.']);
     } catch (WebAuthnException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Błąd weryfikacji WebAuthn: ' . $e->getMessage()]);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd weryfikacji WebAuthn: ' . $e->getMessage()]);
     } catch (PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Błąd bazy danych: Passkey może już istnieć.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd bazy danych: Passkey może już istnieć.']);
     } catch (Throwable $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Wystąpił nieoczekiwany błąd: ' . $e->getMessage()]);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Wystąpił nieoczekiwany błąd: ' . $e->getMessage()]);
     }
     exit;
 }
 
 if ($action === 'delete') {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid method']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Invalid method']);
         exit;
     }
 
@@ -99,12 +99,12 @@ if ($action === 'delete') {
     $stmt->execute([$id, $userId]);
     
     if ($stmt->rowCount() > 0) {
-        echo json_encode(['status' => 'success']);
+        echo securityJsonEncode(['status' => 'success']);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Nie znaleziono klucza.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Nie znaleziono klucza.']);
     }
     exit;
 }
 
-echo json_encode(['status' => 'error', 'message' => 'Unknown action']);
+echo securityJsonEncode(['status' => 'error', 'message' => 'Unknown action']);
 exit;

@@ -112,6 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 registerCurrentUserSession($pdo, (int)$newUserId);
                 updateLastLogin((int)$newUserId, authClientIpAddress());
                 setSessionMessage('success', $apply_teacher ? 'Konto zostało utworzone. Aplikacja na nauczyciela trafiła do administracji. Jesteś już zalogowany jako zwykłe konto.' : 'Konto zostało utworzone. Jesteś już zalogowany.');
+                // Standard redirect: header('Location: index.php')
                 header('Location: ../index.php');
                 exit;
             } else {

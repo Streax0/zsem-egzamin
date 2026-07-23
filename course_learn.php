@@ -778,7 +778,7 @@ include 'includes/header.php';
         // Check if all questions answered
         const questionCards = document.querySelectorAll('.quiz-question-card');
         if (Object.keys(quizAnswers).length < questionCards.length) {
-            alert('Proszę odpowiedzieć na wszystkie pytania przed sprawdzeniem.');
+            showNotice('Proszę odpowiedzieć na wszystkie pytania przed sprawdzeniem.', 'warning');
             return;
         }
 

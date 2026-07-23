@@ -5,10 +5,10 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json');
+securityApplyJsonHeaders();
 
 if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Musisz być zalogowany, aby zapisywać postępy.']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Musisz być zalogowany, aby zapisywać postępy.']);
     exit;
 }
 
@@ -16,7 +16,7 @@ $action = $_POST['action'] ?? '';
 $token = $_POST['csrf_token'] ?? '';
 
 if (!validateCsrfToken($token, 'course_progress')) {
-    echo json_encode(['success' => false, 'message' => 'Nieprawidłowy token CSRF.']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowy token CSRF.']);
     exit;
 }
 
@@ -70,7 +70,7 @@ try {
         case 'mark_completed':
             $itemId = (int)($_POST['item_id'] ?? 0);
             if ($itemId <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Nieprawidłowa lekcja.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Nieprawidłowa lekcja.']);
                 exit;
             }
 
@@ -86,7 +86,7 @@ try {
             $item = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$item) {
-                echo json_encode(['success' => false, 'message' => 'Lekcja nie istnieje.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Lekcja nie istnieje.']);
                 exit;
             }
 
@@ -96,7 +96,7 @@ try {
             $enrollStmt = $pdo->prepare("SELECT id FROM user_course_enrollments WHERE user_id = ? AND course_id = ?");
             $enrollStmt->execute([$userId, $courseId]);
             if (!$enrollStmt->fetchColumn()) {
-                echo json_encode(['success' => false, 'message' => 'Nie jesteś zapisany na ten kurs.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Nie jesteś zapisany na ten kurs.']);
                 exit;
             }
 
@@ -126,7 +126,7 @@ try {
                     $completedPrevCount = (int)$checkPrevStmt->fetchColumn();
 
                     if ($completedPrevCount < count($prevItems)) {
-                        echo json_encode(['success' => false, 'message' => 'Musisz najpierw ukończyć poprzednie lekcje.']);
+                        echo securityJsonEncode(['success' => false, 'message' => 'Musisz najpierw ukończyć poprzednie lekcje.']);
                         exit;
                     }
                 }
@@ -142,7 +142,7 @@ try {
 
             $progressPercent = updateCourseEnrollmentProgress($pdo, $userId, $courseId);
 
-            echo json_encode(['success' => true, 'message' => 'Lekcja oznaczona jako ukończona.', 'progress_percent' => $progressPercent]);
+            echo securityJsonEncode(['success' => true, 'message' => 'Lekcja oznaczona jako ukończona.', 'progress_percent' => $progressPercent]);
             break;
 
         case 'submit_quiz':
@@ -150,7 +150,7 @@ try {
             $answers = $_POST['answers'] ?? []; // Array of [question_id => selected_option]
 
             if ($itemId <= 0 || !is_array($answers)) {
-                echo json_encode(['success' => false, 'message' => 'Błędne dane quizu.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Błędne dane quizu.']);
                 exit;
             }
 
@@ -165,7 +165,7 @@ try {
             $item = $itemStmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$item) {
-                echo json_encode(['success' => false, 'message' => 'Quiz nie istnieje.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Quiz nie istnieje.']);
                 exit;
             }
 
@@ -178,7 +178,7 @@ try {
             $questions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
 
             if (empty($questions)) {
-                echo json_encode(['success' => false, 'message' => 'Ten quiz nie zawiera pytań.']);
+                echo securityJsonEncode(['success' => false, 'message' => 'Ten quiz nie zawiera pytań.']);
                 exit;
             }
 
@@ -237,7 +237,7 @@ try {
 
             $progressPercent = updateCourseEnrollmentProgress($pdo, $userId, $courseId);
 
-            echo json_encode([
+            echo securityJsonEncode([
                 'success' => true,
                 'passed' => $passed,
                 'score_percent' => $scorePercent,
@@ -251,10 +251,10 @@ try {
             break;
 
         default:
-            echo json_encode(['success' => false, 'message' => 'Nieznana akcja.']);
+            echo securityJsonEncode(['success' => false, 'message' => 'Nieznana akcja.']);
             break;
     }
 } catch (Exception $e) {
     error_log("AJAX course progress failed: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Wystąpił błąd serwera. Spróbuj ponownie.']);
+    echo securityJsonEncode(['success' => false, 'message' => 'Wystąpił błąd serwera. Spróbuj ponownie.']);
 }

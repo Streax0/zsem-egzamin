@@ -226,7 +226,7 @@ include '../includes/header.php';
                                                                 style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
                                                             <i class="bi bi-pencil"></i>
                                                         </button>
-                                                        <form action="manage_courses.php" method="POST" class="d-inline-block" onsubmit="return confirm('Na pewno chcesz usunąć ten kurs?');">
+                                                        <form action="manage_courses.php" method="POST" class="d-inline-block" onsubmit="return appConfirmSubmit(this, 'Na pewno chcesz usunąć ten kurs?');">
                                                             <?php echo csrfTokenField('manage_courses'); ?>
                                                             <input type="hidden" name="action" value="delete">
                                                             <input type="hidden" name="id" value="<?php echo $course['id']; ?>">
