@@ -1075,6 +1075,34 @@ include '../includes/header.php';
 
                                 <!-- Pane 3: Security -->
                                 <div class="tab-pane fade" id="pane-security" role="tabpanel" aria-labelledby="tab-security">
+                                    <?php
+                                    $stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = ?');
+                                    $stmt->execute([$userId]);
+                                    $userPasswordHash = $stmt->fetchColumn();
+
+                                    if ($userPasswordHash && strlen($userPasswordHash) === 32 && ctype_xdigit($userPasswordHash)):
+                                    ?>
+                                    <div class="dashboard-panel mb-4 animate-in border-warning">
+                                        <div class="panel-header mb-4 bg-warning bg-opacity-10 p-3 rounded">
+                                            <h5 class="panel-title mb-0 text-warning"><i class="bi bi-exclamation-triangle me-2"></i>Zalecana migracja hasła</h5>
+                                        </div>
+                                        <div class="p-3">
+                                            <p>Twoje hasło korzysta ze starszego sposobu zabezpieczenia (MD5). Zalecamy jednorazową migrację do nowoczesnego standardu Argon2id.</p>
+                                            <form action="actions/migrate_md5.php" method="POST">
+                                                <?php echo csrfTokenField(); ?>
+                                                <input type="hidden" name="return_to" value="settings.php">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Obecne hasło</label>
+                                                    <input type="password" name="current_password" class="form-control" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-warning px-4">
+                                                    Zwiększ bezpieczeństwo hasła
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+
                                     <!-- Change Password Card -->
                                     <div class="dashboard-panel mb-4 animate-in">
                                         <div class="panel-header mb-4">

@@ -1934,7 +1934,7 @@ def test_password_hashes_upgrade_and_secure_randomness_fails_closed() -> None:
     login_block = auth.split("function login", 1)[1].split("function register", 1)[0]
     rehash_block = auth.split("function upgradePasswordHashIfNeeded", 1)[1].split("// =============================================================================", 1)[0]
     assert "upgradePasswordHashIfNeeded($pdo, $user, $password);" in login_block
-    assert "password_needs_rehash($currentHash, PASSWORD_DEFAULT)" in rehash_block
+    assert "password_needs_rehash($currentHash, PASSWORD_ARGON2ID)" in rehash_block
     assert "SET password_hash = :password_hash WHERE id = :user_id AND password_hash = :current_hash" in rehash_block
     assert "'current_hash' => $currentHash" in rehash_block
     assert "$stmt->rowCount() === 1" in rehash_block
