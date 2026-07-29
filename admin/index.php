@@ -1893,7 +1893,7 @@ include '../includes/header.php';
                             <a class="admin-ops-item is-<?php echo htmlspecialchars($check['status']); ?>" href="<?php echo htmlspecialchars($check['href']); ?>">
                                 <span>
                                     <span class="d-block fw-bold"><?php echo htmlspecialchars($check['label']); ?></span>
-                                    <span class="small text-muted">Kliknij, aby przejÅ›Ä‡ do sekcji</span>
+                                    <span class="small text-muted">Kliknij, aby przejść do sekcji</span>
                                 </span>
                                 <span class="admin-ops-value"><?php echo (int)$check['value']; ?></span>
                             </a>

@@ -748,7 +748,7 @@ $extraHead = <<<HTML
             padding: 1.25rem !important;
             height: auto;
         }
-        .nav-pills .nav-link {
+        #settings-tabs .nav-link {
             text-align: left;
             border-radius: 12px;
             padding: 0.8rem 1.2rem !important;
@@ -766,47 +766,47 @@ $extraHead = <<<HTML
         #settings-tabs .nav-link * {
             pointer-events: none;
         }
-        body.dark-mode .nav-pills .nav-link {
+        body.dark-mode #settings-tabs .nav-link {
             color: #cbd5e1 !important;
         }
-        body.dark-mode .nav-pills .nav-link:hover {
+        body.dark-mode #settings-tabs .nav-link:hover {
             background: rgba(255, 255, 255, 0.04) !important;
             color: #ffffff !important;
             transform: translateX(4px);
         }
-        body.dark-mode .nav-pills .nav-link.active {
+        body.dark-mode #settings-tabs .nav-link.active {
             background: rgba(99, 102, 241, 0.08) !important;
             border-color: rgba(99, 102, 241, 0.2) !important;
             border-left-color: #8b5cf6 !important;
             color: #ffffff !important;
             box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15) !important;
         }
-        body.dark-mode .nav-pills .nav-link i {
+        body.dark-mode #settings-tabs .nav-link i {
             color: #8b5cf6 !important;
         }
-        body.dark-mode .nav-pills .nav-link.active i {
+        body.dark-mode #settings-tabs .nav-link.active i {
             color: #a5b4fc !important;
         }
         
-        body.light-mode .nav-pills .nav-link {
+        body.light-mode #settings-tabs .nav-link {
             color: #475569 !important;
         }
-        body.light-mode .nav-pills .nav-link:hover {
+        body.light-mode #settings-tabs .nav-link:hover {
             background: rgba(15, 23, 42, 0.03) !important;
             color: #0f172a !important;
             transform: translateX(4px);
         }
-        body.light-mode .nav-pills .nav-link.active {
+        body.light-mode #settings-tabs .nav-link.active {
             background: rgba(59, 130, 246, 0.05) !important;
             border-color: rgba(59, 130, 246, 0.1) !important;
             border-left-color: #2563eb !important;
             color: #2563eb !important;
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08) !important;
         }
-        body.light-mode .nav-pills .nav-link i {
+        body.light-mode #settings-tabs .nav-link i {
             color: #3b82f6 !important;
         }
-        body.light-mode .nav-pills .nav-link.active i {
+        body.light-mode #settings-tabs .nav-link.active i {
             color: #2563eb !important;
         }
         
@@ -1754,7 +1754,7 @@ include '../includes/header.php';
                         link.classList.remove('active');
                         link.setAttribute('aria-selected', 'false');
                     });
-                    document.querySelectorAll('#settings-tab-content .tab-pane').forEach(pane => {
+                    document.querySelectorAll('#settings-tab-content > .tab-pane').forEach(pane => {
                         pane.classList.remove('show', 'active');
                     });
                     
@@ -1773,45 +1773,71 @@ include '../includes/header.php';
             console.error('Failed to restore active tab:', err);
         }
         
-        // Manual tab switching logic (prevents Bootstrap JS conflicts or event block bugs on mobile)
-        document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(btn => {
+        // Manual tab switching logic (handles main tabs and subcategory buttons without stopping propagation)
+        document.querySelectorAll('[data-bs-toggle="pill"], [data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
                 
-                document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
-                    link.classList.remove('active');
-                    link.setAttribute('aria-selected', 'false');
-                });
-                
-                this.classList.add('active');
-                this.setAttribute('aria-selected', 'true');
-                
+                const isMainTab = this.closest('#settings-tabs');
                 const target = this.getAttribute('href') || this.getAttribute('data-bs-target');
-                if (target) {
-                    document.querySelectorAll('#settings-tab-content .tab-pane').forEach(pane => {
-                        pane.classList.remove('show', 'active');
+                
+                if (isMainTab) {
+                    document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
+                        link.classList.remove('active');
+                        link.setAttribute('aria-selected', 'false');
                     });
                     
-                    try {
-                        const pane = document.querySelector(target);
-                        if (pane) {
-                            pane.classList.add('show', 'active');
-                            
-                            if (window.innerWidth < 768) {
-                                const y = pane.getBoundingClientRect().top + window.scrollY - 80;
-                                window.scrollTo(0, y);
-                            }
-                        }
-                    } catch (selectorErr) {
-                        console.error('Invalid selector for pane:', selectorErr);
-                    }
+                    this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
                     
-                    safeStorage.setItem('active_settings_tab', target);
-                    try {
-                        history.replaceState(null, null, target);
-                    } catch (historyErr) {
-                        console.error('Failed to replace history state:', historyErr);
+                    if (target) {
+                        document.querySelectorAll('#settings-tab-content > .tab-pane').forEach(pane => {
+                            pane.classList.remove('show', 'active');
+                        });
+                        
+                        try {
+                            const pane = document.querySelector(target);
+                            if (pane) {
+                                pane.classList.add('show', 'active');
+                                
+                                if (window.innerWidth < 768) {
+                                    const y = pane.getBoundingClientRect().top + window.scrollY - 80;
+                                    window.scrollTo(0, y);
+                                }
+                            }
+                        } catch (selectorErr) {
+                            console.error('Invalid selector for pane:', selectorErr);
+                        }
+                        
+                        safeStorage.setItem('active_settings_tab', target);
+                        try {
+                            history.replaceState(null, null, target);
+                        } catch (historyErr) {
+                            console.error('Failed to replace history state:', historyErr);
+                        }
+                    }
+                } else {
+                    const navContainer = this.closest('.nav') || this.parentElement;
+                    if (navContainer) {
+                        navContainer.querySelectorAll('[data-bs-toggle="pill"], [data-bs-toggle="tab"]').forEach(link => {
+                            link.classList.remove('active');
+                            link.setAttribute('aria-selected', 'false');
+                        });
+                    }
+                    this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
+                    
+                    if (target) {
+                        const targetPane = document.querySelector(target);
+                        if (targetPane) {
+                            const parentContainer = targetPane.parentElement;
+                            if (parentContainer) {
+                                parentContainer.querySelectorAll(':scope > .tab-pane').forEach(pane => {
+                                    pane.classList.remove('show', 'active');
+                                });
+                            }
+                            targetPane.classList.add('show', 'active');
+                        }
                     }
                 }
             });
@@ -1819,7 +1845,7 @@ include '../includes/header.php';
 
         // AJAX settings forms submissions
         document.querySelectorAll('#settings-tab-content form').forEach(form => {
-            if (form.id === 'deleteAvatarForm' || form.action.includes('logout_all_sessions')) return;
+            if (form.id === 'deleteAvatarForm' || form.action.includes('logout_all_sessions') || form.action.includes('reset_progress') || form.action.includes('delete_account')) return;
             
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();

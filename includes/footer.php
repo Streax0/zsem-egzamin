@@ -200,6 +200,16 @@ if (!isset($base_url)) {
     border-top: 1px solid rgba(148, 163, 184, 0.25) !important;
     padding-bottom: 3.5rem !important; /* Spacing to prevent help-fab overlap on bottom links */
 }
+.main-container .main-footer {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+.main-container .main-footer .container-fluid {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+}
 body.dark-mode .main-footer {
     background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
     border-color: rgba(255, 255, 255, 0.06) !important;

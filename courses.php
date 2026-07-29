@@ -1,176 +1,163 @@
 <?php
+declare(strict_types=1);
+
 require_once 'config/db.php';
 require_once 'includes/session.php';
+require_once 'includes/auth.php';
 require_once 'includes/functions.php';
+require_once 'includes/CourseService.php';
 
-// Możliwy dostęp dla gości lub zalogowanych
 startSecureSession();
-if (function_exists('enforceFeaturePageBlockForCurrentRequest')) {
-    enforceFeaturePageBlockForCurrentRequest($pdo);
-}
 
-if (function_exists('ensurePlatformEnhancements')) {
-    ensurePlatformEnhancements($pdo);
-}
-
-$search = trim($_GET['q'] ?? '');
-
-$params = ['active'];
-$whereClauses = ["c.status = ?"];
-
+$search = courseText((string)($_GET['q'] ?? ''), 100, false);
+$filterDifficulty = in_array((string)($_GET['difficulty'] ?? ''), ['beginner', 'intermediate', 'advanced'], true) ? (string)$_GET['difficulty'] : '';
+$filterCategory = courseText((string)($_GET['category'] ?? ''), 100, false);
+$page = max(1, min(10000, (int)($_GET['page'] ?? 1)));
+$limit = 12;
+$where = "c.status = 'active' AND (c.start_date IS NULL OR c.start_date <= CURDATE()) AND (c.end_date IS NULL OR c.end_date >= CURDATE())";
+$params = [];
 if ($search !== '') {
-    $whereClauses[] = "(c.title LIKE ? OR c.description LIKE ?)";
-    $params[] = "%$search%";
-    $params[] = "%$search%";
+    $where .= ' AND (c.title LIKE ? OR c.description LIKE ?)';
+    $term = '%' . $search . '%';
+    $params[] = $term;
+    $params[] = $term;
+}
+if ($filterDifficulty !== '') {
+    $where .= ' AND c.difficulty = ?';
+    $params[] = $filterDifficulty;
+}
+if ($filterCategory !== '') {
+    $where .= ' AND c.category LIKE ?';
+    $params[] = '%' . $filterCategory . '%';
 }
 
-$whereSql = "WHERE " . implode(" AND ", $whereClauses);
+$countStatement = $pdo->prepare("SELECT COUNT(*) FROM courses c WHERE $where");
+$countStatement->execute($params);
+$total = (int)$countStatement->fetchColumn();
+$pages = max(1, (int)ceil($total / $limit));
+$page = min($page, $pages);
+$offset = ($page - 1) * $limit;
 
-$stmt = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrolled_count FROM courses c $whereSql ORDER BY c.id DESC");
-$stmt->execute($params);
-$courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.category, c.difficulty, c.estimated_hours, c.start_date, c.end_date, c.sequential_learning, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c WHERE $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
+$statement->execute($params);
+$courses = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-$pageTitle = 'Kursy - ZSEM Tech';
-$extraCss = ['assets/css/dashboard-new.css'];
-$extraHead = <<<HTML
-<style>
-    .course-card {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid var(--border-color);
-        background-color: var(--panel-bg);
-        overflow: hidden;
-        border-radius: var(--radius-duzy);
-    }
-    .course-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--cień-sredni);
-        border-color: var(--primary-color);
-    }
-    .course-card .card-title {
-        color: var(--text-main);
-        font-weight: 700;
-    }
-    .course-card .card-text {
-        color: var(--text-muted);
-    }
-    .course-card .card-img-wrapper {
-        position: relative;
-        height: 160px;
-        overflow: hidden;
-    }
-    .course-card img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s;
-    }
-    .course-card:hover img {
-        transform: scale(1.05);
-    }
-    .search-container-custom {
-        position: relative;
-        width: 100%;
-    }
-    .search-container-custom i {
-        position: absolute;
-        left: 1.25rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--kolor-tekst-jasny);
-    }
-    .search-container-custom input {
-        padding-left: 3rem;
-        border-radius: 100px;
-        border: 1px solid var(--border-color);
-        background-color: var(--panel-bg);
-        color: var(--text-main);
-        transition: all 0.2s;
-    }
-    .search-container-custom input:focus {
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        border-color: var(--primary-color);
-        outline: none;
-    }
-</style>
-HTML;
+$categoriesStmt = $pdo->query("SELECT DISTINCT category FROM courses WHERE category IS NOT NULL AND category != '' AND status = 'active' ORDER BY category ASC");
+$allCategories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
+
+$difficultyLabels = ['beginner' => 'Początkujący', 'intermediate' => 'Średniozaawansowany', 'advanced' => 'Zaawansowany'];
+$difficultyColors = ['beginner' => 'success', 'intermediate' => 'warning', 'advanced' => 'danger'];
+
+$pageTitle = 'Kursy — ZSEM Tech';
+$extraCss = ['assets/css/dashboard-new.css', 'assets/css/courses.css'];
 include 'includes/header.php';
 ?>
-
 <div class="dashboard-layout">
     <?php include 'includes/sidebar.php'; ?>
-
     <div class="main-container">
         <?php include 'includes/topbar.php'; ?>
-
-        <main role="main" class="content-body">
+        <main class="content-body" id="main-content">
             <div class="container-fluid p-0">
-                
-                <!-- Header & Search -->
-                <div class="row align-items-center mb-4 animate-in">
-                    <div class="col-md-7">
-                        <h2 class="fw-bold mb-1"><i class="bi bi-mortarboard text-primary me-2"></i>Dostępne Kursy</h2>
-                        <p class="text-muted mb-0">Rozwijaj swoje umiejętności z naszymi materiałami.</p>
+                <section class="course-hero p-4 p-md-5 mb-4">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-8">
+                            <span class="badge text-bg-primary mb-3"><i class="bi bi-mortarboard-fill me-1"></i>Strefa nauki</span>
+                            <h1 class="h2 fw-bold mb-2">Kursy z jasną ścieżką postępu</h1>
+                            <p class="mb-0" style="color: #cbd5e1; font-size: 1.05rem; line-height: 1.6;">Materiały, quizy i laboratoria w jednym miejscu. Twój postęp zapisuje się po każdym ukończonym etapie.</p>
+                        </div>
+                        <div class="col-lg-4">
+                            <form method="get" action="courses.php" class="input-group input-group-lg">
+                                <input class="form-control" type="search" name="q" value="<?php echo htmlspecialchars($search, ENT_QUOTES, 'UTF-8'); ?>" maxlength="100" placeholder="Szukaj kursu" aria-label="Szukaj kursu">
+                                <button class="btn btn-primary" type="submit" aria-label="Szukaj"><i class="bi bi-search"></i></button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="col-md-5 mt-3 mt-md-0">
-                        <form method="GET" action="courses.php">
-                            <div class="search-container-custom">
-                                <i class="bi bi-search"></i>
-                                <input type="text" name="q" class="form-control form-control-lg" placeholder="Wyszukaj kurs..." value="<?php echo htmlspecialchars($search); ?>">
-                            </div>
-                        </form>
+                </section>
+
+                <?php if ($allCategories || $filterDifficulty !== ''): ?>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <?php if ($filterDifficulty !== '' || $filterCategory !== ''): ?><a class="btn btn-sm btn-outline-secondary" href="courses.php<?php echo $search !== '' ? '?q=' . urlencode($search) : ''; ?>">Wyczyść filtry</a><?php endif; ?>
+                    <?php foreach (['beginner' => 'Początkujący', 'intermediate' => 'Średniozaawansowany', 'advanced' => 'Zaawansowany'] as $dv => $dl): ?>
+                        <a class="btn btn-sm <?php echo $filterDifficulty === $dv ? 'btn-primary' : 'btn-outline-primary'; ?>" href="?<?php echo htmlspecialchars(http_build_query(array_filter(['q' => $search, 'difficulty' => $filterDifficulty === $dv ? '' : $dv, 'category' => $filterCategory])), ENT_QUOTES, 'UTF-8'); ?>"><?php echo $dl; ?></a>
+                    <?php endforeach; ?>
+                    <?php foreach ($allCategories as $cat): ?>
+                        <a class="btn btn-sm <?php echo $filterCategory === $cat ? 'btn-info' : 'btn-outline-info'; ?>" href="?<?php echo htmlspecialchars(http_build_query(array_filter(['q' => $search, 'difficulty' => $filterDifficulty, 'category' => $filterCategory === $cat ? '' : $cat])), ENT_QUOTES, 'UTF-8'); ?>"><?php echo htmlspecialchars($cat, ENT_QUOTES, 'UTF-8'); ?></a>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+
+                <div class="d-flex justify-content-between align-items-end gap-3 mb-3">
+                    <div>
+                        <h2 class="h4 fw-bold mb-1"><?php echo $search !== '' ? 'Wyniki wyszukiwania' : 'Dostępne kursy'; ?></h2>
+                        <p class="text-muted mb-0"><?php echo $total === 1 ? 'Znaleziono 1 kurs.' : 'Znaleziono ' . $total . ' kursów.'; ?></p>
                     </div>
+                    <?php if ($search !== ''): ?><a class="btn btn-outline-secondary" href="courses.php">Wyczyść wyszukiwanie</a><?php endif; ?>
                 </div>
 
-                <div class="row g-4">
-                    <?php if (empty($courses)): ?>
-                        <div class="col-12">
-                            <div class="text-center text-muted py-5 dashboard-panel rounded-3">
-                                <i class="bi bi-journal-x fs-1 mb-3 d-block opacity-50 text-primary"></i>
-                                Brak dostępnych kursów w tej chwili.
-                            </div>
-                        </div>
-                    <?php else: ?>
+                <?php if (!$courses): ?>
+                    <div class="dashboard-panel text-center p-5">
+                        <i class="bi bi-journal-x fs-1 text-muted d-block mb-3"></i>
+                        <h2 class="h5 fw-bold">Brak dostępnych kursów</h2>
+                        <p class="text-muted mb-0">Spróbuj innego zapytania lub zajrzyj tutaj później.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="row g-4">
                         <?php foreach ($courses as $course): ?>
-                            <div class="col-12 col-md-6 col-lg-4">
-                                <div class="card h-100 course-card">
-                                    <div class="card-img-wrapper">
-                                        <?php if (!empty($course['image_url'])): ?>
-                                            <img src="<?php echo htmlspecialchars($course['image_url']); ?>" alt="Okładka kursu">
-                                        <?php else: ?>
-                                            <div class="w-100 h-100 bg-secondary d-flex align-items-center justify-content-center" style="opacity: 0.15;">
-                                                <i class="bi bi-image fs-1 text-dark"></i>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                    
-                                    <div class="card-body d-flex flex-column">
-                                        <h5 class="card-title"><?php echo htmlspecialchars($course['title']); ?></h5>
-                                        <p class="card-text small flex-grow-1">
-                                            <?php echo htmlspecialchars(mb_strimwidth($course['description'] ?? '', 0, 100, '...')); ?>
-                                        </p>
-                                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top" style="border-color: var(--border-color) !important;">
-                                            <span class="small text-muted">
-                                                <i class="bi bi-people me-1"></i>
-                                                <?php echo (int)($course['enrolled_count'] ?? 0); ?> zapisanych
-                                            </span>
-                                            <a href="course_view.php?id=<?php echo $course['id']; ?>" class="btn btn-outline-primary btn-sm stretched-link">
-                                                Otwórz
-                                            </a>
+                            <?php $cover = courseDisplayImageUrl((string)($course['image_url'] ?? '')); ?>
+                            <article class="col-12 col-md-6 col-xl-4">
+                                <div class="course-card h-100 d-flex flex-column">
+                                    <?php if ($cover): ?>
+                                        <img class="course-cover" src="<?php echo htmlspecialchars($cover, ENT_QUOTES, 'UTF-8'); ?>" alt="Okładka kursu: <?php echo htmlspecialchars((string)$course['title'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy">
+                                    <?php else: ?>
+                                        <div class="course-cover-placeholder" aria-hidden="true">
+                                            <i class="bi bi-journal-bookmark-fill"></i>
                                         </div>
+                                    <?php endif; ?>
+                                    <div class="course-card-body d-flex flex-column flex-grow-1">
+                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <?php if (!empty($course['difficulty']) && isset($difficultyLabels[$course['difficulty']])): ?>
+                                                <span class="badge text-bg-<?php echo $difficultyColors[$course['difficulty']]; ?>"><?php echo $difficultyLabels[$course['difficulty']]; ?></span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($course['category'])): ?>
+                                                <span class="badge text-bg-info text-dark"><?php echo htmlspecialchars((string)$course['category'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <h3 class="h5 fw-bold mb-2"><?php echo htmlspecialchars((string)$course['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
+                                        <p class="text-muted small flex-grow-1 mb-3"><?php echo htmlspecialchars(mb_strimwidth((string)($course['description'] ?? ''), 0, 140, '…', 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?></p>
+                                        <div class="course-card-meta mb-3">
+                                            <span><i class="bi bi-folder2-open me-1 text-primary"></i><?php echo (int)$course['module_count']; ?> modułów</span>
+                                            <span><i class="bi bi-journal-text me-1 text-info"></i><?php echo (int)$course['item_count']; ?> lekcji</span>
+                                            <span><i class="bi bi-people me-1 text-success"></i><?php echo (int)$course['enrollment_count']; ?> zapisanych</span>
+                                            <?php if (!empty($course['estimated_hours'])): ?><span><i class="bi bi-clock me-1 text-warning"></i>~<?php echo (int)$course['estimated_hours']; ?>h</span><?php endif; ?>
+                                        </div>
+                                        <a class="course-card-btn w-100" href="course_view.php?id=<?php echo (int)$course['id']; ?>">
+                                            Zobacz kurs <i class="bi bi-arrow-right ms-2"></i>
+                                        </a>
                                     </div>
                                 </div>
-                            </div>
+                            </article>
                         <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
 
+                <?php if ($pages > 1): ?>
+                    <nav class="mt-4" aria-label="Strony kursów">
+                        <ul class="pagination justify-content-center mb-0">
+                            <?php for ($number = 1; $number <= $pages; $number++): ?>
+                                <?php if ($number === 1 || $number === $pages || abs($number - $page) <= 2): ?>
+                                    <li class="page-item <?php echo $number === $page ? 'active' : ''; ?>"><a class="page-link" href="?<?php echo htmlspecialchars(http_build_query(['q' => $search, 'page' => $number]), ENT_QUOTES, 'UTF-8'); ?>"><?php echo $number; ?></a></li>
+                                <?php elseif ($number === 2 || $number === $pages - 1): ?>
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                <?php endif; ?>
+                            <?php endfor; ?>
+                        </ul>
+                    </nav>
+                <?php endif; ?>
             </div>
         </main>
+        <?php include 'includes/footer.php'; ?>
     </div>
 </div>
-
-<?php include 'includes/footer.php'; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
 </body>
 </html>

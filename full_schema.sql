@@ -666,12 +666,17 @@ CREATE TABLE user_education (
 CREATE TABLE user_certificates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
+    course_id INT DEFAULT NULL,
     name VARCHAR(160) NOT NULL,
     organization VARCHAR(160) NOT NULL,
+    certificate_code VARCHAR(64) DEFAULT NULL,
     obtained_date DATE DEFAULT NULL,
     description TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE SET NULL,
+    UNIQUE KEY uk_user_course (user_id, course_id),
+    UNIQUE KEY uk_cert_code (certificate_code),
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1029,13 +1034,18 @@ CREATE TABLE IF NOT EXISTS courses (
     description TEXT,
     content LONGTEXT,
     image_url VARCHAR(255) DEFAULT NULL,
+    category VARCHAR(100) DEFAULT NULL,
+    difficulty ENUM('beginner', 'intermediate', 'advanced') DEFAULT NULL,
+    estimated_hours INT UNSIGNED DEFAULT NULL,
     status ENUM('active', 'hidden') NOT NULL DEFAULT 'hidden',
     sequential_learning TINYINT(1) NOT NULL DEFAULT 0,
+    has_certificate TINYINT(1) NOT NULL DEFAULT 1,
     start_date DATE DEFAULT NULL,
     end_date DATE DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_status (status)
+    INDEX idx_status (status),
+    INDEX idx_category (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS course_modules (
