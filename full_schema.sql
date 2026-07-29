@@ -1033,20 +1033,34 @@ CREATE TABLE IF NOT EXISTS courses (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     content LONGTEXT,
+    created_by INT DEFAULT NULL,
     image_url VARCHAR(255) DEFAULT NULL,
     category VARCHAR(100) DEFAULT NULL,
     difficulty ENUM('beginner', 'intermediate', 'advanced') DEFAULT NULL,
     estimated_hours INT UNSIGNED DEFAULT NULL,
-    status ENUM('active', 'hidden') NOT NULL DEFAULT 'hidden',
+    status ENUM('active', 'hidden', 'private') NOT NULL DEFAULT 'hidden',
     sequential_learning TINYINT(1) NOT NULL DEFAULT 0,
     has_certificate TINYINT(1) NOT NULL DEFAULT 1,
     start_date DATE DEFAULT NULL,
     end_date DATE DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_status (status),
     INDEX idx_category (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS course_shares (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    course_id INT NOT NULL,
+    shared_with_user_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (shared_with_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_course_share (course_id, shared_with_user_id),
+    INDEX idx_course_share_user (shared_with_user_id, course_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 CREATE TABLE IF NOT EXISTS course_modules (
     id INT AUTO_INCREMENT PRIMARY KEY,

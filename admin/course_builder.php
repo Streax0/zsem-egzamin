@@ -78,8 +78,10 @@ $csrfToken = generateCsrfToken('course_admin');
 .builder-layout {
     display: flex;
     flex-direction: row;
-    min-height: calc(100vh - 65px);
+    min-height: calc(100vh - 120px);
     background-color: var(--body-bg);
+    position: relative;
+    z-index: 1;
 }
 .builder-sidebar {
     width: 340px;
@@ -88,9 +90,8 @@ $csrfToken = generateCsrfToken('course_admin');
     background-color: var(--panel-bg);
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 65px);
-    position: sticky;
-    top: 65px;
+    height: auto;
+    min-height: calc(100vh - 120px);
 }
 .builder-sidebar-header {
     padding: 1.25rem;
@@ -109,8 +110,14 @@ $csrfToken = generateCsrfToken('course_admin');
 .builder-content {
     flex: 1;
     padding: 2rem;
-    overflow-y: auto;
+    min-height: 500px;
     max-width: 100%;
+}
+.main-footer {
+    position: relative;
+    z-index: 10;
+    clear: both;
+    margin-top: 2rem;
 }
 .module-card {
     border: 1px solid var(--border-color);
@@ -158,6 +165,7 @@ $csrfToken = generateCsrfToken('course_admin');
         width: 100%;
         min-width: 100%;
         height: auto;
+        min-height: auto;
         position: static;
         border-right: none;
         border-bottom: 1px solid var(--border-color);

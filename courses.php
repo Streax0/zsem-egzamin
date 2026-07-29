@@ -8,14 +8,24 @@ require_once 'includes/functions.php';
 require_once 'includes/CourseService.php';
 
 startSecureSession();
+if (function_exists('_ensurePlatformCourses')) {
+    _ensurePlatformCourses($pdo);
+}
 
 $search = courseText((string)($_GET['q'] ?? ''), 100, false);
 $filterDifficulty = in_array((string)($_GET['difficulty'] ?? ''), ['beginner', 'intermediate', 'advanced'], true) ? (string)$_GET['difficulty'] : '';
 $filterCategory = courseText((string)($_GET['category'] ?? ''), 100, false);
 $page = max(1, min(10000, (int)($_GET['page'] ?? 1)));
 $limit = 12;
-$where = "c.status = 'active' AND (c.start_date IS NULL OR c.start_date <= CURDATE()) AND (c.end_date IS NULL OR c.end_date >= CURDATE())";
+$currentUserId = isLoggedIn() ? (int)$_SESSION['user_id'] : 0;
+
 $params = [];
+$where = "c.status = 'active' AND (c.start_date IS NULL OR c.start_date <= CURDATE()) AND (c.end_date IS NULL OR c.end_date >= CURDATE())";
+if ($currentUserId > 0) {
+    $where = "((c.status = 'active' AND (c.start_date IS NULL OR c.start_date <= CURDATE()) AND (c.end_date IS NULL OR c.end_date >= CURDATE())) OR (c.status = 'private' AND (c.created_by = ? OR c.id IN (SELECT course_id FROM course_shares WHERE shared_with_user_id = ?))))";
+    $params[] = $currentUserId;
+    $params[] = $currentUserId;
+}
 if ($search !== '') {
     $where .= ' AND (c.title LIKE ? OR c.description LIKE ?)';
     $term = '%' . $search . '%';
@@ -38,7 +48,7 @@ $pages = max(1, (int)ceil($total / $limit));
 $page = min($page, $pages);
 $offset = ($page - 1) * $limit;
 
-$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.category, c.difficulty, c.estimated_hours, c.start_date, c.end_date, c.sequential_learning, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c WHERE $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
+$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.category, c.difficulty, c.estimated_hours, c.status, c.created_by, c.start_date, c.end_date, c.sequential_learning, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c WHERE $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
 $statement->execute($params);
 $courses = $statement->fetchAll(PDO::FETCH_ASSOC);
 
@@ -115,6 +125,13 @@ include 'includes/header.php';
                                     <?php endif; ?>
                                     <div class="course-card-body d-flex flex-column flex-grow-1">
                                         <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <?php if ($course['status'] === 'private'): ?>
+                                                <?php if ($currentUserId > 0 && (int)($course['created_by'] ?? 0) === $currentUserId): ?>
+                                                    <span class="badge text-bg-warning text-dark"><i class="bi bi-lock-fill me-1"></i>Tylko dla mnie</span>
+                                                <?php else: ?>
+                                                    <span class="badge text-bg-warning text-dark"><i class="bi bi-share-fill me-1"></i>Udostępniony dla Ciebie</span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                             <?php if (!empty($course['difficulty']) && isset($difficultyLabels[$course['difficulty']])): ?>
                                                 <span class="badge text-bg-<?php echo $difficultyColors[$course['difficulty']]; ?>"><?php echo $difficultyLabels[$course['difficulty']]; ?></span>
                                             <?php endif; ?>

@@ -9,14 +9,14 @@ require_once 'includes/CourseService.php';
 
 startSecureSession();
 
+$userId = isLoggedIn() ? (int)$_SESSION['user_id'] : 0;
+$isAdmin = isLoggedIn() && roleHasAdminAccess((string)($_SESSION['role'] ?? 'user'));
 $courseId = (int)($_GET['id'] ?? 0);
 $course = courseFetchById($pdo, $courseId);
-if (!$course || !courseIsPubliclyAvailable($course)) {
+if (!$course || !courseCanUserAccess($pdo, $course, $userId, $isAdmin)) {
     setSessionMessage('error', 'Ten kurs nie jest obecnie dostępny.');
     redirect('courses.php');
 }
-
-$userId = isLoggedIn() ? (int)$_SESSION['user_id'] : 0;
 $enrollment = null;
 if ($userId > 0) {
     $statement = $pdo->prepare('SELECT id, status, progress_percent FROM user_course_enrollments WHERE user_id = ? AND course_id = ? LIMIT 1');

@@ -362,7 +362,7 @@ function courseFetchItem(PDO $pdo, int $itemId): ?array {
     if ($itemId <= 0) {
         return null;
     }
-    $statement = $pdo->prepare('SELECT ci.*, cm.course_id, cm.sort_order AS module_sort_order, c.status AS course_status, c.start_date, c.end_date, c.sequential_learning FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id JOIN courses c ON c.id = cm.course_id WHERE ci.id = ? LIMIT 1');
+    $statement = $pdo->prepare('SELECT ci.*, cm.course_id, cm.sort_order AS module_sort_order, c.status AS course_status, c.created_by, c.start_date, c.end_date, c.sequential_learning FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id JOIN courses c ON c.id = cm.course_id WHERE ci.id = ? LIMIT 1');
     $statement->execute([$itemId]);
     $item = $statement->fetch(PDO::FETCH_ASSOC);
     return $item ?: null;
@@ -418,6 +418,103 @@ function courseIsPubliclyAvailable(array $course): bool {
     return (empty($course['start_date']) || (string)$course['start_date'] <= $today)
         && (empty($course['end_date']) || (string)$course['end_date'] >= $today);
 }
+
+function courseCanUserAccess(PDO $pdo, array $course, int $userId, bool $isAdmin = false): bool {
+    if ($isAdmin) {
+        return true;
+    }
+    $status = (string)($course['status'] ?? $course['course_status'] ?? '');
+    if ($status === 'active') {
+        $today = date('Y-m-d');
+        return (empty($course['start_date']) || (string)$course['start_date'] <= $today)
+            && (empty($course['end_date']) || (string)$course['end_date'] >= $today);
+    }
+    if ($status === 'private' && $userId > 0) {
+        $createdBy = isset($course['created_by']) ? (int)$course['created_by'] : 0;
+        if ($createdBy > 0 && $createdBy === $userId) {
+            return true;
+        }
+        $courseId = (int)($course['id'] ?? $course['course_id'] ?? 0);
+        if ($courseId > 0) {
+            try {
+                $stmt = $pdo->prepare('SELECT 1 FROM course_shares WHERE course_id = ? AND shared_with_user_id = ? LIMIT 1');
+                $stmt->execute([$courseId, $userId]);
+                if ((bool)$stmt->fetchColumn()) {
+                    return true;
+                }
+            } catch (Throwable $e) {
+                if (function_exists('_ensurePlatformCourses')) {
+                    _ensurePlatformCourses($pdo);
+                    try {
+                        $stmt = $pdo->prepare('SELECT 1 FROM course_shares WHERE course_id = ? AND shared_with_user_id = ? LIMIT 1');
+                        $stmt->execute([$courseId, $userId]);
+                        if ((bool)$stmt->fetchColumn()) {
+                            return true;
+                        }
+                    } catch (Throwable $e2) {
+                        error_log('courseCanUserAccess error: ' . $e2->getMessage());
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function courseGetSharedUserIds(PDO $pdo, int $courseId): array {
+    if ($courseId <= 0) {
+        return [];
+    }
+    try {
+        $stmt = $pdo->prepare('SELECT shared_with_user_id FROM course_shares WHERE course_id = ?');
+        $stmt->execute([$courseId]);
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Throwable $e) {
+        if (function_exists('_ensurePlatformCourses')) {
+            _ensurePlatformCourses($pdo);
+            try {
+                $stmt = $pdo->prepare('SELECT shared_with_user_id FROM course_shares WHERE course_id = ?');
+                $stmt->execute([$courseId]);
+                return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+            } catch (Throwable $e2) {
+                error_log('courseGetSharedUserIds error: ' . $e2->getMessage());
+            }
+        }
+        return [];
+    }
+}
+
+function courseSetSharedUserIds(PDO $pdo, int $courseId, array $sharedWithUserIds): void {
+    if ($courseId <= 0) {
+        return;
+    }
+    $doSet = function() use ($pdo, $courseId, $sharedWithUserIds) {
+        $stmt = $pdo->prepare('DELETE FROM course_shares WHERE course_id = ?');
+        $stmt->execute([$courseId]);
+
+        $cleanIds = array_values(array_unique(array_filter(array_map('intval', $sharedWithUserIds), fn($id) => $id > 0)));
+        if (!empty($cleanIds)) {
+            $insertStmt = $pdo->prepare('INSERT INTO course_shares (course_id, shared_with_user_id) VALUES (?, ?)');
+            foreach ($cleanIds as $friendId) {
+                $insertStmt->execute([$courseId, $friendId]);
+            }
+        }
+    };
+
+    try {
+        $doSet();
+    } catch (Throwable $e) {
+        if (function_exists('_ensurePlatformCourses')) {
+            _ensurePlatformCourses($pdo);
+            try {
+                $doSet();
+            } catch (Throwable $e2) {
+                error_log('courseSetSharedUserIds error: ' . $e2->getMessage());
+            }
+        }
+    }
+}
+
 
 function courseRecalculateEnrollmentProgress(PDO $pdo, int $userId, int $courseId): int {
     $statement = $pdo->prepare('SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = ?');

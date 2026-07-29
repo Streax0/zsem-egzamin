@@ -11,9 +11,10 @@ startSecureSession();
 requireLogin();
 
 $userId = (int)$_SESSION['user_id'];
+$isAdmin = roleHasAdminAccess((string)($_SESSION['role'] ?? 'user'));
 $courseId = (int)($_GET['course_id'] ?? 0);
 $course = courseFetchById($pdo, $courseId);
-if (!$course || !courseIsPubliclyAvailable($course)) {
+if (!$course || !courseCanUserAccess($pdo, $course, $userId, $isAdmin)) {
     setSessionMessage('error', 'Ten kurs nie jest obecnie dostępny.');
     redirect('courses.php');
 }

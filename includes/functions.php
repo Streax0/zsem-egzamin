@@ -1032,6 +1032,35 @@ function _ensurePlatformCourses(PDO $pdo): void {
             UNIQUE KEY uq_user_item (user_id, item_id),
             INDEX idx_user_course_progress (user_id, course_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        if (dbTableExists($pdo, 'courses')) {
+            if (!dbColumnExists($pdo, 'courses', 'created_by')) {
+                try {
+                    $pdo->exec("ALTER TABLE courses ADD COLUMN created_by INT DEFAULT NULL");
+                } catch (Throwable $e) {
+                    error_log('Failed to add created_by column to courses: ' . $e->getMessage());
+                }
+            }
+            try {
+                $statusCol = $pdo->query("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'status'")->fetchColumn();
+                if ($statusCol && !str_contains((string)$statusCol, "'private'")) {
+                    $pdo->exec("ALTER TABLE courses MODIFY status ENUM('active', 'hidden', 'private') NOT NULL DEFAULT 'hidden'");
+                }
+            } catch (Throwable $e) {
+                error_log('Failed to modify status enum in courses: ' . $e->getMessage());
+            }
+        }
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_shares (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            course_id INT NOT NULL,
+            shared_with_user_id INT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            FOREIGN KEY (shared_with_user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE KEY uq_course_share (course_id, shared_with_user_id),
+            INDEX idx_course_share_user (shared_with_user_id, course_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         
     } catch (Throwable $e) {
         error_log('Course tables creation failed: ' . $e->getMessage());

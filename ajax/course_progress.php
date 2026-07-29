@@ -57,7 +57,8 @@ securityThrottle('course_progress:' . $userId . ':' . securityClientIp(), 90, 60
 try {
     $itemId = (int)($_POST['item_id'] ?? 0);
     $item = courseFetchItem($pdo, $itemId);
-    if (!$item || !courseIsPubliclyAvailable($item)) {
+    $isAdmin = roleHasAdminAccess((string)($_SESSION['role'] ?? 'user'));
+    if (!$item || !courseCanUserAccess($pdo, $item, $userId, $isAdmin)) {
         courseProgressFail('Lekcja nie jest obecnie dostępna.', 404);
     }
     $courseId = (int)$item['course_id'];

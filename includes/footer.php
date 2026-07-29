@@ -6,6 +6,7 @@ if (!isset($base_url)) {
 <footer class="main-footer mt-auto pt-5 border-top" role="contentinfo">
     <div class="container-fluid px-4">
         <!-- Modern rotating call-to-action -->
+        <?php if (empty($hide_footer_cta)): ?>
         <div class="footer-cta-card mb-4 animate-in" id="footerRotatingCta">
             <div class="footer-cta-glow-1"></div>
             <div class="footer-cta-glow-2"></div>
@@ -22,6 +23,7 @@ if (!isset($base_url)) {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Unified Footer Main Card -->
         <div class="footer-main-card p-4 p-md-5 animate-in">
