@@ -174,14 +174,17 @@ include 'includes/header.php';
 
 .cert-recipient {
     font-family: 'Cinzel', serif;
-    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-size: clamp(1.4rem, 5vw, 3.2rem);
     font-weight: 900;
     color: #0f172a;
     border-bottom: 2px solid #d97706;
     display: inline-block;
-    padding: 0 2.5rem 0.4rem;
+    padding: 0 1rem 0.4rem;
     margin-bottom: 1.75rem;
     letter-spacing: 0.02em;
+    max-width: 100%;
+    word-break: break-word;
+    box-sizing: border-box;
 }
 
 .cert-statement {
@@ -201,14 +204,17 @@ include 'includes/header.php';
     padding: 0.85rem 1.75rem;
     display: inline-block;
     margin-top: 0.5rem;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .cert-course-title {
     font-family: 'Montserrat', sans-serif;
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 3vw, 1.5rem);
     font-weight: 800;
     color: #0f172a;
     display: block;
+    word-break: break-word;
 }
 
 .cert-footer {
@@ -220,6 +226,8 @@ include 'includes/header.php';
     border-top: 1px solid #e2e8f0;
     position: relative;
     z-index: 1;
+    flex-wrap: wrap;
+    gap: 1.5rem;
 }
 
 .cert-code-box {
@@ -231,6 +239,7 @@ include 'includes/header.php';
     border-radius: 0.4rem;
     border: 1px solid #cbd5e1;
     font-weight: 600;
+    word-break: break-all;
 }
 
 /* Gold Foil Embossed Stamp */
@@ -252,6 +261,7 @@ include 'includes/header.php';
     text-align: center;
     border: 4px solid #ffffff;
     position: relative;
+    flex-shrink: 0;
 }
 
 .cert-gold-seal i {
@@ -286,15 +296,249 @@ include 'includes/header.php';
     box-shadow: 0 6px 20px rgba(10, 102, 194, 0.45) !important;
 }
 
+/* ── Mobile: Tablets ── */
+@media (max-width: 768px) {
+    .cert-page-wrap {
+        padding: 1.5rem 0.5rem;
+    }
+    .cert-container {
+        padding: 1.25rem;
+        border-width: 6px;
+        border-radius: 0.75rem;
+    }
+    .cert-gold-frame {
+        padding: 1.5rem 1rem;
+    }
+    .cert-corner-decor {
+        width: 20px;
+        height: 20px;
+        border-width: 3px;
+    }
+    .cert-watermark {
+        font-size: 10rem;
+    }
+    .cert-brand {
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+    }
+    .cert-title {
+        font-size: clamp(1.4rem, 5vw, 2rem);
+        margin-bottom: 1rem;
+        letter-spacing: 0.04em;
+    }
+    .cert-subtitle {
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+    }
+    .cert-statement {
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+    }
+    .cert-course-card {
+        padding: 0.6rem 1rem;
+    }
+    .cert-footer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1.25rem;
+    }
+    .cert-footer > div:last-child {
+        text-align: center;
+    }
+    .cert-signature-line {
+        font-size: 1.6rem;
+        width: 160px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .cert-gold-seal {
+        width: 80px;
+        height: 80px;
+        font-size: 0.55rem;
+    }
+    .cert-gold-seal i {
+        font-size: 1.4rem;
+    }
+}
+
+/* ── Mobile: Small phones ── */
+@media (max-width: 480px) {
+    .cert-page-wrap {
+        padding: 1rem 0.25rem;
+    }
+    .cert-container {
+        padding: 0.75rem;
+        border-width: 4px;
+        border-radius: 0.5rem;
+    }
+    .cert-gold-frame {
+        padding: 1rem 0.65rem;
+    }
+    .cert-corner-decor {
+        width: 14px;
+        height: 14px;
+        border-width: 2px;
+    }
+    .cert-watermark {
+        font-size: 6rem;
+    }
+    .cert-brand {
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+    }
+    .cert-title {
+        font-size: 1.15rem;
+        margin-bottom: 0.75rem;
+    }
+    .cert-subtitle {
+        font-size: 0.65rem;
+        letter-spacing: 0.08em;
+    }
+    .cert-recipient {
+        padding: 0 0.5rem 0.3rem;
+    }
+    .cert-statement {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+    .cert-course-card {
+        padding: 0.5rem 0.75rem;
+    }
+    .cert-course-title {
+        font-size: 0.9rem;
+    }
+    .cert-footer {
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        gap: 1rem;
+    }
+    .cert-gold-seal {
+        width: 64px;
+        height: 64px;
+        font-size: 0.5rem;
+        border-width: 3px;
+    }
+    .cert-gold-seal i {
+        font-size: 1.1rem;
+    }
+    .cert-signature-line {
+        font-size: 1.3rem;
+        width: 130px;
+    }
+    .cert-code-box {
+        font-size: 0.65rem;
+        padding: 0.3rem 0.5rem;
+    }
+    .cert-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cert-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ── Print styles ── */
 @media print {
     @page {
         size: A4 landscape;
-        margin: 0;
+        margin: 10mm;
     }
-    body { background: #ffffff !important; color: #000000 !important; }
-    .main-header, .main-footer, .top-header, .sidebar, .cert-actions, .cookie-consent-banner { display: none !important; }
-    .cert-page-wrap { padding: 0 !important; background: none !important; min-height: auto !important; }
-    .cert-container { border-width: 4px !important; box-shadow: none !important; max-width: 100% !important; margin: 0 !important; border-radius: 0 !important; }
+
+    /* Force print backgrounds in all browsers */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    /* Hide everything non-certificate */
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .main-header, .main-footer, .top-header, .sidebar,
+    .cert-actions, .cookie-consent-banner,
+    nav, footer, .navbar, .toast-container,
+    .offcanvas, .modal, .breadcrumb {
+        display: none !important;
+    }
+
+    /* Page wrapper — fill the page */
+    .cert-page-wrap {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: none !important;
+        min-height: auto !important;
+        display: block !important;
+    }
+
+    /* Certificate container — fill available space */
+    .cert-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: 4px solid #1e293b !important;
+        padding: 1.5rem !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .cert-gold-frame {
+        border: 3px double #d97706 !important;
+        background: radial-gradient(circle at center, #ffffff 60%, #fffdfa 100%) !important;
+        padding: 2rem 1.5rem !important;
+    }
+
+    /* Ensure corner decorations print */
+    .cert-corner-decor {
+        border-color: #b45309 !important;
+    }
+
+    /* Watermark visibility */
+    .cert-watermark {
+        color: rgba(217, 119, 6, 0.03) !important;
+        font-size: 16rem !important;
+    }
+
+    /* Preserve gold seal gradient */
+    .cert-gold-seal {
+        background: linear-gradient(135deg, #fef3c7 0%, #f59e0b 50%, #b45309 100%) !important;
+        box-shadow: none !important;
+        border: 4px solid #e2e8f0 !important;
+    }
+
+    /* Course card background */
+    .cert-course-card {
+        background: rgba(245, 158, 11, 0.08) !important;
+        border: 1px solid rgba(217, 119, 6, 0.3) !important;
+    }
+
+    /* Code box background */
+    .cert-code-box {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    /* Footer layout for print */
+    .cert-footer {
+        flex-wrap: nowrap !important;
+        flex-direction: row !important;
+        gap: 1rem !important;
+    }
+
+    /* Prevent orphaned sections */
+    .cert-header, .cert-footer {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
 }
 </style>
 
