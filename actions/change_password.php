@@ -62,7 +62,7 @@ if (empty($errors)) {
         $stmt->execute([':id' => $userId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
+        if (!$user || !verifyPassword($currentPassword, $user['password_hash'])) {
             $errors[] = 'Aktualne hasło jest nieprawidłowe.';
         }
     } catch (PDOException $e) {

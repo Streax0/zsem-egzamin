@@ -3324,7 +3324,7 @@ function getUsersCount($pdo) {
  */
 function updateUserPassword($pdo, $userId, $newPassword) {
     try {
-        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $hash = password_hash($newPassword, PASSWORD_ARGON2ID);
         $stmt = $pdo->prepare("UPDATE users SET password_hash = :hash, session_version = COALESCE(session_version, 1) + 1 WHERE id = :id");
         return $stmt->execute([':hash' => $hash, ':id' => $userId]);
     } catch (PDOException $e) {
