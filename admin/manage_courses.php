@@ -250,7 +250,7 @@ include '../includes/header.php';
                                                         <i class="bi bi-gear-fill"></i>
                                                     </button>
                                                 </div>
-                                                <form class="d-inline" method="post" action="manage_courses.php" onsubmit="return confirm('Usunąć kurs wraz z modułami, lekcjami i zapisanym postępem?');">
+                                                <form class="d-inline" method="post" action="manage_courses.php" onsubmit="return window.appConfirmSubmit(this, 'Usunąć kurs wraz z modułami, lekcjami i zapisanym postępem?');">
                                                     <?php echo csrfTokenField('manage_courses'); ?>
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="id" value="<?php echo (int)$course['id']; ?>">

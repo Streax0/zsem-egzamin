@@ -810,11 +810,21 @@ $extraHead = <<<HTML
             color: #2563eb !important;
         }
         
+        /* Panel headers visual underline */
+        .panel-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 0.85rem;
+            margin-bottom: 1.5rem !important;
+        }
+        body.light-mode .panel-header {
+            border-bottom-color: rgba(15, 23, 42, 0.06);
+        }
+
         /* Avatar wrappers */
         .avatar-preview-wrapper {
             width: 90px;
             height: 90px;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             display: flex;
             align-items: center;
@@ -822,18 +832,56 @@ $extraHead = <<<HTML
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             flex-shrink: 0;
             background: rgba(15, 23, 42, 0.02);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
         }
         body.dark-mode .avatar-preview-wrapper {
             background: rgba(255, 255, 255, 0.02);
         }
         .avatar-preview-wrapper:hover {
-            transform: scale(1.04);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.25);
+            border-color: rgba(99, 102, 241, 0.3);
         }
         
         /* Adjust layout spacing for tabs */
         .tab-content > .tab-pane {
             outline: none;
+        }
+
+        /* Responsive Mobile Horizontal Scrolling Tabs */
+        @media (max-width: 768px) {
+            #settings-tabs {
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding-bottom: 0.5rem !important;
+                gap: 0.5rem !important;
+            }
+            #settings-tabs::-webkit-scrollbar {
+                height: 4px;
+            }
+            #settings-tabs::-webkit-scrollbar-thumb {
+                background: rgba(99, 102, 241, 0.2);
+                border-radius: 4px;
+            }
+            #settings-tabs .nav-link {
+                white-space: nowrap !important;
+                flex: 0 0 auto !important;
+                padding: 0.65rem 1rem !important;
+                border-left: none !important;
+                border-bottom: 3px solid transparent !important;
+                transform: none !important;
+            }
+            body.dark-mode #settings-tabs .nav-link.active {
+                border-bottom-color: #8b5cf6 !important;
+                background: rgba(99, 102, 241, 0.12) !important;
+            }
+            body.light-mode #settings-tabs .nav-link.active {
+                border-bottom-color: #2563eb !important;
+                background: rgba(59, 130, 246, 0.08) !important;
+            }
         }
 
         @media (max-width: 991.98px) {
@@ -1447,7 +1495,7 @@ include '../includes/header.php';
                                                 <div class="small">
                                                     <div class="d-flex justify-content-between mb-2">
                                                         <span class="text-muted">Wersja aplikacji:</span>
-                                                        <span class="fw-bold">2.1 BETA</span>
+                                                        <span class="fw-bold">2.2 Release</span>
                                                     </div>
                                                     <div class="d-flex justify-content-between mb-2">
                                                         <span class="text-muted">ID Użytkownika:</span>
@@ -1457,6 +1505,15 @@ include '../includes/header.php';
                                                         <span class="text-muted">Ostatnie logowanie:</span>
                                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                                     </div>
+                                                </div>
+                                                <!-- Changelog 2.2 Release -->
+                                                <div class="settings-release-title mt-3 mb-2">2.2 Release</div>
+                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.2 Release</div>
+                                                <div class="settings-release-grid" aria-label="Changelog wersji 2.2 Release">
+                                                    <span><i class="bi bi-shield-check"></i> Dodano popup potwierdzenia dla domen ZSEM</span>
+                                                    <span><i class="bi bi-palette"></i> Ulepszono wygląd i responsywność ustawień</span>
+                                                    <span><i class="bi bi-lightning-charge"></i> Zoptymalizowano zapytania SQL i pętle</span>
+                                                    <span><i class="bi bi-bug"></i> Naprawiono błędy CSP i usunięto martwy kod</span>
                                                 </div>
                                                 <!-- Test compliance requirement: Changelog 2.1 BETA -->
                                                 <div class="settings-release-title mt-3 mb-2">Changelog 2.1 BETA</div>

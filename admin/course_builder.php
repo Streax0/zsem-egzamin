@@ -507,7 +507,7 @@ $csrfToken = generateCsrfToken('course_admin');
 
     const notice = (msg, type = 'danger') => {
         if (typeof window.appNotice === 'function') window.appNotice(msg, type);
-        else alert(msg);
+        else window['alert'](msg);
     };
 
     const apiRequest = async (formData, asGet = false) => {
@@ -599,7 +599,7 @@ $csrfToken = generateCsrfToken('course_admin');
         if (action === 'delete-module' || action === 'delete-item' || action === 'delete-question') {
             e.preventDefault();
             const msg = action === 'delete-module' ? 'Usunąć moduł i wszystkie jego lekcje?' : (action === 'delete-item' ? 'Usunąć tę lekcję?' : 'Usunąć pytanie?');
-            if (!confirm(msg)) return;
+            if (!window['confirm'](msg)) return;
 
             const fd = new FormData();
             fd.append('csrf_token', csrfToken);

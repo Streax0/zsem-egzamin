@@ -388,12 +388,8 @@ function courseFetchStructure(PDO $pdo, int $courseId, bool $includeContent = fa
             ];
         }
         if ($row['id'] !== null) {
-            $item = [];
-            foreach ($row as $key => $value) {
-                if (!in_array($key, ['module_title', 'module_description', 'module_sort_order'], true)) {
-                    $item[$key] = $value;
-                }
-            }
+            $item = $row;
+            unset($item['module_title'], $item['module_description'], $item['module_sort_order']);
             $structure[$moduleId]['items'][] = $item;
         }
     }

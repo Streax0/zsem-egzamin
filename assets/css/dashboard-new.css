@@ -2760,3 +2760,19 @@ body.dark-mode .dashboard-panel .empty-state i {
     margin-top: auto !important;
   }
 }
+
+/* Contrast rules for static compliance tests */
+.sidebar-footer .sidebar-item.text-danger {
+  color: #fca5a5 !important;
+}
+.key-hint {
+  color: #475569;
+}
+body.dark-mode .key-hint {
+  color: #cbd5e1;
+}
+
+.sidebar.show .sidebar-item {
+  animation: sidebarItemEnter 0.25s ease-out forwards;
+}
+

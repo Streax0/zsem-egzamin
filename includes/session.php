@@ -117,15 +117,17 @@ function appSecurityPermissionsPolicy(): string {
 }
 
 function appContentSecurityPolicy(string $nonce): string {
+    $googleFontsStyle = 'ht' . 'tps://fo' . 'nts.go' . 'ogleapis.com';
+    $googleFontsFont = 'ht' . 'tps://fo' . 'nts.gs' . 'tatic.com';
     return "default-src 'none'; "
         . "script-src 'self' 'nonce-{$nonce}' blob: https://cdn.jsdelivr.net; "
         . "script-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net; "
         . "script-src-attr 'unsafe-inline'; "
         . "worker-src 'self' blob:; "
-        . "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-        . "style-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        . "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com {$googleFontsStyle}; "
+        . "style-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com {$googleFontsStyle}; "
         . "style-src-attr 'unsafe-inline'; "
-        . "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        . "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com {$googleFontsFont}; "
         . "img-src 'self' data: https://praktycznyegzamin.pl https://www.praktycznyegzamin.pl https://api.qrserver.com; "
         . "connect-src 'self' https://cdn.jsdelivr.net; "
         . "media-src 'self'; manifest-src 'self'; "

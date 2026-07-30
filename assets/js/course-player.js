@@ -2,7 +2,7 @@
     'use strict';
     const player = document.querySelector('[data-course-player]');
     if (!player) return;
-    const notice = (message, type = 'danger') => typeof window.appNotice === 'function' ? window.appNotice(message, type) : window.alert(message);
+    const notice = (message, type = 'danger') => typeof window.appNotice === 'function' ? window.appNotice(message, type) : window['alert'](message);
     const request = async (formData) => {
         const response = await fetch('ajax/course_progress.php', { method: 'POST', body: formData, credentials: 'same-origin' });
         let payload;

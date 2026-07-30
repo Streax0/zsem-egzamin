@@ -599,33 +599,92 @@ $extraHead = <<<HTML
             box-shadow: 0 8px 18px rgba(99, 102, 241, 0.18);
         }
         @media (max-width: 767.98px) {
-            .profile-header-bg { min-height: 115px; }
+            .profile-header-bg {
+                min-height: 128px;
+            }
+            .profile-header-inner {
+                margin-top: -36px;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
             .profile-header-content {
-                grid-template-columns: 1fr;
-                align-items: start;
-                text-align: left;
-            }
-            .user-avatar-large {
-                width: 96px;
-                height: 96px;
-                font-size: 2rem !important;
-                margin-top: 0;
-            }
-            .profile-mini-stats {
-                grid-template-columns: 1fr;
+                display: flex;
+                flex-direction: column;
+                text-align: center;
+                align-items: center;
+                padding: 1.25rem;
+                gap: 1.25rem;
             }
             .profile-left-stack {
+                display: contents; /* Flatten hierarchy to allow perfect element ordering */
+            }
+            .user-avatar-large {
+                width: 108px;
+                height: 108px;
+                font-size: 2.5rem !important;
+                margin-top: -68px !important; /* Overlap the banner symmetrically */
+                border: 4px solid #ffffff !important;
+                box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15) !important;
+                order: 1; /* Avatar first */
+            }
+            body.dark-mode .user-avatar-large {
+                border-color: #1e293b !important;
+            }
+            .profile-header-content > div:not(.profile-left-stack):not(.ms-auto) {
+                order: 2; /* User details & stats second */
                 width: 100%;
             }
-            .profile-account-summary {
-                grid-template-columns: 1fr;
+            .profile-rank-highlight {
+                width: 100%;
+                max-width: 340px;
+                margin: 0 auto;
+                text-align: left;
+                border-radius: 16px;
+                padding: 0.85rem;
+                order: 3; /* Rank highlight third */
             }
             .profile-rank-top {
-                align-items: flex-start;
-                flex-wrap: wrap;
+                align-items: center;
             }
             .profile-rank-xp {
-                margin-left: 0;
+                margin-left: auto;
+            }
+            .profile-header-meta {
+                justify-content: center;
+            }
+            .profile-mini-stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1px;
+                background: rgba(148, 163, 184, 0.16);
+                border-radius: 14px;
+                overflow: hidden;
+                border: 1px solid rgba(148, 163, 184, 0.16);
+                margin-top: 1.25rem;
+                width: 100%;
+            }
+            body.dark-mode .profile-mini-stats {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 255, 255, 0.08);
+            }
+            .profile-mini-stat {
+                background: #ffffff;
+                padding: 0.75rem 0.5rem;
+                border-radius: 0 !important;
+                border: none !important;
+                text-align: center;
+            }
+            body.dark-mode .profile-mini-stat {
+                background: #1e293b;
+                color: #e2e8f0;
+            }
+            .profile-account-summary {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+            }
+            .profile-account-tile {
+                padding: 0.65rem;
+                text-align: center;
             }
             .comment-card-grid {
                 grid-template-columns: 42px minmax(0, 1fr);
@@ -637,10 +696,20 @@ $extraHead = <<<HTML
             .profile-header-content .ms-auto {
                 margin-left: 0 !important;
                 width: 100%;
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                gap: 0.62rem;
+                flex-wrap: wrap;
+                margin-top: 0.5rem;
+                order: 4; /* Buttons last */
             }
-            .profile-header-content .btn {
-                width: 100%;
-                margin: .25rem 0 0 0 !important;
+            .profile-header-content .ms-auto .btn,
+            .profile-header-content .ms-auto form {
+                flex: 1;
+                min-width: 120px;
+                margin: 0 !important;
             }
         }
     </style>

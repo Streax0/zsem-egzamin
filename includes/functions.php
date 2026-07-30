@@ -2125,7 +2125,27 @@ function awardXp($pdo, $userId, $amount, $source, $sourceId = null, $description
     $amount = (int)$amount;
     if ($amount === 0) return false;
     try {
+        // Fetch old rank info
+        $userStmt = $pdo->prepare("SELECT xp FROM users WHERE id = ?");
+        $userStmt->execute([$userId]);
+        $oldXp = (int)$userStmt->fetchColumn();
+        $oldRankInfo = getRankInfoByXp($oldXp);
+
         $pdo->prepare("UPDATE users SET xp = GREATEST(0, xp + ?) WHERE id = ?")->execute([$amount, $userId]);
+
+        // Fetch new rank info
+        $userStmt->execute([$userId]);
+        $newXp = (int)$userStmt->fetchColumn();
+        $newRankInfo = getRankInfoByXp($newXp);
+
+        if ($newRankInfo['name'] !== $oldRankInfo['name']) {
+            if ($newRankInfo['min_xp'] > $oldRankInfo['min_xp']) {
+                addNotification($pdo, $userId, 'rank_up', "Gratulacje! Awansowałeś do rangi " . $newRankInfo['name'] . "!");
+            } elseif ($newRankInfo['min_xp'] < $oldRankInfo['min_xp']) {
+                addNotification($pdo, $userId, 'rank_down', "Twoja ranga zmieniła się na " . $newRankInfo['name'] . ".");
+            }
+        }
+
         try {
             $stmt = $pdo->prepare("INSERT INTO xp_events (user_id, source, source_id, amount, description) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$userId, $source, $sourceId, $amount, $description]);
@@ -4013,6 +4033,7 @@ function syncUserMissions($pdo, $userId) {
 
 function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuestions) {
     $qualifiedForAnyMission = testResultQualifiesForMissions($pdo, (int)$resultId, (int)$totalQuestions);
+    if (!$qualifiedForAnyMission) return;
     foreach (['daily', 'weekly', 'monthly'] as $period) {
         $missionsData = syncUserMissionsForPeriod($pdo, $userId, $period, 3);
         $pool = $missionsData['pool'];
@@ -4022,7 +4043,6 @@ function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuest
 
             $desc = mb_strtolower((string)($mission['mission_description'] ?? ''), 'UTF-8');
             $allowsAny = mb_strpos($desc, 'dowolny test') !== false || mb_strpos($desc, 'dowolne testy') !== false || $period !== 'daily';
-            if (!$qualifiedForAnyMission) continue;
             if ($totalQuestions < 40 && !$allowsAny) continue;
 
             $reward = (int)($pool[$mission['mission_type']]['reward_xp'] ?? $mission['xp_reward'] ?? 0);

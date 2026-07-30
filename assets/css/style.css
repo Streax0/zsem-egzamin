@@ -1,7 +1,4 @@
 /* Nowoczesny panel postępu testu */
-.test-progress-actions-modern {
-  gap: 0.7rem !important;
-}
 .test-end-modern-btn {
   width: 48px;
   height: 48px;
@@ -199,20 +196,6 @@ body.dark-mode input[type="range"].custom-range-slider {
   color: #64748b;
   font-size: 1rem;
   font-weight: 500;
-}
-.test-confirm-counter {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.08rem;
-  background: rgba(245, 158, 11, 0.09);
-  border-left: 4px solid #f59e0b;
-  color: #92400e;
-}
-.test-confirm-answers {
-  font-size: 1.13rem;
-  font-weight: 700;
-  color: #b45309;
 }
 .test-confirm-label {
   font-size: 0.97rem;
@@ -3897,3 +3880,63 @@ body.dark-mode.welcome-style-glass .join-hero-panel .icon-wrapper i,
 body.dark-mode.welcome-style-glass .lobby-hero .lobby-pulse div i {
   color: #f8fafc !important;
 }
+
+/* Page visual transitions */
+html.js-enabled body.page-transitioning {
+  pointer-events: none;
+}
+#spa-loading-bar.loading {
+  opacity: 1;
+  width: 75%;
+  transition: width 1.8s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.15s ease;
+}
+#spa-loading-bar.finishing {
+  opacity: 1;
+  width: 100%;
+  transition: width 0.25s ease-out, opacity 0.2s ease 0.15s;
+}
+
+/* Transition Modal styling */
+/* Transition Modal Premium Styles */
+#transitionModal .modal-content {
+  transition: transform 0.3s ease-out;
+}
+#transitionModal .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4) !important;
+  filter: brightness(1.05);
+}
+#transitionModal .btn-primary:active {
+  transform: translateY(0);
+}
+#transitionModal .btn-outline-secondary:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  color: var(--text-main) !important;
+}
+
+body.dark-mode #transitionModal .modal-content {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+body.dark-mode #transitionModal h5 {
+  color: #f8fafc !important;
+}
+body.dark-mode #transitionModal p {
+  color: #94a3b8 !important;
+}
+body.dark-mode #transitionModal .btn-outline-secondary {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #cbd5e1 !important;
+}
+body.dark-mode #transitionModal .btn-outline-secondary:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #f8fafc !important;
+}
+body.dark-mode #transitionModalIconWrapper {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+

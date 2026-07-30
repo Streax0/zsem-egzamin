@@ -72,13 +72,11 @@ if (!$certCode) {
 
 $pageTitle = 'Certyfikat Ukończenia: ' . htmlspecialchars($course['title']) . ' — ZSEM Tech';
 $base_url = '';
+$extraCss = ['assets/css/certificate-fonts.css'];
 include 'includes/header.php';
 ?>
 
-<!-- Google Fonts for Executive Certificate -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Great+Vibes&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Czcionki dla certyfikatu ładowane są poprzez arkusz stylów -->
 
 <style>
 .cert-page-wrap {
@@ -624,6 +622,7 @@ $linkedInAddUrl = "https://www.linkedin.com/profile/add?startTask=CERTIFICATION_
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <?php include 'includes/footer.php'; ?>
 </body>
 </html>

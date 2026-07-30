@@ -225,7 +225,7 @@ include 'includes/header.php';
                     <div class="dashboard-hero-inner">
                         <div class="hero-left" style="text-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);">
                             <div class="hero-rank-pill" style="border-color: rgba(255, 255, 255, 0.18); background: rgba(15, 23, 42, 0.35); color: #ffffff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
-                                <i class="bi bi-stars" style="color: <?php echo $rankInfo['color'] ?? '#fff'; ?>;"></i>
+                                <i class="bi <?php echo htmlspecialchars($rankInfo['icon'] ?? 'bi-stars'); ?>" style="color: <?php echo $rankInfo['color'] ?? '#fff'; ?>;"></i>
                                 <span style="color: #ffffff; font-weight: 800;"><?php echo htmlspecialchars(strtoupper($rankInfo['name'] ?? 'BRONZE')); ?></span>
                             </div>
                             <h1 class="h2" style="font-weight: 800; color: #ffffff;">Witaj, <?php echo htmlspecialchars($_SESSION['username'] ?? 'admin'); ?>!</h1>

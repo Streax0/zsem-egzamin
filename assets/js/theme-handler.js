@@ -7,6 +7,7 @@
         return;
     }
     window.__zsemThemeHandlerLoaded = true;
+    document.documentElement.classList.add('js-enabled');
 
     const preferenceCookieNames = [
         'user_theme',
@@ -215,13 +216,259 @@
         playUiPreferenceChime();
     };
 
+    // Prefetching and transitions config
+    const prefetchedUrls = new Set();
+    const excludedExtensions = [
+        '.pdf', '.zip', '.gz', '.tar', '.exe', '.dmg', '.pkg', '.app', '.msi',
+        '.docx', '.xlsx', '.pptx', '.csv', '.mp4', '.mp3', '.wav', '.png',
+        '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico'
+    ];
+
+    function getTransitionConfig() {
+        const reduceMotion = getPreference('reduce_motion', '0') === '1'
+            || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        return { reduceMotion };
+    }
+
+    function isPrefetchable(anchor) {
+        const href = anchor.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+            return false;
+        }
+        if (anchor.getAttribute('target') === '_blank' || anchor.hasAttribute('download')) {
+            return false;
+        }
+        try {
+            const url = new URL(anchor.href, window.location.href);
+            if (url.origin !== window.location.origin) {
+                return false;
+            }
+            const currentUrl = new URL(window.location.href);
+            if (url.pathname === currentUrl.pathname && url.search === currentUrl.search) {
+                return false;
+            }
+            const pathname = url.pathname.toLowerCase();
+            if (excludedExtensions.some(ext => pathname.endsWith(ext))) {
+                return false;
+            }
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function prefetchUrl(urlStr) {
+        try {
+            const url = new URL(urlStr, window.location.href).href;
+            if (prefetchedUrls.has(url)) return;
+            prefetchedUrls.add(url);
+
+            const prefetchLink = document.createElement('link');
+            prefetchLink.rel = 'prefetch';
+            prefetchLink.href = url;
+            document.head.appendChild(prefetchLink);
+        } catch (e) {}
+    }
+
+    let loaderBar = null;
+    function getLoaderBar() {
+        if (loaderBar) return loaderBar;
+        loaderBar = document.getElementById('spa-loading-bar');
+        if (!loaderBar) {
+            loaderBar = document.createElement('div');
+            loaderBar.id = 'spa-loading-bar';
+            document.body.appendChild(loaderBar);
+        }
+        return loaderBar;
+    }
+
+    function startTransition(href) {
+        const { reduceMotion } = getTransitionConfig();
+        const bar = getLoaderBar();
+        if (bar) {
+            bar.className = '';
+            bar.style.width = '0';
+            void bar.offsetWidth;
+            bar.classList.add('loading');
+        }
+
+        if (!reduceMotion) {
+            document.body.classList.remove('page-loaded');
+            document.body.classList.add('page-transitioning');
+        }
+        document.body.style.pointerEvents = 'none';
+
+        setTimeout(() => {
+            resetTransition();
+        }, 6000);
+    }
+
+    let transitionModalEl = null;
+    let transitionModalInstance = null;
+
+    function ensureTransitionModal() {
+        if (transitionModalEl) return;
+        transitionModalEl = document.createElement('div');
+        transitionModalEl.className = 'modal fade';
+        transitionModalEl.id = 'transitionModal';
+        transitionModalEl.tabIndex = -1;
+        transitionModalEl.setAttribute('aria-hidden', 'true');
+        transitionModalEl.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 340px;">
+                <div class="modal-content border-0 shadow-2xl" style="border-radius: 24px; overflow: hidden; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);">
+                    <div class="modal-body text-center p-4">
+                        <div id="transitionModalIconWrapper" class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; border-radius: 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12)); border: 1px solid rgba(99, 102, 241, 0.15);">
+                            <i id="transitionModalIcon" class="bi bi-compass text-primary" style="font-size: 1.8rem; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                        </div>
+                        <div id="transitionModalSpinner" class="spinner-border text-primary mb-3 d-none" role="status" style="width: 2.5rem; height: 2.5rem; border-width: 0.22em;">
+                            <span class="visually-hidden">Ładowanie...</span>
+                        </div>
+                        <h5 class="fw-bold mb-2" style="font-family: 'Outfit', 'Inter', sans-serif; font-weight: 800; letter-spacing: -0.02em; color: var(--text-main, #0f172a); font-size: 1.25rem;">Przejście do serwisu</h5>
+                        <p class="text-muted small mb-0 px-2" id="transitionModalDesc" style="line-height: 1.5; font-size: 0.9rem;">Czy chcesz przejść na inną stronę?</p>
+                        
+                        <div class="d-flex justify-content-center gap-3 mt-4" id="transitionModalActions">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill w-50" data-bs-dismiss="modal" style="font-size: 0.9rem; font-weight: 600; padding: 0.6rem 0; border: 1px solid rgba(0, 0, 0, 0.08); transition: all 0.2s;">Anuluj</button>
+                            <button type="button" class="btn btn-primary rounded-pill w-50" id="transitionModalConfirmBtn" style="font-size: 0.9rem; font-weight: 700; padding: 0.6rem 0; border: none; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25); transition: all 0.2s;">Przejdź</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(transitionModalEl);
+
+        if (window.bootstrap) {
+            transitionModalInstance = bootstrap.Modal.getOrCreateInstance(transitionModalEl, {
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+    }
+
+    function showTransitionModal(title, message, iconClass, onConfirm) {
+        ensureTransitionModal();
+        if (transitionModalEl) {
+            const titleEl = transitionModalEl.querySelector('h5');
+            const descEl = transitionModalEl.querySelector('#transitionModalDesc');
+            const iconWrapper = transitionModalEl.querySelector('#transitionModalIconWrapper');
+            const iconEl = transitionModalEl.querySelector('#transitionModalIcon');
+            const spinnerEl = transitionModalEl.querySelector('#transitionModalSpinner');
+            const actionsEl = transitionModalEl.querySelector('#transitionModalActions');
+            const confirmBtn = transitionModalEl.querySelector('#transitionModalConfirmBtn');
+
+            if (titleEl) titleEl.textContent = title || 'Przejście do serwisu';
+            if (descEl) descEl.textContent = message || 'Czy chcesz przejść na inną stronę?';
+
+            // Swap icon class
+            if (iconEl) {
+                iconEl.className = 'bi ' + (iconClass || 'bi-box-arrow-up-right');
+            }
+
+            // Reset state to prompt/confirmation mode
+            if (iconWrapper) iconWrapper.classList.remove('d-none');
+            if (spinnerEl) spinnerEl.classList.add('d-none');
+            if (actionsEl) actionsEl.classList.remove('d-none');
+
+            // Setup confirm button handler (re-bind to clean old listeners)
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+            newConfirmBtn.addEventListener('click', () => {
+                // Show loading state
+                if (iconWrapper) iconWrapper.classList.add('d-none');
+                if (spinnerEl) spinnerEl.classList.remove('d-none');
+                if (actionsEl) actionsEl.classList.add('d-none');
+                
+                // Trigger callback
+                if (onConfirm) onConfirm();
+            });
+        }
+        if (transitionModalInstance) {
+            transitionModalInstance.show();
+        }
+    }
+
+    function resetTransition() {
+        const bar = getLoaderBar();
+        if (bar) {
+            bar.className = '';
+            bar.style.width = '0';
+        }
+        document.body.classList.add('page-loaded');
+        document.body.classList.remove('page-transitioning');
+        document.body.style.pointerEvents = '';
+        try {
+            if (transitionModalInstance) {
+                transitionModalInstance.hide();
+            }
+        } catch (e) {}
+    }
+
+    function initTransitionsAndPrefetch() {
+        document.addEventListener('mouseenter', (e) => {
+            const anchor = e.target.closest?.('a');
+            if (anchor && isPrefetchable(anchor)) {
+                prefetchUrl(anchor.href);
+            }
+        }, { capture: true, passive: true });
+
+        document.addEventListener('touchstart', (e) => {
+            const anchor = e.target.closest?.('a');
+            if (anchor && isPrefetchable(anchor)) {
+                prefetchUrl(anchor.href);
+            }
+        }, { capture: true, passive: true });
+
+        document.addEventListener('click', (e) => {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+                return;
+            }
+            const anchor = e.target.closest?.('a');
+            if (anchor) {
+                const isNav = anchor.closest('.sidebar-menu') || anchor.closest('.top-header') || anchor.closest('.sidebar') || anchor.classList.contains('sidebar-item');
+                if (isNav) {
+                    const href = anchor.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                        const isZsem = href.includes('zsem.edu.pl') || href.includes('zsemtech.zsem.edu.pl');
+                        
+                        if (isZsem) {
+                            e.preventDefault(); // Only prevent default for ZSEM domains to show confirmation!
+                            
+                            const iconClass = href.includes('zsemtech') ? 'bi-laptop' : 'bi-mortarboard';
+                            const siteName = href.includes('zsemtech') ? 'ZSEM Tech' : 'Strona szkoły';
+                            
+                            showTransitionModal(
+                                'Przejście do serwisu',
+                                `Czy chcesz przejść do: ${siteName}?`,
+                                iconClass,
+                                () => {
+                                    window.open(anchor.href, '_blank');
+                                    setTimeout(() => {
+                                        resetTransition();
+                                    }, 500);
+                                }
+                            );
+                        } else if (isPrefetchable(anchor)) {
+                            // Normal internal transition, NO modal popup!
+                            startTransition(anchor.href);
+                        }
+                    }
+                }
+            }
+        }, { capture: true });
+
+        window.addEventListener('pageshow', (e) => {
+            resetTransition();
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         applySettings();
+        document.body.classList.add('page-loaded');
         const root = document.documentElement || document.body;
         if (root instanceof Node) {
             const observer = new MutationObserver(() => applyExternalLinkPreference());
             observer.observe(root, { childList: true, subtree: true });
         }
+        initTransitionsAndPrefetch();
     });
 
     window.updateThemeSetting = function(theme) {
