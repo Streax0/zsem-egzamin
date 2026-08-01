@@ -213,7 +213,7 @@ $csrf_token = generateCsrfToken();
                     <label class="form-label" for="regUsername">Nazwa użytkownika</label>
                     <div class="position-relative">
                         <i class="bi bi-at auth-input-icon"></i>
-                        <input type="text" name="username" id="regUsername" class="form-control" placeholder="np. test53" value="<?= htmlspecialchars($username) ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_.-]{3,16}" autocomplete="username" aria-describedby="generatedUsernamePreview usernameFeedback" required>
+                        <input type="text" name="username" id="regUsername" class="form-control" placeholder="np. test53" value="<?= htmlspecialchars($username) ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_\.-]{3,16}" autocomplete="username" aria-describedby="generatedUsernamePreview usernameFeedback" required>
                     </div>
                     <div id="generatedUsernamePreview" class="form-text" hidden></div>
                     <div id="usernameFeedback" class="small mt-1"></div>

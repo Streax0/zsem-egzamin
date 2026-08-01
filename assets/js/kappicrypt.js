@@ -171,18 +171,14 @@ class KappiCrypt {
                     const payload = await this.encryptData(plainObject);
 
                     // Append encrypted payload hidden field
-                    const hidden = document.createElement('input');
-                    hidden.type = 'hidden';
-                    hidden.name = 'kappicrypt_payload';
+                    let hidden = form.querySelector('input[name="kappicrypt_payload"]');
+                    if (!hidden) {
+                        hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'kappicrypt_payload';
+                        form.appendChild(hidden);
+                    }
                     hidden.value = payload;
-                    form.appendChild(hidden);
-
-                    // Clear names of plaintext inputs to prevent unencrypted transmission
-                    form.querySelectorAll('input, select, textarea').forEach(input => {
-                        if (input.name && input.name !== 'kappicrypt_payload' && input.name !== 'csrf_token') {
-                            input.removeAttribute('name');
-                        }
-                    });
 
                     // Native submission
                     form.submit();

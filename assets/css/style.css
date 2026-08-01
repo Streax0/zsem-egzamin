@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 /* Nowoczesny panel postępu testu */
 .test-end-modern-btn {
   width: 48px;
@@ -2237,10 +2239,7 @@ textarea:focus,
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
-}
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-html {
+/* Nowoczesny panel postępu testu */
   overflow-x: hidden;
 }
 

@@ -44,16 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $isAdmin = in_array($role, ['admin', 'dyrektor'], true);
         if ($lessonTeacherId > 0 && ($lessonTeacherId === $userId || $isAdmin)) {
             $jsonPath = __DIR__ . '/pdf/lesson_' . $lessonId . '.json';
-            $meta = [];
-            if (file_exists($jsonPath)) {
-                $meta = json_decode(file_get_contents($jsonPath), true) ?: [];
-            }
+            $meta = readJsonMetadata($jsonPath);
             
             $currentAllowed = (int)($meta['pdf_download_allowed'] ?? 0);
             $newAllowed = $currentAllowed === 1 ? 0 : 1;
             $meta['pdf_download_allowed'] = $newAllowed;
             
-            file_put_contents($jsonPath, json_encode($meta));
+            writeJsonMetadata($jsonPath, $meta);
             
             $lessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
                 && dbColumnExists($pdo, 'lessons', 'pdf_filename')
@@ -100,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $tmpName = $pdfFile['tmp_name'];
                 $originalName = trim((string)$pdfFile['name']);
-                $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+                $extension = getUploadedFileExtension($originalName);
                 $mimeType = '';
                 if (is_uploaded_file($tmpName) && function_exists('finfo_open')) {
                     $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -144,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'pdf_filename' => $originalName,
                         'pdf_download_allowed' => $pdfDownloadAllowed
                     ];
-                    file_put_contents($metaDestination, json_encode($meta));
+                    writeJsonMetadata($metaDestination, $meta);
 
                     // If columns exist, also attempt to update them in the database for consistency
                     if ($lessonHasPdfColumns) {
@@ -212,7 +209,7 @@ foreach ($lessons as $k => $lesson) {
     if (file_exists(__DIR__ . '/' . $fsPdfPath)) {
         $lessons[$k]['pdf_path'] = $fsPdfPath;
         if (file_exists(__DIR__ . '/' . $fsJsonPath)) {
-            $meta = json_decode(file_get_contents(__DIR__ . '/' . $fsJsonPath), true);
+            $meta = readJsonMetadata(__DIR__ . '/' . $fsJsonPath);
             $lessons[$k]['pdf_filename'] = $meta['pdf_filename'] ?? 'dokument.pdf';
             $lessons[$k]['pdf_download_allowed'] = (int)($meta['pdf_download_allowed'] ?? 0);
         } else {

@@ -14,25 +14,34 @@ class KappiCrypt {
             $config = array(
                 "digest_alg" => "sha256",
                 "private_key_bits" => 2048,
-                "private_key_type" => OPENSSL_KEYTYPE_RSA,
-                "config" => "C:/xampp/php/extras/ssl/openssl.cnf"
+                "private_key_type" => OPENSSL_KEYTYPE_RSA
             );
+
             $res = @openssl_pkey_new($config);
             if (!$res) {
-                $config["config"] = "C:/xampp/apache/conf/openssl.cnf";
+                if (file_exists("C:/xampp/php/extras/ssl/openssl.cnf")) {
+                    $config["config"] = "C:/xampp/php/extras/ssl/openssl.cnf";
+                } elseif (file_exists("C:/xampp/apache/conf/openssl.cnf")) {
+                    $config["config"] = "C:/xampp/apache/conf/openssl.cnf";
+                }
                 $res = @openssl_pkey_new($config);
             }
             if (!$res) {
                 unset($config["config"]);
-                $res = @openssl_pkey_new($config);
+                $res = @openssl_pkey_new();
             }
 
             if ($res) {
                 @openssl_pkey_export($res, $privKey, null, $config);
+                if (empty($privKey)) {
+                    @openssl_pkey_export($res, $privKey);
+                }
                 $pubKey = openssl_pkey_get_details($res);
                 
-                $_SESSION['kappicrypt_priv'] = $privKey;
-                $_SESSION['kappicrypt_pub'] = $pubKey["key"];
+                if (!empty($privKey) && !empty($pubKey["key"])) {
+                    $_SESSION['kappicrypt_priv'] = $privKey;
+                    $_SESSION['kappicrypt_pub'] = $pubKey["key"];
+                }
             }
 
             while (openssl_error_string() !== false);

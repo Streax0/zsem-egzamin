@@ -386,9 +386,14 @@ include '../includes/header.php';
 
                 <section class="luki-hero mb-4">
                     <div class="luki-hero-copy">
-                        <span class="badge rounded-pill bg-white bg-opacity-25 mb-3">Uncle Luki's Zakonnicomat</span>
-                        <h1 class="fw-900 mb-2">Daily Spin System</h1>
-                        <p class="lead opacity-75 mb-0">Endgame prestige dla kont ze statusem Wujek Luki. Jeden spin może błogosławić, uciszyć albo wystawić XP na próbę.</p>
+                        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                            <span class="badge rounded-pill bg-white bg-opacity-25">Uncle Luki's Zakonnicomat v3.0</span>
+                            <button type="button" class="luki-audio-toggle ms-auto" id="lukiAudioToggle" aria-label="Przełącz dźwięk Zakonnicomatu">
+                                <i class="bi bi-volume-up-fill me-1"></i><span id="lukiAudioStatus">Dźwięk: Wł.</span>
+                            </button>
+                        </div>
+                        <h1 class="fw-900 mb-2"><i class="bi bi-stars text-warning me-2"></i>Świątynia Zakonnicomat</h1>
+                        <p class="lead opacity-75 mb-0">Endgame prestige dla kont ze statusem Wujek Luki. Losuj łaskę 13 Świętych Zakonnic, zdobywaj bonusowe XP i buduj swoją serię szczęścia.</p>
                     </div>
                     <div class="luki-hero-art">
                         <img class="luki-sign" src="assets/images/luki-zakonnicomat-sign.svg" alt="Szyld maszyny losującej Wujka Lukiego" loading="lazy" decoding="async">
@@ -399,7 +404,8 @@ include '../includes/header.php';
                 <div class="luki-grid">
                     <section class="luki-spin-card p-4">
                         <div class="wheel-wrap">
-                            <div class="wheel-stage">
+                            <div class="wheel-stage" id="wheelStage">
+                                <canvas id="lukiConfettiCanvas"></canvas>
                                 <div class="wheel-pointer"></div>
                                 <div class="luki-wheel" id="lukiWheel" data-segments="<?php echo count($segments); ?>" style="background: conic-gradient(<?php echo $wheelGradient; ?>);">
                                     <div class="center-mark"></div>
@@ -534,6 +540,54 @@ include '../includes/header.php';
                     </aside>
                 </div>
 
+                <!-- Kodeks 13 Świętych Zakonnic -->
+                <section class="luki-card p-4 mt-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-900 mb-1"><i class="bi bi-journal-bookmark-fill me-2 text-warning"></i>Klasztor Zakonnic – Kodeks 13 Archetypów</h4>
+                            <p class="text-muted small mb-0">Kliknij na wybraną zakondę, aby poznać jej opis, zakres XP i wady.</p>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap" id="codexFilters">
+                            <button type="button" class="codex-filter-btn active" data-filter="all">Wszystkie (13)</button>
+                            <button type="button" class="codex-filter-btn" data-filter="bonus">Bonusy (+XP)</button>
+                            <button type="button" class="codex-filter-btn" data-filter="neutral">Neutralne (0 XP)</button>
+                            <button type="button" class="codex-filter-btn" data-filter="trial">Próby (-XP)</button>
+                            <button type="button" class="codex-filter-btn" data-filter="unique">Unikalne</button>
+                        </div>
+                    </div>
+
+                    <div class="nun-codex-grid" id="nunCodexGrid">
+                        <?php
+                        $nunCodexDetails = [
+                            'blessing' => ['type' => 'bonus', 'range' => '+50 do +250 XP', 'desc' => 'Bezpieczny spin. Spokojny bonus dopisywany do progresu bez ryzyka.', 'tag' => 'Bezpieczna'],
+                            'abundance' => ['type' => 'bonus', 'range' => '+300 do +750 XP', 'desc' => 'Rzadki złoty wynik. Progres dostaje bardzo mocny zastrzyk energii.', 'tag' => 'Rzadka Gold'],
+                            'grace' => ['type' => 'bonus', 'range' => '+150 do +350 XP', 'desc' => 'Łaska systemu przyznaje umiarkowany i pewny bonus XP.', 'tag' => 'Łaskawa'],
+                            'ciaza' => ['type' => 'unique', 'range' => '0 do +100 XP', 'desc' => 'Tryb ciąży sprawia, że system opiekuje się Twoim postępem i chroni punkty.', 'tag' => 'Opiekuńcza'],
+                            'silence' => ['type' => 'neutral', 'range' => '0 XP', 'desc' => 'System pozostaje w doskonałej równowadze. Brak zmiany XP.', 'tag' => 'Harmonia'],
+                            'trial' => ['type' => 'trial', 'range' => '-20 do -100 XP', 'desc' => 'Lekka próba cierpliwości. Drobna korekta na drodze do celu.', 'tag' => 'Korekta'],
+                            'judge' => ['type' => 'trial', 'range' => '-150 do -500 XP', 'desc' => 'Wyrok systemu. Mocny spadek XP testujący determinację.', 'tag' => 'Surowy Wyrok'],
+                            'fate' => ['type' => 'unique', 'range' => '-200 do +400 XP', 'desc' => 'Przeznaczenie miesza losy — wynik może przynieść zarówno straty jak i zyski.', 'tag' => 'Losowa'],
+                            'forge' => ['type' => 'bonus', 'range' => '+120 do +320 XP', 'desc' => 'Kuźnia wzmacnia progres bez jakiegokolwiek ryzyka utraty serii.', 'tag' => 'Zakonnica Kuźni'],
+                            'mirror' => ['type' => 'unique', 'range' => '-220 do +220 XP', 'desc' => 'Lustro odbija los: wynik jest krótki, mocny i symetryczny.', 'tag' => 'Zakonnica Lustra'],
+                            'archive' => ['type' => 'neutral', 'range' => '0 do +180 XP', 'desc' => 'Archiwum zachowuje stabilność bazy i dopisuje ostrożny bonus.', 'tag' => 'Zakonnica Archiwum'],
+                            'oracle' => ['type' => 'unique', 'range' => 'Varium / Duplikacja', 'desc' => 'Oracle może skopiować, odwrócić lub podwoić Twój poprzedni spin!', 'tag' => 'Zakonnica Losu'],
+                            'void' => ['type' => 'trial', 'range' => '-100% XP (Wyzerowanie)', 'desc' => 'Sekretny wyrok nicości. Szansa jest rzędu 0.01%, ale czyści cały XP.', 'tag' => 'Nicość Ekstremalna'],
+                        ];
+                        foreach ($segments as $seg):
+                            $meta = $nunCodexDetails[$seg['key']] ?? ['type' => 'neutral', 'range' => 'Varium', 'desc' => '', 'tag' => 'Standard'];
+                        ?>
+                            <div class="nun-card" data-nun-key="<?php echo htmlspecialchars($seg['key']); ?>" data-nun-type="<?php echo htmlspecialchars($meta['type']); ?>" style="--nun-color: <?php echo htmlspecialchars($seg['color']); ?>;" onclick="openNunCodexModal('<?php echo htmlspecialchars($seg['key']); ?>', '<?php echo htmlspecialchars(addslashes($seg['name'])); ?>', '<?php echo htmlspecialchars(addslashes($meta['desc'])); ?>', '<?php echo htmlspecialchars($meta['range']); ?>', '<?php echo htmlspecialchars($seg['color']); ?>', '<?php echo htmlspecialchars($seg['icon']); ?>')">
+                                <div class="nun-card-icon">
+                                    <i class="bi <?php echo htmlspecialchars($seg['icon']); ?>"></i>
+                                </div>
+                                <div class="nun-card-type"><?php echo htmlspecialchars($meta['tag']); ?></div>
+                                <div class="nun-card-title"><?php echo htmlspecialchars($seg['name']); ?></div>
+                                <div class="nun-card-range" style="color: <?php echo htmlspecialchars($seg['color']); ?>;"><?php echo htmlspecialchars($meta['range']); ?></div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+
                 <section class="luki-card p-4 mt-4">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
                         <h4 class="fw-bold mb-0"><i class="bi bi-scroll me-2 text-primary"></i>Chronicle of Spins</h4>
@@ -564,6 +618,30 @@ include '../includes/header.php';
     </div>
 </div>
 
+<!-- Modal Kodeksu Zakonnicy -->
+<div class="modal fade" id="nunCodexModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4" style="background: var(--bs-body-bg, #0f172a);">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div id="modalNunIcon" class="p-3 rounded-4 text-white display-6"></div>
+                    <div>
+                        <h4 class="fw-900 mb-0 text-body" id="modalNunTitle"></h4>
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary small" id="modalNunRange"></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="lead fs-6 mb-0 text-muted" id="modalNunDesc"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Zamknij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -574,6 +652,116 @@ document.addEventListener('DOMContentLoaded', function() {
     const alertBox = document.querySelector('[data-luki-spin-alert]');
     const resultMounts = Array.from(document.querySelectorAll('[data-spin-result-mount]'));
     let currentRotation = 0;
+
+    // Audio Engine via Web Audio API
+    const audioState = {
+        muted: localStorage.getItem('luki_audio_muted') === 'true',
+        ctx: null
+    };
+    const audioToggleBtn = document.getElementById('lukiAudioToggle');
+    const audioStatusSpan = document.getElementById('lukiAudioStatus');
+
+    const updateAudioUI = () => {
+        if (!audioToggleBtn || !audioStatusSpan) return;
+        if (audioState.muted) {
+            audioToggleBtn.classList.add('is-muted');
+            audioStatusSpan.textContent = 'Dźwięk: Wył.';
+            audioToggleBtn.querySelector('i').className = 'bi bi-volume-mute-fill me-1';
+        } else {
+            audioToggleBtn.classList.remove('is-muted');
+            audioStatusSpan.textContent = 'Dźwięk: Wł.';
+            audioToggleBtn.querySelector('i').className = 'bi bi-volume-up-fill me-1';
+        }
+    };
+    updateAudioUI();
+
+    if (audioToggleBtn) {
+        audioToggleBtn.addEventListener('click', () => {
+            audioState.muted = !audioState.muted;
+            localStorage.setItem('luki_audio_muted', audioState.muted ? 'true' : 'false');
+            updateAudioUI();
+        });
+    }
+
+    const getAudioCtx = () => {
+        if (!audioState.ctx) {
+            audioState.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioState.ctx.state === 'suspended') {
+            audioState.ctx.resume();
+        }
+        return audioState.ctx;
+    };
+
+    const playTickSound = () => {
+        if (audioState.muted) return;
+        try {
+            const ctx = getAudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600 + Math.random() * 80, ctx.currentTime);
+            gain.gain.setValueAtTime(0.06, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.04);
+        } catch (e) {}
+    };
+
+    // Canvas Confetti
+    const canvas = document.getElementById('lukiConfettiCanvas');
+    let particles = [];
+    let canvasAnimId = null;
+
+    const triggerConfetti = (delta) => {
+        if (!canvas) return;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        const ctx = canvas.getContext('2d');
+        const colors = delta > 0 ? ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#ffffff'] : ['#ef4444', '#a21caf', '#64748b'];
+        const count = delta > 0 ? 60 : 30;
+        particles = [];
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                vx: (Math.random() - 0.5) * 12,
+                vy: (Math.random() - 0.7) * 12,
+                size: Math.random() * 7 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                alpha: 1,
+                decay: Math.random() * 0.02 + 0.015
+            });
+        }
+        if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let alive = false;
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.25;
+                p.alpha -= p.decay;
+                if (p.alpha > 0) {
+                    alive = true;
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            });
+            if (alive) {
+                canvasAnimId = requestAnimationFrame(animate);
+            }
+        };
+        animate();
+    };
 
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({
         '&': '&amp;',
@@ -587,21 +775,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${amount > 0 ? '+' : ''}${amount} XP`;
     };
     const toneForDelta = (delta) => {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = delta > 0 ? 880 : (delta < 0 ? 140 : 340);
-            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.5);
-        } catch (e) {
-            console.error('Audio generation error:', e);
+        if (!audioState.muted) {
+            try {
+                const ctx = getAudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = delta > 0 ? 880 : (delta < 0 ? 140 : 340);
+                gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+            } catch (e) {
+                console.error('Audio generation error:', e);
+            }
         }
+        triggerConfetti(delta);
     };
     const setAlert = (message, type = 'danger') => {
         if (!alertBox) return;
@@ -664,10 +855,16 @@ document.addEventListener('DOMContentLoaded', function() {
         currentRotation += rotations + ((desired - normalized + 360) % 360);
         wheel.classList.add('is-spinning');
         pointer?.classList.add('is-ticking');
+
+        let tickInterval = setInterval(() => {
+            playTickSound();
+        }, 120);
+
         requestAnimationFrame(() => {
             wheel.style.setProperty('--rot', currentRotation + 'deg');
         });
         window.setTimeout(() => {
+            clearInterval(tickInterval);
             resultCard.classList.add('is-visible');
             wheel.classList.remove('is-spinning');
             pointer?.classList.remove('is-ticking');
@@ -677,6 +874,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const initialResult = getVisibleResultCard();
     if (initialResult) playSpinResult(initialResult);
+
+    // Nun Codex Filters
+    const codexFilterBtns = document.querySelectorAll('#codexFilters button');
+    const nunCards = document.querySelectorAll('.nun-card');
+    codexFilterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            codexFilterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.dataset.filter;
+            nunCards.forEach(card => {
+                if (filter === 'all' || card.dataset.nunType === filter) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
 
     if (!form || !button || !window.fetch) return;
     const defaultButtonHtml = button.innerHTML;
@@ -717,6 +932,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function openNunCodexModal(key, title, desc, range, color, icon) {
+    const titleEl = document.getElementById('modalNunTitle');
+    const descEl = document.getElementById('modalNunDesc');
+    const rangeEl = document.getElementById('modalNunRange');
+    const iconEl = document.getElementById('modalNunIcon');
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = desc;
+    if (rangeEl) rangeEl.textContent = 'Zakres: ' + range;
+    if (iconEl) {
+        iconEl.innerHTML = `<i class="bi ${icon}"></i>`;
+        iconEl.style.backgroundColor = color;
+    }
+    const modalEl = document.getElementById('nunCodexModal');
+    if (modalEl && window.bootstrap) {
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    }
+}
 </script>
 </body>
 </html>

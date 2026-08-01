@@ -849,38 +849,57 @@ $extraHead = <<<HTML
             outline: none;
         }
 
-        /* Responsive Mobile Horizontal Scrolling Tabs */
-        @media (max-width: 768px) {
+        /* Responsive Mobile Vertical List Navigation Tabs */
+        @media (max-width: 767.98px) {
+            .settings-nav-panel {
+                padding: 0.75rem !important;
+                border-radius: 1.25rem !important;
+                margin-bottom: 1rem !important;
+            }
             #settings-tabs {
-                flex-direction: row !important;
+                flex-direction: column !important;
                 flex-wrap: nowrap !important;
-                overflow-x: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                padding-bottom: 0.5rem !important;
+                width: 100% !important;
                 gap: 0.5rem !important;
-            }
-            #settings-tabs::-webkit-scrollbar {
-                height: 4px;
-            }
-            #settings-tabs::-webkit-scrollbar-thumb {
-                background: rgba(99, 102, 241, 0.2);
-                border-radius: 4px;
+                overflow: visible !important;
+                padding: 0 !important;
             }
             #settings-tabs .nav-link {
-                white-space: nowrap !important;
-                flex: 0 0 auto !important;
-                padding: 0.65rem 1rem !important;
-                border-left: none !important;
-                border-bottom: 3px solid transparent !important;
+                width: 100% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: flex-start !important;
+                padding: 0.75rem 1.1rem !important;
+                border-radius: 12px !important;
+                white-space: normal !important;
+                font-size: 0.95rem !important;
+                border: 1px solid transparent !important;
+                border-left: 4px solid transparent !important;
                 transform: none !important;
             }
+            body.dark-mode #settings-tabs .nav-link {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-color: rgba(255, 255, 255, 0.06) !important;
+                color: #cbd5e1 !important;
+            }
             body.dark-mode #settings-tabs .nav-link.active {
-                border-bottom-color: #8b5cf6 !important;
-                background: rgba(99, 102, 241, 0.12) !important;
+                background: rgba(99, 102, 241, 0.15) !important;
+                border-color: rgba(99, 102, 241, 0.3) !important;
+                border-left-color: #8b5cf6 !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15) !important;
+            }
+            body.light-mode #settings-tabs .nav-link {
+                background: rgba(15, 23, 42, 0.02) !important;
+                border-color: rgba(15, 23, 42, 0.05) !important;
+                color: #475569 !important;
             }
             body.light-mode #settings-tabs .nav-link.active {
-                border-bottom-color: #2563eb !important;
                 background: rgba(59, 130, 246, 0.08) !important;
+                border-color: rgba(59, 130, 246, 0.2) !important;
+                border-left-color: #2563eb !important;
+                color: #2563eb !important;
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1) !important;
             }
         }
 
@@ -981,7 +1000,7 @@ include '../includes/header.php';
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Nazwa użytkownika</label>
-                                                    <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($username); ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_.-]{3,16}" required>
+                                                    <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($username); ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_\.-]{3,16}" required>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Adres E-mail</label>
@@ -1235,10 +1254,15 @@ include '../includes/header.php';
                                         </div>
                                         
                                         <?php
-                                        // Pobieramy passkeys usera
-                                        $stmtPk = $pdo->prepare("SELECT id, device_name, created_at FROM user_passkeys WHERE user_id = ?");
-                                        $stmtPk->execute([$userId]);
-                                        $passkeysList = $stmtPk->fetchAll(PDO::FETCH_ASSOC);
+                                        // Pobieramy passkeys usera z osłoną try-catch
+                                        $passkeysList = [];
+                                        try {
+                                            $stmtPk = $pdo->prepare("SELECT id, device_name, created_at FROM user_passkeys WHERE user_id = ?");
+                                            $stmtPk->execute([$userId]);
+                                            $passkeysList = $stmtPk->fetchAll(PDO::FETCH_ASSOC);
+                                        } catch (PDOException $e) {
+                                            $passkeysList = [];
+                                        }
                                         ?>
                                         <?php if (!empty($passkeysList)): ?>
                                         <div class="mt-4 border-top pt-3">

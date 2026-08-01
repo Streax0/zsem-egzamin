@@ -446,5 +446,124 @@
                 transform: rotate(calc(var(--angle) - 90deg)) translateX(clamp(92px, 18vw, 150px)) rotate(calc(-1 * var(--angle) + 90deg)) translate(-50%, -50%);
             }
             .wheel-stage { padding: 1rem; }
+            .nun-codex-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
         }
+
+        /* Extended Sacred Nun Codex & Interactive Components */
+        .luki-audio-toggle {
+            background: rgba(255, 255, 255, .15);
+            border: 1px solid rgba(255, 255, 255, .3);
+            color: #fff;
+            border-radius: 999px;
+            padding: .4rem .9rem;
+            font-size: .82rem;
+            font-weight: 700;
+            transition: all .2s ease;
+            cursor: pointer;
+        }
+        .luki-audio-toggle:hover {
+            background: rgba(255, 255, 255, .28);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .luki-audio-toggle.is-muted {
+            background: rgba(239, 68, 68, .2);
+            border-color: rgba(239, 68, 68, .4);
+            color: #fca5a5;
+        }
+
+        #lukiConfettiCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .nun-codex-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .nun-card {
+            position: relative;
+            border-radius: 18px;
+            padding: 1.1rem;
+            background: linear-gradient(145deg, rgba(255,255,255,.95), rgba(248,250,252,.88));
+            border: 1px solid rgba(148,163,184,.22);
+            box-shadow: 0 10px 26px rgba(15,23,42,.06);
+            cursor: pointer;
+            transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease;
+        }
+        .nun-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 18px 40px rgba(15,23,42,.12);
+            border-color: var(--nun-color);
+        }
+        .nun-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 1.35rem;
+            color: #fff;
+            background: var(--nun-color);
+            box-shadow: 0 8px 20px var(--nun-shadow, rgba(0,0,0,.15));
+            margin-bottom: .75rem;
+        }
+        .nun-card-title {
+            font-weight: 850;
+            font-size: .92rem;
+            color: #0f172a;
+            margin-bottom: .25rem;
+        }
+        .nun-card-type {
+            font-size: .7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--nun-color);
+        }
+        .nun-card-range {
+            font-size: .82rem;
+            font-weight: 800;
+            margin-top: .4rem;
+        }
+
+        body.dark-mode .nun-card {
+            background: linear-gradient(145deg, rgba(30,41,59,.95), rgba(15,23,42,.92));
+            border-color: rgba(148,163,184,.2);
+        }
+        body.dark-mode .nun-card-title {
+            color: #f8fafc;
+        }
+
+        .codex-filter-btn {
+            border-radius: 999px;
+            font-size: .8rem;
+            font-weight: 700;
+            padding: .38rem .95rem;
+            border: 1px solid rgba(148,163,184,.25);
+            background: rgba(248,250,252,.8);
+            color: #475569;
+            transition: all .2s ease;
+        }
+        .codex-filter-btn:hover, .codex-filter-btn.active {
+            background: #4f46e5;
+            color: #fff;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 14px rgba(79,70,229,.28);
+        }
+        body.dark-mode .codex-filter-btn {
+            background: rgba(15,23,42,.7);
+            color: #cbd5e1;
+            border-color: rgba(148,163,184,.2);
+        }
+        body.dark-mode .codex-filter-btn.active {
+            background: #6366f1;
+            color: #fff;
+        }
+
     

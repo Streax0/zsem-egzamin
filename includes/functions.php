@@ -6923,4 +6923,27 @@ function duelRevengeIsAvailable(PDO $pdo, int $parentId, int $userId, int $oppon
     return $finishedTs > 0 && (time() - $finishedTs) <= 600;
 }
 
+function readJsonMetadata(string $path): array {
+    if (!file_exists($path)) {
+        return [];
+    }
+    $content = @file_get_contents($path);
+    if ($content === false) {
+        return [];
+    }
+    $decoded = json_decode($content, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function writeJsonMetadata(string $path, array $data): bool {
+    $json = json_encode($data, JSON_PRETTY_PRINT);
+    return @file_put_contents($path, $json) !== false;
+}
+
+function getUploadedFileExtension(string $filename): string {
+    $ext = pathinfo($filename, PATHINFO_EXTENSION);
+    return mb_strtolower((string)$ext);
+}
+
+
 
