@@ -1041,6 +1041,20 @@ function _ensurePlatformCourses(PDO $pdo): void {
                     error_log('Failed to add created_by column to courses: ' . $e->getMessage());
                 }
             }
+            if (!dbColumnExists($pdo, 'courses', 'is_external')) {
+                try {
+                    $pdo->exec("ALTER TABLE courses ADD COLUMN is_external TINYINT(1) NOT NULL DEFAULT 0");
+                } catch (Throwable $e) {
+                    error_log('Failed to add is_external column to courses: ' . $e->getMessage());
+                }
+            }
+            if (!dbColumnExists($pdo, 'courses', 'external_url')) {
+                try {
+                    $pdo->exec("ALTER TABLE courses ADD COLUMN external_url VARCHAR(500) DEFAULT NULL");
+                } catch (Throwable $e) {
+                    error_log('Failed to add external_url column to courses: ' . $e->getMessage());
+                }
+            }
             try {
                 $statusCol = $pdo->query("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'status'")->fetchColumn();
                 if ($statusCol && !str_contains((string)$statusCol, "'private'")) {

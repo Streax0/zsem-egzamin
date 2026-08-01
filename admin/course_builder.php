@@ -192,7 +192,17 @@ $csrfToken = generateCsrfToken('course_admin');
                         <span class="badge text-bg-<?php echo $course['status'] === 'active' ? 'success' : 'secondary'; ?> mt-1">
                             <?php echo $course['status'] === 'active' ? 'Opublikowany' : 'Szkic'; ?>
                         </span>
+                        <?php $isExtCourse = (int)($course['is_external'] ?? 0) === 1; ?>
+                        <?php if ($isExtCourse): ?>
+                            <span class="badge text-bg-warning text-dark ms-1 mt-1">Kurs Zewnętrzny</span>
+                        <?php endif; ?>
                     </div>
+                    <?php if ($isExtCourse): ?>
+                        <div class="p-3 bg-warning bg-opacity-10 border-bottom border-warning text-dark small">
+                            <i class="bi bi-info-circle-fill text-warning me-1"></i>
+                            <strong>Kurs Zewnętrzny:</strong> Treści dydaktyczne i lekcje znajdują się na zewnętrznym serwisie. W tym edytorze możesz dodać jedynie opcjonalny Egzamin końcowy ZSEM TECH.
+                        </div>
+                    <?php endif; ?>
 
                     <div class="builder-sidebar-body">
                         <div id="modulesAccordion">
@@ -408,28 +418,37 @@ $csrfToken = generateCsrfToken('course_admin');
             <input type="hidden" name="module_id" id="itemModuleId" value="0">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Nowa lekcja</h5>
+                <h5 class="modal-title fw-bold"><?php echo $isExtCourse ? 'Nowy Egzamin końcowy' : 'Nowa lekcja'; ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label fw-semibold" for="newItemTitle">Tytuł lekcji *</label>
-                    <input type="text" class="form-control" name="title" id="newItemTitle" required maxlength="160">
+                    <label class="form-label fw-semibold" for="newItemTitle">Tytuł *</label>
+                    <input type="text" class="form-control" name="title" id="newItemTitle" required maxlength="160" placeholder="<?php echo $isExtCourse ? 'np. Egzamin końcowy ZSEM TECH' : 'np. Wprowadzenie do tematu'; ?>">
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="newItemType">Typ zawartości *</label>
                     <select name="type" class="form-select" id="newItemType">
-                        <option value="text">Lekcja blokowa (Tekst, Obrazy, Kod)</option>
-                        <option value="video">Wideo YouTube</option>
-                        <option value="quiz">Quiz sprawdzający</option>
-                        <option value="exam">Egzamin końcowy</option>
-                        <option value="lab">Laboratorium (Sandbox)</option>
+                        <?php if ($isExtCourse): ?>
+                            <option value="exam" selected>Egzamin końcowy ZSEM TECH</option>
+                        <?php else: ?>
+                            <option value="text">Lekcja blokowa (Tekst, Obrazy, Kod)</option>
+                            <option value="video">Wideo YouTube</option>
+                            <option value="quiz">Quiz sprawdzający</option>
+                            <option value="exam">Egzamin końcowy</option>
+                            <option value="lab">Laboratorium (Sandbox)</option>
+                        <?php endif; ?>
                     </select>
+                    <?php if ($isExtCourse): ?>
+                        <div class="form-text text-warning small mt-1">
+                            <i class="bi bi-info-circle me-1"></i>W kursie zewnętrznym lekcje odbywają się poza platformą. Dostępny jest wyłącznie opcjonalny egzamin końcowy.
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Anuluj</button>
-                <button type="submit" class="btn btn-primary">Utwórz lekcję</button>
+                <button type="submit" class="btn btn-primary"><?php echo $isExtCourse ? 'Utwórz egzamin' : 'Utwórz lekcję'; ?></button>
             </div>
         </form>
     </div>

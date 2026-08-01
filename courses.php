@@ -48,7 +48,7 @@ $pages = max(1, (int)ceil($total / $limit));
 $page = min($page, $pages);
 $offset = ($page - 1) * $limit;
 
-$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.category, c.difficulty, c.estimated_hours, c.status, c.created_by, c.start_date, c.end_date, c.sequential_learning, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c WHERE $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
+$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.category, c.difficulty, c.estimated_hours, c.status, c.created_by, c.start_date, c.end_date, c.sequential_learning, c.is_external, c.external_url, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c WHERE $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
 $statement->execute($params);
 $courses = $statement->fetchAll(PDO::FETCH_ASSOC);
 
@@ -73,7 +73,7 @@ include 'includes/header.php';
                         <div class="col-lg-8">
                             <span class="badge text-bg-primary mb-3"><i class="bi bi-mortarboard-fill me-1"></i>Strefa nauki</span>
                             <h1 class="h2 fw-bold mb-2">Kursy z jasną ścieżką postępu</h1>
-                            <p class="mb-0" style="color: #cbd5e1; font-size: 1.05rem; line-height: 1.6;">Materiały, quizy i laboratoria w jednym miejscu. Twój postęp zapisuje się po każdym ukończonym etapie.</p>
+                            <p class="mb-0" style="color: #cbd5e1; font-size: 1.05rem; line-height: 1.6;">Materiały, quizy, laboratoria oraz sprawdzone kursy zewnętrzne. Twój postęp zapisuje się po każdym ukończonym etapie.</p>
                         </div>
                         <div class="col-lg-4">
                             <form method="get" action="courses.php" class="input-group input-group-lg">
@@ -113,18 +113,24 @@ include 'includes/header.php';
                 <?php else: ?>
                     <div class="row g-4">
                         <?php foreach ($courses as $course): ?>
-                            <?php $cover = courseDisplayImageUrl((string)($course['image_url'] ?? '')); ?>
+                            <?php 
+                            $cover = courseDisplayImageUrl((string)($course['image_url'] ?? ''));
+                            $isExt = (int)($course['is_external'] ?? 0) === 1;
+                            ?>
                             <article class="col-12 col-md-6 col-xl-4">
                                 <div class="course-card h-100 d-flex flex-column">
                                     <?php if ($cover): ?>
                                         <img class="course-cover" src="<?php echo htmlspecialchars($cover, ENT_QUOTES, 'UTF-8'); ?>" alt="Okładka kursu: <?php echo htmlspecialchars((string)$course['title'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy">
                                     <?php else: ?>
                                         <div class="course-cover-placeholder" aria-hidden="true">
-                                            <i class="bi bi-journal-bookmark-fill"></i>
+                                            <i class="bi <?php echo $isExt ? 'bi-box-arrow-up-right text-warning' : 'bi-journal-bookmark-fill'; ?>"></i>
                                         </div>
                                     <?php endif; ?>
                                     <div class="course-card-body d-flex flex-column flex-grow-1">
                                         <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <?php if ($isExt): ?>
+                                                <span class="badge text-bg-warning text-dark"><i class="bi bi-box-arrow-up-right me-1"></i>Kurs Zewnętrzny</span>
+                                            <?php endif; ?>
                                             <?php if ($course['status'] === 'private'): ?>
                                                 <?php if ($currentUserId > 0 && (int)($course['created_by'] ?? 0) === $currentUserId): ?>
                                                     <span class="badge text-bg-warning text-dark"><i class="bi bi-lock-fill me-1"></i>Tylko dla mnie</span>
@@ -142,13 +148,18 @@ include 'includes/header.php';
                                         <h3 class="h5 fw-bold mb-2"><?php echo htmlspecialchars((string)$course['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
                                         <p class="text-muted small flex-grow-1 mb-3"><?php echo htmlspecialchars(mb_strimwidth((string)($course['description'] ?? ''), 0, 140, '…', 'UTF-8'), ENT_QUOTES, 'UTF-8'); ?></p>
                                         <div class="course-card-meta mb-3">
-                                            <span><i class="bi bi-folder2-open me-1 text-primary"></i><?php echo (int)$course['module_count']; ?> modułów</span>
-                                            <span><i class="bi bi-journal-text me-1 text-info"></i><?php echo (int)$course['item_count']; ?> lekcji</span>
-                                            <span><i class="bi bi-people me-1 text-success"></i><?php echo (int)$course['enrollment_count']; ?> zapisanych</span>
+                                            <?php if ($isExt): ?>
+                                                <span><i class="bi bi-globe me-1 text-warning"></i>Źródło zewnętrzne</span>
+                                                <span title="Kursy zewnętrzne nie posiadają certyfikatów ZSEM TECH (pracujemy nad tym!)"><i class="bi bi-patch-minus me-1 text-muted"></i>Brak certyfikatu*</span>
+                                            <?php else: ?>
+                                                <span><i class="bi bi-folder2-open me-1 text-primary"></i><?php echo (int)$course['module_count']; ?> modułów</span>
+                                                <span><i class="bi bi-journal-text me-1 text-info"></i><?php echo (int)$course['item_count']; ?> lekcji</span>
+                                                <span><i class="bi bi-people me-1 text-success"></i><?php echo (int)$course['enrollment_count']; ?> zapisanych</span>
+                                            <?php endif; ?>
                                             <?php if (!empty($course['estimated_hours'])): ?><span><i class="bi bi-clock me-1 text-warning"></i>~<?php echo (int)$course['estimated_hours']; ?>h</span><?php endif; ?>
                                         </div>
                                         <a class="course-card-btn w-100" href="course_view.php?id=<?php echo (int)$course['id']; ?>">
-                                            Zobacz kurs <i class="bi bi-arrow-right ms-2"></i>
+                                            <?php echo $isExt ? 'Zobacz opis i link <i class="bi bi-box-arrow-up-right ms-1"></i>' : 'Zobacz kurs <i class="bi bi-arrow-right ms-2"></i>'; ?>
                                         </a>
                                     </div>
                                 </div>

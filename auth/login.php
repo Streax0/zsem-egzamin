@@ -75,23 +75,48 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
     <link rel="stylesheet" href="../assets/css/auth.css">
 </head>
 <body class="auth-page">
+    <div class="auth-glow-orb-1" aria-hidden="true"></div>
+    <div class="auth-glow-orb-2" aria-hidden="true"></div>
+
     <div class="auth-shell">
-        <section class="auth-info-panel" aria-label="ZSEM Tech">
+        <section class="auth-info-panel" aria-label="ZSEM Tech Info">
             <div>
-                <div class="auth-brand"><i class="bi bi-mortarboard-fill"></i> ZSEM Tech</div>
-                <h1>Wejdź do panelu ZSEM Tech</h1>
-                <p class="text-muted fs-5 mb-0">Testy, arkusze, wyniki i sprawdziany nauczyciela w jednym miejscu.</p>
+                <a href="../landing.php" class="auth-brand">
+                    <img src="../zsemtech_profile.ico" alt="" width="36" height="36" loading="lazy" decoding="async">
+                    <span>ZSEM Tech</span>
+                </a>
+                <div class="mt-4">
+                    <div class="auth-badge-tag">
+                        <span class="badge-dot"></span> PLATFORMA EDUKACYJNA 2026
+                    </div>
+                    <h1>Wejdź do panelu ZSEM Tech</h1>
+                    <p class="text-muted fs-5 mb-0">Oficjalny portal przygotowania do kwalifikacji zawodowych INF i EE. Rozwiązuj testy, sprawdziany i śledź swój progres.</p>
+                </div>
             </div>
             <div class="auth-feature-grid mt-4">
-                <div class="auth-feature-card"><strong>Testy</strong><br><span class="small text-muted">INF.02 i arkusze</span></div>
-                <div class="auth-feature-card"><strong>Wyniki</strong><br><span class="small text-muted">postęp i ranking</span></div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-journal-check"></i> Testy CKE</strong>
+                    <span class="small text-muted">+5000 pytań INF.02/03</span>
+                </div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-graph-up-arrow"></i> Wyniki &amp; XP</strong>
+                    <span class="small text-muted">Statystyki i rankingi</span>
+                </div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-shield-lock-fill"></i> Szyfrowanie</strong>
+                    <span class="small text-muted">Bezpieczne konto RODO</span>
+                </div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-fingerprint"></i> Passkey</strong>
+                    <span class="small text-muted">Logowanie biometryczne</span>
+                </div>
             </div>
         </section>
 
         <main class="login-card auth-form-panel" role="main">
-            <div class="text-center mb-5">
+            <div class="text-center mb-4">
                 <div class="brand-logo"><i class="bi bi-mortarboard-fill"></i> ZSEM Tech</div>
-                <p class="text-muted">Witaj ponownie! Zaloguj się, aby kontynuować.</p>
+                <p class="text-muted small">Witaj ponownie! Zaloguj się, aby kontynuować naukę.</p>
             </div>
 
             <?php if (!empty($errors)): ?>
@@ -110,21 +135,30 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
             <form method="POST" data-kappicrypt="true">
                 <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                 
-                <div class="mb-4">
+                <div class="mb-4 auth-input-group has-icon">
                     <label class="form-label" for="login_username">Login lub e-mail</label>
-                    <input type="text" name="username" id="login_username" class="form-control" placeholder="login albo adres e-mail" value="<?= htmlspecialchars($username) ?>" required autofocus>
+                    <div class="position-relative">
+                        <i class="bi bi-person-fill auth-input-icon"></i>
+                        <input type="text" name="username" id="login_username" class="form-control" placeholder="login albo adres e-mail" value="<?= htmlspecialchars($username) ?>" required autofocus>
+                    </div>
                 </div>
 
-                <div class="mb-4 position-relative password-field">
+                <div class="mb-4 position-relative password-field auth-input-group has-icon">
                     <label class="form-label" for="password">Hasło</label>
-                    <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
-                    <button type="button" class="password-toggle auth-password-toggle" data-password-toggle="password" aria-label="Pokaż lub ukryj hasło"><i class="bi bi-eye"></i></button>
+                    <div class="position-relative">
+                        <i class="bi bi-lock-fill auth-input-icon"></i>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle auth-password-toggle" data-password-toggle="password" aria-label="Pokaż lub ukryj hasło"><i class="bi bi-eye"></i></button>
+                    </div>
                 </div>
 
                 <?php if ($captchaRequired && $captcha): ?>
-                <div class="mb-4">
+                <div class="mb-4 auth-input-group has-icon">
                     <label class="form-label" for="loginCaptcha">Zabezpieczenie po nieudanych próbach: <?= htmlspecialchars($captcha['question']) ?> = ?</label>
-                    <input type="text" name="login_captcha_answer" id="loginCaptcha" class="form-control" inputmode="numeric" pattern="-?[0-9]+" autocomplete="off" required>
+                    <div class="position-relative">
+                        <i class="bi bi-shield-check auth-input-icon"></i>
+                        <input type="text" name="login_captcha_answer" id="loginCaptcha" class="form-control" inputmode="numeric" pattern="-?[0-9]+" autocomplete="off" required>
+                    </div>
                 </div>
                 <?php endif; ?>
 
@@ -136,8 +170,8 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                     <a href="forgot_password.php" class="small text-primary text-decoration-none">Zapomniałeś hasła?</a>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 mb-2">Zaloguj się</button>
-                <button type="button" class="btn btn-outline-secondary w-100 mb-4" onclick="loginPasskey()">
+                <button type="submit" class="btn btn-primary w-100 mb-2"><i class="bi bi-box-arrow-in-right me-1"></i>Zaloguj się</button>
+                <button type="button" class="btn btn-outline-secondary w-100 mb-4 guest-mode-btn" onclick="loginPasskey()">
                     <i class="bi bi-fingerprint me-1"></i>Zaloguj przez Passkey
                 </button>
 
@@ -149,7 +183,7 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                 <?php echo csrfTokenField('guest_start'); ?>
                 <input type="hidden" name="target" value="test">
                 <button type="submit" class="btn btn-outline-light guest-mode-btn w-100">
-                    <i class="bi bi-person-walking me-1"></i>Tryb gościa
+                    <i class="bi bi-incognito me-1"></i>Tryb gościa
                 </button>
             </form>
         </main>
@@ -262,4 +296,3 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
     <?php include __DIR__ . '/../includes/cookie_consent.php'; ?>
 </body>
 </html>
-

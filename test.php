@@ -549,6 +549,9 @@ include 'includes/header.php';
 
             <main role="main" class="content-body">
                 <div class="container-fluid quiz-container p-0">
+                    <div id="offlineNotice" class="alert alert-danger border-0 shadow-sm mb-4 d-none" role="alert">
+                        <i class="bi bi-wifi-off me-2"></i><strong>Brak połączenia sieciowego.</strong> Zapisywanie odpowiedzi zostało zablokowane. Połączenie zostanie automatycznie wznowione, gdy sieć będzie dostępna.
+                    </div>
     <?php if ($flashMsg): ?>
     <div class="alert alert-<?= ($flashMsg['type'] ?? '') === 'error' ? 'danger' : htmlspecialchars((string)($flashMsg['type'] ?? 'info')) ?> alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
         <?= htmlspecialchars((string)($flashMsg['message'] ?? '')) ?>
@@ -1402,15 +1405,18 @@ include 'includes/header.php';
                     <input type="hidden" name="action" value="submit_answer">
                     <input type="hidden" name="answer" id="simSelectedAnswer" value="<?= htmlspecialchars($savedAnswer) ?>">
                     <div id="answersContainer">
-                        <?php foreach (['A', 'B', 'C', 'D'] as $opt):
+                        <?php 
+                        $simIdx = 0;
+                        foreach (['A', 'B', 'C', 'D'] as $opt):
                             $text = $currentQuestion['option_' . strtolower($opt)]
                                  ?? $currentQuestion['option_' . strtoupper($opt)]
                                  ?? $currentQuestion[strtolower($opt)]
                                  ?? '';
                             if (trim($text) === '') continue;
+                            $simIdx++;
                         ?>
                         <div class="sim-answer-option <?= $savedAnswer === $opt ? 'selected' : '' ?>" data-answer="<?= $opt ?>" onclick="selectSimAnswer(this)">
-                            <span class="sim-answer-letter"><?= $opt ?></span><?= htmlspecialchars($text) ?>
+                            <span class="sim-answer-letter"><?= $opt ?><span class="sim-key-indicator" title="Skrót klawiszowy"><?= $simIdx ?></span></span><?= htmlspecialchars($text) ?>
                         </div>
                         <?php endforeach; ?>
                     </div>
@@ -1438,57 +1444,60 @@ include 'includes/header.php';
 
     <!-- ── Progress bar ───────────────────────────────────────────────────── -->
     <div class="dashboard-panel test-progress-panel mb-4">
-        <div class="test-progress-header">
-            <div class="test-progress-meta">
-                <span class="test-progress-label">Postęp testu</span>
-                <strong class="test-progress-question" id="testProgressQuestion">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></strong>
-                <div class="test-progress-sub">
-                    <span class="text-muted small" id="testProgressAnswered"><?= $answeredCount ?> / <?= $totalQuestions ?> udzielonych</span>
-                    <?php if (!$allowPreviousQuestion): ?>
-                    <span class="test-progress-badge"><i class="bi bi-lightning-fill"></i> Tryb na czas</span>
-                    <?php endif; ?>
-                    <?php if ($answerCheckModeAllowed && $answerCheckLimit > 0): ?>
-                    <span class="test-progress-badge test-check-counter answer-check-counter" id="answerCheckCounter">
-                        <i class="bi bi-patch-question-fill"></i>
-                        Sprawdzenia: <span data-answer-check-used><?= $answerCheckUsed ?></span>/<span data-answer-check-limit><?= $answerCheckLimit ?></span>
-                    </span>
-                    <?php endif; ?>
+        <div class="panel-inner-core">
+            <div class="test-progress-header">
+                <div class="test-progress-meta">
+                    <span class="test-progress-label">Postęp testu</span>
+                    <strong class="test-progress-question" id="testProgressQuestion">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></strong>
+                    <div class="test-progress-sub">
+                        <span class="text-muted small" id="testProgressAnswered"><?= $answeredCount ?> / <?= $totalQuestions ?> udzielonych</span>
+                        <?php if (!$allowPreviousQuestion): ?>
+                        <span class="test-progress-badge"><i class="bi bi-lightning-fill"></i> Tryb na czas</span>
+                        <?php endif; ?>
+                        <?php if ($answerCheckModeAllowed && $answerCheckLimit > 0): ?>
+                        <span class="test-progress-badge test-check-counter answer-check-counter" id="answerCheckCounter">
+                            <i class="bi bi-patch-question-fill"></i>
+                            Sprawdzenia: <span data-answer-check-used><?= $answerCheckUsed ?></span>/<span data-answer-check-limit><?= $answerCheckLimit ?></span>
+                        </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="test-progress-controls">
+                    <div class="test-timers-cluster">
+                        <?php if ($perQuestionLimit > 0 && $phase === 'answering'): ?>
+                        <div class="test-timer-chip test-timer-chip-primary" id="questionTimerChip">
+                            <span class="test-timer-chip-label"><i class="bi bi-stopwatch"></i> Pytanie</span>
+                            <span class="test-timer-chip-value" id="questionTimer"><?= formatTime($questionTimeLeft) ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($test['time_limit'])): ?>
+                        <div class="test-timer-chip<?= $perQuestionLimit > 0 ? ' test-timer-chip-secondary' : ' test-timer-chip-primary' ?>" id="totalTimerChip">
+                            <span class="test-timer-chip-label"><i class="bi bi-clock"></i> <?= $perQuestionLimit > 0 ? 'Łącznie' : 'Czas' ?></span>
+                            <span class="test-timer-chip-value" id="timer"><?= formatTime($totalTimeLeft) ?></span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" onclick="confirmEndTest()" title="Zakończ test">
+                        <i class="bi bi-stop-circle"></i>
+                    </button>
                 </div>
             </div>
-            <div class="test-progress-controls">
-                <div class="test-timers-cluster">
-                    <?php if ($perQuestionLimit > 0 && $phase === 'answering'): ?>
-                    <div class="test-timer-chip test-timer-chip-primary" id="questionTimerChip">
-                        <span class="test-timer-chip-label"><i class="bi bi-stopwatch"></i> Pytanie</span>
-                        <span class="test-timer-chip-value" id="questionTimer"><?= formatTime($questionTimeLeft) ?></span>
-                    </div>
-                    <?php endif; ?>
-                    <?php if (!empty($test['time_limit'])): ?>
-                    <div class="test-timer-chip<?= $perQuestionLimit > 0 ? ' test-timer-chip-secondary' : ' test-timer-chip-primary' ?>" id="totalTimerChip">
-                        <span class="test-timer-chip-label"><i class="bi bi-clock"></i> <?= $perQuestionLimit > 0 ? 'Łącznie' : 'Czas' ?></span>
-                        <span class="test-timer-chip-value" id="timer"><?= formatTime($totalTimeLeft) ?></span>
-                    </div>
-                    <?php endif; ?>
+            <div class="test-progress-bar-wrap">
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar"
+                         style="width:<?= round(($answeredCount / max(1, $totalQuestions)) * 100) ?>%"></div>
                 </div>
-                <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" onclick="confirmEndTest()" title="Zakończ test">
-                    <i class="bi bi-stop-circle"></i>
-                </button>
-            </div>
-        </div>
-        <div class="test-progress-bar-wrap">
-            <div class="progress">
-                <div class="progress-bar" id="progressBar"
-                     style="width:<?= round(($answeredCount / max(1, $totalQuestions)) * 100) ?>%"></div>
             </div>
         </div>
     </div>
 
     <!-- ── Question card ──────────────────────────────────────────────────── -->
     <div class="dashboard-panel question-card">
-        <div class="panel-header d-flex justify-content-between align-items-center mb-4 question-card-header">
-            <div class="d-flex align-items-center gap-3">
-                <h5 class="mb-0 fw-bold">Pytanie</h5>
-            </div>
+        <div class="panel-inner-core">
+            <div class="panel-header d-flex justify-content-between align-items-center mb-4 question-card-header">
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="mb-0 fw-bold">Pytanie</h5>
+                </div>
             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2"><?= htmlspecialchars($currentQuestion['category'] ?? 'Ogólne') ?></span>
         </div>
         <div class="card-body p-0">
@@ -1523,7 +1532,7 @@ include 'includes/header.php';
                         $optionsFound++;
                     ?>
                     <div class="answer-option quiz-option <?= $savedAnswer === $opt ? 'selected' : '' ?>" data-answer="<?= $opt ?>" onclick="QuizEngine.selectOption(this)">
-                        <div class="answer-letter"><?= $opt ?></div>
+                        <div class="answer-letter"><?= $opt ?><span class="key-indicator" title="Skrót klawiszowy"><?= $optionsFound ?></span></div>
                         <div class="answer-text"><?= htmlspecialchars($text) ?></div>
                     </div>
                     <?php endforeach; ?>
@@ -1535,8 +1544,9 @@ include 'includes/header.php';
 
                 <div class="quiz-action-bar d-flex justify-content-between align-items-center gap-3 flex-wrap mt-4">
                     <div class="quiz-primary-actions d-flex gap-2 flex-wrap">
-                        <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn" <?= $savedAnswer === '' ? 'disabled' : '' ?>>
-                            <i class="bi bi-check2-circle me-2"></i>Zatwierdź odpowiedź
+                        <button type="submit" class="btn btn-primary btn-lg premium-cta-btn" id="submitBtn" <?= $savedAnswer === '' ? 'disabled' : '' ?>>
+                            <span>Zatwierdź odpowiedź</span>
+                            <span class="btn-icon-circle"><i class="bi bi-check2"></i></span>
                         </button>
                         <?php if ($answerCheckModeAllowed && $answerCheckLimit > 0): ?>
                         <button type="submit"
@@ -1673,6 +1683,7 @@ include 'includes/header.php';
 
         </div>
     </div>
+</div>
 
     <!-- Keyboard hints (only in answering phase) -->
     <?php if ($phase === 'answering'): ?>

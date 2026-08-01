@@ -1,4 +1,8 @@
 <?php
+/**
+ * KappiCrypt - End-to-End Hybrid Encryption Server Module
+ * RSA-2048 (OAEP) + AES-256-GCM + Anti-Replay Verification
+ */
 class KappiCrypt {
 
     public static function init() {
@@ -15,12 +19,10 @@ class KappiCrypt {
             );
             $res = @openssl_pkey_new($config);
             if (!$res) {
-                // Spróbuj innej typowej ścieżki XAMPP
                 $config["config"] = "C:/xampp/apache/conf/openssl.cnf";
                 $res = @openssl_pkey_new($config);
             }
             if (!$res) {
-                // Ostateczny fallback bez configu
                 unset($config["config"]);
                 $res = @openssl_pkey_new($config);
             }
@@ -33,23 +35,20 @@ class KappiCrypt {
                 $_SESSION['kappicrypt_pub'] = $pubKey["key"];
             }
 
-            // Wyczyść kolejkę błędów OpenSSL, aby nie psuła późniejszych testów
             while (openssl_error_string() !== false);
         }
     }
 
     public static function getPublicKey() {
         self::init();
-        return $_SESSION['kappicrypt_pub'];
+        return $_SESSION['kappicrypt_pub'] ?? '';
     }
 
     public static function decryptRequest() {
         self::init();
 
-        // Sprawdzamy czy przysłano zaszyfrowany payload w POST
         $payloadRaw = $_POST['kappicrypt_payload'] ?? null;
         
-        // Jeśli payload przyszedł jako surowy JSON body (np. z fetch)
         if (!$payloadRaw) {
             $inputJSON = file_get_contents('php://input');
             $input = json_decode($inputJSON, true);
@@ -59,34 +58,37 @@ class KappiCrypt {
         }
 
         if (!$payloadRaw) {
-            return false; // Nic do odszyfrowania
-        }
-
-        $payload = json_decode($payloadRaw, true);
-        if (!$payload || !isset($payload['wrappedKey']) || !isset($payload['iv']) || !isset($payload['ct']) || !isset($payload['tag'])) {
             return false;
         }
 
-        $wrappedKey = base64_decode($payload['wrappedKey']);
-        $iv = base64_decode($payload['iv']);
-        $ciphertext = base64_decode($payload['ct']);
-        $tag = base64_decode($payload['tag']);
-        $privKey = $_SESSION['kappicrypt_priv'];
+        $payload = json_decode($payloadRaw, true);
+        if (!$payload || !is_array($payload) || !isset($payload['wrappedKey']) || !isset($payload['iv']) || !isset($payload['ct']) || !isset($payload['tag'])) {
+            return false;
+        }
+
+        $wrappedKey = base64_decode($payload['wrappedKey'], true);
+        $iv = base64_decode($payload['iv'], true);
+        $ciphertext = base64_decode($payload['ct'], true);
+        $tag = base64_decode($payload['tag'], true);
+        $privKey = $_SESSION['kappicrypt_priv'] ?? null;
+
+        if (!$wrappedKey || !$iv || !$ciphertext || !$tag || !$privKey) {
+            return false;
+        }
 
         if (strlen($wrappedKey) !== 256) {
-            die("KappiCrypt: Nieprawidłowa długość klucza (" . strlen($wrappedKey) . " bajtów).");
+            error_log("[KappiCrypt] Invalid key length: " . strlen($wrappedKey));
+            return false;
         }
 
         $aesKey = '';
         if (!openssl_private_decrypt($wrappedKey, $aesKey, $privKey, OPENSSL_PKCS1_OAEP_PADDING)) {
-            $errors = [];
-            while ($msg = openssl_error_string()) {
-                $errors[] = $msg;
-            }
-            die("KappiCrypt: Błąd deszyfrowania klucza. Details: " . implode(', ', $errors));
+            while (openssl_error_string() !== false);
+            error_log("[KappiCrypt] RSA decryption failed.");
+            return false;
         }
 
-        // 2. Odszyfrowanie payloadu (AES-GCM)
+        // AES-256-GCM Payload Decryption
         $decryptedJson = openssl_decrypt(
             $ciphertext, 
             'aes-256-gcm', 
@@ -97,18 +99,37 @@ class KappiCrypt {
         );
 
         if ($decryptedJson === false) {
-            die("KappiCrypt: Błąd deszyfrowania ładunku (zły klucz lub modyfikacja).");
+            error_log("[KappiCrypt] AES-GCM decryption failed.");
+            return false;
         }
 
         $decryptedData = json_decode($decryptedJson, true);
-        
-        // 3. Wstrzyknięcie odszyfrowanych danych z powrotem do $_POST i $_REQUEST
-        if (is_array($decryptedData)) {
-            foreach ($decryptedData as $key => $value) {
-                $_POST[$key] = $value;
-                $_REQUEST[$key] = $value;
-            }
+        if (!is_array($decryptedData)) {
+            return false;
         }
+
+        // Anti-Replay Timestamp Check (5 min window)
+        if (isset($decryptedData['_ts'])) {
+            $currentTime = (int)(microtime(true) * 1000);
+            $payloadTime = (int)$decryptedData['_ts'];
+            if (abs($currentTime - $payloadTime) > 300000) {
+                error_log("[KappiCrypt] Stale timestamp detected (diff: " . abs($currentTime - $payloadTime) . "ms)");
+                return false;
+            }
+            unset($decryptedData['_ts']);
+        }
+        if (isset($decryptedData['_nonce'])) {
+            unset($decryptedData['_nonce']);
+        }
+
+        // Inject decrypted fields back into global request state
+        foreach ($decryptedData as $key => $value) {
+            $_POST[$key] = $value;
+            $_REQUEST[$key] = $value;
+        }
+
+        // Clear raw payload from memory
+        unset($_POST['kappicrypt_payload'], $_REQUEST['kappicrypt_payload']);
 
         return true;
     }

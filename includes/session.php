@@ -113,7 +113,7 @@ function appStartCspNonceBuffer(string $nonce): void {
 }
 
 function appSecurityPermissionsPolicy(): string {
-    return "accelerometer=(), ambient-light-sensor=(), autoplay=(self), browsing-topics=(), camera=(self), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()";
+    return "accelerometer=(), autoplay=(self), browsing-topics=(), camera=(self), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()";
 }
 
 function appContentSecurityPolicy(string $nonce): string {

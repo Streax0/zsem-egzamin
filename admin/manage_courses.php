@@ -43,8 +43,10 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
     $startDate = courseValidDate($startInput);
     $endDate = courseValidDate($endInput);
     $status = in_array((string)($_POST['status'] ?? ''), ['active', 'hidden', 'private'], true) ? (string)$_POST['status'] : 'hidden';
-    $sequential = isset($_POST['sequential_learning']) ? 1 : 0;
-    $hasCertificate = isset($_POST['has_certificate']) ? 1 : 0;
+    $isExternal = isset($_POST['is_external']) ? 1 : 0;
+    $externalUrl = trim((string)($_POST['external_url'] ?? ''));
+    $sequential = $isExternal ? 0 : (isset($_POST['sequential_learning']) ? 1 : 0);
+    $hasCertificate = $isExternal ? 0 : (isset($_POST['has_certificate']) ? 1 : 0);
     $category = courseText((string)($_POST['category'] ?? ''), 100, false);
     $difficulty = in_array((string)($_POST['difficulty'] ?? ''), ['beginner', 'intermediate', 'advanced'], true) ? (string)$_POST['difficulty'] : null;
     $estimatedHours = trim((string)($_POST['estimated_hours'] ?? ''));
@@ -62,6 +64,10 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
             setSessionMessage('error', 'Tytuł kursu jest wymagany.');
             redirect('manage_courses.php');
         }
+        if ($isExternal && $externalUrl !== '' && !preg_match('#^https?://#i', $externalUrl)) {
+            setSessionMessage('error', 'Prawidłowy link zewnętrzny musi rozpoczynać się od http:// lub https://');
+            redirect('manage_courses.php');
+        }
         if (($imageInput !== '' && $imageUrl === null) || ($startInput !== '' && $startDate === null) || ($endInput !== '' && $endDate === null) || !courseDateRangeIsValid($startDate, $endDate)) {
             setSessionMessage('error', 'Sprawdź adres okładki oraz zakres dat. Okładka musi pochodzić z assets/images lub zaufanej domeny platformy.');
             redirect('manage_courses.php');
@@ -70,13 +76,13 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
 
     try {
         if ($action === 'add') {
-            $statement = $pdo->prepare('INSERT INTO courses (title, description, image_url, category, difficulty, estimated_hours, status, sequential_learning, has_certificate, start_date, end_date, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $statement->execute([$title, $description !== '' ? $description : null, $imageUrl, $category !== '' ? $category : null, $difficulty, $estimatedHours, $status, $sequential, $hasCertificate, $startDate, $endDate, $adminId]);
+            $statement = $pdo->prepare('INSERT INTO courses (title, description, image_url, category, difficulty, estimated_hours, status, sequential_learning, has_certificate, start_date, end_date, created_by, is_external, external_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $statement->execute([$title, $description !== '' ? $description : null, $imageUrl, $category !== '' ? $category : null, $difficulty, $estimatedHours, $status, $sequential, $hasCertificate, $startDate, $endDate, $adminId, $isExternal, $externalUrl !== '' ? $externalUrl : null]);
             $newCourseId = (int)$pdo->lastInsertId();
             courseSetSharedUserIds($pdo, $newCourseId, $sharedWith);
             securityAudit('course_created', ['course_id' => $newCourseId, 'user_id' => $adminId]);
-            setSessionMessage('success', 'Kurs utworzony. Dodaj teraz pierwszy moduł i lekcję.');
-            redirect('course_builder.php?id=' . $newCourseId);
+            setSessionMessage('success', $isExternal ? 'Kurs zewnętrzny utworzony.' : 'Kurs utworzony. Dodaj teraz pierwszy moduł i lekcję.');
+            redirect($isExternal ? 'manage_courses.php' : 'course_builder.php?id=' . $newCourseId);
         }
         if ($action === 'edit') {
             $existingCourse = courseFetchById($pdo, $courseId);
@@ -85,8 +91,8 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST') {
                 redirect('manage_courses.php');
             }
             $createdBy = !empty($existingCourse['created_by']) ? (int)$existingCourse['created_by'] : $adminId;
-            $statement = $pdo->prepare('UPDATE courses SET title = ?, description = ?, image_url = ?, category = ?, difficulty = ?, estimated_hours = ?, status = ?, sequential_learning = ?, has_certificate = ?, start_date = ?, end_date = ?, created_by = ? WHERE id = ?');
-            $statement->execute([$title, $description !== '' ? $description : null, $imageUrl, $category !== '' ? $category : null, $difficulty, $estimatedHours, $status, $sequential, $hasCertificate, $startDate, $endDate, $createdBy, $courseId]);
+            $statement = $pdo->prepare('UPDATE courses SET title = ?, description = ?, image_url = ?, category = ?, difficulty = ?, estimated_hours = ?, status = ?, sequential_learning = ?, has_certificate = ?, start_date = ?, end_date = ?, created_by = ?, is_external = ?, external_url = ? WHERE id = ?');
+            $statement->execute([$title, $description !== '' ? $description : null, $imageUrl, $category !== '' ? $category : null, $difficulty, $estimatedHours, $status, $sequential, $hasCertificate, $startDate, $endDate, $createdBy, $isExternal, $externalUrl !== '' ? $externalUrl : null, $courseId]);
             courseSetSharedUserIds($pdo, $courseId, $sharedWith);
             securityAudit('course_updated', ['course_id' => $courseId, 'user_id' => $adminId]);
             setSessionMessage('success', 'Ustawienia kursu zostały zapisane.');
@@ -349,10 +355,30 @@ include '../includes/header.php';
                             </div>
                         </div>
                         <div class="col-12">
-                            <div class="form-check form-switch p-2 rounded-3 bg-light-subtle border">
+                            <div class="form-check form-switch p-2 rounded-3 bg-light-subtle border" id="courseCertificateWrapper">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="courseCertificate" name="has_certificate" value="1" checked>
-                                <label class="form-check-label fw-semibold" for="courseCertificate">Wystawiaj cyfrowy certyfikat ZSEM Tech po ukończeniu 100% kursu i zaliczeniu egzaminu / testu końcowego</label>
+                                <label class="form-check-label fw-semibold" for="courseCertificate">
+                                    Wystawiaj cyfrowy certyfikat ZSEM Tech po ukończeniu 100% kursu i zaliczeniu egzaminu / testu końcowego
+                                    <span id="certDisabledNote" class="text-warning small ms-1 d-none">(Certyfikaty ZSEM Tech są obecnie wyłączone dla kursów zewnętrznych)</span>
+                                </label>
                             </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch p-3 rounded-3 bg-warning bg-opacity-10 border border-warning">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="courseIsExternal" name="is_external" value="1">
+                                <label class="form-check-label fw-bold text-dark" for="courseIsExternal">
+                                    <i class="bi bi-box-arrow-up-right text-warning me-1"></i> Kurs Zewnętrzny (materiał zewnętrzny)
+                                </label>
+                                <div class="form-text text-muted small mt-1 ms-4">
+                                    Kursy zewnętrzne odsyłają użytkownika do zewnętrznego serwisu. Uwaga: Kursy zewnętrzne nie posiadają certyfikatów ZSEM TECH (pracujemy nad tym!).
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 d-none" id="courseExternalUrlWrapper">
+                            <label class="form-label fw-semibold" for="courseExternalUrl"><i class="bi bi-link-45deg me-1 text-warning"></i>Zewnętrzny link URL kursu *</label>
+                            <input class="form-control rounded-3" type="url" id="courseExternalUrl" name="external_url" maxlength="500" placeholder="https://..." value="">
+                            <div class="form-text text-muted small"><i class="bi bi-info-circle me-1"></i>Wpisz adres URL do zewnętrznego materiału szkoleniowego.</div>
                         </div>
 
                         <div class="col-12 mt-3" id="courseShareWrapper">
@@ -425,6 +451,35 @@ document.querySelectorAll('.friend-select-item').forEach(item => {
     });
 });
 
+function syncExternalCourseUI() {
+    const isExt = document.getElementById('courseIsExternal')?.checked;
+    const wrapper = document.getElementById('courseExternalUrlWrapper');
+    const certCb = document.getElementById('courseCertificate');
+    const seqCb = document.getElementById('courseSequential');
+    const certNote = document.getElementById('certDisabledNote');
+
+    if (wrapper) wrapper.classList.toggle('d-none', !isExt);
+    if (certCb) {
+        if (isExt) {
+            certCb.checked = false;
+            certCb.disabled = true;
+        } else {
+            certCb.disabled = false;
+        }
+    }
+    if (seqCb) {
+        if (isExt) {
+            seqCb.checked = false;
+            seqCb.disabled = true;
+        } else {
+            seqCb.disabled = false;
+        }
+    }
+    if (certNote) certNote.classList.toggle('d-none', !isExt);
+}
+
+document.getElementById('courseIsExternal')?.addEventListener('change', syncExternalCourseUI);
+
 document.getElementById('courseModal').addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;
     const mode = button && button.dataset.courseModal;
@@ -438,6 +493,9 @@ document.getElementById('courseModal').addEventListener('show.bs.modal', functio
     document.getElementById('courseFormId').value = '0';
     document.getElementById('courseModalTitle').innerHTML = mode === 'edit' ? '<i class="bi bi-gear-fill text-primary me-2"></i>Ustawienia kursu' : '<i class="bi bi-journal-plus text-primary me-2"></i>Nowy kurs';
     document.getElementById('courseCertificate').checked = true;
+    document.getElementById('courseIsExternal').checked = false;
+    document.getElementById('courseExternalUrl').value = '';
+    syncExternalCourseUI();
 
     if (mode === 'edit' && button.dataset.course) {
         const course = JSON.parse(button.dataset.course);
@@ -453,6 +511,9 @@ document.getElementById('courseModal').addEventListener('show.bs.modal', functio
         document.getElementById('courseEnd').value = course.end_date || '';
         document.getElementById('courseSequential').checked = Number(course.sequential_learning) === 1;
         document.getElementById('courseCertificate').checked = Number(course.has_certificate ?? 1) === 1;
+        document.getElementById('courseIsExternal').checked = Number(course.is_external ?? 0) === 1;
+        document.getElementById('courseExternalUrl').value = course.external_url || '';
+        syncExternalCourseUI();
 
         if (Array.isArray(course.shared_user_ids)) {
             course.shared_user_ids.forEach(friendId => {

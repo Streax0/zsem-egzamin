@@ -184,6 +184,7 @@ $shareCardData = [
     <link href="assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
+    <link rel="stylesheet" href="assets/css/test.css">
     <style>
         /* ===== Result Hero ===== */
         .result-hero {
@@ -777,7 +778,7 @@ $shareCardData = [
             <main role="main" class="content-body">
                 <div class="container-fluid p-0">
                     <!-- Result Hero -->
-                    <div class="result-hero mb-4 animate-in">
+                    <div class="result-hero mb-4 animate-in <?= $passed ? 'result-hero-passed' : 'result-hero-failed' ?>">
                         <div class="row align-items-center">
                             <div class="col-lg-8">
                                 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -897,31 +898,33 @@ $shareCardData = [
 
                     <?php if (!empty($categoryStats)): ?>
                     <!-- Category Breakdown -->
-                    <div class="dashboard-panel category-breakdown-panel mb-4 animate-in" style="animation-delay: 0.18s; border-radius: 18px; padding: 1.5rem; background: var(--panel-bg, #fff); border: 1px solid rgba(148, 163, 184, .18); box-shadow: 0 4px 16px rgba(15, 23, 42, .05);">
-                        <div class="d-flex align-items-center gap-2 mb-3">
-                            <i class="bi bi-diagram-3 text-primary fs-4"></i>
-                            <h5 class="panel-title mb-0">Wyniki według kwalifikacji</h5>
-                        </div>
-                        <div class="row g-3">
-                            <?php foreach ($categoryStats as $cat => $stats): ?>
-                                <?php
-                                $catTotal = $stats['total'];
-                                $catCorrect = $stats['correct'];
-                                $catPercent = $catTotal > 0 ? round(($catCorrect / $catTotal) * 100) : 0;
-                                $barColor = $catPercent >= 70 ? 'bg-success' : ($catPercent >= 50 ? 'bg-warning' : 'bg-danger');
-                                ?>
-                                <div class="col-md-6">
-                                    <div class="p-3 rounded" style="background: rgba(148,163,184,.05); border: 1px solid rgba(148,163,184,.1);">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="fw-bold"><?php echo htmlspecialchars($cat); ?></span>
-                                            <span class="fw-bold"><?php echo $catPercent; ?>% (<?php echo $catCorrect; ?>/<?php echo $catTotal; ?>)</span>
-                                        </div>
-                                        <div class="progress" style="height: 8px; border-radius: 4px; background-color: rgba(148,163,184,.2);">
-                                            <div class="progress-bar <?php echo $barColor; ?>" role="progressbar" style="width: <?php echo $catPercent; ?>%" aria-valuenow="<?php echo $catPercent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="dashboard-panel category-breakdown-panel mb-4 animate-in" style="animation-delay: 0.18s;">
+                        <div class="panel-inner-core">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-diagram-3 text-primary fs-4"></i>
+                                <h5 class="panel-title mb-0">Wyniki według kwalifikacji</h5>
+                            </div>
+                            <div class="row g-3">
+                                <?php foreach ($categoryStats as $cat => $stats): ?>
+                                    <?php
+                                    $catTotal = $stats['total'];
+                                    $catCorrect = $stats['correct'];
+                                    $catPercent = $catTotal > 0 ? round(($catCorrect / $catTotal) * 100) : 0;
+                                    $barColor = $catPercent >= 70 ? 'bg-success' : ($catPercent >= 50 ? 'bg-warning' : 'bg-danger');
+                                    ?>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded" style="background: rgba(148,163,184,.05); border: 1px solid rgba(148,163,184,.1);">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="fw-bold"><?php echo htmlspecialchars($cat); ?></span>
+                                                <span class="fw-bold"><?php echo $catPercent; ?>% (<?php echo $catCorrect; ?>/<?php echo $catTotal; ?>)</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px; border-radius: 4px; background-color: rgba(148,163,184,.2);">
+                                                <div class="progress-bar <?php echo $barColor; ?>" role="progressbar" style="width: <?php echo $catPercent; ?>%" aria-valuenow="<?php echo $catPercent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -929,21 +932,22 @@ $shareCardData = [
                     <!-- Detailed Answers -->
                     <?php if (!empty($answers)): ?>
                     <div class="dashboard-panel detailed-answers-panel animate-in" style="animation-delay: 0.2s;">
-                        <div class="panel-header mb-0">
-                            <div class="d-flex align-items-center justify-content-between w-100">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-list-stars text-primary fs-4"></i>
-                                    <h5 class="panel-title mb-0">Szczegółowa analiza odpowiedzi</h5>
-                                </div>
-                                <div class="answer-filter-bar">
-                                    <button type="button" class="btn btn-sm active" data-answer-filter="all">Wszystkie</button>
-                                    <button type="button" class="btn btn-sm" data-answer-filter="correct">Poprawne</button>
-                                    <button type="button" class="btn btn-sm" data-answer-filter="wrong">Błędne</button>
+                        <div class="panel-inner-core">
+                            <div class="panel-header mb-0">
+                                <div class="d-flex align-items-center justify-content-between w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-list-stars text-primary fs-4"></i>
+                                        <h5 class="panel-title mb-0">Szczegółowa analiza odpowiedzi</h5>
+                                    </div>
+                                    <div class="answer-filter-bar">
+                                        <button type="button" class="btn btn-sm active" data-answer-filter="all">Wszystkie</button>
+                                        <button type="button" class="btn btn-sm" data-answer-filter="correct">Poprawne</button>
+                                        <button type="button" class="btn btn-sm" data-answer-filter="wrong">Błędne</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="answers-list">
+                            <div class="card-body p-0">
+                                <div class="answers-list">
                                 <?php foreach ($answers as $index => $answer): ?>
                                     <?php
                                     $user_answer = strtoupper(trim((string)($answer['user_answer'] ?? '')));
@@ -1043,6 +1047,7 @@ $shareCardData = [
                             </div>
                         </div>
                     </div>
+                </div>
                     <?php endif; ?>
                 </div>
             </main>

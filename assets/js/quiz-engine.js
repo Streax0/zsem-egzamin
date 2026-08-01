@@ -9,6 +9,48 @@ const QuizEngine = {
 
     init() {
         this.setupEventListeners();
+        this.setupOfflineListeners();
+    },
+
+    setupOfflineListeners() {
+        const updateNetworkStatus = () => {
+            const offlineNotice = document.getElementById('offlineNotice');
+            const isOnline = navigator.onLine;
+            
+            if (offlineNotice) {
+                if (isOnline) {
+                    offlineNotice.classList.add('d-none');
+                } else {
+                    offlineNotice.classList.remove('d-none');
+                }
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const checkBtn = document.getElementById('checkAnswerBtn');
+            const simBtn = document.getElementById('simSubmitBtn');
+            
+            if (!isOnline) {
+                if (submitBtn) submitBtn.disabled = true;
+                if (checkBtn) checkBtn.disabled = true;
+                if (simBtn) simBtn.disabled = true;
+                this.lockOptions(true);
+            } else {
+                const selectedInput = document.getElementById('selectedAnswer');
+                if (submitBtn && selectedInput) {
+                    submitBtn.disabled = !selectedInput.value;
+                }
+                if (simBtn) {
+                    const simSelected = document.getElementById('simSelectedAnswer');
+                    simBtn.disabled = !simSelected?.value;
+                }
+                this.lockOptions(false);
+                this.syncAnswerCheckControls();
+            }
+        };
+
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+        updateNetworkStatus();
     },
 
     getCsrfToken(scope = document) {
@@ -448,10 +490,15 @@ const QuizEngine = {
         if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
         const map = {'1':'A','2':'B','3':'C','4':'D'};
         if (map[e.key]) {
-            const opt = document.querySelector(`.quiz-option[data-answer="${map[e.key]}"]`);
+            const opt = document.querySelector(`.quiz-option[data-answer="${map[e.key]}"]`) || document.querySelector(`.sim-answer-option[data-answer="${map[e.key]}"]`);
             if (opt) opt.click();
         }
         if (e.key === 'Enter') {
+            const simBtn = document.getElementById('simSubmitBtn');
+            if (simBtn && !simBtn.disabled) {
+                simBtn.click();
+                return;
+            }
             const btn = document.getElementById('submitBtn');
             const nextBtn = document.querySelector('.review-next-actions button');
             if (nextBtn && nextBtn.offsetParent !== null) {
@@ -468,10 +515,10 @@ const QuizEngine = {
         const checkBtn = document.getElementById('checkAnswerBtn');
         if (btn) {
             if (busy) {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Przetwarzanie...';
+                btn.innerHTML = '<span>Przetwarzanie...</span><span class="btn-icon-circle"><span class="spinner-border spinner-border-sm"></span></span>';
                 btn.disabled = true;
             } else {
-                btn.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Zatwierdź odpowiedź';
+                btn.innerHTML = '<span>Zatwierdź odpowiedź</span><span class="btn-icon-circle"><i class="bi bi-check2"></i></span>';
                 const selectedInput = document.getElementById('selectedAnswer');
                 btn.disabled = !selectedInput?.value;
             }

@@ -93,15 +93,22 @@ include 'includes/header.php';
                 </div>
 
                 <!-- Hero Section -->
+                <?php $isExt = (int)($course['is_external'] ?? 0) === 1; ?>
                 <section class="course-hero mb-4 p-4 p-lg-5">
                     <div class="course-hero-content">
                         <div class="row g-4 align-items-center">
                             <div class="col-lg-8">
                                 <div class="d-flex flex-wrap gap-2 mb-3">
-                                    <span class="badge text-bg-primary px-3 py-2">
-                                        <i class="bi bi-layers me-1"></i>
-                                        <?php echo (int)$course['sequential_learning'] === 1 ? 'Ścieżka sekwencyjna' : 'Elastyczna ścieżka'; ?>
-                                    </span>
+                                    <?php if ($isExt): ?>
+                                        <span class="badge text-bg-warning text-dark px-3 py-2">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i>Kurs Zewnętrzny
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge text-bg-primary px-3 py-2">
+                                            <i class="bi bi-layers me-1"></i>
+                                            <?php echo (int)$course['sequential_learning'] === 1 ? 'Ścieżka sekwencyjna' : 'Elastyczna ścieżka'; ?>
+                                        </span>
+                                    <?php endif; ?>
                                     <?php
                                     $diffLabels = ['beginner' => 'Początkujący', 'intermediate' => 'Średniozaawansowany', 'advanced' => 'Zaawansowany'];
                                     $diffColors = ['beginner' => 'success', 'intermediate' => 'warning', 'advanced' => 'danger'];
@@ -137,18 +144,29 @@ include 'includes/header.php';
                                 </div>
 
                                 <div class="course-meta-pills">
-                                    <div class="course-meta-pill">
-                                        <i class="bi bi-folder2-open text-primary"></i>
-                                        <span><strong><?php echo count($structure); ?></strong> modułów</span>
-                                    </div>
-                                    <div class="course-meta-pill">
-                                        <i class="bi bi-journal-text text-info"></i>
-                                        <span><strong><?php echo count($items); ?></strong> lekcji</span>
-                                    </div>
-                                    <div class="course-meta-pill">
-                                        <i class="bi bi-people text-success"></i>
-                                        <span><strong><?php echo $enrollmentCount; ?></strong> zapisanych uczniów</span>
-                                    </div>
+                                    <?php if ($isExt): ?>
+                                        <div class="course-meta-pill">
+                                            <i class="bi bi-globe text-warning"></i>
+                                            <span>Materiały zewnętrzne</span>
+                                        </div>
+                                        <div class="course-meta-pill">
+                                            <i class="bi bi-patch-minus text-secondary"></i>
+                                            <span>Brak certyfikatu ZSEM TECH (pracujemy nad tym!)</span>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="course-meta-pill">
+                                            <i class="bi bi-folder2-open text-primary"></i>
+                                            <span><strong><?php echo count($structure); ?></strong> modułów</span>
+                                        </div>
+                                        <div class="course-meta-pill">
+                                            <i class="bi bi-journal-text text-info"></i>
+                                            <span><strong><?php echo count($items); ?></strong> lekcji</span>
+                                        </div>
+                                        <div class="course-meta-pill">
+                                            <i class="bi bi-people text-success"></i>
+                                            <span><strong><?php echo $enrollmentCount; ?></strong> zapisanych uczniów</span>
+                                        </div>
+                                    <?php endif; ?>
                                     <?php if (!empty($course['estimated_hours'])): ?>
                                         <div class="course-meta-pill">
                                             <i class="bi bi-clock text-warning"></i>
@@ -160,7 +178,19 @@ include 'includes/header.php';
 
                             <div class="col-lg-4">
                                 <div class="course-action-card">
-                                    <?php if ($enrollment): ?>
+                                    <?php if ($isExt): ?>
+                                        <div class="text-center p-2">
+                                            <h3 class="h5 fw-bold text-white mb-2"><i class="bi bi-box-arrow-up-right text-warning me-2"></i>Dostęp zewnętrzny</h3>
+                                            <p class="small mb-4" style="color: #cbd5e1;">Otwórz oficjalną stronę zewnętrznego dostawcy tego kursu.</p>
+                                            <?php if (!empty($course['external_url'])): ?>
+                                                <a href="<?php echo htmlspecialchars((string)$course['external_url'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-warning btn-lg w-100 fw-bold shadow py-3">
+                                                    <i class="bi bi-box-arrow-up-right me-2"></i>Przejdź do kursu
+                                                </a>
+                                            <?php else: ?>
+                                                <div class="alert alert-secondary mb-0 small text-muted">Brak bezpośredniego odnośnika URL.</div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php elseif ($enrollment): ?>
                                         <div class="mb-3">
                                             <div class="d-flex justify-content-between small mb-2" style="color: #e2e8f0;">
                                                 <span>Twój postęp w kursie</span>
@@ -206,6 +236,19 @@ include 'includes/header.php';
                         </div>
                     </div>
                 </section>
+
+                <?php if ($isExt): ?>
+                    <div class="alert alert-warning border-warning d-flex align-items-start gap-3 p-3 p-md-4 mb-4 rounded-4 shadow-sm" style="background: rgba(245, 158, 11, 0.08);">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 text-warning flex-shrink-0 mt-1"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1 text-dark">Informacja o kursie zewnętrznym</h5>
+                            <p class="mb-2 text-secondary">Ten kurs jest materiałem dydaktycznym udostępnianym na zewnętrznej platformie. Opis i treść zostały podane przez twórcę kursu.</p>
+                            <div class="small fw-semibold text-warning-emphasis bg-warning bg-opacity-10 p-2 px-3 rounded-3 d-inline-block border border-warning border-opacity-25">
+                                <i class="bi bi-info-circle-fill me-1"></i><strong>Ważna informacja:</strong> Kursy zewnętrzne nie posiadają obecnie certyfikatów ZSEM TECH (pracujemy nad tym!).
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Course Program / Syllabus -->
                 <section class="dashboard-panel p-4">

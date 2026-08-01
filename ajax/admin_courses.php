@@ -141,6 +141,10 @@ try {
             if (!$module || $title === '' || !in_array($type, COURSE_ITEM_TYPES, true)) {
                 courseAdminFail('Podaj tytuł i poprawny typ lekcji.');
             }
+            $parentCourse = courseFetchById($pdo, (int)$module['course_id']);
+            if ($parentCourse && (int)($parentCourse['is_external'] ?? 0) === 1 && $type !== 'exam') {
+                courseAdminFail('Dla kursów zewnętrznych można dodawać wyłącznie opcjonalny Egzamin końcowy.');
+            }
             $next = $pdo->prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM course_items WHERE module_id = ?');
             $next->execute([$moduleId]);
             $content = $type === 'text' ? courseEncodeLessonDocument(courseDefaultLessonDocument()) : null;

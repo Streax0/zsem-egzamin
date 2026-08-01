@@ -139,121 +139,168 @@ $csrf_token = generateCsrfToken();
     <script src="<?php echo htmlspecialchars(assetUrl('assets/js/register.js', '..')); ?>" defer></script>
 </head>
 <body class="auth-page">
+    <div class="auth-glow-orb-1" aria-hidden="true"></div>
+    <div class="auth-glow-orb-2" aria-hidden="true"></div>
+
     <div class="auth-shell auth-shell-register">
-        <section class="auth-info-panel" aria-label="ZSEM Tech">
+        <section class="auth-info-panel" aria-label="ZSEM Tech Info">
             <div>
-                <div class="auth-brand"><i class="bi bi-mortarboard-fill"></i> ZSEM Tech</div>
-                <h1>Dołącz do panelu nauki</h1>
-                <p class="text-muted fs-5 mb-0">Załóż konto ucznia, rozwiązuj testy, zbieraj XP i dołączaj do sprawdzianów nauczyciela.</p>
+                <a href="../landing.php" class="auth-brand">
+                    <img src="../zsemtech_profile.ico" alt="" width="36" height="36" loading="lazy" decoding="async">
+                    <span>ZSEM Tech</span>
+                </a>
+                <div class="mt-4">
+                    <div class="auth-badge-tag">
+                        <span class="badge-dot"></span> NOWE KONTO UCZNIA &amp; NAUCZYCIELA
+                    </div>
+                    <h1>Dołącz do panelu nauki</h1>
+                    <p class="text-muted fs-5 mb-0">Załóż darmowe konto, rozwiązuj testy zawodowe, zdobywaj poziomy XP i rywalizuj w duelach z klasą.</p>
+                </div>
             </div>
             <div class="auth-feature-grid mt-4">
-                <div class="auth-feature-card"><strong>4100 XP</strong><br><span class="small text-muted">startowy poziom konta</span></div>
-                <div class="auth-feature-card"><strong>INF.02+</strong><br><span class="small text-muted">kwalifikacje i arkusze</span></div>
-                <div class="auth-feature-card"><strong>Rankingi</strong><br><span class="small text-muted">postęp po testach</span></div>
-                <div class="auth-feature-card"><strong>Sprawdziany</strong><br><span class="small text-muted">sesje nauczyciela</span></div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-star-fill text-warning"></i> 4100 XP</strong>
+                    <span class="small text-muted">Startowy poziom konta</span>
+                </div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-folder2-open"></i> Kwalifikacje</strong>
+                    <span class="small text-muted">INF.02, INF.03, EE.08/09</span>
+                </div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-trophy-fill text-info"></i> Rankingi</strong>
+                    <span class="small text-muted">Szkolne tablice wyników</span>
+                </div>
+                <div class="auth-feature-card">
+                    <strong><i class="bi bi-qr-code-scan text-success"></i> Sprawdziany</strong>
+                    <span class="small text-muted">Sesje nauczycielskie po kodzie</span>
+                </div>
             </div>
         </section>
 
-    <main class="auth-form-panel register-form-panel" role="main">
-        <div class="text-center mb-4">
-            <div class="brand-logo"><i class="bi bi-person-plus-fill"></i> Rejestracja</div>
-            <p class="text-muted small">Stwórz darmowe konto i zacznij naukę.</p>
-        </div>
-
-        <?php if (!empty($errors)): ?>
-            <div class="alert alert-custom mb-4">
-                <ul class="mb-0 ps-3"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul>
+        <main class="auth-form-panel register-form-panel" role="main">
+            <div class="text-center mb-4">
+                <div class="brand-logo"><i class="bi bi-person-plus-fill"></i> Rejestracja</div>
+                <p class="text-muted small">Stwórz darmowe konto ZSEM Tech i zacznij naukę.</p>
             </div>
-        <?php endif; ?>
 
-        <form method="POST" id="registerForm" data-kappicrypt="true">
-            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
-            
-            <div class="row g-3">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label" for="first_name">Imię</label>
-                    <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Jan" value="<?= htmlspecialchars($first_name) ?>" maxlength="50" autocomplete="given-name" required>
+            <?php if (!empty($errors)): ?>
+                <div class="alert alert-custom mb-4">
+                    <ul class="mb-0 ps-3"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label" for="last_name">Nazwisko</label>
-                    <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Kowalski" value="<?= htmlspecialchars($last_name) ?>" maxlength="50" autocomplete="family-name" required>
-                </div>
-            </div>
+            <?php endif; ?>
 
-            <div class="mb-3">
-                <label class="form-label" for="regUsername">Nazwa użytkownika</label>
-                <input type="text" name="username" id="regUsername" class="form-control" placeholder="np. test53" value="<?= htmlspecialchars($username) ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_.-]{3,16}" autocomplete="username" aria-describedby="generatedUsernamePreview usernameFeedback" required>
-                <div id="generatedUsernamePreview" class="form-text" hidden></div>
-                <div id="usernameFeedback" class="small mt-1"></div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="email">Adres e-mail</label>
-                <input type="email" name="email" id="email" class="form-control" placeholder="jan.kowalski@gmail.com" value="<?= htmlspecialchars($email) ?>" maxlength="100" autocomplete="email" required>
-                <div id="emailFeedback" class="small mt-1"></div>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label" for="classYear">Klasa</label>
-                    <select name="class_year" id="classYear" class="form-control">
-                        <option value="" <?= $class_year === '' ? 'selected' : '' ?>>Nie dotyczy</option>
-                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                            <option value="<?= $i ?>" <?= (string)$class_year === (string)$i ? 'selected' : '' ?>><?= $i ?></option>
-                        <?php endfor; ?>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label" for="classSuffix">Oznaczenie klasy</label>
-                    <input type="text" name="class_suffix" id="classSuffix" class="form-control" maxlength="2" pattern="[A-Za-z]{0,2}" placeholder="np. TI" value="<?= htmlspecialchars($class_suffix) ?>">
-                </div>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-6 mb-3 position-relative password-field">
-                    <label class="form-label" for="regPassword">Hasło</label>
-                    <input type="password" name="password" id="regPassword" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required aria-describedby="passwordPolicy">
-                    <button type="button" class="auth-password-toggle" data-password-toggle="regPassword" aria-label="Pokaż hasło" aria-pressed="false"><i class="bi bi-eye"></i></button>
-                    <div class="strength-meter" role="meter" aria-label="Siła hasła" aria-valuemin="0" aria-valuemax="5"><div id="strengthBar" class="strength-meter-bar"></div></div>
-                    <div id="passwordPolicy" class="password-policy-single small mt-2" aria-live="polite">
-                        <i class="bi bi-shield-lock"></i>
-                        <span id="passwordPolicyMessage">Wpisz hasło, aby sprawdzić wymagania.</span>
+            <form method="POST" id="registerForm" data-kappicrypt="true">
+                <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
+                
+                <div class="row g-3">
+                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                        <label class="form-label" for="first_name">Imię</label>
+                        <div class="position-relative">
+                            <i class="bi bi-person auth-input-icon"></i>
+                            <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Jan" value="<?= htmlspecialchars($first_name) ?>" maxlength="50" autocomplete="given-name" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                        <label class="form-label" for="last_name">Nazwisko</label>
+                        <div class="position-relative">
+                            <i class="bi bi-person-vcard auth-input-icon"></i>
+                            <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Kowalski" value="<?= htmlspecialchars($last_name) ?>" maxlength="50" autocomplete="family-name" required>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3 position-relative password-field">
-                    <label class="form-label" for="confirm_password">Powtórz hasło</label>
-                    <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required>
-                    <button type="button" class="auth-password-toggle" data-password-toggle="confirm_password" aria-label="Pokaż hasło" aria-pressed="false"><i class="bi bi-eye"></i></button>
-                </div>
-            </div>
 
-            <div class="mb-4">
-                <div class="form-check mb-3">
-                    <input type="checkbox" name="apply_teacher" class="form-check-input" id="applyTeacher" <?php echo $apply_teacher ? 'checked' : ''; ?>>
-                    <label class="form-check-label small text-muted" for="applyTeacher">Chcę zaaplikować na stanowisko nauczyciela</label>
+                <div class="mb-3 auth-input-group has-icon">
+                    <label class="form-label" for="regUsername">Nazwa użytkownika</label>
+                    <div class="position-relative">
+                        <i class="bi bi-at auth-input-icon"></i>
+                        <input type="text" name="username" id="regUsername" class="form-control" placeholder="np. test53" value="<?= htmlspecialchars($username) ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_.-]{3,16}" autocomplete="username" aria-describedby="generatedUsernamePreview usernameFeedback" required>
+                    </div>
+                    <div id="generatedUsernamePreview" class="form-text" hidden></div>
+                    <div id="usernameFeedback" class="small mt-1"></div>
                 </div>
-                <div class="mb-3 <?php echo $apply_teacher ? '' : 'd-none'; ?>" id="teacherMotivationWrap">
-                    <label class="form-label" for="teacherMotivation">Uzasadnienie aplikacji</label>
-                    <textarea name="teacher_motivation" id="teacherMotivation" class="form-control" maxlength="2200" rows="4" style="resize:vertical; min-height:110px; max-height:180px; overflow:auto;" placeholder="Napisz krótko, dlaczego konto ma otrzymać uprawnienia nauczyciela."><?php echo htmlspecialchars($teacher_motivation); ?></textarea>
-                    <div class="small text-muted mt-1" id="teacherMotivationHelp">Maksymalnie 100 słów, każde słowo do 20 znaków. Powód jest opcjonalny.</div>
-                </div>
-                <div class="form-check">
-                    <input type="checkbox" name="terms" class="form-check-input" id="terms" required>
-                    <label class="form-check-label small text-muted" for="terms">Akceptuję <a href="pages/terms.php" target="_blank" class="text-primary">Regulamin</a> i <a href="pages/privacy.php" target="_blank" class="text-primary">Politykę prywatności</a></label>
-                </div>
-                <div class="form-check mt-2">
-                    <input type="checkbox" name="privacy_consent" class="form-check-input" id="privacyConsent" required>
-                    <label class="form-check-label small text-muted" for="privacyConsent">Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z <a href="pages/privacy.php" target="_blank" class="text-primary">Polityką Prywatności</a> w celu rejestracji.</label>
-                </div>
-            </div>
 
-            <button type="submit" class="btn btn-primary w-100 mb-3">Zarejestruj się</button>
+                <div class="mb-3 auth-input-group has-icon">
+                    <label class="form-label" for="email">Adres e-mail</label>
+                    <div class="position-relative">
+                        <i class="bi bi-envelope auth-input-icon"></i>
+                        <input type="email" name="email" id="email" class="form-control" placeholder="jan.kowalski@gmail.com" value="<?= htmlspecialchars($email) ?>" maxlength="100" autocomplete="email" required>
+                    </div>
+                    <div id="emailFeedback" class="small mt-1"></div>
+                </div>
 
-            <div class="text-center">
-                <p class="small text-muted">Masz już konto? <a href="login.php" class="text-primary text-decoration-none fw-semibold">Zaloguj się</a></p>
-            </div>
-        </form>
-    </main>
+                <div class="row g-3">
+                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                        <label class="form-label" for="classYear">Klasa</label>
+                        <div class="position-relative">
+                            <i class="bi bi-mortarboard auth-input-icon"></i>
+                            <select name="class_year" id="classYear" class="form-control">
+                                <option value="" <?= $class_year === '' ? 'selected' : '' ?>>Nie dotyczy</option>
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                    <option value="<?= $i ?>" <?= (string)$class_year === (string)$i ? 'selected' : '' ?>><?= $i ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                        <label class="form-label" for="classSuffix">Oznaczenie klasy</label>
+                        <div class="position-relative">
+                            <i class="bi bi-tag auth-input-icon"></i>
+                            <input type="text" name="class_suffix" id="classSuffix" class="form-control" maxlength="2" pattern="[A-Za-z]{0,2}" placeholder="np. TI" value="<?= htmlspecialchars($class_suffix) ?>">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6 mb-3 position-relative password-field auth-input-group has-icon">
+                        <label class="form-label" for="regPassword">Hasło</label>
+                        <div class="position-relative">
+                            <i class="bi bi-lock auth-input-icon"></i>
+                            <input type="password" name="password" id="regPassword" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required aria-describedby="passwordPolicy">
+                            <button type="button" class="auth-password-toggle" data-password-toggle="regPassword" aria-label="Pokaż hasło" aria-pressed="false"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <div class="strength-meter" role="meter" aria-label="Siła hasła" aria-valuemin="0" aria-valuemax="5"><div id="strengthBar" class="strength-meter-bar"></div></div>
+                        <div id="passwordPolicy" class="password-policy-single small mt-2" aria-live="polite">
+                            <i class="bi bi-shield-lock"></i>
+                            <span id="passwordPolicyMessage">Wpisz hasło, aby sprawdzić wymagania.</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3 position-relative password-field auth-input-group has-icon">
+                        <label class="form-label" for="confirm_password">Powtórz hasło</label>
+                        <div class="position-relative">
+                            <i class="bi bi-lock-fill auth-input-icon"></i>
+                            <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="••••••" minlength="6" maxlength="128" autocomplete="new-password" required>
+                            <button type="button" class="auth-password-toggle" data-password-toggle="confirm_password" aria-label="Pokaż hasło" aria-pressed="false"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="apply_teacher" class="form-check-input" id="applyTeacher" <?php echo $apply_teacher ? 'checked' : ''; ?>>
+                        <label class="form-check-label small text-muted" for="applyTeacher">Chcę zaaplikować na stanowisko nauczyciela</label>
+                    </div>
+                    <div class="mb-3 <?php echo $apply_teacher ? '' : 'd-none'; ?>" id="teacherMotivationWrap">
+                        <label class="form-label" for="teacherMotivation">Uzasadnienie aplikacji</label>
+                        <textarea name="teacher_motivation" id="teacherMotivation" class="form-control" maxlength="2200" rows="4" style="resize:vertical; min-height:110px; max-height:180px; overflow:auto;" placeholder="Napisz krótko, dlaczego konto ma otrzymać uprawnienia nauczyciela."><?php echo htmlspecialchars($teacher_motivation); ?></textarea>
+                        <div class="small text-muted mt-1" id="teacherMotivationHelp">Maksymalnie 100 słów, każde słowo do 20 znaków. Powód jest opcjonalny.</div>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="terms" class="form-check-input" id="terms" required>
+                        <label class="form-check-label small text-muted" for="terms">Akceptuję <a href="../pages/terms.php" target="_blank" class="text-primary">Regulamin</a> i <a href="../pages/privacy.php" target="_blank" class="text-primary">Politykę prywatności</a></label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input type="checkbox" name="privacy_consent" class="form-check-input" id="privacyConsent" required>
+                        <label class="form-check-label small text-muted" for="privacyConsent">Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z <a href="../pages/privacy.php" target="_blank" class="text-primary">Polityką Prywatności</a> w celu rejestracji.</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-3"><i class="bi bi-person-plus-fill me-1"></i>Zarejestruj się</button>
+
+                <div class="text-center">
+                    <p class="small text-muted">Masz już konto? <a href="login.php" class="text-primary text-decoration-none fw-semibold">Zaloguj się</a></p>
+                </div>
+            </form>
+        </main>
     </div>
     <?php include __DIR__ . '/../includes/cookie_consent.php'; ?>
     <script>
@@ -263,4 +310,3 @@ $csrf_token = generateCsrfToken();
     </script>
 </body>
 </html>
-
