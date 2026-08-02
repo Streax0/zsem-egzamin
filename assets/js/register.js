@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
       target.className = 'small mt-1 text-muted';
       timers.set(type, setTimeout(async () => {
         try {
-          const url = `ajax/check_registration_availability.php?type=${encodeURIComponent(type)}&value=${encodeURIComponent(value)}`;
+          const url = `../ajax/check_registration_availability.php?type=${encodeURIComponent(type)}&value=${encodeURIComponent(value)}`;
           const data = window.AppApi?.getJson
             ? await window.AppApi.getJson(url)
             : await fetch(url, { headers: { Accept: 'application/json' } }).then((res) => res.json());

@@ -32,7 +32,7 @@ if (!isset($base_url)) {
                     <i class="bi bi-qr-code-scan"></i>
                     <span>Sprawdzian</span>
                 </a>
-                <a href="<?php echo $base_url; ?>settings.php" class="help-quick-card">
+                <a href="<?php echo $base_url; ?>user/settings.php" class="help-quick-card">
                     <i class="bi bi-sliders"></i>
                     <span>Ustawienia</span>
                 </a>
@@ -171,7 +171,7 @@ if (!isset($base_url)) {
                 <strong>Nie znalazłeś odpowiedzi?</strong>
                 <p class="mb-0 small text-muted">Napisz przez formularz kontaktowy albo opisz problem w zgłoszeniu.</p>
             </div>
-            <a href="<?php echo $base_url; ?>contact.php" class="btn btn-primary btn-sm rounded-pill">Kontakt</a>
+            <a href="<?php echo $base_url; ?>pages/contact.php" class="btn btn-primary btn-sm rounded-pill">Kontakt</a>
         </div>
 
         <div id="noResultsHelp" class="text-center p-4 d-none">
@@ -319,6 +319,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
             noResults.classList.toggle('d-none', visibleCount > 0 || term === '');
         });
+    }
+
+    // Hide help center button when mouse hovers over or enters footer
+    const footerEl = document.querySelector('footer, .main-footer, .footer-new, .app-footer');
+    if (footerEl && fab) {
+        const hideFab = () => {
+            if (!panel?.classList.contains('show')) {
+                fab.style.opacity = '0';
+                fab.style.pointerEvents = 'none';
+                fab.style.transform = 'scale(0)';
+            }
+        };
+        const showFab = () => {
+            if (!panel?.classList.contains('show')) {
+                fab.style.opacity = '1';
+                fab.style.pointerEvents = 'auto';
+                fab.style.transform = 'scale(1)';
+            }
+        };
+
+        footerEl.addEventListener('mouseenter', hideFab);
+        footerEl.addEventListener('mouseleave', showFab);
+
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) hideFab();
+                    else showFab();
+                });
+            }, { threshold: 0.1 });
+            observer.observe(footerEl);
+        }
     }
 });
 </script>

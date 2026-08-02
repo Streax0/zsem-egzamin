@@ -41,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'flash
 $dictionaryFile = __DIR__ . '/data/dictionary.json';
 $dictionaryData = [];
 if (is_file($dictionaryFile)) {
-    // Optimization: Cache parsed dictionary JSON using APCu to avoid synchronous file read and JSON decoding on every request.
     $cacheKey = 'dictionary_data_' . filemtime($dictionaryFile);
     if (function_exists('apcu_fetch')) {
         $dictionaryData = apcu_fetch($cacheKey, $success);
@@ -137,81 +136,163 @@ if ($flashMessage) {
         <?php include 'includes/topbar.php'; ?>
         <main role="main" class="content-body">
             <div class="container-fluid p-0 flashcard-shell">
-                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-                    <div>
-                        <h2 class="fw-bold mb-1"><i class="bi bi-card-text text-primary me-2"></i>Fiszki</h2>
-                        <p class="text-muted mb-0">Słownik pojęć i wybrane pytania testowe jako fiszki z powtórkami spaced repetition.</p>
+                
+                <!-- Page Header Banner -->
+                <div class="flashcard-hero-banner mb-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-primary bg-opacity-20 text-primary fw-bold px-3 py-1 rounded-pill">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i>Spaced Repetition (SM-2)
+                                </span>
+                            </div>
+                            <h2 class="fw-black mb-1"><i class="bi bi-card-text text-primary me-2"></i>Fiszki Interaktywne</h2>
+                            <p class="text-muted mb-0">Ucz się pojęć technicznych i pytań CKE wykorzystując inteligentny algorytm powtórek.</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a class="btn btn-outline-primary rounded-pill px-4 shadow-sm fw-bold" href="dictionary.php">
+                                <i class="bi bi-book me-1"></i>Słownik Pojęć
+                            </a>
+                        </div>
                     </div>
-                    <a class="btn btn-outline-primary rounded-pill px-4" href="dictionary.php"><i class="bi bi-book me-1"></i>Słownik</a>
                 </div>
+
                 <?php if ($flashMessage): ?>
-                    <div class="alert alert-<?php echo htmlspecialchars($flashAlertClass); ?> border-0 rounded-3">
-                        <?php echo htmlspecialchars($flashMessage['message'] ?? ''); ?>
+                    <div class="alert alert-<?php echo htmlspecialchars($flashAlertClass); ?> border-0 rounded-3 shadow-sm mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i><?php echo htmlspecialchars($flashMessage['message'] ?? ''); ?>
                     </div>
                 <?php endif; ?>
-                <section class="flashcard-qualification-grid" aria-label="Kwalifikacje fiszek">
-                    <?php foreach (array_slice($qualificationCounts, 0, 8, true) as $qual => $count): ?>
-                        <button type="button" data-flashcard-qual-card="<?php echo htmlspecialchars($qual); ?>">
-                            <?php echo htmlspecialchars($qual); ?>
-                            <span><?php echo (int)$count; ?> fiszek</span>
+
+                <!-- Stats Overview Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="flashcard-stat-card">
+                            <div class="stat-icon bg-primary"><i class="bi bi-layers-fill"></i></div>
+                            <div>
+                                <div class="stat-value"><?= number_format(count($cards), 0, '', ' ') ?></div>
+                                <div class="stat-label">Wszystkie fiszki</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="flashcard-stat-card">
+                            <div class="stat-icon bg-success"><i class="bi bi-check-circle-fill"></i></div>
+                            <div>
+                                <div class="stat-value" id="statMasteredCount">0</div>
+                                <div class="stat-label">Opanowane</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="flashcard-stat-card">
+                            <div class="stat-icon bg-warning"><i class="bi bi-clock-history"></i></div>
+                            <div>
+                                <div class="stat-value" id="statDueCount">0</div>
+                                <div class="stat-label">Do powtórki dzisiaj</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="flashcard-stat-card">
+                            <div class="stat-icon bg-info"><i class="bi bi-folder-fill"></i></div>
+                            <div>
+                                <div class="stat-value"><?= count($qualifications) ?></div>
+                                <div class="stat-label">Kwalifikacji CKE</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qualifications Chips Bar -->
+                <section class="flashcard-qualification-grid flashcard-qualification-chips mb-4" aria-label="Kwalifikacje fiszek">
+                    <div class="chips-scroll-container">
+                        <button type="button" class="chip-btn active" data-flashcard-qual-card="all">
+                            <i class="bi bi-grid-fill me-1"></i> Wszystkie (<?= count($cards) ?>)
                         </button>
-                    <?php endforeach; ?>
+                        <?php foreach ($qualificationCounts as $qual => $count): ?>
+                            <button type="button" class="chip-btn" data-flashcard-qual-card="<?php echo htmlspecialchars($qual); ?>">
+                                <span><?php echo htmlspecialchars($qual); ?></span>
+                                <span class="chip-count"><?php echo (int)$count; ?></span>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
                 </section>
 
                 <section class="flashcard-stage">
                     <div>
+                        <!-- Flashcards Tools & Filters Panel -->
                         <div class="flashcard-tools mb-3">
-                            <div class="row g-2 align-items-end">
+                            <div class="row g-3 align-items-end">
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold" for="flashcardSet">Zestaw</label>
+                                    <label class="form-label small fw-bold text-muted" for="flashcardSet">Zestaw fiszek</label>
                                     <select id="flashcardSet" class="form-select">
-                                        <option value="all">Wszystkie</option>
-                                        <option value="questions">Baza pytań</option>
-                                        <option value="dictionary">Słownik</option>
-                                        <option value="wrong">Tylko błędne z 3h</option>
-                                        <option value="due">Do powtórki teraz</option>
+                                        <option value="all">Wszystkie fiszki</option>
+                                        <option value="questions">Baza pytań testowych</option>
+                                        <option value="dictionary">Słownik pojęć</option>
+                                        <option value="wrong">Błędne (z ostatnich 3h)</option>
+                                        <option value="due">Do powtórki (Spaced Repetition)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold" for="flashcardQual">Kwalifikacja</label>
+                                    <label class="form-label small fw-bold text-muted" for="flashcardQual">Kwalifikacja</label>
                                     <select id="flashcardQual" class="form-select">
-                                        <option value="all">Wszystkie</option>
+                                        <option value="all">Wszystkie kwalifikacje</option>
                                         <?php foreach ($qualifications as $qual): ?>
                                             <option value="<?php echo htmlspecialchars($qual); ?>"><?php echo htmlspecialchars($qual); ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold" for="flashcardSearch">Szukaj</label>
-                                    <input id="flashcardSearch" class="form-control" placeholder="Adres IP, DNS, BIOS...">
+                                    <label class="form-label small fw-bold text-muted" for="flashcardSearch">Szukaj pojęć</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                        <input id="flashcardSearch" class="form-control border-start-0" placeholder="np. IP, DNS, RAM, BIOS...">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flashcard-study-builder mt-3" aria-label="Kreator nauki">
-                                <button type="button" data-flashcard-study="all" class="active"><i class="bi bi-layers me-1"></i>Wszystkie tematy</button>
-                                <button type="button" data-flashcard-study="mixed"><i class="bi bi-shuffle me-1"></i>Mieszane źródła</button>
-                                <button type="button" data-flashcard-study="wrong"><i class="bi bi-arrow-repeat me-1"></i>Powtórka błędnych pojęć</button>
+                            
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top border-secondary border-opacity-10">
+                                <div class="flashcard-study-builder" aria-label="Kreator nauki">
+                                    <button type="button" data-flashcard-study="all" class="active"><i class="bi bi-layers me-1"></i>Wszystkie</button>
+                                    <button type="button" data-flashcard-study="mixed"><i class="bi bi-shuffle me-1"></i>Losowe</button>
+                                    <button type="button" data-flashcard-study="wrong"><i class="bi bi-arrow-repeat me-1"></i>Powtórka błędnych pojęć</button>
+                                </div>
+
+                                <div class="flashcard-difficulty-filter" aria-label="Poziom trudności">
+                                    <button type="button" data-flashcard-difficulty="all" class="active">Wszystkie</button>
+                                    <button type="button" data-flashcard-difficulty="easy">Łatwe</button>
+                                    <button type="button" data-flashcard-difficulty="medium">Średnie</button>
+                                    <button type="button" data-flashcard-difficulty="hard">Trudne</button>
+                                </div>
                             </div>
-                            <div class="flashcard-difficulty-filter mt-3" aria-label="Poziom trudności">
-                                <button type="button" data-flashcard-difficulty="all" class="active">Wszystkie</button>
-                                <button type="button" data-flashcard-difficulty="easy">Łatwe</button>
-                                <button type="button" data-flashcard-difficulty="medium">Średnie</button>
-                                <button type="button" data-flashcard-difficulty="hard">Trudne</button>
-                            </div>
-                            <div class="flashcard-progress" data-flashcard-progress aria-live="polite"></div>
+                            <div class="flashcard-progress mt-3" data-flashcard-progress aria-live="polite"></div>
                         </div>
+
+                        <!-- 3D Flashcard Deck Stage -->
                         <div id="flashcardStudyShell" class="flashcard-study-shell">
                             <div class="flashcard-deck">
                                 <div id="flashcardCard" class="flashcard-card-wrapper" tabindex="0" role="button" aria-live="polite">
                                     <div class="flashcard-card-inner">
+                                        <!-- Front Side -->
                                         <div class="flashcard-card-front">
-                                            <span class="flashcard-card-kicker">POJĘCIE</span>
-                                            <strong class="flashcard-text" id="flashcardFrontText">Pojęcie</strong>
-                                            <button type="button" class="btn-tts" id="flashcardTtsFront" title="Odsłuchaj pojęcie" aria-label="Odsłuchaj pojęcie">
+                                            <div class="flashcard-top-bar">
+                                                <span class="flashcard-card-kicker"><i class="bi bi-question-circle me-1"></i>POJĘCIE</span>
+                                                <span class="badge bg-primary bg-opacity-15 text-primary fw-bold" id="flashcardQualFront">INF.02</span>
+                                            </div>
+                                            <div class="flashcard-text" id="flashcardFrontText">Pojęcie</div>
+                                            <div class="flashcard-hint-text">
+                                                <i class="bi bi-hand-index-thumb me-1"></i>Kliknij lub naciśnij <kbd class="kbd-badge">Spacja</kbd>, aby obrócić
+                                            </div>
+                                            <button type="button" class="btn-tts" id="flashcardTtsFront" title="Odsłuchaj wymowę" aria-label="Odsłuchaj pojęcie">
                                                 <i class="bi bi-volume-up-fill"></i>
                                             </button>
                                         </div>
+                                        <!-- Back Side -->
                                         <div class="flashcard-card-back">
-                                            <span class="flashcard-card-kicker">DEFINICJA</span>
+                                            <div class="flashcard-top-bar">
+                                                <span class="flashcard-card-kicker"><i class="bi bi-lightbulb me-1"></i>DEFINICJA & OPIS</span>
+                                                <span class="badge bg-success bg-opacity-15 text-success fw-bold" id="flashcardQualBack">INF.02</span>
+                                            </div>
                                             <div class="flashcard-text" id="flashcardBackText">Definicja</div>
                                             <button type="button" class="btn-tts" id="flashcardTtsBack" title="Odsłuchaj definicję" aria-label="Odsłuchaj definicję">
                                                 <i class="bi bi-volume-up-fill"></i>
@@ -220,13 +301,15 @@ if ($flashMessage) {
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Interactive Controls Bar -->
                             <div class="flashcard-controls-panel mb-3">
                                 <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
                                     <button type="button" class="ctrl-btn" id="flashcardPrev" title="Poprzednia fiszka" aria-label="Poprzednia fiszka">
                                         <i class="bi bi-chevron-left"></i>
                                     </button>
                                     
-                                    <div class="d-flex flex-column align-items-center flex-grow-1 px-md-4 px-2" style="min-width: 140px;">
+                                    <div class="d-flex flex-column align-items-center flex-grow-1 px-md-4 px-2" style="min-width: 160px;">
                                         <span class="flashcard-index-counter fw-bold mb-2" id="flashcardCounter">0 / 0</span>
                                         <div class="flashcard-progress-track">
                                             <div class="flashcard-progress-fill" id="flashcardProgressBar"></div>
@@ -247,51 +330,84 @@ if ($flashMessage) {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Touch & Keyboard Rating Hint Row -->
                         <div class="flashcard-hint-row" aria-hidden="true">
-                            <span><i class="bi bi-arrow-left"></i> przesuń w lewo = źle</span>
-                            <span>dobrze = przesuń w prawo <i class="bi bi-arrow-right"></i></span>
+                            <span><i class="bi bi-arrow-left"></i> Przesuń w lewo / <kbd class="kbd-badge">1</kbd> = Trudne</span>
+                            <span>Średnie = <kbd class="kbd-badge">2</kbd></span>
+                            <span>Łatwe = Przesuń w prawo / <kbd class="kbd-badge">3</kbd> <i class="bi bi-arrow-right"></i></span>
                         </div>
+
+                        <!-- Rating Actions Bar (SM-2 Rating Buttons) -->
                         <div class="flashcard-actions mt-3">
-                            <button class="btn btn-outline-danger" data-rate="hard"><i class="bi bi-arrow-repeat me-1"></i>Trudne</button>
-                            <button class="btn btn-outline-primary" data-rate="medium"><i class="bi bi-clock-history me-1"></i>Średnie</button>
-                            <button class="btn btn-outline-success" data-rate="easy"><i class="bi bi-check2-circle me-1"></i>Łatwe</button>
+                            <button class="btn btn-outline-danger btn-rating-hard" data-rate="hard">
+                                <i class="bi bi-x-circle me-1"></i>Trudne <span class="badge bg-danger bg-opacity-20 text-danger ms-1">1</span>
+                            </button>
+                            <button class="btn btn-outline-primary btn-rating-medium" data-rate="medium">
+                                <i class="bi bi-clock-history me-1"></i>Średnie <span class="badge bg-primary bg-opacity-20 text-primary ms-1">2</span>
+                            </button>
+                            <button class="btn btn-outline-success btn-rating-easy" data-rate="easy">
+                                <i class="bi bi-check2-circle me-1"></i>Łatwe <span class="badge bg-success bg-opacity-20 text-success ms-1">3</span>
+                            </button>
                         </div>
-                        <div class="flashcard-list-panel mt-3">
-                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-                                <h3 class="fw-bold mb-0 fs-5">Lista fiszek</h3>
-                                <span id="flashcardListCount" class="small text-muted"></span>
+
+                        <!-- Searchable Flashcard List Section -->
+                        <div class="flashcard-list-panel mt-4">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                                <h3 class="fw-bold mb-0 fs-5"><i class="bi bi-list-stars me-2 text-primary"></i>Lista fiszek w zestawie</h3>
+                                <span id="flashcardListCount" class="badge bg-secondary bg-opacity-10 text-secondary"></span>
                             </div>
                             <div id="flashcardList" class="flashcard-list"></div>
-                            <button type="button" class="btn btn-outline-primary w-100 mt-3" data-flashcard-load-more>Załaduj więcej</button>
+                            <button type="button" class="btn btn-outline-primary w-100 mt-3 rounded-pill fw-bold" data-flashcard-load-more>Załaduj więcej fiszek</button>
                         </div>
                     </div>
+
+                    <!-- Sidebar Panel -->
                     <div class="flashcard-side">
-                        <h3 class="fw-bold mb-3 fs-5">Propozycja fiszki</h3>
+                        <h3 class="fw-bold mb-3 fs-5"><i class="bi bi-lightbulb me-2 text-warning"></i>Propozycja fiszki</h3>
                         <?php if ($canRequestFlashcard): ?>
                             <form method="POST" class="flashcard-request-form">
                                 <?php echo csrfTokenField('flashcard_request'); ?>
                                 <input type="hidden" name="action" value="flashcard_request">
-                                <input name="flashcard_front" class="form-control" maxlength="140" placeholder="Przód fiszki" aria-label="Przód proponowanej fiszki" required>
-                                <textarea name="flashcard_back" class="form-control" rows="5" maxlength="1200" placeholder="Tył fiszki" aria-label="Tył proponowanej fiszki" required></textarea>
-                                <input name="flashcard_qualification" class="form-control" maxlength="40" placeholder="Kwalifikacja, np. INF.02" aria-label="Kwalifikacja proponowanej fiszki" >
-                                <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Wyślij do admina</button>
+                                <div class="mb-2">
+                                    <input name="flashcard_front" class="form-control" maxlength="140" placeholder="Przód fiszki (pojęcie)" aria-label="Przód proponowanej fiszki" required>
+                                </div>
+                                <div class="mb-2">
+                                    <textarea name="flashcard_back" class="form-control" rows="4" maxlength="1200" placeholder="Tył fiszki (definicja / opis)" aria-label="Tył proponowanej fiszki" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <input name="flashcard_qualification" class="form-control" maxlength="40" placeholder="Kwalifikacja, np. INF.02" aria-label="Kwalifikacja proponowanej fiszki">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-sm fw-bold">
+                                    <i class="bi bi-send me-1"></i>Wyślij do moderatora
+                                </button>
                             </form>
                         <?php else: ?>
                             <div class="flashcard-request-note">
-                                Fiszki są teraz moderowane. Uczniowie korzystają z zatwierdzonych kart, a nauczyciele wysyłają propozycje do administracji.
+                                <i class="bi bi-shield-check text-primary me-1"></i>
+                                Fiszki są moderowane przez nauczycieli i administrację ZSEM. Uczniowie korzystają ze sprawdzonych zestawów CKE.
                             </div>
                         <?php endif; ?>
-                        <hr>
-                        <div class="small text-muted" id="flashcardMeta"></div>
-                        <div class="flashcard-shortcuts" aria-label="Skróty klawiaturowe">
-                            <span>Spacja: obrót</span>
-                            <span>←: trudne</span>
-                            <span>→: łatwe</span>
-                            <span>↓: średnie</span>
+
+                        <hr class="my-3">
+                        <div class="small text-muted mb-3" id="flashcardMeta"></div>
+                        
+                        <h4 class="fw-bold fs-6 mb-2"><i class="bi bi-keyboard me-2 text-primary"></i>Skróty klawiszowe</h4>
+                        <div class="flashcard-shortcuts mb-3" aria-label="Skróty klawiaturowe">
+                            <span><kbd class="kbd-badge">Spacja</kbd> obrót</span>
+                            <span><kbd class="kbd-badge">1</kbd> trudne</span>
+                            <span><kbd class="kbd-badge">2</kbd> średnie</span>
+                            <span><kbd class="kbd-badge">3</kbd> łatwe</span>
+                            <span><kbd class="kbd-badge">F</kbd> pełny ekran</span>
                         </div>
-                        <div class="d-flex gap-2 mt-3">
-                            <a id="flashcardWiki" class="btn btn-sm btn-outline-primary flex-fill" target="_blank" rel="noopener" aria-label="Wikipedia"><i class="bi bi-wikipedia" aria-hidden="true"></i></a>
-                            <a id="flashcardYoutube" class="btn btn-sm btn-outline-danger flex-fill" target="_blank" rel="noopener" aria-label="YouTube"><i class="bi bi-youtube" aria-hidden="true"></i></a>
+
+                        <div class="d-flex gap-2">
+                            <a id="flashcardWiki" class="btn btn-sm btn-outline-primary flex-fill rounded-pill" target="_blank" rel="noopener" aria-label="Wikipedia">
+                                <i class="bi bi-wikipedia me-1"></i>Wikipedia
+                            </a>
+                            <a id="flashcardYoutube" class="btn btn-sm btn-outline-danger flex-fill rounded-pill" target="_blank" rel="noopener" aria-label="YouTube">
+                                <i class="bi bi-youtube me-1"></i>YouTube
+                            </a>
                         </div>
                     </div>
                 </section>

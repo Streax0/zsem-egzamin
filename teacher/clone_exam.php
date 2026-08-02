@@ -30,17 +30,11 @@ if (!$source) {
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $token = generateCsrfToken();
     ?>
-    <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Duplikuj sprawdzian</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
-        <link rel="stylesheet" href="../assets/css/style.css">
-        <link rel="stylesheet" href="../assets/css/dashboard-new.css">
-    </head>
-    <body>
+    <?php
+$pageTitle = 'Duplikuj sprawdzian';
+$extraCss = ['assets/css/dashboard-new.css'];
+include '../includes/header.php';
+?>
         <main role="main" class="container py-5" style="max-width: 680px;">
             <div class="dashboard-panel">
                 <h1 class="h4 fw-bold mb-3">Duplikuj sprawdzian</h1>

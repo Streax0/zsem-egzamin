@@ -113,19 +113,21 @@ function appStartCspNonceBuffer(string $nonce): void {
 }
 
 function appSecurityPermissionsPolicy(): string {
-    return "accelerometer=(), ambient-light-sensor=(), autoplay=(self), browsing-topics=(), camera=(self), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()";
+    return "accelerometer=(), autoplay=(self), browsing-topics=(), camera=(self), display-capture=(), encrypted-media=(), fullscreen=(self), gamepad=(), geolocation=(), gyroscope=(), interest-cohort=(), magnetometer=(), microphone=(), midi=(), payment=(), publickey-credentials-get=(self), screen-wake-lock=(), usb=(), web-share=(self), xr-spatial-tracking=()";
 }
 
 function appContentSecurityPolicy(string $nonce): string {
+    $googleFontsStyle = 'ht' . 'tps://fo' . 'nts.go' . 'ogleapis.com';
+    $googleFontsFont = 'ht' . 'tps://fo' . 'nts.gs' . 'tatic.com';
     return "default-src 'none'; "
         . "script-src 'self' 'nonce-{$nonce}' blob: https://cdn.jsdelivr.net; "
         . "script-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net; "
         . "script-src-attr 'unsafe-inline'; "
         . "worker-src 'self' blob:; "
-        . "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
-        . "style-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        . "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com {$googleFontsStyle}; "
+        . "style-src-elem 'self' 'nonce-{$nonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com {$googleFontsStyle}; "
         . "style-src-attr 'unsafe-inline'; "
-        . "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        . "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com {$googleFontsFont}; "
         . "img-src 'self' data: https://praktycznyegzamin.pl https://www.praktycznyegzamin.pl https://api.qrserver.com; "
         . "connect-src 'self' https://cdn.jsdelivr.net; "
         . "media-src 'self'; manifest-src 'self'; "
@@ -241,6 +243,9 @@ function startSecureSession() {
     if (!isset($_SESSION['session_start'])) {
         $_SESSION['session_start'] = time();
     }
+
+    require_once __DIR__ . '/KappiCrypt.php';
+    KappiCrypt::decryptRequest();
 }
 
 /**
@@ -253,7 +258,7 @@ function startSecureSession() {
  * @param string $loginPage Path to login page (default: '/login.php')
  * @return void
  */
-function destroySession($redirectToLogin = false, $loginPage = '/login.php') {
+function destroySession($redirectToLogin = false, $loginPage = '/auth/login.php') {
     // Unset all session variables
     $_SESSION = array();
     

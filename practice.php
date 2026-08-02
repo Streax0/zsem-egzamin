@@ -504,7 +504,7 @@ unset($qualExams);
                 <section class="practice-card p-4 mt-4 animate-in">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
                         <div>
-                            <h3 class="fw-bold mb-1"><i class="bi bi-journal-text text-primary me-2"></i>Oficjalne Arkusze i Poradniki CKE</h3>
+                            <h3 class="fw-bold mb-1"><i class="bi bi-journal-text text-primary me-2"></i>Oficjalne Arkusze CKE</h3>
                             <p class="text-muted small mb-0">
                                 <span class="cke-badge me-2"><i class="bi bi-shield-lock-fill"></i> Autor: CKE</span>
                                 Wszystkie zamieszczone poniżej arkusze egzaminacyjne oraz zasady oceniania są własnością Centralnej Komisji Egzaminacyjnej.
@@ -605,34 +605,9 @@ unset($qualExams);
                                                 </div>
                                             </div>
                                         </div>
-                                    <?php endforeach; ?>
+                            <?php endforeach; ?>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                </section>
-
-                <section class="practice-card p-4 mt-4">
-                    <h3 class="fw-bold mb-3">Checklista ostatnich 20 minut</h3>
-                    <div class="row g-3">
-                        <?php
-                        $checklist = [
-                            ['Nazwy plików', 'Porównaj nazwy plików, folderów, baz i tabel z arkuszem znak po znaku.'],
-                            ['Dane testowe', 'Sprawdź logowanie, formularze, zapisy do bazy i widok po odświeżeniu strony.'],
-                            ['Uprawnienia', 'Upewnij się, że konta, udziały i role mają wymagane prawa, ale nie więcej.'],
-                            ['Dowody', 'Zostaw zrzuty, hasła testowe i dokumentację w miejscu wskazanym w poleceniu.'],
-                            ['Sprzątanie', 'Usuń pliki robocze, puste foldery i błędne kopie, jeśli arkusz ich nie wymaga.'],
-                            ['Restart', 'Uruchom usługę/aplikację od nowa i sprawdź, czy efekt nadal działa.'],
-                        ];
-                        foreach ($checklist as [$title, $text]):
-                        ?>
-                            <div class="col-md-6 col-xl-4">
-                                <div class="professional-item p-3 rounded-4 border h-100">
-                                    <div class="fw-bold"><i class="bi bi-check2-circle text-success me-2"></i><?php echo htmlspecialchars($title); ?></div>
-                                    <div class="small text-muted mt-1"><?php echo htmlspecialchars($text); ?></div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
                     </div>
                 </section>
             </div>

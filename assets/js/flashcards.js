@@ -68,6 +68,29 @@
         }
     };
 
+    function updateKpiCounters() {
+        const allNormalized = dictCards.map(normalizeCard).filter(c => c.front && c.back);
+        let masteredCount = 0;
+        let dueCount = 0;
+
+        allNormalized.forEach((card) => {
+            const id = cardId(card);
+            const state = progress[id];
+            if (state && state.level === 'easy' && Number(state.reps || 0) >= 2) {
+                masteredCount++;
+            }
+            if (!state || Number(state.due || 0) <= Date.now()) {
+                dueCount++;
+            }
+        });
+
+        const masteredEl = byId('statMasteredCount');
+        if (masteredEl) masteredEl.textContent = masteredCount;
+
+        const dueEl = byId('statDueCount');
+        if (dueEl) dueEl.textContent = dueCount;
+    }
+
     function qualificationProgress() {
         const totals = {};
         const done = {};
@@ -84,7 +107,7 @@
             const count = totals[qual] || 0;
             const mastered = done[qual] || 0;
             const pct = count > 0 ? Math.round((mastered / count) * 100) : 0;
-            return `<div class="flashcard-progress-row"><span>${esc(qual)}</span><div class="flashcard-progress-track"><div class="flashcard-progress-fill" style="width:${pct}%"></div></div><strong>${mastered}/${count}</strong></div>`;
+            return `<div class="flashcard-progress-row mb-2"><div class="d-flex justify-content-between small fw-bold mb-1"><span>${esc(qual)}</span><span>${mastered}/${count} (${pct}%)</span></div><div class="flashcard-progress-track"><div class="flashcard-progress-fill" style="width:${pct}%"></div></div></div>`;
         }).join('');
     }
 
@@ -94,12 +117,13 @@
         const target = document.querySelector('[data-flashcard-progress]');
         if (!target) return;
         target.innerHTML = qualificationProgress() || '<div class="small text-muted">Brak postępu dla kwalifikacji.</div>';
+        updateKpiCounters();
     }
 
     function syncQualificationCards() {
         const selected = byId('flashcardQual')?.value || 'all';
         document.querySelectorAll('[data-flashcard-qual-card]').forEach((button) => {
-            button.classList.toggle('active', selected !== 'all' && button.dataset.flashcardQualCard === selected);
+            button.classList.toggle('active', button.dataset.flashcardQualCard === selected);
         });
     }
 
@@ -111,10 +135,10 @@
 
         const visible = pool.slice(0, visibleListCount);
         list.innerHTML = visible.length
-            ? visible.map((card, idx) => `<button type="button" data-flashcard-list-index="${idx}"><strong>${esc(card.front)}</strong><span>${esc(card.qualification || 'Inne')} | ${esc(card.source)} | ${esc(card.difficulty)}</span></button>`).join('')
-            : '<div class="small text-muted">Brak fiszek dla wybranych filtrów.</div>';
+            ? visible.map((card, idx) => `<button type="button" data-flashcard-list-index="${idx}" class="${idx === index ? 'border-primary bg-primary bg-opacity-10' : ''}"><strong>${esc(card.front)}</strong><span>${esc(card.qualification || 'Inne')} | ${esc(card.source)} | ${esc(card.difficulty)}</span></button>`).join('')
+            : '<div class="small text-muted p-3 text-center">Brak fiszek dla wybranych filtrów.</div>';
         loadMore.hidden = visibleListCount >= pool.length;
-        if (count) count.textContent = `${Math.min(visibleListCount, pool.length)}/${pool.length}`;
+        if (count) count.textContent = `${Math.min(visibleListCount, pool.length)} / ${pool.length} fiszek`;
     }
 
     let autoplayInterval = null;
@@ -161,6 +185,7 @@
         const cleanText = text.replace(/<[^>]*>/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'pl-PL';
+        utterance.rate = 0.95;
         window.speechSynthesis.speak(utterance);
     }
 
@@ -169,11 +194,13 @@
         const frontText = byId('flashcardFrontText');
         const backText = byId('flashcardBackText');
         const cardInner = cardBox.querySelector('.flashcard-card-inner');
+        const qualFront = byId('flashcardQualFront');
+        const qualBack = byId('flashcardQualBack');
 
         if (!card) {
             cardBox.classList.remove('is-flipped');
             if (frontText) frontText.innerHTML = 'Brak fiszek';
-            if (backText) backText.innerHTML = 'Zmień filtry lub wróć po zatwierdzeniu nowych kart.';
+            if (backText) backText.innerHTML = 'Zmień filtry lub wybierz inny zestaw.';
             if (cardInner) cardInner.style.display = 'none';
 
             const counter = byId('flashcardCounter');
@@ -193,13 +220,14 @@
         if (frontText) frontText.innerHTML = esc(card.front);
         if (backText) backText.innerHTML = htmlLines(card.back);
 
+        if (qualFront) qualFront.textContent = card.qualification || 'Inne';
+        if (qualBack) qualBack.textContent = card.qualification || 'Inne';
+
         const meta = byId('flashcardMeta');
         if (meta) {
-            const until = new Date(wrong.expires).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-            meta.textContent = `${index + 1}/${pool.length} | ${card.source} | ${card.qualification || 'Inne'} | błędne ważne do: ${until}`;
+            meta.innerHTML = `Fiszka <strong>${index + 1}</strong> z <strong>${pool.length}</strong><br>Źródło: <code>${esc(card.source)}</code> | Trudność: <code>${esc(card.difficulty)}</code>`;
         }
 
-        // Update control panel stats
         const counter = byId('flashcardCounter');
         if (counter) counter.textContent = `${index + 1} / ${pool.length}`;
 
@@ -231,10 +259,8 @@
         pool = all.filter((card) => {
             const id = cardId(card);
             const setOk = set === 'all'
-                || (set === 'questions' && card.source === 'Baza pytan')
-                || (set === 'questions' && card.source === 'Baza pytań')
-                || (set === 'dictionary' && card.source === 'Slownik')
-                || (set === 'dictionary' && card.source === 'Słownik')
+                || (set === 'questions' && (card.source === 'Baza pytan' || card.source === 'Baza pytań'))
+                || (set === 'dictionary' && (card.source === 'Slownik' || card.source === 'Słownik'))
                 || (set === 'wrong' && wrong.ids.includes(id))
                 || (set === 'due' && due(card));
 
@@ -266,14 +292,13 @@
         const id = cardId(card);
         let state = progress[id] || { reps: 0, efactor: 2.5, interval: 0, due: 0 };
 
-        // Backward compatibility: migrate old states that only had 'level' and 'due'
         if (state.reps === undefined) {
             state.reps = 0;
             state.efactor = 2.5;
             state.interval = 0;
         }
 
-        let quality = 3; // medium
+        let quality = 3;
         if (level === 'hard') quality = 1;
         if (level === 'easy') quality = 5;
 
@@ -310,6 +335,7 @@
 
         updateProgress();
         renderList();
+
         cardBox.classList.add(direction === 'left' || level === 'hard' ? 'is-leaving-left' : 'is-leaving-right');
         setTimeout(() => {
             index = (index + 1) % Math.max(1, pool.length);
@@ -337,7 +363,6 @@
         }
     });
 
-    // Control buttons listeners
     byId('flashcardPrev')?.addEventListener('click', () => {
         stopAutoplay();
         if (pool.length === 0) return;
@@ -362,12 +387,11 @@
         }
     });
 
-    // Fullscreen API implementation
     const studyShell = byId('flashcardStudyShell');
     byId('flashcardFullscreen')?.addEventListener('click', () => {
         if (!document.fullscreenElement) {
             studyShell?.requestFullscreen().catch((err) => {
-                console.error('Error entering fullscreen:', err);
+                console.error('Fullscreen error:', err);
             });
         } else {
             document.exitFullscreen();
@@ -386,7 +410,6 @@
         }
     });
 
-    // Audio TTS listener triggers
     byId('flashcardTtsFront')?.addEventListener('click', (event) => {
         event.stopPropagation();
         const card = pool[index];
@@ -401,6 +424,22 @@
 
     document.addEventListener('keydown', (event) => {
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+        if (event.key === '1') {
+            event.preventDefault();
+            rate('hard', 'left');
+        }
+        if (event.key === '2') {
+            event.preventDefault();
+            rate('medium', 'right');
+        }
+        if (event.key === '3') {
+            event.preventDefault();
+            rate('easy', 'right');
+        }
+        if (event.key === 'f' || event.key === 'F') {
+            event.preventDefault();
+            byId('flashcardFullscreen')?.click();
+        }
         if (event.key === 'ArrowLeft') {
             event.preventDefault();
             rate('hard', 'left');
@@ -431,8 +470,9 @@
 
     document.querySelectorAll('[data-flashcard-qual-card]').forEach((button) => {
         button.addEventListener('click', () => {
-            const qual = byId('flashcardQual');
-            if (qual) qual.value = button.dataset.flashcardQualCard || 'all';
+            const qualVal = button.dataset.flashcardQualCard || 'all';
+            const qualSelect = byId('flashcardQual');
+            if (qualSelect) qualSelect.value = qualVal;
             rebuild();
         });
     });
@@ -469,6 +509,7 @@
         renderList();
     });
 
+    // Touch & Pointer Swipe
     let startX = 0;
     let active = false;
     cardBox.addEventListener('pointerdown', (event) => {

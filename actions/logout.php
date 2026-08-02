@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_tok
         setSessionMessage('error', 'Nieprawidłowe żądanie wylogowania.');
         header('Location: ../index.php');
     } else {
-        header('Location: ../login.php');
+        header('Location: ../auth/login.php');
     }
     exit;
 }
@@ -37,5 +37,5 @@ if (isLoggedIn()) {
 destroySession();
 
 // Redirect to login page
-header('Location: ../login.php');
+header('Location: ../auth/login.php');
 exit();

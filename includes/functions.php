@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/autoloader.php';
 /**
  * Helper functions library
  * Provides utility functions for the quiz application
@@ -426,6 +427,7 @@ function ensurePlatformEnhancements(PDO $pdo): void {
     _ensurePlatformSecurity($pdo);
     _ensurePlatformRanking($pdo);
     _ensurePlatformAdmin($pdo);
+    _ensurePlatformCourses($pdo);
 
     $done = true;
 }
@@ -709,6 +711,22 @@ function _ensurePlatformSecurity(PDO $pdo): void {
         error_log('Rate limit events table creation failed: ' . $e->getMessage());
     }
 
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_passkeys (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            credential_id VARCHAR(255) NOT NULL UNIQUE,
+            public_key TEXT NOT NULL,
+            counter INT NOT NULL DEFAULT 0,
+            device_name VARCHAR(255) DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_used_at DATETIME DEFAULT NULL,
+            INDEX idx_user_id (user_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('User passkeys table creation failed: ' . $e->getMessage());
+    }
+
     // 12. Password resets table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS password_resets (
@@ -911,6 +929,155 @@ function _ensurePlatformAdmin(PDO $pdo): void {
         seedRankingEventTemplates($pdo);
     } catch (Throwable $e) {
         error_log('Seeding ranking event templates failed: ' . $e->getMessage());
+    }
+}
+
+function _ensurePlatformCourses(PDO $pdo): void {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS courses (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            content LONGTEXT,
+            image_url VARCHAR(255) DEFAULT NULL,
+            status ENUM('active', 'hidden') NOT NULL DEFAULT 'hidden',
+            sequential_learning TINYINT(1) NOT NULL DEFAULT 0,
+            start_date DATE DEFAULT NULL,
+            end_date DATE DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_status (status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_modules (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            course_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            INDEX idx_course_sort (course_id, sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_custom_labs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            teacher_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            tool_key VARCHAR(50) NOT NULL,
+            instructions TEXT NOT NULL,
+            topology_data LONGTEXT NULL,
+            is_private TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            module_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            type ENUM('text', 'video', 'quiz', 'lab', 'exam') NOT NULL,
+            content LONGTEXT NULL,
+            video_url VARCHAR(255) NULL,
+            quiz_passing_score INT NOT NULL DEFAULT 70,
+            lab_source ENUM('sandbox', 'custom') DEFAULT 'sandbox',
+            lab_tool_key VARCHAR(50) NULL,
+            lab_custom_id INT NULL,
+            lab_instructions TEXT NULL,
+            sort_order INT NOT NULL DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (module_id) REFERENCES course_modules(id) ON DELETE CASCADE,
+            FOREIGN KEY (lab_custom_id) REFERENCES course_custom_labs(id) ON DELETE SET NULL,
+            INDEX idx_module_sort (module_id, sort_order)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_quiz_questions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_id INT NOT NULL,
+            question_text TEXT NOT NULL,
+            option_a VARCHAR(255) NOT NULL,
+            option_b VARCHAR(255) NOT NULL,
+            option_c VARCHAR(255) DEFAULT NULL,
+            option_d VARCHAR(255) DEFAULT NULL,
+            correct_answer ENUM('A', 'B', 'C', 'D') NOT NULL,
+            explanation TEXT NULL,
+            FOREIGN KEY (item_id) REFERENCES course_items(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_course_enrollments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            course_id INT NOT NULL,
+            status ENUM('active', 'completed') NOT NULL DEFAULT 'active',
+            progress_percent INT NOT NULL DEFAULT 0,
+            enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            completed_at DATETIME NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            UNIQUE KEY uq_user_course (user_id, course_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS user_course_progress (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            course_id INT NOT NULL,
+            item_id INT NOT NULL,
+            status ENUM('started', 'completed') NOT NULL DEFAULT 'started',
+            quiz_score INT NULL,
+            quiz_attempts INT NOT NULL DEFAULT 0,
+            completed_at DATETIME NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            FOREIGN KEY (item_id) REFERENCES course_items(id) ON DELETE CASCADE,
+            UNIQUE KEY uq_user_item (user_id, item_id),
+            INDEX idx_user_course_progress (user_id, course_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        if (dbTableExists($pdo, 'courses')) {
+            if (!dbColumnExists($pdo, 'courses', 'created_by')) {
+                try {
+                    $pdo->exec("ALTER TABLE courses ADD COLUMN created_by INT DEFAULT NULL");
+                } catch (Throwable $e) {
+                    error_log('Failed to add created_by column to courses: ' . $e->getMessage());
+                }
+            }
+            if (!dbColumnExists($pdo, 'courses', 'is_external')) {
+                try {
+                    $pdo->exec("ALTER TABLE courses ADD COLUMN is_external TINYINT(1) NOT NULL DEFAULT 0");
+                } catch (Throwable $e) {
+                    error_log('Failed to add is_external column to courses: ' . $e->getMessage());
+                }
+            }
+            if (!dbColumnExists($pdo, 'courses', 'external_url')) {
+                try {
+                    $pdo->exec("ALTER TABLE courses ADD COLUMN external_url VARCHAR(500) DEFAULT NULL");
+                } catch (Throwable $e) {
+                    error_log('Failed to add external_url column to courses: ' . $e->getMessage());
+                }
+            }
+            try {
+                $statusCol = $pdo->query("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'status'")->fetchColumn();
+                if ($statusCol && !str_contains((string)$statusCol, "'private'")) {
+                    $pdo->exec("ALTER TABLE courses MODIFY status ENUM('active', 'hidden', 'private') NOT NULL DEFAULT 'hidden'");
+                }
+            } catch (Throwable $e) {
+                error_log('Failed to modify status enum in courses: ' . $e->getMessage());
+            }
+        }
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS course_shares (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            course_id INT NOT NULL,
+            shared_with_user_id INT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+            FOREIGN KEY (shared_with_user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE KEY uq_course_share (course_id, shared_with_user_id),
+            INDEX idx_course_share_user (shared_with_user_id, course_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+    } catch (Throwable $e) {
+        error_log('Course tables creation failed: ' . $e->getMessage());
     }
 }
 
@@ -1355,6 +1522,7 @@ function getFeaturePageBlockCategories(): array {
         'history' => ['label' => 'Historia', 'icon' => 'bi-clock-history'],
         'exam' => ['label' => 'Sprawdzian', 'icon' => 'bi-qr-code-scan'],
         'teacher' => ['label' => 'Panel nauczyciela', 'icon' => 'bi-clipboard2-pulse-fill'],
+        'courses' => ['label' => 'Kursy', 'icon' => 'bi-mortarboard'],
     ];
 }
 
@@ -1377,10 +1545,11 @@ function resolveFeaturePageCategoryForPath(?string $path = null): ?string {
     if ($ends('dictionary.php')) return 'dictionary';
     if ($ends('flashcards.php')) return 'flashcards';
     if ($ends('sandbox.php')) return 'sandbox';
-    if ($ends('social.php') || $ends('profile.php') || $ends('search_users.php')) return 'social';
+    if ($ends('user/social.php') || $ends('profile.php') || $ends('search_users.php')) return 'social';
     if ($ends('progress.php')) return 'progress';
-    if ($ends('goals.php')) return 'missions';
+    if ($ends('user/goals.php')) return 'missions';
     if ($ends('history.php') || $ends('result.php')) return 'history';
+    if ($ends('courses.php') || $ends('course_view.php')) return 'courses';
     return null;
 }
 
@@ -1524,7 +1693,8 @@ function renderFeaturePageBlockScreen(array $block): void {
     $script = $_SERVER['PHP_SELF'] ?? '';
     $base = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false) ? '../' : '';
     $returnUrl = featureBlockSafeReturnUrl($base . 'index.php');
-    http_response_code(403);
+    // Zwracamy kod 200, by serwery (np. Litespeed/Apache) nie przechwytywały 403/503
+    http_response_code(200);
     echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
     echo '<title>' . $esc($title) . ' - ZSEM Tech</title>';
     echo '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">';
@@ -1969,7 +2139,27 @@ function awardXp($pdo, $userId, $amount, $source, $sourceId = null, $description
     $amount = (int)$amount;
     if ($amount === 0) return false;
     try {
+        // Fetch old rank info
+        $userStmt = $pdo->prepare("SELECT xp FROM users WHERE id = ?");
+        $userStmt->execute([$userId]);
+        $oldXp = (int)$userStmt->fetchColumn();
+        $oldRankInfo = getRankInfoByXp($oldXp);
+
         $pdo->prepare("UPDATE users SET xp = GREATEST(0, xp + ?) WHERE id = ?")->execute([$amount, $userId]);
+
+        // Fetch new rank info
+        $userStmt->execute([$userId]);
+        $newXp = (int)$userStmt->fetchColumn();
+        $newRankInfo = getRankInfoByXp($newXp);
+
+        if ($newRankInfo['name'] !== $oldRankInfo['name']) {
+            if ($newRankInfo['min_xp'] > $oldRankInfo['min_xp']) {
+                addNotification($pdo, $userId, 'rank_up', "Gratulacje! Awansowałeś do rangi " . $newRankInfo['name'] . "!");
+            } elseif ($newRankInfo['min_xp'] < $oldRankInfo['min_xp']) {
+                addNotification($pdo, $userId, 'rank_down', "Twoja ranga zmieniła się na " . $newRankInfo['name'] . ".");
+            }
+        }
+
         try {
             $stmt = $pdo->prepare("INSERT INTO xp_events (user_id, source, source_id, amount, description) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$userId, $source, $sourceId, $amount, $description]);
@@ -2566,12 +2756,7 @@ function calculateScore($correct, $total) {
  * @param int $seconds Time in seconds
  * @return string Formatted time string
  */
-function formatTime($seconds) {
-    $seconds = max(0, (int)$seconds);
-    $minutes = floor($seconds / 60);
-    $remainingSeconds = $seconds % 60;
-    return sprintf('%02d:%02d', $minutes, $remainingSeconds);
-}
+function formatTime($seconds) { return \App\User\StringUtils::formatTime($seconds); }
 
 // ============================================
 // Progress Tracking Functions
@@ -3205,7 +3390,7 @@ function getUsersCount($pdo) {
  */
 function updateUserPassword($pdo, $userId, $newPassword) {
     try {
-        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $hash = password_hash($newPassword, PASSWORD_ARGON2ID);
         $stmt = $pdo->prepare("UPDATE users SET password_hash = :hash, session_version = COALESCE(session_version, 1) + 1 WHERE id = :id");
         return $stmt->execute([':hash' => $hash, ':id' => $userId]);
     } catch (PDOException $e) {
@@ -3290,6 +3475,38 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
     return 'ta odpowiedź dotyczy innego aspektu działania systemu i nie jest bezpośrednią przyczyną opisanego problemu.';
 }
 
+function buildCorrectAnswerRationale(string $questionText, string $correctLetter, string $correctText): string {
+    $qLower = mb_strtolower($questionText, 'UTF-8');
+    $aLower = mb_strtolower($correctText, 'UTF-8');
+    
+    if (str_contains($qLower, 'światłowód') || str_contains($aLower, 'ont') || str_contains($aLower, 'gpon') || str_contains($aLower, 'modem światłowodowy')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ terminal ONT / modem światłowodowy konwertuje sygnał optyczny z sieci światłowodowej bezpośrednio na sygnał elektryczny Ethernet w sieci lokalnej LAN.";
+    }
+    if (str_contains($qLower, 'voip') || str_contains($aLower, 'voip')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ bramka VoIP umożliwia podłączenie urządzeń analogowych do sieci pakietowej IP i przekazywanie głosu przez Internet.";
+    }
+    if (str_contains($qLower, 'router') || str_contains($aLower, 'router')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ router jest urządzeniem warstwy 3. OSI odpowiedzialnym za trasowanie pakietów między różnymi sieciami IP.";
+    }
+    if (str_contains($qLower, 'switch') || str_contains($qLower, 'przełącznik') || str_contains($aLower, 'switch') || str_contains($aLower, 'przełącznik')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ przełącznik (switch) działa w warstwie 2. OSI i przekazuje ramki na podstawie adresów MAC wewnątrz sieci lokalnej.";
+    }
+    if (str_contains($qLower, 'maska') || str_contains($aLower, 'maska')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, gdyż maska podsieci wyznacza granicę między częścią sieciową a częścią hosta w adresie IP.";
+    }
+    if (str_contains($qLower, 'dhcp') || str_contains($aLower, 'dhcp')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ protokół DHCP automatycznie przydziela konfigurację IP klientom w sieci.";
+    }
+    if (str_contains($qLower, 'dns') || str_contains($aLower, 'dns')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ usługa DNS tłumaczy alfanumeryczne nazwy domenowe na adresy IP.";
+    }
+    
+    if ($correctText !== '') {
+        return "Prawidłowym rozwiązaniem tego pytania jest odpowiedź {$correctLetter}: {$correctText}, która bezpośrednio spełnia kryteria opisanego problemu.";
+    }
+    return "Poprawna odpowiedź to {$correctLetter}.";
+}
+
 function buildQuestionExplanation(array $question, string $userAnswer = '', ?bool $isCorrect = null): string {
     $existing = trim((string)($question['explanation'] ?? ''));
     if ($existing !== '') return $existing;
@@ -3301,18 +3518,15 @@ function buildQuestionExplanation(array $question, string $userAnswer = '', ?boo
     $questionText = trim((string)($question['question_text'] ?? ($question['question'] ?? '')));
 
     $correctLabel = $correctText !== '' ? "{$correct}. {$correctText}" : $correct;
-    $parts = ["Wyjaśnienie:"];
-    $parts[] = $correctText !== ''
-        ? "• Poprawna odpowiedź: {$correctLabel}."
-        : "• Poprawna odpowiedź: {$correct}.";
-    if ($questionText !== '') {
-        $parts[] = "Treść pytania: {$questionText}";
-    }
+    $parts = ["Wyjaśnienie i uzasadnienie:"];
+    $parts[] = "• Poprawna odpowiedź: {$correctLabel}.";
+    $parts[] = buildCorrectAnswerRationale($questionText, $correct, $correctText);
+
     if ($user !== '' && $user !== '-' && $user !== $correct) {
         $userLabel = $userText !== '' ? "{$user}. {$userText}" : $user;
         $parts[] = "Wybrano: {$userLabel}.";
     } elseif ($isCorrect === true || ($user !== '' && $user === $correct)) {
-        $parts[] = "Wybrano poprawną odpowiedź.";
+        $parts[] = "Twój wybór jest poprawny.";
     }
     $distractors = [];
     foreach (['A', 'B', 'C', 'D'] as $letter) {
@@ -3429,7 +3643,7 @@ function notifyOptionalMfaForRole(PDO $pdo, int $userId, string $role): bool {
         $userId,
         'mfa_optional_prompt',
         'Czy włączyć 2 etapowe uwierzytelnianie?',
-        'mfa.php',
+        'auth/mfa.php',
         'mfa_optional_prompt:' . $userId . ':' . $role
     );
 }
@@ -3836,7 +4050,7 @@ function syncUserMissionsForPeriod($pdo, $userId, $period = 'daily', $missionCou
         
         if ($wasEmpty && !empty($userMissions)) {
             $label = ['daily' => 'codzienne', 'weekly' => 'tygodniowe', 'monthly' => 'miesięczne'][$period];
-            addNotification($pdo, $userId, $period . '_missions_refresh', "Twoje {$label} misje zostały odświeżone! Sprawdź nowe wyzwania.", 'goals.php');
+            addNotification($pdo, $userId, $period . '_missions_refresh', "Twoje {$label} misje zostały odświeżone! Sprawdź nowe wyzwania.", 'user/goals.php');
         }
     }
 
@@ -3865,6 +4079,7 @@ function syncUserMissions($pdo, $userId) {
 
 function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuestions) {
     $qualifiedForAnyMission = testResultQualifiesForMissions($pdo, (int)$resultId, (int)$totalQuestions);
+    if (!$qualifiedForAnyMission) return;
     foreach (['daily', 'weekly', 'monthly'] as $period) {
         $missionsData = syncUserMissionsForPeriod($pdo, $userId, $period, 3);
         $pool = $missionsData['pool'];
@@ -3874,7 +4089,6 @@ function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuest
 
             $desc = mb_strtolower((string)($mission['mission_description'] ?? ''), 'UTF-8');
             $allowsAny = mb_strpos($desc, 'dowolny test') !== false || mb_strpos($desc, 'dowolne testy') !== false || $period !== 'daily';
-            if (!$qualifiedForAnyMission) continue;
             if ($totalQuestions < 40 && !$allowsAny) continue;
 
             $reward = (int)($pool[$mission['mission_type']]['reward_xp'] ?? $mission['xp_reward'] ?? 0);
@@ -3884,7 +4098,7 @@ function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuest
             $pdo->prepare("UPDATE user_daily_missions SET completed_at = NOW() WHERE id = ? AND completed_at IS NULL")
                 ->execute([(int)$mission['id']]);
             $title = $pool[$mission['mission_type']]['title'] ?? 'Misja';
-            addNotification($pdo, $userId, 'mission_complete', "Gratulacje! Ukończyłeś misję: $title. Otrzymujesz +$reward XP.", 'goals.php');
+            addNotification($pdo, $userId, 'mission_complete', "Gratulacje! Ukończyłeś misję: $title. Otrzymujesz +$reward XP.", 'user/goals.php');
         }
     }
 }
@@ -5338,7 +5552,7 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
             $notif['message'] = $appStatusPayload['title'];
         }
         $notifUrl = !empty($notif['action_url']) ? normalizeNotificationActionUrl($notif['action_url']) : null;
-        $notifHref = notificationActionHref($notifUrl, $baseUrl) ?? ($baseUrl . 'notifications.php');
+        $notifHref = notificationActionHref($notifUrl, $baseUrl) ?? ($baseUrl . 'user/notifications.php');
         $duelId = 0;
         $pendingDuel = null;
         if (($notif['type'] ?? '') === 'duel_challenge') {
@@ -5411,6 +5625,7 @@ function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notif
             <?php endif; ?>
         </div>
         <?php
+require_once __DIR__ . '/autoloader.php';
     }
     return (string)ob_get_clean();
 }
@@ -5818,7 +6033,7 @@ function resolveTeacherApplication(PDO $pdo, int $requestId, int $adminId, strin
         $pdo->commit();
 
         clearTeacherApplicationNotifications($pdo, $requestId);
-        addNotification($pdo, (int)$request['teacher_id'], $notificationType, $message, $decision === 'approve' ? 'teacher/index.php' : 'notifications.php');
+        addNotification($pdo, (int)$request['teacher_id'], $notificationType, $message, $decision === 'approve' ? 'teacher/index.php' : 'user/notifications.php');
         if ($decision === 'approve') {
             notifyOptionalMfaForRole($pdo, (int)$request['teacher_id'], 'teacher');
         }
@@ -5983,7 +6198,7 @@ function sendFriendRequest($pdo, $fromId, $toId, ?string &$failureReason = null)
         $stmt->execute([$fromId, $toId]);
         
         $username = $_SESSION['username'] ?? 'Ktoś';
-        addNotification($pdo, $toId, 'friend_request', "Użytkownik $username wysłał Ci zaproszenie do znajomych.", 'social.php');
+        addNotification($pdo, $toId, 'friend_request', "Użytkownik $username wysłał Ci zaproszenie do znajomych.", 'user/social.php');
         return true;
     } catch (PDOException $e) {
         $failureReason = 'friend_request_failed';
@@ -6011,7 +6226,7 @@ function acceptFriendRequest($pdo, $userId, $friendId) {
         
         if ($stmt->rowCount() > 0) {
             $username = $_SESSION['username'] ?? 'Twój znajomy';
-            addNotification($pdo, $friendId, 'friend_request', "Użytkownik $username zaakceptował Twoje zaproszenie!", 'profile.php?id=' . (int)$userId);
+            addNotification($pdo, $friendId, 'friend_request', "Użytkownik $username zaakceptował Twoje zaproszenie!", 'user/profile.php?id=' . (int)$userId);
             return true;
         }
         return false;
@@ -6239,7 +6454,7 @@ function notifyAdminsAboutTeacherApplication(PDO $pdo, int $requestId, int $user
             ? "ALERT: aplikacja nauczyciela #{$requestId} może być duplikatem tożsamości ({$label}). Konto oznaczono jako untrusted / possible fraud / duplicate identity."
             : "Nowa aplikacja na nauczyciela #{$requestId}: {$label}.";
         foreach ($admins as $adminId) {
-            addNotification($pdo, (int)$adminId, $type, $message, 'admin_requests.php#request-' . $requestId);
+            addNotification($pdo, (int)$adminId, $type, $message, 'admin/requests.php#request-' . $requestId);
         }
     } catch (PDOException $e) {
         error_log('Teacher application admin notification failed: ' . $e->getMessage());
@@ -6249,7 +6464,7 @@ function notifyAdminsAboutTeacherApplication(PDO $pdo, int $requestId, int $user
 function clearTeacherApplicationNotifications(PDO $pdo, int $requestId): void {
     try {
         ensurePlatformEnhancements($pdo);
-        $action = 'admin_requests.php#request-' . $requestId;
+        $action = 'admin/requests.php#request-' . $requestId;
         $stmt = $pdo->prepare("
             DELETE FROM notifications
             WHERE type IN ('teacher_application','teacher_application_duplicate')
@@ -6260,7 +6475,7 @@ function clearTeacherApplicationNotifications(PDO $pdo, int $requestId): void {
 
         $open = $pdo->query("SELECT COUNT(*) FROM admin_requests WHERE type = 'teacher_application' AND status IN ('sent','read')")->fetchColumn();
         if ((int)$open === 0) {
-            $pdo->exec("DELETE FROM notifications WHERE type IN ('teacher_application','teacher_application_duplicate') AND is_read = 0 AND (action_url IS NULL OR action_url = 'admin_requests.php')");
+            $pdo->exec("DELETE FROM notifications WHERE type IN ('teacher_application','teacher_application_duplicate') AND is_read = 0 AND (action_url IS NULL OR action_url = 'admin/requests.php')");
         }
     } catch (PDOException $e) {
         error_log('Teacher application notification cleanup failed: ' . $e->getMessage());
@@ -6739,3 +6954,28 @@ function duelRevengeIsAvailable(PDO $pdo, int $parentId, int $userId, int $oppon
     }
     return $finishedTs > 0 && (time() - $finishedTs) <= 600;
 }
+
+function readJsonMetadata(string $path): array {
+    if (!file_exists($path)) {
+        return [];
+    }
+    $content = @file_get_contents($path);
+    if ($content === false) {
+        return [];
+    }
+    $decoded = json_decode($content, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function writeJsonMetadata(string $path, array $data): bool {
+    $json = json_encode($data, JSON_PRETTY_PRINT);
+    return @file_put_contents($path, $json) !== false;
+}
+
+function getUploadedFileExtension(string $filename): string {
+    $ext = pathinfo($filename, PATHINFO_EXTENSION);
+    return mb_strtolower((string)$ext);
+}
+
+
+

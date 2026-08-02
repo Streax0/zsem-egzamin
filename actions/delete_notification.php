@@ -7,9 +7,9 @@ require_once '../includes/functions.php';
 startSecureSession();
 requireLogin();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !securityValidateRequestCsrf()) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || (!securityValidateRequestCsrf('notifications') && !securityValidateRequestCsrf())) {
     setSessionMessage('error', 'Nieprawidłowe żądanie.');
-    redirect('../notifications.php');
+    redirect('../user/notifications.php');
 }
 
 $userId = (int)($_SESSION['user_id'] ?? 0);
@@ -19,7 +19,7 @@ $rateLimit = securityConsumeRateLimit('notifications:delete:' . securityActorKey
 if (empty($rateLimit['allowed'])) {
     securityAudit('notification_delete_rate_limited', ['delete_all' => $deleteAll, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
     setSessionMessage('error', 'Zbyt wiele akcji naraz. Spróbuj za chwilę.');
-    redirect('../notifications.php');
+    redirect('../user/notifications.php');
 }
 
 try {
@@ -37,4 +37,4 @@ try {
     setSessionMessage('error', 'Nie udało się usunąć powiadomienia.');
 }
 
-redirect('../notifications.php');
+redirect('../user/notifications.php');

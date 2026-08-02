@@ -303,7 +303,8 @@ function syncSessionUserRole() {
         $stmt->execute([$_SESSION['user_id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
-            destroySession(true, '/login.php?session_expired=1');
+            $prefix = file_exists('config/db.php') ? '' : '../';
+            destroySession(true, $prefix . 'auth/login.php?session_expired=1');
         }
         if ($row && isset($row['role'])) {
             $previousRole = $_SESSION['role'] ?? 'user';
@@ -311,16 +312,17 @@ function syncSessionUserRole() {
             if ($previousRole !== $row['role'] && mfaRoleRequiresSetup($row['role'])) {
                 $_SESSION['mfa_verified'] = false;
             }
+            $prefix = file_exists('config/db.php') ? '' : '../';
             if (isset($row['session_version'])) {
                 $dbVersion = (int)$row['session_version'];
                 $sessionVersion = (int)($_SESSION['session_version'] ?? $dbVersion);
                 if ($sessionVersion !== $dbVersion) {
-                    destroySession(true, '/login.php');
+                    destroySession(true, $prefix . 'auth/login.php');
                 }
                 $_SESSION['session_version'] = $dbVersion;
             }
             if (!validateCurrentUserSession($pdo, (int)$_SESSION['user_id'])) {
-                destroySession(true, '/login.php?session_expired=1');
+                destroySession(true, $prefix . 'auth/login.php?session_expired=1');
             }
         }
     } catch (Throwable $e) {
@@ -413,10 +415,10 @@ if (!function_exists('requireLogin')) {
         if (!isLoggedIn()) {
             $return_url = urlencode($_SERVER['REQUEST_URI'] ?? '/');
             $script = $_SERVER['PHP_SELF'] ?? '';
-            $prefix = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false || strpos($script, '/actions/') !== false || strpos($script, '/ajax/') !== false) ? '../' : '';
+            $prefix = file_exists('config/db.php') ? '' : '../';
 
             http_response_code(401);
-            $login_url = $prefix . 'login.php?return=' . $return_url;
+            $login_url = $prefix . 'auth/login.php?return=' . $return_url;
             $home_url = $prefix . 'index.php';
             echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
             echo '<title>Wymagane logowanie - ZSEM Tech</title>';
@@ -465,7 +467,7 @@ if (!function_exists('requireLogin')) {
         if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
             $script = $_SERVER['PHP_SELF'] ?? '';
             $prefix = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false || strpos($script, '/actions/') !== false || strpos($script, '/ajax/') !== false) ? '../' : '';
-            header('Location: ' . $prefix . 'mfa.php');
+            header('Location: ' . $prefix . 'auth/mfa.php');
             exit();
         }
 
@@ -599,7 +601,7 @@ function register($username, $email, $password, $firstName = null, $lastName = n
     }
 
     try {
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $password_hash = password_hash($password, PASSWORD_ARGON2ID);
         
         // Default role is 'user'
         $role = 'user';
@@ -790,16 +792,19 @@ function getUserById($id) {
  * @return bool True if password matches hash
  */
 function verifyPassword($password, $hash) {
+    if (strlen($hash) === 32 && ctype_xdigit($hash)) {
+        return md5($password) === $hash;
+    }
     return password_verify($password, $hash);
 }
 
 function upgradePasswordHashIfNeeded(PDO $pdo, array &$user, string $password): void {
     $currentHash = (string)($user['password_hash'] ?? '');
-    if ($currentHash === '' || !password_needs_rehash($currentHash, PASSWORD_DEFAULT)) {
+    if ($currentHash === '' || !password_needs_rehash($currentHash, PASSWORD_ARGON2ID)) {
         return;
     }
 
-    $replacementHash = password_hash($password, PASSWORD_DEFAULT);
+    $replacementHash = password_hash($password, PASSWORD_ARGON2ID);
     if (!is_string($replacementHash) || $replacementHash === '') {
         return;
     }
@@ -886,7 +891,7 @@ function generateLoginCaptcha(): array {
     $answer = $op === '+' ? $a + $b : $a - $b;
     $_SESSION['login_captcha'] = [
         'question' => "{$a} {$op} {$b}",
-        'answer_hash' => password_hash((string)$answer, PASSWORD_DEFAULT),
+        'answer_hash' => password_hash((string)$answer, PASSWORD_ARGON2ID),
         'issued_at' => time(),
     ];
     return $_SESSION['login_captcha'];
@@ -1236,7 +1241,7 @@ function generateRecoveryCodes(int $count = 8): array {
 }
 
 function hashRecoveryCodes(array $codes): string {
-    return json_encode(array_map(static fn($code) => password_hash(strtoupper(trim($code)), PASSWORD_DEFAULT), $codes));
+    return json_encode(array_map(static fn($code) => password_hash(strtoupper(trim($code)), PASSWORD_ARGON2ID), $codes));
 }
 
 function verifyAndConsumeRecoveryCode(PDO $pdo, int $userId, string $code): bool {
@@ -1341,7 +1346,7 @@ function resetPasswordWithToken(PDO $pdo, string $token, string $password): bool
     if (!$row || (function_exists('validatePasswordPolicy') && validatePasswordPolicy($password) !== [])) return false;
     $pdo->beginTransaction();
     try {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $hash = password_hash($password, PASSWORD_ARGON2ID);
         $pdo->prepare('UPDATE users SET password_hash = ?, session_version = COALESCE(session_version, 1) + 1 WHERE id = ?')
             ->execute([$hash, (int)$row['user_id']]);
         $pdo->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?')

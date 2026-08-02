@@ -3,6 +3,21 @@
   const blockedWords = ['kurw', 'chuj', 'huj', 'pierd', 'jeb', 'spier', 'wypier', 'cwel', 'dziwk', 'kutas', 'skurw', 'zjeb', 'debil', 'idiot', 'szmata', 'dupa', 'ruchac', 'fuck', 'shit', 'bitch', 'cunt', 'asshole', 'bastard', 'retard', 'whore', 'slut', 'nigg', 'nazi', 'hitler', 'puta', 'puto', 'mierda', 'cabron', 'scheisse', 'arschloch', 'putain', 'merde', 'blyat', 'pidor'];
   const sandboxBlockedElements = window.sandboxBlockedElements || {};
 
+  const safeSessionStorage = {
+    getItem(key) {
+      try { return window.sessionStorage.getItem(key); }
+      catch (e) { return null; }
+    },
+    setItem(key, value) {
+      try { window.sessionStorage.setItem(key, value); }
+      catch (e) {}
+    },
+    removeItem(key) {
+      try { window.sessionStorage.removeItem(key); }
+      catch (e) {}
+    }
+  };
+
   function normalizeText(value) {
     return String(value || '')
       .toLowerCase()
@@ -212,407 +227,7 @@
       truthTable.innerHTML = `<thead><tr>${labels.map((label) => `<th>${escapeHtml(label)}</th>`).join('')}<th>Y</th></tr></thead><tbody>${rows.map((row) => `<tr>${labels.map((label) => `<td>${row.overrides[label] ? 1 : 0}</td>`).join('')}<td><strong>${row.out}</strong></td></tr>`).join('')}</tbody>`;
     };
 
-    const exportLogicPdf = () => {
-      render();
-      requestAnimationFrame(() => {
-        const boardClone = board.cloneNode(true);
-        boardClone.removeAttribute('id');
-        boardClone.style.width = `${Math.max(board.clientWidth, board.scrollWidth, BASE_WIDTH)}px`;
-        boardClone.style.minHeight = `${Math.max(board.clientHeight, board.scrollHeight, BASE_HEIGHT)}px`;
-        const exportedAt = new Date().toLocaleString('pl-PL');
-        const popup = window.open('', '_blank', 'width=1200,height=900');
-        if (!popup) {
-          setHint('Przeglądarka zablokowała okno PDF. Zezwól na wyskakujące okna.', 'danger');
-          return;
-        }
 
-        const baseHref = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-        const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-          .map(link => link.outerHTML)
-          .join('\n');
-
-        popup.document.write(`<!doctype html>
-<html lang="pl">
-<head>
-  <meta charset="utf-8">
-  <base href="${baseHref}">
-  <title>Układ logiczny - Raport Techniczny</title>
-  ${stylesheets}
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
-    
-    @page {
-      size: A4 landscape;
-      margin: 12mm 15mm;
-    }
-    
-    * {
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: #ffffff;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      color: #0f172a;
-    }
-
-    /* Print Visibility Resets */
-    @media print {
-      body.pdf-generator-page,
-      body.pdf-generator-page * {
-        visibility: visible !important;
-        display: revert !important;
-      }
-      body.pdf-generator-page .pdf-wrapper { display: block !important; }
-      body.pdf-generator-page .logic-node { display: flex !important; }
-      body.pdf-generator-page .logic-port { display: block !important; }
-      body.pdf-generator-page .logic-node-delete { display: none !important; }
-      body.pdf-generator-page button:not(.logic-port):not(.logic-switch) { display: none !important; }
-    }
-
-    .pdf-wrapper {
-      max-width: 100%;
-      margin: 0 auto;
-    }
-
-    /* Header Section */
-    .pdf-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 3px solid #1e293b;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-    }
-
-    .pdf-brand {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .pdf-logo-box {
-      width: 48px;
-      height: 48px;
-      background: #0f172a;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      font-size: 24px;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
-    }
-
-    .pdf-title-group strong {
-      display: block;
-      font-size: 24px;
-      font-weight: 900;
-      letter-spacing: -0.5px;
-      color: #0f172a;
-      line-height: 1.1;
-      text-transform: uppercase;
-    }
-
-    .pdf-title-group span {
-      display: block;
-      margin-top: 4px;
-      color: #64748b;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .pdf-meta-data {
-      text-align: right;
-      font-size: 11px;
-      line-height: 1.6;
-      color: #475569;
-      font-family: 'JetBrains Mono', monospace;
-      background: #f8fafc;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .pdf-meta-data strong {
-      color: #0f172a;
-      font-weight: 700;
-    }
-
-    /* Section Titles */
-    .section-title {
-      font-size: 16px;
-      font-weight: 800;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 16px 0;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .section-title i {
-      color: #2563eb;
-      background: #eff6ff;
-      padding: 6px;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    /* Canvas (Blueprint Style) */
-    .canvas-container {
-      width: 100%;
-      border: 2px solid #cbd5e1;
-      border-radius: 12px;
-      background-color: #f8fafc;
-      background-image: 
-        linear-gradient(rgba(148, 163, 184, 0.15) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, 0.15) 1px, transparent 1px);
-      background-size: 20px 20px;
-      box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
-      margin-bottom: 32px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .logic-canvas {
-      border: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      margin: 0 !important;
-    }
-
-    /* Overriding Logic Node Print Styles for Premium Look */
-    .logic-node {
-      border: 2px solid #334155 !important;
-      border-radius: 8px !important;
-      background: #ffffff !important;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
-      padding: 12px 16px !important;
-    }
-
-    .logic-node-header strong {
-      font-family: 'JetBrains Mono', monospace !important;
-      font-size: 12px !important;
-      color: #0f172a !important;
-    }
-
-    .logic-gate-label {
-      color: #2563eb !important;
-      font-weight: 900 !important;
-      letter-spacing: 1px !important;
-    }
-
-    .logic-port {
-      border: 2px solid #64748b !important;
-      background: #f8fafc !important;
-    }
-
-    .logic-port.is-on {
-      border-color: #059669 !important;
-      background: #d1fae5 !important;
-    }
-
-    .logic-wire-path {
-      stroke: #334155 !important;
-      stroke-width: 3px !important;
-    }
-
-    .logic-wire-path.is-active {
-      stroke: #10b981 !important;
-      stroke-width: 4px !important;
-    }
-
-    .logic-switch {
-      font-family: 'JetBrains Mono', monospace !important;
-      border: 2px solid #cbd5e1 !important;
-      background: #f1f5f9 !important;
-      color: #475569 !important;
-    }
-
-    .logic-switch.is-on {
-      border-color: #059669 !important;
-      background: #10b981 !important;
-      color: #ffffff !important;
-    }
-
-    .logic-led {
-      border: 2px solid #94a3b8 !important;
-      background: #f1f5f9 !important;
-      box-shadow: none !important;
-    }
-
-    .logic-led.is-on {
-      border-color: #059669 !important;
-      background: #10b981 !important;
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4) !important;
-    }
-
-    /* Truth Table Premium Styling */
-    .truth-table-wrapper {
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      page-break-inside: avoid;
-    }
-
-    .truth-table-wrapper table {
-      width: 100%;
-      border-collapse: collapse;
-      font-family: 'JetBrains Mono', monospace;
-      text-align: center;
-      background: #ffffff;
-    }
-
-    .truth-table-wrapper th {
-      background: #f1f5f9;
-      color: #334155;
-      font-weight: 700;
-      font-size: 12px;
-      padding: 12px 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid #cbd5e1;
-      border-right: 1px solid #e2e8f0;
-    }
-
-    .truth-table-wrapper th:last-child {
-      border-right: none;
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-
-    .truth-table-wrapper td {
-      padding: 12px 16px;
-      font-size: 13px;
-      color: #475569;
-      border-bottom: 1px solid #f1f5f9;
-      border-right: 1px solid #f1f5f9;
-    }
-
-    .truth-table-wrapper td:last-child {
-      border-right: none;
-      background: #f8fafc;
-      font-weight: 700;
-      color: #0f172a;
-      border-left: 2px solid #e2e8f0;
-    }
-
-    .truth-table-wrapper tr:last-child td {
-      border-bottom: none;
-    }
-
-    .truth-table-wrapper tr:nth-child(even) td:not(:last-child) {
-      background: #fafafa;
-    }
-
-    /* State Badges */
-    .val-1 {
-      background: #d1fae5;
-      color: #047857;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-weight: 800;
-      font-size: 12px;
-      border: 1px solid #a7f3d0;
-      display: inline-block;
-      min-width: 32px;
-    }
-
-    .val-0 {
-      background: #f1f5f9;
-      color: #64748b;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 12px;
-      border: 1px solid #e2e8f0;
-      display: inline-block;
-      min-width: 32px;
-    }
-  </style>
-</head>
-<body class="pdf-generator-page">
-  <div class="pdf-wrapper">
-    
-    <header class="pdf-header">
-      <div class="pdf-brand">
-        <div class="pdf-logo-box"><i class="bi bi-cpu-fill"></i></div>
-        <div class="pdf-title-group">
-          <strong>ZSEM Tech</strong>
-          <span>Raport Analizy Logicznej</span>
-        </div>
-      </div>
-      <div class="pdf-meta-data">
-        <div>ID RAPORTU: <strong>LGC-${Math.floor(Math.random()*9000)+1000}</strong></div>
-        <div>DATA GENERACJI: <strong>${escapeHtml(exportedAt)}</strong></div>
-        <div>PROJEKT: <strong>Układ Cyfrowy (Symulator)</strong></div>
-      </div>
-    </header>
-    
-    <h2 class="section-title"><i class="bi bi-diagram-3"></i> Schemat blokowy układu</h2>
-    <div class="canvas-container canvas-wrapper">
-      ${boardClone.outerHTML}
-    </div>
-    
-    <h2 class="section-title"><i class="bi bi-table"></i> Tabela stanów logicznych (Tabela prawdy)</h2>
-    <div class="truth-table-wrapper">
-      ${truthTable.outerHTML}
-    </div>
-
-  </div>
-
-  <script>
-    window.onload = function() {
-      const canvas = document.querySelector('.logic-canvas');
-      const wrapper = document.querySelector('.canvas-wrapper');
-      if (canvas && wrapper) {
-        setTimeout(() => {
-          const wrapperWidth = wrapper.clientWidth;
-          const canvasWidth = canvas.scrollWidth || canvas.clientWidth;
-          if (canvasWidth > wrapperWidth && wrapperWidth > 0) {
-            const scale = wrapperWidth / canvasWidth;
-            canvas.style.transform = 'scale(' + scale + ')';
-            canvas.style.transformOrigin = 'top left';
-            wrapper.style.height = (canvas.clientHeight * scale) + 'px';
-          } else {
-            wrapper.style.height = canvas.clientHeight + 'px';
-          }
-        }, 50);
-      }
-      
-      document.querySelectorAll('.truth-table-container td').forEach(td => {
-        const text = td.textContent.trim();
-        if (text === '1') {
-          td.innerHTML = '<span class="val-1">1</span>';
-        } else if (text === '0') {
-          td.innerHTML = '<span class="val-0">0</span>';
-        }
-      });
-      
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => {
-          setTimeout(() => window.print(), 200);
-        });
-      } else {
-        setTimeout(() => window.print(), 500);
-      }
-    };
-  </script>
-</body>
-</html>`);
-        popup.document.close();
-        popup.focus();
-      });
-    };
 
     const render = () => {
       syncBoardSize();
@@ -781,7 +396,6 @@
       render();
     });
     $('logicDemo')?.addEventListener('click', seedDemo);
-    $('logicExportPdf')?.addEventListener('click', exportLogicPdf);
     window.addEventListener('resize', () => {
       syncBoardSize();
       renderWires();
@@ -1062,15 +676,15 @@
     const summary = $('routerSummary');
     const save = $('routerSaveConfig');
     if (!status || !summary || !save) {
-      sessionStorage.removeItem(routerStorageKey);
+      safeSessionStorage.removeItem(routerStorageKey);
       return;
     }
 
     const navType = performance.getEntriesByType?.('navigation')?.[0]?.type || '';
-    if (sessionStorage.getItem(`${routerStorageKey}.left`) === '1' && navType !== 'reload') {
-      sessionStorage.removeItem(routerStorageKey);
+    if (safeSessionStorage.getItem(`${routerStorageKey}.left`) === '1' && navType !== 'reload') {
+      safeSessionStorage.removeItem(routerStorageKey);
     }
-    sessionStorage.removeItem(`${routerStorageKey}.left`);
+    safeSessionStorage.removeItem(`${routerStorageKey}.left`);
 
     const fields = [
       'routerWanType',
@@ -1105,7 +719,7 @@
     const snapshot = () => Object.fromEntries(fields.map((id) => [id, read(id)]));
     const restoreConfig = () => {
       try {
-        const saved = JSON.parse(sessionStorage.getItem(routerStorageKey) || 'null');
+        const saved = JSON.parse(safeSessionStorage.getItem(routerStorageKey) || 'null');
         if (!saved || typeof saved !== 'object') return false;
         fields.forEach((id) => {
           if (Object.prototype.hasOwnProperty.call(saved, id)) write(id, saved[id]);
@@ -1114,7 +728,7 @@
         status.classList.add('is-saved');
         return true;
       } catch (error) {
-        sessionStorage.removeItem(routerStorageKey);
+        safeSessionStorage.removeItem(routerStorageKey);
         return false;
       }
     };
@@ -1146,12 +760,12 @@
     });
     save.addEventListener('click', () => {
       sync();
-      sessionStorage.setItem(routerStorageKey, JSON.stringify(snapshot()));
+      safeSessionStorage.setItem(routerStorageKey, JSON.stringify(snapshot()));
       status.textContent = 'Zapisano lokalnie';
       status.classList.add('is-saved');
     });
     window.addEventListener('pagehide', () => {
-      sessionStorage.setItem(`${routerStorageKey}.left`, '1');
+      safeSessionStorage.setItem(`${routerStorageKey}.left`, '1');
     });
     restoreConfig();
     sync();
@@ -1220,18 +834,18 @@
         css: $('cssCode').value,
         js: $('jsCode').value
       };
-      sessionStorage.setItem(draftKey, JSON.stringify(payload));
+      safeSessionStorage.setItem(draftKey, JSON.stringify(payload));
     };
     const restoreDraft = () => {
       try {
-        const payload = JSON.parse(sessionStorage.getItem(draftKey) || 'null');
+        const payload = JSON.parse(safeSessionStorage.getItem(draftKey) || 'null');
         if (!payload) return;
         if (typeof payload.html === 'string') $('htmlCode').value = payload.html;
         if (typeof payload.css === 'string') $('cssCode').value = payload.css;
         if (typeof payload.js === 'string') $('jsCode').value = payload.js;
       } catch (_) {}
     };
-    const clearDraft = () => sessionStorage.removeItem(draftKey);
+    const clearDraft = () => safeSessionStorage.removeItem(draftKey);
     document.querySelectorAll('.sandbox-tabs a, .sandbox-tool-tile').forEach((link) => {
       link.addEventListener('click', () => {
         if (!String(link.getAttribute('href') || '').includes('tool=live')) clearDraft();
@@ -1378,14 +992,14 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    initLogic();
-    initPsu();
-    initSubnet();
-    initRouterWebEmulator();
-    initRouter();
-    initNumbers();
-    initOhm();
-    initLive();
-    initCrypto();
+    try { initLogic(); } catch (e) { console.error('Failed to init Logic:', e); }
+    try { initPsu(); } catch (e) { console.error('Failed to init Psu:', e); }
+    try { initSubnet(); } catch (e) { console.error('Failed to init Subnet:', e); }
+    try { initRouterWebEmulator(); } catch (e) { console.error('Failed to init RouterWebEmulator:', e); }
+    try { initRouter(); } catch (e) { console.error('Failed to init Router:', e); }
+    try { initNumbers(); } catch (e) { console.error('Failed to init Numbers:', e); }
+    try { initOhm(); } catch (e) { console.error('Failed to init Ohm:', e); }
+    try { initLive(); } catch (e) { console.error('Failed to init Live:', e); }
+    try { initCrypto(); } catch (e) { console.error('Failed to init Crypto:', e); }
   });
 }());

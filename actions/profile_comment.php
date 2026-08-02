@@ -9,7 +9,7 @@ requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? '')) {
     setSessionMessage('error', 'Błąd bezpieczeństwa.');
-    redirect('../profile.php');
+    redirect('../user/profile.php');
 }
 
 $userId = (int)$_SESSION['user_id'];
@@ -28,17 +28,17 @@ try {
             $stmt->execute([$commentId, $userId]);
         }
         setSessionMessage('success', 'Komentarz został usunięty.');
-        redirect('../profile.php?id=' . $profileId);
+        redirect('../user/profile.php?id=' . $profileId);
     }
 
     $text = trim($_POST['comment_text'] ?? '');
     if ($text === '' || mb_strlen($text) > 100) {
         setSessionMessage('error', 'Komentarz musi mieć od 1 do 100 znaków.');
-        redirect('../profile.php?id=' . $profileId);
+        redirect('../user/profile.php?id=' . $profileId);
     }
     if (containsProfanity($text)) {
         setSessionMessage('error', 'Komentarz zawiera niedozwolone słowa.');
-        redirect('../profile.php?id=' . $profileId);
+        redirect('../user/profile.php?id=' . $profileId);
     }
 
     try {
@@ -47,7 +47,7 @@ try {
         $allowComments = $stmt->fetchColumn();
         if ($allowComments !== false && (int)$allowComments !== 1 && $profileId !== $userId && !roleHasAdminAccess($_SESSION['role'] ?? 'user')) {
             setSessionMessage('error', 'Ten użytkownik wyłączył komentarze pod profilem.');
-            redirect('../profile.php?id=' . $profileId);
+            redirect('../user/profile.php?id=' . $profileId);
         }
     } catch (PDOException $e) {
         // Older schema without this column keeps comments enabled.
@@ -57,7 +57,7 @@ try {
     $countStmt->execute([$profileId]);
     if ((int)$countStmt->fetchColumn() >= 20) {
         setSessionMessage('error', 'Ten profil ma już maksymalnie 20 komentarzy.');
-        redirect('../profile.php?id=' . $profileId);
+        redirect('../user/profile.php?id=' . $profileId);
     }
 
     $stmt = $pdo->prepare("INSERT INTO profile_comments (profile_user_id, author_id, comment_text) VALUES (?, ?, ?)");
@@ -68,4 +68,4 @@ try {
     setSessionMessage('error', 'Nie udało się zapisać komentarza. Sprawdź, czy full_schema.sql został zaimportowany.');
 }
 
-redirect('../profile.php?id=' . $profileId);
+redirect('../user/profile.php?id=' . $profileId);

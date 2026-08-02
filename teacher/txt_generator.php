@@ -11,23 +11,17 @@ if (!in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'])) {
     die("Unauthorized");
 }
 ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generator Bazy Pytań – ZSEM Tech</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
-    <style>
+<?php
+$pageTitle = 'Generator Bazy Pytań – ZSEM Tech';
+$extraCss = ['assets/css/dashboard-new.css'];
+$extraHead = <<<HTML
+<style>
         .question-entry { border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; background: var(--panel-bg); }
         .sticky-bottom-bar { position: sticky; bottom: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 1rem; border-top: 1px solid var(--border-color); z-index: 100; margin: 0 -1.5rem; }
     </style>
-</head>
-<body>
+HTML;
+include '../includes/header.php';
+?>
     <div class="dashboard-layout">
         <?php include '../includes/sidebar.php'; ?>
         <div class="main-container">

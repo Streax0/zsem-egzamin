@@ -666,12 +666,17 @@ CREATE TABLE user_education (
 CREATE TABLE user_certificates (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
+    course_id INT DEFAULT NULL,
     name VARCHAR(160) NOT NULL,
     organization VARCHAR(160) NOT NULL,
+    certificate_code VARCHAR(64) DEFAULT NULL,
     obtained_date DATE DEFAULT NULL,
     description TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE SET NULL,
+    UNIQUE KEY uk_user_course (user_id, course_id),
+    UNIQUE KEY uk_cert_code (certificate_code),
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1021,4 +1026,122 @@ CREATE TABLE IF NOT EXISTS luki_spins (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_user_date (user_id, spin_date),
     INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS courses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    content LONGTEXT,
+    created_by INT DEFAULT NULL,
+    image_url VARCHAR(255) DEFAULT NULL,
+    category VARCHAR(100) DEFAULT NULL,
+    difficulty ENUM('beginner', 'intermediate', 'advanced') DEFAULT NULL,
+    estimated_hours INT UNSIGNED DEFAULT NULL,
+    status ENUM('active', 'hidden', 'private') NOT NULL DEFAULT 'hidden',
+    sequential_learning TINYINT(1) NOT NULL DEFAULT 0,
+    has_certificate TINYINT(1) NOT NULL DEFAULT 1,
+    start_date DATE DEFAULT NULL,
+    end_date DATE DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_status (status),
+    INDEX idx_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS course_shares (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    course_id INT NOT NULL,
+    shared_with_user_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (shared_with_user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_course_share (course_id, shared_with_user_id),
+    INDEX idx_course_share_user (shared_with_user_id, course_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+CREATE TABLE IF NOT EXISTS course_modules (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    course_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    INDEX idx_course_sort (course_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS course_custom_labs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    tool_key VARCHAR(50) NOT NULL,
+    instructions TEXT NOT NULL,
+    topology_data LONGTEXT NULL,
+    is_private TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS course_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    module_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    type ENUM('text', 'video', 'quiz', 'lab', 'exam') NOT NULL,
+    content LONGTEXT NULL,
+    video_url VARCHAR(255) NULL,
+    quiz_passing_score INT NOT NULL DEFAULT 70,
+    lab_source ENUM('sandbox', 'custom') DEFAULT 'sandbox',
+    lab_tool_key VARCHAR(50) NULL,
+    lab_custom_id INT NULL,
+    lab_instructions TEXT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (module_id) REFERENCES course_modules(id) ON DELETE CASCADE,
+    FOREIGN KEY (lab_custom_id) REFERENCES course_custom_labs(id) ON DELETE SET NULL,
+    INDEX idx_module_sort (module_id, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS course_quiz_questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    item_id INT NOT NULL,
+    question_text TEXT NOT NULL,
+    option_a VARCHAR(255) NOT NULL,
+    option_b VARCHAR(255) NOT NULL,
+    option_c VARCHAR(255) DEFAULT NULL,
+    option_d VARCHAR(255) DEFAULT NULL,
+    correct_answer ENUM('A', 'B', 'C', 'D') NOT NULL,
+    explanation TEXT NULL,
+    FOREIGN KEY (item_id) REFERENCES course_items(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_course_enrollments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    course_id INT NOT NULL,
+    status ENUM('active', 'completed') NOT NULL DEFAULT 'active',
+    progress_percent INT NOT NULL DEFAULT 0,
+    enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_user_course (user_id, course_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_course_progress (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    course_id INT NOT NULL,
+    item_id INT NOT NULL,
+    status ENUM('started', 'completed') NOT NULL DEFAULT 'started',
+    quiz_score INT NULL,
+    quiz_attempts INT NOT NULL DEFAULT 0,
+    completed_at DATETIME NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES course_items(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_user_item (user_id, item_id),
+    INDEX idx_user_course_progress (user_id, course_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
