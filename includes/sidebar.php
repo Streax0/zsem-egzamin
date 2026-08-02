@@ -4,8 +4,10 @@ $base_url = file_exists('config/db.php') ? '' : '../';
 $isGuestSidebar = function_exists('isGuestMode') && isGuestMode();
 $isFullyLoggedOut = !isset($_SESSION['user_id']) && !$isGuestSidebar;
 
-function isActive($path, $php_self) {
-    return strpos($php_self, $path) !== false ? 'active' : '';
+if (!function_exists('isActive')) {
+    function isActive($path, $php_self) {
+        return strpos($php_self, $path) !== false ? 'active' : '';
+    }
 }
 ?>
 <a class="skip-link" href="#main-content">Przejdź do treści</a>
@@ -154,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <i class="bi bi-shield-lock"></i>
                     <span>Panel Admin</span>
                 </a>
+                <a href="<?php echo $base_url; ?>admin/engine.php" class="sidebar-item <?php echo isActive('/admin/engine.php', $php_self); ?>"><i class="bi bi-cpu"></i> <span>Silnik i Security</span></a>
                 <a href="<?php echo $base_url; ?>admin/manage_questions.php" class="sidebar-item <?php echo isActive('/admin/manage_questions.php', $php_self); ?>">
                     <i class="bi bi-database-gear"></i>
                     <span>Baza Pytań</span>

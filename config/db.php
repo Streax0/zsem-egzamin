@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../includes/autoloader.php';
+
 // Database configuration: server environment wins over the optional local .env file.
 function loadLocalEnvFile(string $path): void {
     if (!is_file($path) || is_link($path) || !is_readable($path)) return;
@@ -249,11 +251,18 @@ $appDbConfig = [
     'ssl_key' => configValue('MYSQL_SSL_KEY'),
 ];
 
-if (!defined('APP_DB_SKIP_CONNECT') || APP_DB_SKIP_CONNECT !== true) {
+if (defined('APP_DB_SKIP_CONNECT') && APP_DB_SKIP_CONNECT === true) {
+    if (!\App\Core\Engine::getInstance()->isBooted()) {
+        \App\Core\Engine::getInstance()->boot();
+    }
+} else {
     try {
         appDbValidateConnectionConfig($appDbConfig, DB_USER, DB_PASS, APP_ENV);
         $pdo = new PDO(appDbBuildDsn($appDbConfig), DB_USER, DB_PASS, appDbPdoOptions($appDbConfig));
         appDbConfigureSession($pdo, APP_ENV);
+        if (!\App\Core\Engine::getInstance()->isBooted()) {
+            \App\Core\Engine::getInstance()->boot();
+        }
     } catch (Throwable $error) {
         error_log('Database connection failed.');
         appDbWriteFailureLog($error);
@@ -269,5 +278,22 @@ if (!defined('APP_DB_SKIP_CONNECT') || APP_DB_SKIP_CONNECT !== true) {
             header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
         }
         die('Błąd połączenia z bazą danych. Spróbuj ponownie później.');
+    }
+}
+
+if (!function_exists('dbQueryCached')) {
+    function dbQueryCached(\PDO $pdo, string $sql, array $params = [], int $ttl = 300, bool $fetchOne = false) {
+        $cacheKey = 'sql_' . md5($sql . '|' . json_encode($params));
+        $cache = \App\Core\Engine::getInstance()->getCache();
+        if ($cache) {
+            return $cache->remember($cacheKey, $ttl, function() use ($pdo, $sql, $params, $fetchOne) {
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
+                return $fetchOne ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            });
+        }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $fetchOne ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

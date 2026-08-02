@@ -1,0 +1,13 @@
+{
+    "maintenance_mode": false,
+    "minification_enabled": true,
+    "compression_enabled": true,
+    "waf_level": "medium",
+    "csrf_enforced": true,
+    "session_shield_enabled": true,
+    "rate_limit_per_minute": 120,
+    "asset_version": "1.0.0",
+    "honeypot_enabled": true,
+    "ip_whitelist": [],
+    "ip_blacklist": []
+}

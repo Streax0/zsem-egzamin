@@ -1,0 +1,46 @@
+[
+    {
+        "timestamp": 1785694857,
+        "ip": "127.0.0.1",
+        "uri": "",
+        "method": "GET",
+        "source": "GET",
+        "param": "test_param",
+        "attack_type": "xss",
+        "payload": "<script>alert('xss')</script>",
+        "level": "strict"
+    },
+    {
+        "timestamp": 1785694936,
+        "ip": "127.0.0.1",
+        "uri": "",
+        "method": "GET",
+        "source": "GET",
+        "param": "search",
+        "attack_type": "sqli",
+        "payload": "test\"; DROP TABLE users; --",
+        "level": "medium"
+    },
+    {
+        "timestamp": 1785695174,
+        "ip": "127.0.0.1",
+        "uri": "",
+        "method": "GET",
+        "source": "GET",
+        "param": "malicious",
+        "attack_type": "sqli",
+        "payload": "SELECT * FROM users WHERE 1=1; DROP TABLE users;",
+        "level": "strict"
+    },
+    {
+        "timestamp": 1785695174,
+        "ip": "127.0.0.1",
+        "uri": "",
+        "method": "POST",
+        "source": "GET",
+        "param": "malicious",
+        "attack_type": "sqli",
+        "payload": "SELECT * FROM users WHERE 1=1; DROP TABLE users;",
+        "level": "medium"
+    }
+]
