@@ -86,9 +86,6 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                     <span>ZSEM Tech</span>
                 </a>
                 <div class="mt-4">
-                    <div class="auth-badge-tag">
-                        <span class="badge-dot"></span> PLATFORMA EDUKACYJNA 2026
-                    </div>
                     <h1>Wejdź do panelu ZSEM Tech</h1>
                     <p class="text-muted fs-5 mb-0">Oficjalny portal przygotowania do kwalifikacji zawodowych INF i EE. Rozwiązuj testy, sprawdziany i śledź swój progres.</p>
                 </div>
@@ -132,7 +129,7 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                 </div>
             <?php endif; ?>
 
-            <form method="POST" data-kappicrypt="true">
+            <form method="POST" data-kappicrypt="true" data-kappicrypt-badge="false">
                 <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                 
                 <div class="mb-4 auth-input-group has-icon">

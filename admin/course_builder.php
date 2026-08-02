@@ -200,7 +200,7 @@ $csrfToken = generateCsrfToken('course_admin');
                     <?php if ($isExtCourse): ?>
                         <div class="p-3 bg-warning bg-opacity-10 border-bottom border-warning text-dark small">
                             <i class="bi bi-info-circle-fill text-warning me-1"></i>
-                            <strong>Kurs Zewnętrzny:</strong> Treści dydaktyczne i lekcje znajdują się na zewnętrznym serwisie. W tym edytorze możesz dodać jedynie opcjonalny Egzamin końcowy ZSEM TECH.
+                            <strong>Kurs Zewnętrzny:</strong> Treści dydaktyczne znajdują się na zewnętrznym serwisie. W tym edytorze możesz zdefiniować program kursu (tematy i moduły) oraz dodać opcjonalny Egzamin końcowy ZSEM TECH.
                         </div>
                     <?php endif; ?>
 

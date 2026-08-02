@@ -37,21 +37,11 @@ if ($questionId <= 0) {
 }
 
 try {
-    // Check if progress record exists and is in progress
-    $stmt = $pdo->prepare("SELECT id, is_mastered FROM user_question_progress WHERE user_id = :user_id AND question_id = :question_id");
-    $stmt->execute(['user_id' => $userId, 'question_id' => $questionId]);
-    $progress = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$progress) {
-        echo securityJsonEncode(['success' => false, 'error' => 'Pytanie nie jest jeszcze śledzone. Najpierw rozwiąż je, aby móc je oznaczyć jako opanowane.']);
-        exit;
-    }
-    if ((int)$progress['is_mastered'] === 1) {
-        echo securityJsonEncode(['success' => false, 'error' => 'Pytanie jest już opanowane.']);
-        exit;
-    }
-
-    $updateStmt = $pdo->prepare("UPDATE user_question_progress SET is_mastered = 1 WHERE user_id = :user_id AND question_id = :question_id");
+    $updateStmt = $pdo->prepare("
+        INSERT INTO user_question_progress (user_id, question_id, is_mastered, last_seen) 
+        VALUES (:user_id, :question_id, 1, NOW()) 
+        ON DUPLICATE KEY UPDATE is_mastered = 1, last_seen = NOW()
+    ");
     $updateStmt->execute(['user_id' => $userId, 'question_id' => $questionId]);
     
     echo securityJsonEncode(['success' => true]);

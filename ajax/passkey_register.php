@@ -42,9 +42,19 @@ $WebAuthn = new WebAuthn($rpName, $rpId, ['android-key', 'android-safetynet', 'a
 if ($action === 'generate') {
     $username = $_SESSION['username'];
     
-    // Ustawiamy $requireResidentKey = true, aby umożliwić logowanie bez podawania loginu
+    // Pobierz istniejące klucze użytkownika, aby zapobiec ponownej rejestracji tego samego klucza (excludeCredentials)
+    $existingStmt = $pdo->prepare("SELECT credential_id FROM user_passkeys WHERE user_id = ?");
+    $existingStmt->execute([$userId]);
+    $excludeCredentialIds = [];
+    while ($row = $existingStmt->fetch(PDO::FETCH_ASSOC)) {
+        $decoded = base64_decode($row['credential_id']);
+        if ($decoded !== false) {
+            $excludeCredentialIds[] = $decoded;
+        }
+    }
+    
     try {
-        $createArgs = $WebAuthn->getCreateArgs((string)$userId, $username, $username, 20, true, false, null);
+        $createArgs = $WebAuthn->getCreateArgs((string)$userId, $username, $username, 20, true, false, null, $excludeCredentialIds);
         $_SESSION['webauthn_challenge'] = $WebAuthn->getChallenge();
         
         echo securityJsonEncode(['status' => 'success', 'options' => $createArgs]);
@@ -71,6 +81,15 @@ if ($action === 'verify') {
         $credentialId = base64_encode($data->credentialId);
         $credentialPublicKey = $data->credentialPublicKey;
         
+        // Sprawdź, czy klucz już istnieje w bazie
+        $checkStmt = $pdo->prepare("SELECT id FROM user_passkeys WHERE user_id = ? AND credential_id = ?");
+        $checkStmt->execute([$userId, $credentialId]);
+        if ($checkStmt->fetch()) {
+            unset($_SESSION['webauthn_challenge']);
+            echo securityJsonEncode(['status' => 'success', 'message' => 'Ten klucz Passkey jest już zarejestrowany na Twoim koncie.']);
+            exit;
+        }
+
         // Zapis do bazy
         $stmt = $pdo->prepare("INSERT INTO user_passkeys (user_id, credential_id, public_key, device_name) VALUES (?, ?, ?, ?)");
         $stmt->execute([$userId, $credentialId, $credentialPublicKey, $deviceName]);
@@ -81,7 +100,7 @@ if ($action === 'verify') {
     } catch (WebAuthnException $e) {
         echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd weryfikacji WebAuthn: ' . $e->getMessage()]);
     } catch (PDOException $e) {
-        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd bazy danych: Passkey może już istnieć.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd bazy danych: Ten klucz Passkey może już istnieć.']);
     } catch (Throwable $e) {
         echo securityJsonEncode(['status' => 'error', 'message' => 'Wystąpił nieoczekiwany błąd: ' . $e->getMessage()]);
     }

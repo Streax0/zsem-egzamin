@@ -150,9 +150,6 @@ $csrf_token = generateCsrfToken();
                     <span>ZSEM Tech</span>
                 </a>
                 <div class="mt-4">
-                    <div class="auth-badge-tag">
-                        <span class="badge-dot"></span> NOWE KONTO UCZNIA &amp; NAUCZYCIELA
-                    </div>
                     <h1>Dołącz do panelu nauki</h1>
                     <p class="text-muted fs-5 mb-0">Załóż darmowe konto, rozwiązuj testy zawodowe, zdobywaj poziomy XP i rywalizuj w duelach z klasą.</p>
                 </div>
@@ -189,7 +186,7 @@ $csrf_token = generateCsrfToken();
                 </div>
             <?php endif; ?>
 
-            <form method="POST" id="registerForm" data-kappicrypt="true">
+            <form method="POST" id="registerForm" data-kappicrypt="true" data-kappicrypt-badge="false">
                 <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                 
                 <div class="row g-3">

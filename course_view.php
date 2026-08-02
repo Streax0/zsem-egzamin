@@ -149,6 +149,16 @@ include 'includes/header.php';
                                             <i class="bi bi-globe text-warning"></i>
                                             <span>Materiały zewnętrzne</span>
                                         </div>
+                                        <?php if (!empty($structure)): ?>
+                                            <div class="course-meta-pill">
+                                                <i class="bi bi-folder2-open text-primary"></i>
+                                                <span><strong><?php echo count($structure); ?></strong> modułów</span>
+                                            </div>
+                                            <div class="course-meta-pill">
+                                                <i class="bi bi-journal-text text-info"></i>
+                                                <span><strong><?php echo count($items); ?></strong> tematów</span>
+                                            </div>
+                                        <?php endif; ?>
                                         <div class="course-meta-pill">
                                             <i class="bi bi-patch-minus text-secondary"></i>
                                             <span>Brak certyfikatu ZSEM TECH (pracujemy nad tym!)</span>

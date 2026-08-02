@@ -3472,6 +3472,38 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
     return 'ta odpowiedź dotyczy innego aspektu działania systemu i nie jest bezpośrednią przyczyną opisanego problemu.';
 }
 
+function buildCorrectAnswerRationale(string $questionText, string $correctLetter, string $correctText): string {
+    $qLower = mb_strtolower($questionText, 'UTF-8');
+    $aLower = mb_strtolower($correctText, 'UTF-8');
+    
+    if (str_contains($qLower, 'światłowód') || str_contains($aLower, 'ont') || str_contains($aLower, 'gpon') || str_contains($aLower, 'modem światłowodowy')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ terminal ONT / modem światłowodowy konwertuje sygnał optyczny z sieci światłowodowej bezpośrednio na sygnał elektryczny Ethernet w sieci lokalnej LAN.";
+    }
+    if (str_contains($qLower, 'voip') || str_contains($aLower, 'voip')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ bramka VoIP umożliwia podłączenie urządzeń analogowych do sieci pakietowej IP i przekazywanie głosu przez Internet.";
+    }
+    if (str_contains($qLower, 'router') || str_contains($aLower, 'router')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ router jest urządzeniem warstwy 3. OSI odpowiedzialnym za trasowanie pakietów między różnymi sieciami IP.";
+    }
+    if (str_contains($qLower, 'switch') || str_contains($qLower, 'przełącznik') || str_contains($aLower, 'switch') || str_contains($aLower, 'przełącznik')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ przełącznik (switch) działa w warstwie 2. OSI i przekazuje ramki na podstawie adresów MAC wewnątrz sieci lokalnej.";
+    }
+    if (str_contains($qLower, 'maska') || str_contains($aLower, 'maska')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, gdyż maska podsieci wyznacza granicę między częścią sieciową a częścią hosta w adresie IP.";
+    }
+    if (str_contains($qLower, 'dhcp') || str_contains($aLower, 'dhcp')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ protokół DHCP automatycznie przydziela konfigurację IP klientom w sieci.";
+    }
+    if (str_contains($qLower, 'dns') || str_contains($aLower, 'dns')) {
+        return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna, ponieważ usługa DNS tłumaczy alfanumeryczne nazwy domenowe na adresy IP.";
+    }
+    
+    if ($correctText !== '') {
+        return "Prawidłowym rozwiązaniem tego pytania jest odpowiedź {$correctLetter}: {$correctText}, która bezpośrednio spełnia kryteria opisanego problemu.";
+    }
+    return "Poprawna odpowiedź to {$correctLetter}.";
+}
+
 function buildQuestionExplanation(array $question, string $userAnswer = '', ?bool $isCorrect = null): string {
     $existing = trim((string)($question['explanation'] ?? ''));
     if ($existing !== '') return $existing;
@@ -3483,18 +3515,15 @@ function buildQuestionExplanation(array $question, string $userAnswer = '', ?boo
     $questionText = trim((string)($question['question_text'] ?? ($question['question'] ?? '')));
 
     $correctLabel = $correctText !== '' ? "{$correct}. {$correctText}" : $correct;
-    $parts = ["Wyjaśnienie:"];
-    $parts[] = $correctText !== ''
-        ? "• Poprawna odpowiedź: {$correctLabel}."
-        : "• Poprawna odpowiedź: {$correct}.";
-    if ($questionText !== '') {
-        $parts[] = "Treść pytania: {$questionText}";
-    }
+    $parts = ["Wyjaśnienie i uzasadnienie:"];
+    $parts[] = "• Poprawna odpowiedź: {$correctLabel}.";
+    $parts[] = buildCorrectAnswerRationale($questionText, $correct, $correctText);
+
     if ($user !== '' && $user !== '-' && $user !== $correct) {
         $userLabel = $userText !== '' ? "{$user}. {$userText}" : $user;
         $parts[] = "Wybrano: {$userLabel}.";
     } elseif ($isCorrect === true || ($user !== '' && $user === $correct)) {
-        $parts[] = "Wybrano poprawną odpowiedź.";
+        $parts[] = "Twój wybór jest poprawny.";
     }
     $distractors = [];
     foreach (['A', 'B', 'C', 'D'] as $letter) {

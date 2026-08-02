@@ -320,5 +320,37 @@ document.addEventListener('DOMContentLoaded', function() {
             noResults.classList.toggle('d-none', visibleCount > 0 || term === '');
         });
     }
+
+    // Hide help center button when mouse hovers over or enters footer
+    const footerEl = document.querySelector('footer, .main-footer, .footer-new, .app-footer');
+    if (footerEl && fab) {
+        const hideFab = () => {
+            if (!panel?.classList.contains('show')) {
+                fab.style.opacity = '0';
+                fab.style.pointerEvents = 'none';
+                fab.style.transform = 'scale(0)';
+            }
+        };
+        const showFab = () => {
+            if (!panel?.classList.contains('show')) {
+                fab.style.opacity = '1';
+                fab.style.pointerEvents = 'auto';
+                fab.style.transform = 'scale(1)';
+            }
+        };
+
+        footerEl.addEventListener('mouseenter', hideFab);
+        footerEl.addEventListener('mouseleave', showFab);
+
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) hideFab();
+                    else showFab();
+                });
+            }, { threshold: 0.1 });
+            observer.observe(footerEl);
+        }
+    }
 });
 </script>

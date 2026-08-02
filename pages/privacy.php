@@ -178,7 +178,7 @@ include '../includes/header.php';
                     <p>Użytkownik ma prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych, ul. Stawki 2, 00-193 Warszawa.</p>
                 </section>
 
-                <p class="text-center text-muted small mt-4">Ostatnia aktualizacja: <?= date('d.m.Y') ?> | <a href="pages/terms.php">Regulamin</a></p>
+                <p class="text-center text-muted small mt-4">Ostatnia aktualizacja: <?= date('d.m.Y') ?> | <a href="terms.php">Regulamin</a></p>
             </div>
         </main>
         <?php include '../includes/footer.php'; ?>

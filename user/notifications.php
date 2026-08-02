@@ -126,7 +126,7 @@ include '../includes/header.php';
                         </div>
                         <div class="d-flex gap-2 flex-wrap">
                             <?php if (!empty($notifications)): ?>
-                            <form action="actions/delete_notification.php" method="POST" onsubmit="return appConfirmSubmit(this, 'Usunąć wszystkie powiadomienia?')">
+                            <form action="../actions/delete_notification.php" method="POST" onsubmit="return appConfirmSubmit(this, 'Usunąć wszystkie powiadomienia?')">
                                 <?php echo csrfTokenField(); ?>
                                 <input type="hidden" name="delete_all" value="1">
                                 <button type="submit" class="btn btn-light rounded-pill px-4">
@@ -228,7 +228,7 @@ include '../includes/header.php';
                                                             <i class="bi bi-box-arrow-up-right me-1"></i>Otwórz
                                                         </a>
                                                     <?php endif; ?>
-                                                    <form action="actions/delete_notification.php" method="POST" class="m-0">
+                                                    <form action="../actions/delete_notification.php" method="POST" class="m-0">
                                                         <?php echo csrfTokenField(); ?>
                                                         <input type="hidden" name="notification_id" value="<?php echo (int)$notif['id']; ?>">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" aria-label="Usuń powiadomienie">

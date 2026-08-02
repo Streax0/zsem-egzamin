@@ -34,36 +34,47 @@ $pageTitle = 'Kontakt - ZSEM Tech';
 $extraCss = ['assets/css/dashboard-new.css'];
 $extraHead = <<<HTML
 <style>
+        .contact-info-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(99, 102, 241, 0.92));
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+            overflow: hidden;
+        }
         .contact-icon-box {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             flex-shrink: 0;
-            transition: transform 0.3s ease, background 0.3s ease;
+            transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
         }
         .contact-info-row:hover .contact-icon-box {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px) scale(1.04);
+            background: rgba(255, 255, 255, 0.32);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
         .map-card {
             border-radius: 1.5rem;
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            padding: 1.5rem;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.06);
+            padding: 1.75rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .map-wrapper {
-            border-radius: 1rem;
+            border-radius: 1.2rem;
             overflow: hidden;
             position: relative;
-            min-height: 400px;
+            min-height: 420px;
             border: 1px solid var(--border-color);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
         }
     </style>
 HTML;

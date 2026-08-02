@@ -2106,7 +2106,15 @@ include '../includes/header.php';
             }
         } catch (err) {
             console.error(err);
-            showNotice('Proces rejestracji klucza nie powiódł się: ' + err.message, 'danger');
+            if (err.name === 'InvalidStateError') {
+                showNotice('Ten klucz Passkey (lub urządzenie) został już zarejestrowany dla tego konta (np. zsynchronizowany przez Google/Apple).', 'warning');
+            } else if (err.name === 'NotAllowedError') {
+                showNotice('Rejestracja klucza Passkey została anulowana.', 'info');
+            } else if (err.name === 'SecurityError') {
+                showNotice('Wymagane jest bezpieczne połączenie (HTTPS lub zarejestrowana domena).', 'danger');
+            } else {
+                showNotice('Proces rejestracji klucza nie powiódł się: ' + err.message, 'danger');
+            }
         }
     }
 

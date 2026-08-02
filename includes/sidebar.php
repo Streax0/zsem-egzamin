@@ -37,9 +37,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <aside class="sidebar">
     <div class="sidebar-brand d-flex justify-content-between align-items-center">
         <a href="<?php echo $base_url; ?>index.php" class="d-flex align-items-center gap-2 text-decoration-none zsem-brand" aria-label="ZSEM Tech">
-            <div class="brand-logo-icon">
-                <i class="bi bi-cpu"></i>
-            </div>
             <span class="brand-text">zsemtech</span>
         </a>
         <button class="btn btn-link text-white p-0 d-md-none" id="sidebarClose" type="button" aria-label="Zamknij menu boczne">

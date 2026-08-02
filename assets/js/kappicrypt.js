@@ -115,6 +115,11 @@ class KappiCrypt {
 
     static updateFormSecurityBadges() {
         document.querySelectorAll('form[data-kappicrypt="true"]').forEach(form => {
+            if (form.getAttribute('data-kappicrypt-badge') === 'false') {
+                let existing = form.querySelector('.kappicrypt-security-badge');
+                if (existing) existing.remove();
+                return;
+            }
             let badge = form.querySelector('.kappicrypt-security-badge');
             if (!badge) {
                 badge = document.createElement('div');

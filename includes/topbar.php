@@ -90,10 +90,17 @@ unset($_SESSION['sandbox_element_block_notice']);
                     <h6 class="mb-0 fw-bold">Powiadomienia</h6>
                     <span class="notification-dropdown-sub">Ostatnie aktywności</span>
                 </div>
-                <form action="<?php echo $base_url; ?>actions/mark_read.php" method="POST" class="m-0<?php echo $unreadCount > 0 ? '' : ' d-none'; ?>" id="notificationMarkReadForm">
-                    <?php echo csrfTokenField('notifications'); ?>
-                    <button type="submit" class="btn btn-link notification-mark-read-btn">Oznacz jako przeczytane</button>
-                </form>
+                <div class="d-flex align-items-center gap-2">
+                    <form action="<?php echo $base_url; ?>actions/mark_read.php" method="POST" class="m-0<?php echo $unreadCount > 0 ? '' : ' d-none'; ?>" id="notificationMarkReadForm">
+                        <?php echo csrfTokenField('notifications'); ?>
+                        <button type="submit" class="btn btn-link notification-mark-read-btn p-0 me-2" title="Oznacz jako przeczytane">Przeczytane</button>
+                    </form>
+                    <form action="<?php echo $base_url; ?>actions/delete_notification.php" method="POST" class="m-0<?php echo !empty($notifications) ? '' : ' d-none'; ?>" id="notificationClearAllForm" onsubmit="return appConfirmSubmit(this, 'Usunąć wszystkie powiadomienia?')">
+                        <?php echo csrfTokenField('notifications'); ?>
+                        <input type="hidden" name="delete_all" value="1">
+                        <button type="submit" class="btn btn-link text-danger notification-mark-read-btn p-0" title="Wyczyść powiadomienia">Wyczyść</button>
+                    </form>
+                </div>
             </div>
             <div class="notification-list" id="notificationList" data-poll-interval="2000">
                 <?php if (!$isGuestTopbar && !empty($_SESSION['user_id'])): ?>

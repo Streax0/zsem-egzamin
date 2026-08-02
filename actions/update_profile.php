@@ -49,7 +49,7 @@ $avatarUploaded = false;
 $avatarPath = null;
 $avatarDestination = null;
 
-const AVATAR_MAX_BYTES = 25600;
+const AVATAR_MAX_BYTES = 204800; // Increased limit from AVATAR_MAX_BYTES = 25600 (25 KB) to 200 KB
 
 function saveAvatarWebpWithinLimit($source, int $width, int $height, string $dest): bool {
     $sizes = [512, 384, 320, 256, 192, 160, 128];
@@ -138,17 +138,7 @@ if (empty($errors) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ??
     } elseif (!function_exists('imagewebp')) {
         $errors[] = 'Serwer nie obsługuje konwersji zdjęć do WebP.';
     } else {
-        try {
-            $limitStmt = $pdo->prepare("SELECT avatar_changed_at FROM users WHERE id = ? LIMIT 1");
-            $limitStmt->execute([$userId]);
-            $lastAvatarChange = $limitStmt->fetchColumn();
-            if ($lastAvatarChange && strtotime((string)$lastAvatarChange) > strtotime('-1 month')) {
-                $errors[] = 'Zdjęcie profilowe można zmienić raz na miesiąc.';
-            }
-        } catch (PDOException $e) {
-            error_log('Avatar change limit check failed: ' . $e->getMessage());
-            $errors[] = 'Nie udało się sprawdzić limitu zmiany zdjęcia.';
-        }
+        // Avatar limit check skipped for seamless user avatar updates
         $tmp = (string)($file['tmp_name'] ?? '');
         if (empty($errors) && ($tmp === '' || !is_uploaded_file($tmp))) {
             $errors[] = 'Nieprawidłowy plik zdjęcia profilowego.';

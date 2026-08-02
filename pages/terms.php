@@ -134,7 +134,7 @@ include '../includes/header.php';
                 </div>
 
                 <div class="text-center mt-4">
-                    <small class="text-muted">Ostatnia aktualizacja: <?= date('d.m.Y') ?> &nbsp;|&nbsp; ZSEM Tech &nbsp;|&nbsp; Damian Podgórski i Michał Michalik &nbsp;|&nbsp; <a href="pages/privacy.php">Polityka Prywatności</a></small>
+                    <small class="text-muted">Ostatnia aktualizacja: <?= date('d.m.Y') ?> &nbsp;|&nbsp; ZSEM Tech &nbsp;|&nbsp; Damian Podgórski i Michał Michalik &nbsp;|&nbsp; <a href="privacy.php">Polityka Prywatności</a></small>
                 </div>
             </div>
         </main>

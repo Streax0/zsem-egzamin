@@ -674,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const items = [
         { badge: 'Sprawdzian', title: 'Gotowy na kod od nauczyciela?', text: 'Dołącz do lobby, sprawdź status i rozpocznij bez ręcznego odświeżania.', href: base + 'exam/join.php', icon: 'bi-qr-code-scan', label: 'Dołącz teraz' },
         { badge: 'Nauka', title: 'Zrób krótki trening pytań', text: 'Wybierz kwalifikację, przećwicz materiał i obserwuj postęp.', href: base + 'categories.php', icon: 'bi-folder2-open', label: 'Kwalifikacje' },
-        { badge: 'Zespół', title: 'Pomóż rozwijać ZSEM Tech', text: 'Szukamy osób od kodu, designu, testów i aktualizacji treści.', href: base + 'careers.php', icon: 'bi-code-slash', label: 'Kariery' }
+        { badge: 'Zespół', title: 'Pomóż rozwijać ZSEM Tech', text: 'Szukamy osób od kodu, designu, testów i aktualizacji treści.', href: base + 'pages/careers.php', icon: 'bi-code-slash', label: 'Kariery' }
     ];
     let index = Math.floor(Math.random() * items.length);
     const setCta = () => {

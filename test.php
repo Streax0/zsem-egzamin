@@ -763,7 +763,7 @@ include 'includes/header.php';
                                 <i class="bi bi-info-circle-fill fs-6"></i>
                             </span>
                             <span class="exam-sim-subtext">
-                                Włącz, aby rozwiązać egzamin w wyglądzie zbliżonym do oficjalnego systemu egzaminacyjnego CKE.
+                                Włącz, aby rozwiązać egzamin w wyglądzie zbliżonym do oficjalnego systemu egzaminacyjnego.
                             </span>
                         </span>
                         <span class="exam-sim-action-icon"><i class="bi bi-play-fill"></i></span>
@@ -1782,6 +1782,13 @@ function confirmFinish(form) {
 document.getElementById('testConfirmSubmit')?.addEventListener('click', function () {
     if (confirmModal) confirmModal.hide();
     submitFinishEarlyForm(pendingFinishForm);
+});
+
+document.querySelectorAll('form, button[name="submit_answer"], button[name="jump_to"], .exam-task-btn, .nav-question-btn').forEach(el => {
+    el.addEventListener('click', () => { window.shouldConfirmNavigation = false; });
+    if (el.tagName === 'FORM') {
+        el.addEventListener('submit', () => { window.shouldConfirmNavigation = false; });
+    }
 });
 
 window.addEventListener('beforeunload', function (e) {

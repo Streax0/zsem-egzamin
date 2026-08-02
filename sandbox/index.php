@@ -203,7 +203,6 @@ include '../includes/header.php';
                             <div class="logic-toolbar">
                                 <button id="logicDemo" type="button" class="btn btn-sm btn-primary"><i class="bi bi-magic me-1"></i>Demo</button>
                                 <button id="logicReset" type="button" class="btn btn-sm btn-light border"><i class="bi bi-arrow-counterclockwise me-1"></i>Wyczyść</button>
-                                <button id="logicExportPdf" type="button" class="btn btn-sm btn-outline-primary"><i class="bi bi-filetype-pdf me-1"></i>PDF</button>
                                 <span id="logicHint" class="small text-muted">Kliknij wyjście, potem wejście. Węzły można przeciągać.</span>
                             </div>
                             <div class="logic-canvas" id="logicBoard">
@@ -335,7 +334,7 @@ button { padding: 10px 16px; border-radius: 8px; }</textarea></label>
                                 <button id="clearCode" class="btn btn-light border rounded-pill" type="button"><i class="bi bi-eraser me-1"></i>Wyczyść</button>
                             </div>
                         </div>
-                        <iframe id="codePreview" class="preview-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
+                        <iframe id="codePreview" class="preview-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin"></iframe>
                     </section>
                 <?php elseif ($tool === 'crypto'): ?>
                     <section class="sandbox-workbench crypto-workbench" data-tool="crypto">
@@ -381,11 +380,11 @@ button { padding: 10px 16px; border-radius: 8px; }</textarea></label>
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Tekst wejściowy</label>
-                                    <textarea id="cryptoInput" class="form-control font-monospace" rows="4" placeholder="Wpisz tekst tutaj..."></textarea>
+                                    <textarea id="cryptoInput" class="form-control font-monospace" rows="4" style="max-height: 400px; min-height: 120px; resize: vertical;" placeholder="Wpisz tekst tutaj..."></textarea>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Wynik</label>
-                                    <textarea id="cryptoOutput" class="form-control font-monospace" rows="4" readonly></textarea>
+                                    <textarea id="cryptoOutput" class="form-control font-monospace" rows="4" style="max-height: 400px; min-height: 120px; resize: vertical;" readonly></textarea>
                                 </div>
                             </div>
                             <div class="d-flex flex-wrap gap-2 mt-3">

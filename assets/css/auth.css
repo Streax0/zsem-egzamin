@@ -181,7 +181,8 @@ body.auth-page::before {
   padding: clamp(2rem, 4vw, 3.2rem);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 2rem;
   min-height: 520px;
   background: 
     linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.05)),
@@ -419,7 +420,8 @@ body.auth-page::before {
 .auth-form-panel .password-field .auth-password-toggle {
   position: absolute;
   right: 0.75rem;
-  top: 2.45rem;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 3;
 }
 

@@ -55,8 +55,8 @@ include '../includes/header.php';
                                 <i class="bi bi-people-fill"></i>
                                 <span style="color: #ffffff; font-weight: 800;">Nauczyciele</span>
                             </div>
-                            <h1 class="h2" style="font-weight: 800; color: #ffffff;"><i class="bi bi-briefcase-fill me-2"></i>Współpraca (Dla Nauczycieli ZSEM)</h1>
-                            <p class="mb-0 text-white" style="font-size: 1.05rem; line-height: 1.6; font-weight: 500; opacity: 0.95;">Jeśli jesteś nauczycielem przedmiotów zawodowych lub informatycznych w ZSEM i chciałbyś pomóc rozwijać platformę, zapraszamy do kontaktu!</p>
+                            <h1 class="h2" style="font-weight: 800; color: #ffffff;"><i class="bi bi-briefcase-fill me-2"></i>Współpraca</h1>
+                            <p class="mb-0 text-white" style="font-size: 1.05rem; line-height: 1.6; font-weight: 500; opacity: 0.95;">Jeśli jesteś nauczycielem przedmiotów zawodowych lub informatycznych i chciałbyś pomóc rozwijać platformę, zapraszamy do kontaktu!</p>
                         </div>
                         <div class="hero-right d-none d-lg-flex align-items-center justify-content-end">
                             <i class="bi bi-people-fill text-white" style="font-size: 5.5rem; opacity: 0.22; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));"></i>
