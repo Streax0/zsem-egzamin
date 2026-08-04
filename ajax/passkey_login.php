@@ -88,7 +88,7 @@ if ($action === 'verify') {
 
         unset($_SESSION['webauthn_challenge']);
         
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT id, username, email, password_hash, role, first_name, last_name, class, class_year, class_suffix, bio, avatar_path, avatar_changed_at, xp, profile_public, stats_public, allow_profile_comments, allow_friend_requests, searchable, is_verified, verified_at, verified_by_admin_id, ranking_visible, verification_token, is_banned, ban_expires_at, trust_status, risk_flags, registration_ip, created_at, last_login, last_login_ip, last_activity, session_version FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

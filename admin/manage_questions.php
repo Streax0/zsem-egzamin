@@ -1068,7 +1068,7 @@ include '../includes/header.php';
                 <div class="question-preview-box mb-4">
                     <h5 id="prevText" class="fw-bold mb-3"></h5>
                     <div id="prevImgWrap" class="mb-3 d-none text-center">
-                        <img id="prevImg" src="" alt="Rysunek do pytania" class="img-fluid rounded border" style="max-height: 300px;">
+                        <img id="prevImg" src="" alt="Rysunek do pytania" class="img-fluid rounded border" style="max-height: 300px;" loading="lazy" decoding="async">
                     </div>
                     <div class="options-list">
                         <div id="prevOptA" class="option-pill"><strong>A.</strong> <span></span></div>

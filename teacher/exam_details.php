@@ -17,7 +17,7 @@ $hasAdminAccess = roleHasAdminAccess($_SESSION['role'] ?? '');
 
 // Load session + exam
 $stmt = $pdo->prepare("
-    SELECT es.*, e.*,
+    SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at, e.id AS exam_tbl_id, e.teacher_id, e.title, e.description, e.question_count, e.selected_questions, e.categories, e.difficulty_level, e.shuffle_questions, e.shuffle_answers, e.max_participants, e.time_per_question, e.total_time, e.exam_mode, e.auto_finish_on_time, e.allow_rejoin, e.anti_cheat_enabled, e.block_tab_switch, e.require_fullscreen, e.lobby_enabled, e.show_results_to_student, e.show_predicted_grade, e.show_correct_answers, e.randomize_per_student, e.lock_after_finish, e.pass_threshold, e.max_attempts, e.navigation_mode, e.allow_answer_changes, e.warning_limit, e.warning_action, e.late_join_cutoff_minutes, e.results_available_at, e.print_include_answer_key, e.available_from, e.available_until, e.grade_thresholds, e.created_at AS exam_created_at, e.updated_at,
            u.username as teacher_name
     FROM exam_sessions es
     JOIN exams e ON es.exam_id = e.id
@@ -32,7 +32,7 @@ if (!$session || !($hasAdminAccess || (int)$session['teacher_id'] === (int)$user
 }
 
 // Participants
-$stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? ORDER BY score_percent DESC, time_spent ASC");
+$stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? ORDER BY score_percent DESC, time_spent ASC");
 $stmt->execute([$sessionId]);
 $participants = $stmt->fetchAll();
 
@@ -70,7 +70,7 @@ $questionStats = $stmt->fetchAll();
 
 // Get violations details
 $stmt = $pdo->prepare("
-    SELECT ev.*, ep.first_name, ep.last_name
+    SELECT ev.id, ev.participant_id, ev.session_id, ev.violation_type, ev.question_id, ev.details, ev.created_at, ep.first_name, ep.last_name
     FROM exam_violations ev
     JOIN exam_participants ep ON ev.participant_id = ep.id
     WHERE ev.session_id = ?

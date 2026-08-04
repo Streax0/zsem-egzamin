@@ -505,7 +505,7 @@ function login($username, $password, $remember = false) {
     }
 
     // Find user by username or email
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE username = :username OR email = :email LIMIT 1');
+    $stmt = $pdo->prepare('SELECT id, username, email, password_hash, role, first_name, last_name, class, class_year, class_suffix, bio, avatar_path, avatar_changed_at, xp, profile_public, stats_public, allow_profile_comments, allow_friend_requests, searchable, is_verified, verified_at, verified_by_admin_id, ranking_visible, verification_token, is_banned, ban_expires_at, trust_status, risk_flags, registration_ip, created_at, last_login, last_login_ip, last_activity, session_version FROM users WHERE username = :username OR email = :email LIMIT 1');
     $stmt->execute(['username' => $username, 'email' => $username]);
     $user = $stmt->fetch();
 
@@ -1201,7 +1201,7 @@ function getOrCreateMfaSecret(PDO $pdo, int $userId): string {
 function getMfaRow(PDO $pdo, int $userId): ?array {
     try {
         if (function_exists('ensurePlatformEnhancements')) ensurePlatformEnhancements($pdo);
-        $stmt = $pdo->prepare('SELECT * FROM user_mfa WHERE user_id = ? LIMIT 1');
+        $stmt = $pdo->prepare('SELECT user_id, secret, enabled_at, recovery_codes_hash, created_at, updated_at FROM user_mfa WHERE user_id = ? LIMIT 1');
         $stmt->execute([$userId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;

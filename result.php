@@ -38,7 +38,7 @@ if ($guestResultId) {
 } else {
     // Fetch test result for this user using PDO
     $user_id = $_SESSION['user_id'];
-    $stmt = $pdo->prepare("SELECT * FROM test_results WHERE id = :id AND user_id = :user_id");
+    $stmt = $pdo->prepare("SELECT id, user_id, test_date, start_time, total_questions, correct_answers, score_percent, time_spent, mode, exclude_from_ranking FROM test_results WHERE id = :id AND user_id = :user_id");
     $stmt->execute(['id' => $result_id, 'user_id' => $user_id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 }

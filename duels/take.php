@@ -13,7 +13,7 @@ $duelId = (int)($_GET['id'] ?? 0);
 
 // Load duel
 $stmt = $pdo->prepare("
-    SELECT d.*, u1.username as challenger_name, u2.username as opponent_name 
+    SELECT d.id, d.challenger_id, d.opponent_id, d.category, d.question_count, d.question_ids, d.mode, d.preset, d.stake_xp, d.underdog_bonus, d.time_per_question_seconds, d.total_time_seconds, d.require_answer_confirmation, d.allow_early_finish, d.status, d.challenger_score_percent, d.opponent_score_percent, d.challenger_time_spent, d.opponent_time_spent, d.challenger_finished_at, d.opponent_finished_at, d.challenger_started_at, d.opponent_started_at, d.challenger_hidden_at, d.opponent_hidden_at, d.winner_id, d.revenge_parent_id, d.expires_at, d.created_at, u1.username as challenger_name, u2.username as opponent_name 
     FROM duels d 
     JOIN users u1 ON d.challenger_id = u1.id 
     JOIN users u2 ON d.opponent_id = u2.id 

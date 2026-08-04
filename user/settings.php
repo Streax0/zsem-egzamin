@@ -28,7 +28,7 @@ $activeAppStatuses = getAppStatuses($pdo, true, 2);
 $flashMsg = getSessionMessage();
 
 // Fetch account and privacy settings
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, username, email, password_hash, role, first_name, last_name, class, class_year, class_suffix, bio, avatar_path, avatar_changed_at, xp, profile_public, stats_public, allow_profile_comments, allow_friend_requests, searchable, is_verified, verified_at, verified_by_admin_id, ranking_visible, verification_token, is_banned, ban_expires_at, trust_status, risk_flags, registration_ip, created_at, last_login, last_login_ip, last_activity, session_version FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $userSettings = $stmt->fetch(PDO::FETCH_ASSOC);
 $username = $userSettings['username'] ?? ($_SESSION['username'] ?? '');
@@ -1024,7 +1024,7 @@ include '../includes/header.php';
                                                     <div class="d-flex align-items-center gap-4 flex-wrap">
                                                         <div class="avatar-preview-wrapper position-relative">
                                                             <?php if ($settingsAvatarSrc): ?>
-                                                                <img src="<?php echo htmlspecialchars($settingsAvatarSrc); ?>" alt="Avatar" id="settingsAvatarPreview" style="width: 100%; height: 100%; object-fit: cover;">
+                                                                <img src="<?php echo htmlspecialchars($settingsAvatarSrc); ?>" alt="Avatar" id="settingsAvatarPreview" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" decoding="async">
                                                             <?php else: ?>
                                                                 <div class="w-100 h-100 bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="font-size: 2.2rem;">
                                                                     <?php echo strtoupper(substr($username, 0, 1)); ?>
@@ -1064,7 +1064,7 @@ include '../includes/header.php';
                                                 reader.onload = function(e) {
                                                     const previewWrapper = document.querySelector('.avatar-preview-wrapper');
                                                     if (previewWrapper) {
-                                                        previewWrapper.innerHTML = `<img src="${e.target.result}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">`;
+                                                        previewWrapper.innerHTML = `<img src="${e.target.result}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" decoding="async">`;
                                                     }
                                                 }
                                                 reader.readAsDataURL(input.files[0]);

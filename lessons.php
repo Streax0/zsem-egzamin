@@ -186,7 +186,7 @@ if (array_key_exists($filterType, $types)) {
     $params[] = $filterType;
 }
 $sql = "
-    SELECT l.*, u.username, u.first_name, u.last_name
+    SELECT l.id, l.teacher_id, l.title, l.body, l.pdf_path, l.pdf_filename, l.pdf_download_allowed, l.qualification, l.lesson_type, l.status, l.due_at, l.created_at, l.updated_at, u.username, u.first_name, u.last_name
     FROM lessons l
     JOIN users u ON u.id = l.teacher_id
     WHERE " . implode(' AND ', $where) . "

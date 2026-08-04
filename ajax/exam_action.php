@@ -40,8 +40,8 @@ if (empty($rateLimit['allowed'])) {
 
 // Get participant
 $stmt = isGuestMode()
-    ? $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1")
-    : $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
+    ? $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1")
+    : $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
 $stmt->execute(isGuestMode() ? [$sessionId, guestExamParticipantId($sessionId)] : [$sessionId, $userId]);
 $participant = $stmt->fetch();
 

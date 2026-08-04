@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create_session') {
         $examId = (int)($_POST['exam_id'] ?? 0);
         // Verify ownership
-        $stmt = $pdo->prepare("SELECT * FROM exams WHERE id = ? AND teacher_id = ?");
+        $stmt = $pdo->prepare("SELECT id, teacher_id, title, description, question_count, selected_questions, categories, difficulty_level, shuffle_questions, shuffle_answers, max_participants, time_per_question, total_time, exam_mode, auto_finish_on_time, allow_rejoin, anti_cheat_enabled, block_tab_switch, require_fullscreen, lobby_enabled, show_results_to_student, show_predicted_grade, show_correct_answers, randomize_per_student, lock_after_finish, pass_threshold, max_attempts, navigation_mode, allow_answer_changes, warning_limit, warning_action, late_join_cutoff_minutes, results_available_at, print_include_answer_key, available_from, available_until, grade_thresholds, created_at, updated_at FROM exams WHERE id = ? AND teacher_id = ?");
         $stmt->execute([$examId, $userId]);
         $exam = $stmt->fetch();
         
@@ -170,7 +170,7 @@ $exam = null;
 
 if ($sessionId) {
     $stmt = $pdo->prepare("
-        SELECT es.*, e.title, e.description, e.question_count, e.max_participants, e.anti_cheat_enabled,
+        SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at, e.title, e.description, e.question_count, e.max_participants, e.anti_cheat_enabled,
                e.block_tab_switch, e.require_fullscreen, e.total_time, e.teacher_id
         FROM exam_sessions es 
         JOIN exams e ON es.exam_id = e.id 
@@ -185,14 +185,14 @@ if ($sessionId) {
     }
     
     // Get participants
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? ORDER BY joined_at ASC");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? ORDER BY joined_at ASC");
     $stmt->execute([$sessionId]);
     $participants = $stmt->fetchAll();
 
     $printQuestions = [];
     try {
         $stmt = $pdo->prepare("
-            SELECT q.*
+            SELECT q.id, q.category, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.explanation, q.image_url
             FROM exam_session_questions esq
             JOIN questions q ON q.id = esq.question_id
             WHERE esq.session_id = ?
@@ -207,7 +207,7 @@ if ($sessionId) {
     }
     
 } elseif ($examId) {
-    $stmt = $pdo->prepare("SELECT * FROM exams WHERE id = ? AND teacher_id = ?");
+    $stmt = $pdo->prepare("SELECT id, teacher_id, title, description, question_count, selected_questions, categories, difficulty_level, shuffle_questions, shuffle_answers, max_participants, time_per_question, total_time, exam_mode, auto_finish_on_time, allow_rejoin, anti_cheat_enabled, block_tab_switch, require_fullscreen, lobby_enabled, show_results_to_student, show_predicted_grade, show_correct_answers, randomize_per_student, lock_after_finish, pass_threshold, max_attempts, navigation_mode, allow_answer_changes, warning_limit, warning_action, late_join_cutoff_minutes, results_available_at, print_include_answer_key, available_from, available_until, grade_thresholds, created_at, updated_at FROM exams WHERE id = ? AND teacher_id = ?");
     $stmt->execute([$examId, $userId]);
     $exam = $stmt->fetch();
     

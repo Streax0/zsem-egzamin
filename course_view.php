@@ -128,7 +128,7 @@ include 'includes/header.php';
 
                                 <div class="d-flex align-items-start gap-4">
                                     <?php if (!empty($cover)): ?>
-                                        <img src="<?php echo htmlspecialchars($cover, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="rounded-3 border border-secondary shadow-sm d-none d-md-block" style="width: 130px; height: 130px; object-fit: cover; flex-shrink: 0;">
+                                        <img src="<?php echo htmlspecialchars($cover, ENT_QUOTES, 'UTF-8'); ?>" alt="" class="rounded-3 border border-secondary shadow-sm d-none d-md-block" style="width: 130px; height: 130px; object-fit: cover; flex-shrink: 0;" loading="lazy" decoding="async">
                                     <?php endif; ?>
                                     <div>
                                         <h1 class="display-6 fw-bold text-white mb-3">

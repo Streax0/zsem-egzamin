@@ -13,7 +13,7 @@ $sessionId = (int)($_GET['session'] ?? 0);
 
 // Get session and participant info
 $stmt = $pdo->prepare("
-    SELECT es.*, e.title, e.description, e.question_count, e.max_participants, e.total_time,
+    SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at, e.title, e.description, e.question_count, e.max_participants, e.total_time,
            e.anti_cheat_enabled, e.lobby_enabled, u.username as teacher_name
     FROM exam_sessions es
     JOIN exams e ON es.exam_id = e.id
@@ -30,10 +30,10 @@ if (!$session) {
 
 // Get my participation
 if ($isGuest) {
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL AND status != 'removed'");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL AND status != 'removed'");
     $stmt->execute([$sessionId, guestExamParticipantId($sessionId)]);
 } else {
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? AND status != 'removed'");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND user_id = ? AND status != 'removed'");
     $stmt->execute([$sessionId, $userId]);
 }
 $participant = $stmt->fetch();

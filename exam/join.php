@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         // Find active session with this code
         $stmt = $pdo->prepare("
-            SELECT es.*, e.title, e.max_participants, e.teacher_id, e.allow_rejoin, e.lock_after_finish,
+            SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at, e.title, e.max_participants, e.teacher_id, e.allow_rejoin, e.lock_after_finish,
                    e.max_attempts, e.available_from, e.available_until, u.username as teacher_name
             FROM exam_sessions es
             JOIN exams e ON es.exam_id = e.id

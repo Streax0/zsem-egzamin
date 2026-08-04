@@ -41,7 +41,7 @@ try {
         exit;
     }
 
-    $stmt = $pdo->prepare("SELECT * FROM duels WHERE id = ? AND opponent_id = ? AND status = 'pending' AND expires_at > NOW()");
+    $stmt = $pdo->prepare("SELECT id, challenger_id, opponent_id, category, question_count, question_ids, mode, preset, stake_xp, underdog_bonus, time_per_question_seconds, total_time_seconds, require_answer_confirmation, allow_early_finish, status, challenger_score_percent, opponent_score_percent, challenger_time_spent, opponent_time_spent, challenger_finished_at, opponent_finished_at, challenger_started_at, opponent_started_at, challenger_hidden_at, opponent_hidden_at, winner_id, revenge_parent_id, expires_at, created_at FROM duels WHERE id = ? AND opponent_id = ? AND status = 'pending' AND expires_at > NOW()");
     $stmt->execute([$duelId, $myId]);
     $duel = $stmt->fetch(PDO::FETCH_ASSOC);
 

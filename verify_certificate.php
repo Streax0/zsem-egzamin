@@ -13,7 +13,7 @@ $errorMsg = null;
 
 if ($code !== '') {
     $statement = $pdo->prepare('
-        SELECT uc.*, u.first_name, u.last_name, u.username, c.title AS course_title
+        SELECT uc.id, uc.user_id, uc.course_id, uc.name, uc.organization, uc.certificate_code, uc.obtained_date, uc.description, uc.created_at, u.first_name, u.last_name, u.username, c.title AS course_title
         FROM user_certificates uc
         JOIN users u ON u.id = uc.user_id
         LEFT JOIN courses c ON c.id = uc.course_id

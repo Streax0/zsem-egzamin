@@ -2270,6 +2270,27 @@ def test_optional_mfa_uses_popup_instead_of_notifications() -> None:
     assert "ALTER TABLE" not in response
 
 
+def test_r1_sql_explicit_columns() -> None:
+    offenders = []
+    for path in ROOT.rglob("*.php"):
+        rel = path.relative_to(ROOT).as_posix()
+        if rel.startswith((".agents/", "vendor/", "tests/", "scratch/", "data_question/")):
+            continue
+        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+        for idx, line in enumerate(lines, 1):
+            upper = line.upper()
+            if "SELECT" in upper and "*" in line and "COUNT(" not in upper and "INFORMATION_SCHEMA" not in upper and "QUERYSELECTOR" not in upper:
+                offenders.append(f"{rel}:{idx}: {line.strip()}")
+    assert not offenders, "wildcard SELECT * remaining in application code: " + "; ".join(offenders)
+
+
+def test_r2_image_optimizations() -> None:
+    topbar = read("includes/topbar.php")
+    assert 'loading="eager"' in topbar, "topbar avatar missing loading=\"eager\""
+    assert 'fetchpriority="high"' in topbar, "topbar avatar missing fetchpriority=\"high\""
+    assert 'user-avatar-img' in topbar, "topbar avatar missing user-avatar-img class"
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

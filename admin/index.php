@@ -443,7 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $duration = max(7, min(30, (int)($_POST['duration_days'] ?? 7)));
             try {
                 ensurePlatformEnhancements($pdo);
-                $stmt = $pdo->prepare("SELECT * FROM ranking_event_templates WHERE id = ? AND is_active = 1 LIMIT 1");
+                $stmt = $pdo->prepare("SELECT id, slug, name, description, multiplier, duration_days, season, is_active, created_at FROM ranking_event_templates WHERE id = ? AND is_active = 1 LIMIT 1");
                 $stmt->execute([$templateId]);
                 $template = $stmt->fetch(PDO::FETCH_ASSOC);
                 if (!$template) {
@@ -760,13 +760,16 @@ $extraHead = <<<HTML
             display: grid;
             grid-template-columns: minmax(0, 1.25fr) minmax(320px, .85fr);
             gap: 1.5rem;
-            padding: clamp(1.2rem, 3vw, 2.2rem);
-            border-radius: 16px;
+            padding: clamp(1.4rem, 3.5vw, 2.4rem);
+            border-radius: 20px;
             color: #f8fafc;
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(25px) saturate(1.4);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            background: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.22) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.18) 0px, transparent 50%),
+                linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            backdrop-filter: blur(28px) saturate(160%);
+            box-shadow: 0 32px 70px rgba(15, 23, 42, 0.45);
             overflow: hidden;
             position: relative;
         }
@@ -775,18 +778,20 @@ $extraHead = <<<HTML
             position: absolute;
             inset: 0 auto 0 0;
             width: 6px;
-            background: linear-gradient(180deg, #4f46e5, #06b6d4 50%, #8b5cf6);
+            background: linear-gradient(180deg, #6366f1, #06b6d4 50%, #a855f7);
             border-radius: 6px 0 0 6px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
         }
         .admin-hero h2 {
             color: #ffffff !important;
             font-weight: 900;
             letter-spacing: -0.8px;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
         .admin-hero p {
             color: #cbd5e1 !important;
             max-width: 680px;
-            line-height: 1.5;
+            line-height: 1.55;
         }
         .admin-hero-copy {
             display: flex;
@@ -799,61 +804,65 @@ $extraHead = <<<HTML
             display: inline-flex;
             width: fit-content;
             align-items: center;
-            gap: .5rem;
-            border-radius: 8px;
-            padding: .5rem 1rem;
-            color: #818cf8 !important;
-            background: rgba(99, 102, 241, 0.15) !important;
-            border: 1px solid rgba(99, 102, 241, 0.3) !important;
-            font-weight: 700;
-            font-size: .85rem;
+            gap: .55rem;
+            border-radius: 10px;
+            padding: .5rem 1.1rem;
+            color: #a5b4fc !important;
+            background: rgba(99, 102, 241, 0.18) !important;
+            border: 1px solid rgba(129, 140, 248, 0.35) !important;
+            font-weight: 800;
+            font-size: .82rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.15);
         }
         .admin-nav-pills {
             display: flex;
-            gap: .6rem;
+            gap: .65rem;
             flex-wrap: wrap;
         }
         .admin-nav-pills a {
             display: inline-flex;
             align-items: center;
-            gap: .4rem;
+            gap: .45rem;
             color: #e2e8f0 !important;
             text-decoration: none;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: .6rem .9rem;
-            background: rgba(255, 255, 255, 0.03) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: .65rem 1rem;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            font-size: 0.88rem;
+            backdrop-filter: blur(12px);
         }
         .admin-nav-pills a:hover {
-            background: rgba(99, 102, 241, 0.12) !important;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(6, 182, 212, 0.2)) !important;
             border-color: #818cf8 !important;
             color: #ffffff !important;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
         }
         .admin-kpi-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: .75rem;
+            gap: .85rem;
         }
         .admin-kpi-card {
-            min-height: 104px;
-            padding: 1rem;
-            border-radius: 12px;
-            background: rgba(15, 23, 42, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            min-height: 108px;
+            padding: 1.1rem;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.65) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
             color: #f8fafc;
-            transition: all 0.3s;
+            backdrop-filter: blur(16px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .admin-kpi-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(6, 182, 212, 0.3) !important;
-            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.1) !important;
+            transform: translateY(-3px) scale(1.01);
+            border-color: rgba(6, 182, 212, 0.4) !important;
+            box-shadow: 0 14px 28px rgba(6, 182, 212, 0.15) !important;
+            background: rgba(15, 23, 42, 0.8) !important;
         }
         .admin-kpi-card i {
             display: inline-grid;
@@ -1859,9 +1868,10 @@ include '../includes/header.php';
                             <div class="admin-nav-pills">
                                 <a href="#admin-users"><i class="bi bi-people"></i>Użytkownicy</a>
                                 <a href="#admin-requests"><i class="bi bi-person-badge"></i>Wnioski</a>
-                                <a href="admin_requests.php"><i class="bi bi-reply"></i>Odpowiedzi</a>
+                                <a href="requests.php"><i class="bi bi-reply"></i>Odpowiedzi</a>
                                 <a href="#admin-ranks"><i class="bi bi-award"></i>Rangi</a>
                                 <a href="#admin-system"><i class="bi bi-activity"></i>System</a>
+                                <a href="engine.php"><i class="bi bi-cpu"></i>Silnik & Telemetria</a>
                             </div>
                         </div>
                         <div class="admin-kpi-grid">

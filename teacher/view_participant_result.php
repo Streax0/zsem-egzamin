@@ -16,7 +16,7 @@ $userId = $_SESSION['user_id'];
 
 // Load participant and session info
 $stmt = $pdo->prepare("
-    SELECT ep.*, es.status as session_status, es.access_code, e.title as exam_title, e.teacher_id
+    SELECT ep.id, ep.session_id, ep.user_id, ep.first_name, ep.last_name, ep.class, ep.status, ep.current_question, ep.correct_answers, ep.total_answered, ep.score_percent, ep.time_spent, ep.violation_count, ep.started_at, ep.finished_at, ep.joined_at, ep.last_activity, es.status as session_status, es.access_code, e.title as exam_title, e.teacher_id
     FROM exam_participants ep
     JOIN exam_sessions es ON ep.session_id = es.id
     JOIN exams e ON es.exam_id = e.id
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Load answers
-$stmt = $pdo->prepare("SELECT * FROM exam_answers WHERE participant_id = ? ORDER BY question_order");
+$stmt = $pdo->prepare("SELECT id, participant_id, session_id, question_id, question_order, user_answer, correct_answer, is_correct, time_spent, answered_at FROM exam_answers WHERE participant_id = ? ORDER BY question_order");
 $stmt->execute([$participantId]);
 $answers = $stmt->fetchAll();
 

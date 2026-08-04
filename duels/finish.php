@@ -23,7 +23,7 @@ $duelId = (int)($_POST['id'] ?? 0);
 
 try {
     $stmt = $pdo->prepare("
-        SELECT d.*, uc.xp as challenger_xp, uo.xp as opponent_xp
+        SELECT d.id, d.challenger_id, d.opponent_id, d.category, d.question_count, d.question_ids, d.mode, d.preset, d.stake_xp, d.underdog_bonus, d.time_per_question_seconds, d.total_time_seconds, d.require_answer_confirmation, d.allow_early_finish, d.status, d.challenger_score_percent, d.opponent_score_percent, d.challenger_time_spent, d.opponent_time_spent, d.challenger_finished_at, d.opponent_finished_at, d.challenger_started_at, d.opponent_started_at, d.challenger_hidden_at, d.opponent_hidden_at, d.winner_id, d.revenge_parent_id, d.expires_at, d.created_at, uc.xp as challenger_xp, uo.xp as opponent_xp
         FROM duels d
         JOIN users uc ON uc.id = d.challenger_id
         JOIN users uo ON uo.id = d.opponent_id
@@ -87,7 +87,7 @@ try {
     }
     $stmt->execute([$scorePercent, $timeSpent, $duelId]);
 
-    $stmt = $pdo->prepare("SELECT * FROM duels WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, challenger_id, opponent_id, category, question_count, question_ids, mode, preset, stake_xp, underdog_bonus, time_per_question_seconds, total_time_seconds, require_answer_confirmation, allow_early_finish, status, challenger_score_percent, opponent_score_percent, challenger_time_spent, opponent_time_spent, challenger_finished_at, opponent_finished_at, challenger_started_at, opponent_started_at, challenger_hidden_at, opponent_hidden_at, winner_id, revenge_parent_id, expires_at, created_at FROM duels WHERE id = ?");
     $stmt->execute([$duelId]);
     $updated = $stmt->fetch();
 

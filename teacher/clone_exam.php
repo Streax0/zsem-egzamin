@@ -17,8 +17,8 @@ $userId = (int)$_SESSION['user_id'];
 
 $isAdmin = roleHasAdminAccess($_SESSION['role'] ?? '');
 $stmt = $isAdmin
-    ? $pdo->prepare("SELECT * FROM exams WHERE id = ?")
-    : $pdo->prepare("SELECT * FROM exams WHERE id = ? AND teacher_id = ?");
+    ? $pdo->prepare("SELECT id, teacher_id, title, description, question_count, selected_questions, categories, difficulty_level, shuffle_questions, shuffle_answers, max_participants, time_per_question, total_time, exam_mode, auto_finish_on_time, allow_rejoin, anti_cheat_enabled, block_tab_switch, require_fullscreen, lobby_enabled, show_results_to_student, show_predicted_grade, show_correct_answers, randomize_per_student, lock_after_finish, pass_threshold, max_attempts, navigation_mode, allow_answer_changes, warning_limit, warning_action, late_join_cutoff_minutes, results_available_at, print_include_answer_key, available_from, available_until, grade_thresholds, created_at, updated_at FROM exams WHERE id = ?")
+    : $pdo->prepare("SELECT id, teacher_id, title, description, question_count, selected_questions, categories, difficulty_level, shuffle_questions, shuffle_answers, max_participants, time_per_question, total_time, exam_mode, auto_finish_on_time, allow_rejoin, anti_cheat_enabled, block_tab_switch, require_fullscreen, lobby_enabled, show_results_to_student, show_predicted_grade, show_correct_answers, randomize_per_student, lock_after_finish, pass_threshold, max_attempts, navigation_mode, allow_answer_changes, warning_limit, warning_action, late_join_cutoff_minutes, results_available_at, print_include_answer_key, available_from, available_until, grade_thresholds, created_at, updated_at FROM exams WHERE id = ? AND teacher_id = ?");
 $stmt->execute($isAdmin ? [$examId] : [$examId, $userId]);
 $source = $stmt->fetch(PDO::FETCH_ASSOC);
 

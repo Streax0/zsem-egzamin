@@ -21,7 +21,7 @@ securityThrottle('teacher-session-status:' . securityActorKey() . ':' . $session
 try {
     // Check if session belongs to teacher
     $stmt = $pdo->prepare("
-        SELECT es.* FROM exam_sessions es 
+        SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at FROM exam_sessions es 
         JOIN exams e ON es.exam_id = e.id 
         WHERE es.id = ? AND e.teacher_id = ?
     ");
@@ -34,7 +34,7 @@ try {
     }
 
     // Get participants
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? ORDER BY joined_at ASC");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? ORDER BY joined_at ASC");
     $stmt->execute([$sessionId]);
     $participants = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -48,7 +48,7 @@ try {
     if ($scope !== 'participants') {
         // Get latest violations for legacy live status consumers.
         $stmt = $pdo->prepare("
-            SELECT ev.*, p.first_name, p.last_name 
+            SELECT ev.id, ev.participant_id, ev.session_id, ev.violation_type, ev.question_id, ev.details, ev.created_at, p.first_name, p.last_name 
             FROM exam_violations ev 
             JOIN exam_participants p ON ev.participant_id = p.id 
             WHERE ev.session_id = ? 

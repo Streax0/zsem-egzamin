@@ -1511,7 +1511,7 @@ include '../includes/header.php';
                                     <?php if (!empty($question['image_url'])): ?>
                                         <?php $imageSrc = questionImageSrc($question['image_url'], '../'); ?>
                                         <?php if ($imageSrc): ?>
-                                            <img src="<?php echo htmlspecialchars($imageSrc); ?>" alt="Ilustracja do pytania <?php echo $index + 1; ?> w grupie <?php echo htmlspecialchars($group['label']); ?>" class="mb-2" style="max-width:100%;max-height:220px">
+                                            <img src="<?php echo htmlspecialchars($imageSrc); ?>" alt="Ilustracja do pytania <?php echo $index + 1; ?> w grupie <?php echo htmlspecialchars($group['label']); ?>" class="mb-2" style="max-width:100%;max-height:220px" loading="lazy" decoding="async">
                                         <?php endif; ?>
                                     <?php endif; ?>
                                     <?php if (worksheetQuestionIsOpen($question)): ?>

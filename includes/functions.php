@@ -17,7 +17,6 @@ require_once __DIR__ . '/autoloader.php';
 function sanitize($data) {
     return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
 }
-
 function validatePasswordPolicy(string $password): array {
     $errors = [];
     if (mb_strlen($password, '8bit') < 6) {
@@ -1128,7 +1127,7 @@ function getAppStatuses(PDO $pdo, bool $activeOnly = false, int $limit = 10): ar
     try {
         ensurePlatformEnhancements($pdo);
         $sql = "
-            SELECT s.*, u.first_name, u.last_name, u.username, u.role
+            SELECT s.id, s.title, s.message, s.status_type, s.is_active, s.created_by, s.created_at, s.updated_at, u.first_name, u.last_name, u.username, u.role
             FROM app_statuses s
             LEFT JOIN users u ON u.id = s.created_by
         ";
@@ -1151,7 +1150,7 @@ function getAppStatusById(PDO $pdo, int $statusId): ?array {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT s.*, u.first_name, u.last_name, u.username, u.role
+            SELECT s.id, s.title, s.message, s.status_type, s.is_active, s.created_by, s.created_at, s.updated_at, u.first_name, u.last_name, u.username, u.role
             FROM app_statuses s
             LEFT JOIN users u ON u.id = s.created_by
             WHERE s.id = ?
@@ -1196,7 +1195,7 @@ function resolveAppStatusNotification(PDO $pdo, array $notification): ?array {
             try {
                 ensurePlatformEnhancements($pdo);
                 $stmt = $pdo->prepare("
-                    SELECT s.*, u.first_name, u.last_name, u.username, u.role
+                    SELECT s.id, s.title, s.message, s.status_type, s.is_active, s.created_by, s.created_at, s.updated_at, u.first_name, u.last_name, u.username, u.role
                     FROM app_statuses s
                     LEFT JOIN users u ON u.id = s.created_by
                     WHERE s.title = ?
@@ -1557,7 +1556,7 @@ function getActiveFeaturePageBlocks(PDO $pdo, int $limit = 80): array {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            SELECT b.id, b.category_key, b.title, b.body, b.target_roles, b.is_active, b.created_by, b.disabled_at, b.updated_at, b.ended_at, u.username, u.first_name, u.last_name, u.role
             FROM feature_page_blocks b
             LEFT JOIN users u ON u.id = b.created_by
             WHERE b.is_active = 1
@@ -1583,7 +1582,7 @@ function getActiveFeaturePageBlockByCategory(PDO $pdo, string $categoryKey): ?ar
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            SELECT b.id, b.category_key, b.title, b.body, b.target_roles, b.is_active, b.created_by, b.disabled_at, b.updated_at, b.ended_at, u.username, u.first_name, u.last_name, u.role
             FROM feature_page_blocks b
             LEFT JOIN users u ON u.id = b.created_by
             WHERE b.category_key = ? AND b.is_active = 1
@@ -1756,7 +1755,7 @@ function getActiveSandboxElementBlocks(PDO $pdo, int $limit = 120): array {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            SELECT b.id, b.element_key, b.title, b.body, b.target_roles, b.is_active, b.created_by, b.disabled_at, b.updated_at, b.ended_at, u.username, u.first_name, u.last_name, u.role
             FROM sandbox_element_blocks b
             LEFT JOIN users u ON u.id = b.created_by
             WHERE b.is_active = 1
@@ -1782,7 +1781,7 @@ function getActiveSandboxElementBlockByKey(PDO $pdo, string $elementKey): ?array
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT b.*, u.username, u.first_name, u.last_name, u.role
+            SELECT b.id, b.element_key, b.title, b.body, b.target_roles, b.is_active, b.created_by, b.disabled_at, b.updated_at, b.ended_at, u.username, u.first_name, u.last_name, u.role
             FROM sandbox_element_blocks b
             LEFT JOIN users u ON u.id = b.created_by
             WHERE b.element_key = ? AND b.is_active = 1
@@ -1880,7 +1879,7 @@ function getAdminAuditLog(PDO $pdo, int $limit = 50): array {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare('
-            SELECT a.*, u.username AS admin_username
+            SELECT a.id, a.admin_id, a.action, a.target_type, a.target_id, a.details, a.ip_address, a.created_at, u.username AS admin_username
             FROM admin_audit_log a
             LEFT JOIN users u ON u.id = a.admin_id
             ORDER BY a.created_at DESC, a.id DESC
@@ -2334,8 +2333,17 @@ function loadQuestions($pdo = null, $includeDbQuestions = true) {
     // 1. Try to load from database if PDO provided and the caller wants DB questions
     if ($pdo && $includeDbQuestions) {
         try {
-            $stmt = $pdo->query("SELECT * FROM questions ORDER BY id");
-            $dbQuestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (function_exists('dbQueryCached')) {
+                $dbQuestions = dbQueryCached(
+                    $pdo,
+                    "SELECT id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url FROM questions ORDER BY id",
+                    [],
+                    600
+                );
+            } else {
+                $stmt = $pdo->query("SELECT id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url FROM questions ORDER BY id");
+                $dbQuestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
 
             if (!empty($dbQuestions)) {
                 foreach ($dbQuestions as $q) {
@@ -2456,7 +2464,7 @@ function getQuestionsByIds($pdo, array $ids): array {
     if ($pdo) {
         try {
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
-            $stmt = $pdo->prepare("SELECT * FROM questions WHERE id IN ($placeholders)");
+            $stmt = $pdo->prepare("SELECT id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url FROM questions WHERE id IN ($placeholders)");
             $stmt->execute($ids);
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                 $question = normalizeQuestionRow($row);
@@ -3028,7 +3036,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
                   OR (d.opponent_id = ? AND d.opponent_hidden_at IS NULL)
               )" : '';
         $stmt = $pdo->prepare("
-            SELECT d.*, challenger.username AS challenger_name, opponent.username AS opponent_name
+            SELECT d.id, d.challenger_id, d.opponent_id, d.category, d.question_count, d.question_ids, d.mode, d.preset, d.stake_xp, d.underdog_bonus, d.time_per_question_seconds, d.total_time_seconds, d.require_answer_confirmation, d.allow_early_finish, d.status, d.challenger_score_percent, d.opponent_score_percent, d.challenger_time_spent, d.opponent_time_spent, d.challenger_finished_at, d.opponent_finished_at, d.challenger_started_at, d.opponent_started_at, d.challenger_hidden_at, d.opponent_hidden_at, d.winner_id, d.revenge_parent_id, d.expires_at, d.created_at, challenger.username AS challenger_name, opponent.username AS opponent_name
             FROM duels d
             JOIN users challenger ON challenger.id = d.challenger_id
             JOIN users opponent ON opponent.id = d.opponent_id
@@ -3075,7 +3083,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
 
     try {
         $stmt = $pdo->prepare("
-            SELECT ep.*, e.title, e.show_results_to_student, e.results_available_at, es.id AS session_id
+            SELECT ep.id, ep.session_id, ep.user_id, ep.first_name, ep.last_name, ep.class, ep.status, ep.current_question, ep.correct_answers, ep.total_answered, ep.score_percent, ep.time_spent, ep.violation_count, ep.started_at, ep.finished_at, ep.joined_at, ep.last_activity, e.title, e.show_results_to_student, e.results_available_at, es.id AS session_id
             FROM exam_participants ep
             JOIN exam_sessions es ON es.id = ep.session_id
             JOIN exams e ON e.id = es.exam_id
@@ -4001,7 +4009,7 @@ function getMissionPoolByPeriod(array $missionsJson, $period = 'daily') {
 function fetchMissionsForPeriod($pdo, $userId, $assignedDate, array $missionTypes) {
     if (empty($missionTypes)) return [];
     $placeholders = implode(',', array_fill(0, count($missionTypes), '?'));
-    $stmt = $pdo->prepare("SELECT * FROM user_daily_missions WHERE user_id = ? AND assigned_date = ? AND mission_type IN ($placeholders) ORDER BY id ASC");
+    $stmt = $pdo->prepare("SELECT id, user_id, mission_type, mission_description, target_value, current_value, xp_reward, is_completed, assigned_date, completed_at FROM user_daily_missions WHERE user_id = ? AND assigned_date = ? AND mission_type IN ($placeholders) ORDER BY id ASC");
     $stmt->execute(array_merge([$userId, $assignedDate], array_values($missionTypes)));
     return $stmt->fetchAll();
 }
@@ -5086,14 +5094,17 @@ function hideUserDuelFromHistory(PDO $pdo, int $userId, int $duelId): bool {
 function getTopRankings($pdo, $limit = 10) {
     ensurePlatformEnhancements($pdo);
     $completedSql = completedFullTestSql('tr_count', 40, true);
-    $stmt = $pdo->prepare("SELECT id, username, role, xp, is_verified, ranking_visible, avatar_path,
+    $sql = "SELECT id, username, role, xp, is_verified, ranking_visible, avatar_path,
         (SELECT COUNT(*) FROM test_results tr_count WHERE tr_count.user_id = users.id AND {$completedSql} AND COALESCE(tr_count.exclude_from_ranking, 0) = 0) as tests_count
         FROM users
         WHERE role IN ('user','wujek_luki')
         ORDER BY xp DESC, tests_count DESC, last_activity DESC
-        LIMIT ?");
-    $stmt->execute([$limit]);
-    return $stmt->fetchAll();
+        LIMIT " . (int)$limit;
+    if (function_exists('dbQueryCached')) {
+        return dbQueryCached($pdo, $sql, [], 60);
+    }
+    $stmt = $pdo->query($sql);
+    return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 }
 
 function classifyUserPerformanceStreakScores(array $scores): array {
@@ -5358,7 +5369,7 @@ function addNotification($pdo, $userId, $type, $message, $actionUrl = null, ?str
  */
 function getNotifications($pdo, $userId, $limit = 5) {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined') ORDER BY created_at DESC LIMIT ?");
+        $stmt = $pdo->prepare("SELECT id, user_id, type, message, is_read, dedupe_key, action_url, created_at FROM notifications WHERE user_id = ? AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined') ORDER BY created_at DESC LIMIT ?");
         $stmt->bindValue(1, (int)$userId, PDO::PARAM_INT);
         $stmt->bindValue(2, max(1, min(100, (int)$limit)), PDO::PARAM_INT);
         $stmt->execute();
@@ -5400,7 +5411,14 @@ function publicUrl(string $path): string {
 function assetUrl(string $path, string $basePrefix = ''): string {
     $cleanPath = ltrim(str_replace('\\', '/', $path), '/');
     $absolute = dirname(__DIR__) . '/' . $cleanPath;
-    $version = is_file($absolute) ? (string)filemtime($absolute) : (string)time();
+    $engineVer = null;
+    if (class_exists('\\App\\Core\\Engine')) {
+        $engine = \App\Core\Engine::getInstance();
+        if ($engine && $engine->isBooted()) {
+            $engineVer = $engine->getAssetVersion();
+        }
+    }
+    $version = $engineVer ?: (is_file($absolute) ? (string)filemtime($absolute) : (string)time());
     $prefix = rtrim($basePrefix, '/');
     return ($prefix !== '' ? $prefix . '/' : '') . $cleanPath . '?v=' . rawurlencode($version);
 }
@@ -5986,7 +6004,7 @@ function resolveTeacherApplication(PDO $pdo, int $requestId, int $adminId, strin
     ensureAdminRequestsTableExists($pdo);
     if (!in_array($decision, ['approve', 'reject'], true)) return false;
     try {
-        $stmt = $pdo->prepare("SELECT ar.*, u.username, u.first_name, u.last_name FROM admin_requests ar JOIN users u ON u.id = ar.teacher_id WHERE ar.id = ? AND ar.type = 'teacher_application' LIMIT 1");
+        $stmt = $pdo->prepare("SELECT ar.id, ar.teacher_id, ar.type, ar.subject, ar.message, ar.status, ar.admin_reply, ar.replied_by, ar.is_read, ar.created_at, ar.updated_at, u.username, u.first_name, u.last_name FROM admin_requests ar JOIN users u ON u.id = ar.teacher_id WHERE ar.id = ? AND ar.type = 'teacher_application' LIMIT 1");
         $stmt->execute([$requestId]);
         $request = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$request || ($request['status'] ?? '') === 'closed') return false;
@@ -6049,7 +6067,7 @@ function resolveTeacherApplication(PDO $pdo, int $requestId, int $adminId, strin
 function getAdminRequestsForTeacher($pdo, $teacherId) {
     ensureAdminRequestsTableExists($pdo);
     try {
-        $stmt = $pdo->prepare("SELECT * FROM admin_requests WHERE teacher_id = ? ORDER BY created_at DESC");
+        $stmt = $pdo->prepare("SELECT id, teacher_id, type, subject, message, status, admin_reply, replied_by, is_read, created_at, updated_at FROM admin_requests WHERE teacher_id = ? ORDER BY created_at DESC");
         $stmt->execute([$teacherId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -6065,7 +6083,7 @@ function getAllAdminRequests($pdo, ?int $limit = null) {
     ensureAdminRequestsTableExists($pdo);
     try {
         $sql = "
-            SELECT ar.*, u.username as teacher_username, u.first_name, u.last_name, u.email, u.class,
+            SELECT ar.id, ar.teacher_id, ar.type, ar.subject, ar.message, ar.status, ar.admin_reply, ar.replied_by, ar.is_read, ar.created_at, ar.updated_at, u.username as teacher_username, u.first_name, u.last_name, u.email, u.class,
                    u.trust_status, u.risk_flags,
                    (SELECT COUNT(*) FROM admin_request_replies rr WHERE rr.request_id = ar.id) AS reply_count
             FROM admin_requests ar
@@ -6092,7 +6110,7 @@ function getAllAdminRequests($pdo, ?int $limit = null) {
 function getAdminRequestById($pdo, $id) {
     ensureAdminRequestsTableExists($pdo);
     try {
-        $stmt = $pdo->prepare("SELECT ar.*, u.username as teacher_username, u.first_name, u.last_name, u.email, u.class FROM admin_requests ar LEFT JOIN users u ON u.id = ar.teacher_id WHERE ar.id = ? LIMIT 1");
+        $stmt = $pdo->prepare("SELECT ar.id, ar.teacher_id, ar.type, ar.subject, ar.message, ar.status, ar.admin_reply, ar.replied_by, ar.is_read, ar.created_at, ar.updated_at, u.username as teacher_username, u.first_name, u.last_name, u.email, u.class FROM admin_requests ar LEFT JOIN users u ON u.id = ar.teacher_id WHERE ar.id = ? LIMIT 1");
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -6111,7 +6129,7 @@ function getAdminRequestById($pdo, $id) {
 function getFriendshipStatus($pdo, $user1, $user2) {
     if ($user1 == $user2) return 'self';
     
-    $stmt = $pdo->prepare("SELECT * FROM friends WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)");
+    $stmt = $pdo->prepare("SELECT id, user_id, friend_id, status, created_at FROM friends WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)");
     $stmt->execute([$user1, $user2, $user2, $user1]);
     $friendship = $stmt->fetch();
     
@@ -6253,7 +6271,7 @@ function getAdminRequestReplies(PDO $pdo, int $requestId): array {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT rr.*, u.username AS admin_username
+            SELECT rr.id, rr.request_id, rr.admin_id, rr.reply_text, rr.created_at, u.username AS admin_username
             FROM admin_request_replies rr
             LEFT JOIN users u ON u.id = rr.admin_id
             WHERE rr.request_id = ?
@@ -6562,7 +6580,7 @@ function getAbuseReports(PDO $pdo, int $limit = 80): array {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT ar.*, reporter.username AS reporter_username, reporter.role AS reporter_role,
+            SELECT ar.id, ar.reporter_user_id, ar.report_type, ar.content_url, ar.description, ar.reporter_email, ar.ip_address, ar.user_agent, ar.status, ar.admin_note, ar.handled_by, ar.handled_at, ar.created_at, ar.updated_at, reporter.username AS reporter_username, reporter.role AS reporter_role,
                    handler.username AS handler_username
             FROM abuse_reports ar
             LEFT JOIN users reporter ON reporter.id = ar.reporter_user_id
@@ -6771,7 +6789,7 @@ function getActiveRankingEvents(PDO $pdo, int $limit = 2): array {
         ensurePlatformEnhancements($pdo);
         $pdo->exec("UPDATE ranking_events SET status = 'finished' WHERE status = 'active' AND ends_at < NOW()");
         $stmt = $pdo->prepare("
-            SELECT *
+            SELECT id, template_id, name, description, multiplier, starts_at, ends_at, status, created_at
             FROM ranking_events
             WHERE status = 'active' AND starts_at <= NOW() AND ends_at >= NOW()
             ORDER BY multiplier DESC, starts_at DESC, id DESC
@@ -6796,7 +6814,7 @@ function getActiveRankingEvent(PDO $pdo): ?array {
         $hasFuture = (int)$pdo->query("SELECT COUNT(*) FROM ranking_events WHERE status IN ('scheduled','active') AND ends_at >= NOW()")->fetchColumn();
         if ($hasFuture > 0) return null;
 
-        $template = $pdo->query("SELECT * FROM ranking_event_templates WHERE is_active = 1 ORDER BY RAND() LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        $template = $pdo->query("SELECT id, slug, name, description, multiplier, duration_days, season, is_active, created_at FROM ranking_event_templates WHERE is_active = 1 ORDER BY RAND() LIMIT 1")->fetch(PDO::FETCH_ASSOC);
         if (!$template) return null;
 
         $duration = max(7, (int)$template['duration_days']);
@@ -6812,7 +6830,7 @@ function getActiveRankingEvent(PDO $pdo): ?array {
             $duration
         ]);
 
-        $stmt = $pdo->prepare("SELECT * FROM ranking_events WHERE id = ? LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, template_id, name, description, multiplier, starts_at, ends_at, status, created_at FROM ranking_events WHERE id = ? LIMIT 1");
         $stmt->execute([(int)$pdo->lastInsertId()]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     } catch (PDOException $e) {
@@ -6843,7 +6861,7 @@ function getRankingEvents(PDO $pdo, int $limit = 8): array {
     try {
         ensurePlatformEnhancements($pdo);
         $stmt = $pdo->prepare("
-            SELECT *
+            SELECT id, template_id, name, description, multiplier, starts_at, ends_at, status, created_at
             FROM ranking_events
             WHERE status IN ('active', 'scheduled')
                OR id IN (

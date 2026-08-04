@@ -340,7 +340,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                 <div class="podium-crown-badge silver"><i class="bi bi-award-fill me-1"></i>2. MIEJSCE</div>
                                 <div class="d-flex justify-content-center mb-2">
                                     <?php if ($av2): ?>
-                                        <img src="<?php echo htmlspecialchars($av2); ?>" class="podium-avatar rounded-circle" alt="">
+                                        <img src="<?php echo htmlspecialchars($av2); ?>" class="podium-avatar rounded-circle" alt="" loading="lazy" decoding="async">
                                     <?php else: ?>
                                         <div class="podium-avatar rounded-circle bg-secondary bg-opacity-20 text-secondary fw-bold d-flex align-items-center justify-content-center fs-4">
                                             <?php echo strtoupper(substr($u2['username'], 0, 1)); ?>
@@ -360,7 +360,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                 <div class="podium-crown-badge gold"><i class="bi bi-crown-fill me-1"></i>1. MIEJSCE</div>
                                 <div class="d-flex justify-content-center mb-2">
                                     <?php if ($av1): ?>
-                                        <img src="<?php echo htmlspecialchars($av1); ?>" class="podium-avatar gold-avatar rounded-circle" alt="">
+                                        <img src="<?php echo htmlspecialchars($av1); ?>" class="podium-avatar gold-avatar rounded-circle" alt="" loading="lazy" decoding="async">
                                     <?php else: ?>
                                         <div class="podium-avatar gold-avatar rounded-circle bg-warning bg-opacity-25 text-warning fw-black d-flex align-items-center justify-content-center fs-3">
                                             <?php echo strtoupper(substr($u1['username'], 0, 1)); ?>
@@ -380,7 +380,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                 <div class="podium-crown-badge bronze"><i class="bi bi-award-fill me-1"></i>3. MIEJSCE</div>
                                 <div class="d-flex justify-content-center mb-2">
                                     <?php if ($av3): ?>
-                                        <img src="<?php echo htmlspecialchars($av3); ?>" class="podium-avatar rounded-circle" alt="">
+                                        <img src="<?php echo htmlspecialchars($av3); ?>" class="podium-avatar rounded-circle" alt="" loading="lazy" decoding="async">
                                     <?php else: ?>
                                         <div class="podium-avatar rounded-circle bg-danger bg-opacity-20 text-danger fw-bold d-flex align-items-center justify-content-center fs-4">
                                             <?php echo strtoupper(substr($u3['username'], 0, 1)); ?>

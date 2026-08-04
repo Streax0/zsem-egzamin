@@ -7,13 +7,16 @@ require_once 'includes/functions.php';
 startSecureSession();
 requireLogin();
 
-// Load dictionary data
+// Load dictionary data with Engine CacheManager
 $dictionaryFile = __DIR__ . '/data/dictionary.json';
-$dictionaryData = [];
-if (file_exists($dictionaryFile)) {
-    $json = file_get_contents($dictionaryFile);
-    $dictionaryData = json_decode($json, true) ?? [];
-}
+$cache = \App\Core\Engine::getInstance()->getCache();
+$dictionaryData = $cache ? $cache->remember('data_dictionary_json', 3600, function() use ($dictionaryFile) {
+    if (file_exists($dictionaryFile)) {
+        $json = file_get_contents($dictionaryFile);
+        return json_decode($json, true) ?? [];
+    }
+    return [];
+}) : (file_exists($dictionaryFile) ? json_decode(file_get_contents($dictionaryFile), true) ?? [] : []);
 
 // Get unique qualifications
 $qualifications = [];

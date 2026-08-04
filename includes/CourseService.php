@@ -325,7 +325,7 @@ function courseRenderLessonContent(?string $raw, string $basePrefix = ''): strin
         } elseif ($type === 'image') {
             $source = courseDisplayImageUrl((string)$block['src'], $basePrefix);
             if ($source !== null) {
-                $html .= '<figure class="course-image-block"><img src="' . htmlspecialchars($source, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" alt="' . htmlspecialchars((string)$block['alt'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" loading="lazy">';
+                $html .= '<figure class="course-image-block"><img src="' . htmlspecialchars($source, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" alt="' . htmlspecialchars((string)$block['alt'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" loading="lazy" decoding="async">';
                 if ($block['caption'] !== '') {
                     $html .= '<figcaption>' . htmlspecialchars((string)$block['caption'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</figcaption>';
                 }
@@ -342,7 +342,7 @@ function courseFetchById(PDO $pdo, int $courseId): ?array {
     if ($courseId <= 0) {
         return null;
     }
-    $statement = $pdo->prepare('SELECT * FROM courses WHERE id = ? LIMIT 1');
+    $statement = $pdo->prepare('SELECT id, title, description, content, created_by, image_url, category, difficulty, estimated_hours, status, sequential_learning, has_certificate, start_date, end_date, created_at, updated_at FROM courses WHERE id = ? LIMIT 1');
     $statement->execute([$courseId]);
     $course = $statement->fetch(PDO::FETCH_ASSOC);
     return $course ?: null;
@@ -352,7 +352,7 @@ function courseFetchModule(PDO $pdo, int $moduleId): ?array {
     if ($moduleId <= 0) {
         return null;
     }
-    $statement = $pdo->prepare('SELECT cm.*, c.status AS course_status FROM course_modules cm JOIN courses c ON c.id = cm.course_id WHERE cm.id = ? LIMIT 1');
+    $statement = $pdo->prepare('SELECT cm.id, cm.course_id, cm.title, cm.description, cm.sort_order, cm.created_at, c.status AS course_status FROM course_modules cm JOIN courses c ON c.id = cm.course_id WHERE cm.id = ? LIMIT 1');
     $statement->execute([$moduleId]);
     $module = $statement->fetch(PDO::FETCH_ASSOC);
     return $module ?: null;
@@ -362,7 +362,7 @@ function courseFetchItem(PDO $pdo, int $itemId): ?array {
     if ($itemId <= 0) {
         return null;
     }
-    $statement = $pdo->prepare('SELECT ci.*, cm.course_id, cm.sort_order AS module_sort_order, c.status AS course_status, c.created_by, c.start_date, c.end_date, c.sequential_learning FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id JOIN courses c ON c.id = cm.course_id WHERE ci.id = ? LIMIT 1');
+    $statement = $pdo->prepare('SELECT ci.id, ci.module_id, ci.title, ci.type, ci.content, ci.video_url, ci.quiz_passing_score, ci.lab_source, ci.lab_tool_key, ci.lab_custom_id, ci.lab_instructions, ci.sort_order, ci.created_at, cm.course_id, cm.sort_order AS module_sort_order, c.status AS course_status, c.created_by, c.start_date, c.end_date, c.sequential_learning FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id JOIN courses c ON c.id = cm.course_id WHERE ci.id = ? LIMIT 1');
     $statement->execute([$itemId]);
     $item = $statement->fetch(PDO::FETCH_ASSOC);
     return $item ?: null;

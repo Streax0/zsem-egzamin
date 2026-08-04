@@ -74,6 +74,16 @@ class Engine
         $durationMs = (microtime(true) - $startTime) * 1000;
         $this->responseBuffer->addTiming('boot', $durationMs, 'App Kernel Boot');
 
+        // 7. Register shutdown telemetry
+        register_shutdown_function(function () use ($startTime) {
+            if ($this->responseBuffer) {
+                $totalExecMs = (microtime(true) - $startTime) * 1000;
+                $this->responseBuffer->addTiming('app_exec', $totalExecMs, 'Total App Execution Time');
+                $memPeakMb = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
+                $this->responseBuffer->addTiming('mem_peak', $memPeakMb, "Peak Memory {$memPeakMb}MB");
+            }
+        });
+
         $this->booted = true;
         return $this;
     }
@@ -138,8 +148,8 @@ class Engine
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prace konserwacyjne - ZSEM Tech</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous" rel="stylesheet">
     <style>
         body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); color: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; }
         .card-custom { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; backdrop-filter: blur(12px); box-shadow: 0 20px 50px rgba(0,0,0,0.5); padding: 3rem 2rem; max-width: 520px; width: 90%; text-align: center; }
@@ -184,8 +194,8 @@ HTML;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dostęp Zablokowany - WAF Security</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous" rel="stylesheet">
     <style>
         body { background: linear-gradient(135deg, #0f172a 0%, #31121d 50%, #0f172a 100%); color: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; }
         .card-custom { background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 24px; backdrop-filter: blur(12px); box-shadow: 0 20px 50px rgba(0,0,0,0.6); padding: 3rem 2rem; max-width: 540px; width: 90%; text-align: center; }
@@ -251,5 +261,10 @@ HTML;
     public function getBootTime(): float
     {
         return $this->bootTime;
+    }
+
+    public function getAssetVersion(): string
+    {
+        return (string)($this->config ? $this->config->get('asset_version', '1.0.0') : '1.0.0');
     }
 }

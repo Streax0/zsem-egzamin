@@ -283,17 +283,34 @@ if (defined('APP_DB_SKIP_CONNECT') && APP_DB_SKIP_CONNECT === true) {
 
 if (!function_exists('dbQueryCached')) {
     function dbQueryCached(\PDO $pdo, string $sql, array $params = [], int $ttl = 300, bool $fetchOne = false) {
+        static $dbQueryCount = 0;
+        static $dbQueryTimeMs = 0.0;
+
+        $dbQueryCount++;
+        $startTime = microtime(true);
+
         $cacheKey = 'sql_' . md5($sql . '|' . json_encode($params));
-        $cache = \App\Core\Engine::getInstance()->getCache();
+        $engine = \App\Core\Engine::getInstance();
+        $cache = ($engine && $engine->isBooted()) ? $engine->getCache() : null;
+
         if ($cache) {
-            return $cache->remember($cacheKey, $ttl, function() use ($pdo, $sql, $params, $fetchOne) {
+            $result = $cache->remember($cacheKey, $ttl, function() use ($pdo, $sql, $params, $fetchOne) {
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
                 return $fetchOne ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
             });
+        } else {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $result = $fetchOne ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        return $fetchOne ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $elapsed = (microtime(true) - $startTime) * 1000;
+        $dbQueryTimeMs += $elapsed;
+        if ($engine && $engine->isBooted() && $engine->getResponseBuffer()) {
+            $engine->getResponseBuffer()->addTiming('db', $dbQueryTimeMs, "DB ({$dbQueryCount} queries)");
+        }
+
+        return $result;
     }
 }

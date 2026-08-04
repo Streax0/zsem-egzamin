@@ -153,7 +153,7 @@ try {
         ? 'COALESCE(d.challenger_started_at, d.opponent_started_at, d.created_at)'
         : 'd.created_at';
     $stmt = $pdo->prepare("
-        SELECT d.*, u.username as challenger_name, u.avatar_path as challenger_avatar
+        SELECT d.id, d.challenger_id, d.opponent_id, d.category, d.question_count, d.question_ids, d.mode, d.preset, d.stake_xp, d.underdog_bonus, d.time_per_question_seconds, d.total_time_seconds, d.require_answer_confirmation, d.allow_early_finish, d.status, d.challenger_score_percent, d.opponent_score_percent, d.challenger_time_spent, d.opponent_time_spent, d.challenger_finished_at, d.opponent_finished_at, d.challenger_started_at, d.opponent_started_at, d.challenger_hidden_at, d.opponent_hidden_at, d.winner_id, d.revenge_parent_id, d.expires_at, d.created_at, u.username as challenger_name, u.avatar_path as challenger_avatar
         FROM duels d 
         JOIN users u ON d.challenger_id = u.id 
         WHERE d.opponent_id = ? AND d.status = 'pending' AND d.expires_at > NOW()
@@ -163,7 +163,7 @@ try {
     $pendingDuels = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $stmt = $pdo->prepare("
-        SELECT d.*,
+        SELECT d.id, d.challenger_id, d.opponent_id, d.category, d.question_count, d.question_ids, d.mode, d.preset, d.stake_xp, d.underdog_bonus, d.time_per_question_seconds, d.total_time_seconds, d.require_answer_confirmation, d.allow_early_finish, d.status, d.challenger_score_percent, d.opponent_score_percent, d.challenger_time_spent, d.opponent_time_spent, d.challenger_finished_at, d.opponent_finished_at, d.challenger_started_at, d.opponent_started_at, d.challenger_hidden_at, d.opponent_hidden_at, d.winner_id, d.revenge_parent_id, d.expires_at, d.created_at,
                CASE WHEN d.challenger_id = ? THEN uo.username ELSE uc.username END AS opponent_name,
                CASE WHEN d.challenger_id = ? THEN uo.avatar_path ELSE uc.avatar_path END AS opponent_avatar,
                (SELECT COUNT(DISTINCT da.question_id) FROM duel_answers da WHERE da.duel_id = d.id AND da.user_id = ?) AS answered_count

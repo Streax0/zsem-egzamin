@@ -30,7 +30,7 @@ if (!$course) {
     redirect('manage_courses.php');
 }
 
-$modStmt = $pdo->prepare("SELECT * FROM course_modules WHERE course_id = ? ORDER BY sort_order ASC, id ASC");
+$modStmt = $pdo->prepare("SELECT id, course_id, title, description, sort_order, created_at FROM course_modules WHERE course_id = ? ORDER BY sort_order ASC, id ASC");
 $modStmt->execute([$courseId]);
 $modules = $modStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -38,7 +38,7 @@ $itemsByModule = [];
 if (!empty($modules)) {
     $modIds = array_column($modules, 'id');
     $placeholders = implode(',', array_fill(0, count($modIds), '?'));
-    $itemStmt = $pdo->prepare("SELECT * FROM course_items WHERE module_id IN ($placeholders) ORDER BY sort_order ASC, id ASC");
+    $itemStmt = $pdo->prepare("SELECT id, module_id, title, type, content, video_url, quiz_passing_score, lab_source, lab_tool_key, lab_custom_id, lab_instructions, sort_order, created_at FROM course_items WHERE module_id IN ($placeholders) ORDER BY sort_order ASC, id ASC");
     $itemStmt->execute($modIds);
     foreach ($itemStmt->fetchAll(PDO::FETCH_ASSOC) as $it) {
         $itemsByModule[$it['module_id']][] = $it;

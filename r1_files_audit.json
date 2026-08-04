@@ -1,0 +1,1064 @@
+{
+  "total_files": 31,
+  "details": {
+    "admin\\course_builder.php": [
+      {
+        "line": 33,
+        "raw": "$modStmt = $pdo->prepare(\"SELECT * FROM course_modules WHERE course_id = ? ORDER BY sort_order ASC, id ASC\");"
+      },
+      {
+        "line": 41,
+        "raw": "$itemStmt = $pdo->prepare(\"SELECT * FROM course_items WHERE module_id IN ($placeholders) ORDER BY sort_order ASC, id ASC\");"
+      }
+    ],
+    "admin\\index.php": [
+      {
+        "line": 446,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM ranking_event_templates WHERE id = ? AND is_active = 1 LIMIT 1\");"
+      }
+    ],
+    "admin\\manage_courses.php": [
+      {
+        "line": 136,
+        "raw": "$statement = $pdo->prepare(\"SELECT c.*, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset\");"
+      }
+    ],
+    "ajax\\duel_respond.php": [
+      {
+        "line": 44,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM duels WHERE id = ? AND opponent_id = ? AND status = 'pending' AND expires_at > NOW()\");"
+      }
+    ],
+    "ajax\\exam_action.php": [
+      {
+        "line": 43,
+        "raw": "? $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1\")"
+      },
+      {
+        "line": 44,
+        "raw": ": $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1\");"
+      }
+    ],
+    "ajax\\get_session_status.php": [
+      {
+        "line": 24,
+        "raw": "SELECT es.* FROM exam_sessions es"
+      },
+      {
+        "line": 37,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? ORDER BY joined_at ASC\");"
+      },
+      {
+        "line": 51,
+        "raw": "SELECT ev.*, p.first_name, p.last_name"
+      }
+    ],
+    "ajax\\passkey_login.php": [
+      {
+        "line": 91,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM users WHERE id = ?\");"
+      }
+    ],
+    "duels\\accept.php": [
+      {
+        "line": 22,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM duels WHERE id = ? AND opponent_id = ? AND status = 'pending' AND expires_at > NOW()\");"
+      }
+    ],
+    "duels\\finish.php": [
+      {
+        "line": 26,
+        "raw": "SELECT d.*, uc.xp as challenger_xp, uo.xp as opponent_xp"
+      },
+      {
+        "line": 90,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM duels WHERE id = ?\");"
+      }
+    ],
+    "duels\\lobby.php": [
+      {
+        "line": 24,
+        "raw": "\"SELECT d.*, u1.username as challenger_name, u2.username as opponent_name"
+      }
+    ],
+    "duels\\results.php": [
+      {
+        "line": 20,
+        "raw": "SELECT d.*,"
+      },
+      {
+        "line": 77,
+        "raw": "SELECT *"
+      }
+    ],
+    "duels\\take.php": [
+      {
+        "line": 16,
+        "raw": "SELECT d.*, u1.username as challenger_name, u2.username as opponent_name"
+      }
+    ],
+    "exam\\finished.php": [
+      {
+        "line": 16,
+        "raw": "SELECT es.*, e.title, e.show_results_to_student, e.show_predicted_grade, e.show_correct_answers,"
+      },
+      {
+        "line": 31,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1\");"
+      },
+      {
+        "line": 34,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1\");"
+      },
+      {
+        "line": 73,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_answers WHERE participant_id = ? AND session_id = ? ORDER BY question_order\");"
+      }
+    ],
+    "exam\\join.php": [
+      {
+        "line": 47,
+        "raw": "SELECT es.*, e.title, e.max_participants, e.teacher_id, e.allow_rejoin, e.lock_after_finish,"
+      }
+    ],
+    "exam\\lobby.php": [
+      {
+        "line": 16,
+        "raw": "SELECT es.*, e.title, e.description, e.question_count, e.max_participants, e.total_time,"
+      },
+      {
+        "line": 33,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL AND status != 'removed'\");"
+      },
+      {
+        "line": 36,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? AND status != 'removed'\");"
+      }
+    ],
+    "exam\\take.php": [
+      {
+        "line": 16,
+        "raw": "SELECT es.*, e.title, e.question_count, e.total_time, e.time_per_question,"
+      },
+      {
+        "line": 34,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL AND status IN ('taking_exam','in_lobby') ORDER BY id DESC LIMIT 1\");"
+      },
+      {
+        "line": 37,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? AND status IN ('taking_exam','in_lobby') ORDER BY id DESC LIMIT 1\");"
+      }
+    ],
+    "includes\\CourseService.php": [
+      {
+        "line": 345,
+        "raw": "$statement = $pdo->prepare('SELECT * FROM courses WHERE id = ? LIMIT 1');"
+      },
+      {
+        "line": 355,
+        "raw": "$statement = $pdo->prepare('SELECT cm.*, c.status AS course_status FROM course_modules cm JOIN courses c ON c.id = cm.course_id WHERE cm.id = ? LIMIT 1');"
+      },
+      {
+        "line": 365,
+        "raw": "$statement = $pdo->prepare('SELECT ci.*, cm.course_id, cm.sort_order AS module_sort_order, c.status AS course_status, c.created_by, c.start_date, c.end_date, c.sequential_learning FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id JOIN courses c ON c.id = cm.course_id WHERE ci.id = ? LIMIT 1');"
+      }
+    ],
+    "includes\\auth.php": [
+      {
+        "line": 508,
+        "raw": "$stmt = $pdo->prepare('SELECT * FROM users WHERE username = :username OR email = :email LIMIT 1');"
+      },
+      {
+        "line": 1204,
+        "raw": "$stmt = $pdo->prepare('SELECT * FROM user_mfa WHERE user_id = ? LIMIT 1');"
+      }
+    ],
+    "includes\\functions.php": [
+      {
+        "line": 1130,
+        "raw": "SELECT s.*, u.first_name, u.last_name, u.username, u.role"
+      },
+      {
+        "line": 1153,
+        "raw": "SELECT s.*, u.first_name, u.last_name, u.username, u.role"
+      },
+      {
+        "line": 1198,
+        "raw": "SELECT s.*, u.first_name, u.last_name, u.username, u.role"
+      },
+      {
+        "line": 1559,
+        "raw": "SELECT b.*, u.username, u.first_name, u.last_name, u.role"
+      },
+      {
+        "line": 1585,
+        "raw": "SELECT b.*, u.username, u.first_name, u.last_name, u.role"
+      },
+      {
+        "line": 1758,
+        "raw": "SELECT b.*, u.username, u.first_name, u.last_name, u.role"
+      },
+      {
+        "line": 1784,
+        "raw": "SELECT b.*, u.username, u.first_name, u.last_name, u.role"
+      },
+      {
+        "line": 1882,
+        "raw": "SELECT a.*, u.username AS admin_username"
+      },
+      {
+        "line": 2467,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM questions WHERE id IN ($placeholders)\");"
+      },
+      {
+        "line": 3039,
+        "raw": "SELECT d.*, challenger.username AS challenger_name, opponent.username AS opponent_name"
+      },
+      {
+        "line": 3086,
+        "raw": "SELECT ep.*, e.title, e.show_results_to_student, e.results_available_at, es.id AS session_id"
+      },
+      {
+        "line": 4012,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM user_daily_missions WHERE user_id = ? AND assigned_date = ? AND mission_type IN ($placeholders) ORDER BY id ASC\");"
+      },
+      {
+        "line": 5372,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM notifications WHERE user_id = ? AND type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined') ORDER BY created_at DESC LIMIT ?\");"
+      },
+      {
+        "line": 6007,
+        "raw": "$stmt = $pdo->prepare(\"SELECT ar.*, u.username, u.first_name, u.last_name FROM admin_requests ar JOIN users u ON u.id = ar.teacher_id WHERE ar.id = ? AND ar.type = 'teacher_application' LIMIT 1\");"
+      },
+      {
+        "line": 6070,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM admin_requests WHERE teacher_id = ? ORDER BY created_at DESC\");"
+      },
+      {
+        "line": 6086,
+        "raw": "SELECT ar.*, u.username as teacher_username, u.first_name, u.last_name, u.email, u.class,"
+      },
+      {
+        "line": 6113,
+        "raw": "$stmt = $pdo->prepare(\"SELECT ar.*, u.username as teacher_username, u.first_name, u.last_name, u.email, u.class FROM admin_requests ar LEFT JOIN users u ON u.id = ar.teacher_id WHERE ar.id = ? LIMIT 1\");"
+      },
+      {
+        "line": 6132,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM friends WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)\");"
+      },
+      {
+        "line": 6274,
+        "raw": "SELECT rr.*, u.username AS admin_username"
+      },
+      {
+        "line": 6583,
+        "raw": "SELECT ar.*, reporter.username AS reporter_username, reporter.role AS reporter_role,"
+      },
+      {
+        "line": 6792,
+        "raw": "SELECT *"
+      },
+      {
+        "line": 6817,
+        "raw": "$template = $pdo->query(\"SELECT * FROM ranking_event_templates WHERE is_active = 1 ORDER BY RAND() LIMIT 1\")->fetch(PDO::FETCH_ASSOC);"
+      },
+      {
+        "line": 6833,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM ranking_events WHERE id = ? LIMIT 1\");"
+      },
+      {
+        "line": 6864,
+        "raw": "SELECT *"
+      }
+    ],
+    "index.php": [
+      {
+        "line": 156,
+        "raw": "SELECT d.*, u.username as challenger_name, u.avatar_path as challenger_avatar"
+      },
+      {
+        "line": 166,
+        "raw": "SELECT d.*,"
+      }
+    ],
+    "lessons.php": [
+      {
+        "line": 189,
+        "raw": "SELECT l.*, u.username, u.first_name, u.last_name"
+      }
+    ],
+    "result.php": [
+      {
+        "line": 41,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM test_results WHERE id = :id AND user_id = :user_id\");"
+      }
+    ],
+    "sandbox\\luki_panel.php": [
+      {
+        "line": 310,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM luki_spins WHERE user_id = ? ORDER BY created_at DESC LIMIT 10\");"
+      }
+    ],
+    "teacher\\clone_exam.php": [
+      {
+        "line": 20,
+        "raw": "? $pdo->prepare(\"SELECT * FROM exams WHERE id = ?\")"
+      },
+      {
+        "line": 21,
+        "raw": ": $pdo->prepare(\"SELECT * FROM exams WHERE id = ? AND teacher_id = ?\");"
+      }
+    ],
+    "teacher\\edit_exam.php": [
+      {
+        "line": 19,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exams WHERE id = ? AND teacher_id = ?\");"
+      }
+    ],
+    "teacher\\exam_details.php": [
+      {
+        "line": 20,
+        "raw": "SELECT es.*, e.*,"
+      },
+      {
+        "line": 35,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? ORDER BY score_percent DESC, time_spent ASC\");"
+      },
+      {
+        "line": 73,
+        "raw": "SELECT ev.*, ep.first_name, ep.last_name"
+      }
+    ],
+    "teacher\\host_exam.php": [
+      {
+        "line": 41,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exams WHERE id = ? AND teacher_id = ?\");"
+      },
+      {
+        "line": 173,
+        "raw": "SELECT es.*, e.title, e.description, e.question_count, e.max_participants, e.anti_cheat_enabled,"
+      },
+      {
+        "line": 188,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_participants WHERE session_id = ? ORDER BY joined_at ASC\");"
+      },
+      {
+        "line": 195,
+        "raw": "SELECT q.*"
+      },
+      {
+        "line": 210,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exams WHERE id = ? AND teacher_id = ?\");"
+      }
+    ],
+    "teacher\\view_participant_result.php": [
+      {
+        "line": 19,
+        "raw": "SELECT ep.*, es.status as session_status, es.access_code, e.title as exam_title, e.teacher_id"
+      },
+      {
+        "line": 62,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM exam_answers WHERE participant_id = ? ORDER BY question_order\");"
+      }
+    ],
+    "user\\profile.php": [
+      {
+        "line": 17,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM users WHERE id = ?\");"
+      },
+      {
+        "line": 121,
+        "raw": "'education' => \"SELECT * FROM user_education WHERE user_id = ? ORDER BY start_year DESC\","
+      },
+      {
+        "line": 122,
+        "raw": "'certificates' => \"SELECT * FROM user_certificates WHERE user_id = ? ORDER BY obtained_date DESC, id DESC\","
+      },
+      {
+        "line": 123,
+        "raw": "'courses' => \"SELECT * FROM user_courses WHERE user_id = ? ORDER BY completed_date DESC, id DESC\","
+      },
+      {
+        "line": 124,
+        "raw": "'volunteering' => \"SELECT * FROM user_volunteering WHERE user_id = ? ORDER BY start_date DESC, id DESC\","
+      },
+      {
+        "line": 125,
+        "raw": "'languages' => \"SELECT * FROM user_languages WHERE user_id = ? ORDER BY language_name\","
+      },
+      {
+        "line": 126,
+        "raw": "'organizations' => \"SELECT * FROM user_organizations WHERE user_id = ? ORDER BY start_date DESC, id DESC\","
+      },
+      {
+        "line": 127,
+        "raw": "'social_links' => \"SELECT * FROM user_social_links WHERE user_id = ? ORDER BY platform\","
+      },
+      {
+        "line": 135,
+        "raw": "SELECT pc.*, u.username, u.role, u.is_verified, u.avatar_path"
+      }
+    ],
+    "user\\settings.php": [
+      {
+        "line": 31,
+        "raw": "$stmt = $pdo->prepare(\"SELECT * FROM users WHERE id = ?\");"
+      }
+    ],
+    "verify_certificate.php": [
+      {
+        "line": 16,
+        "raw": "SELECT uc.*, u.first_name, u.last_name, u.username, c.title AS course_title"
+      }
+    ]
+  },
+  "schemas": {
+    "users": [
+      "id",
+      "username",
+      "email",
+      "password_hash",
+      "role",
+      "first_name",
+      "last_name",
+      "class",
+      "class_year",
+      "class_suffix",
+      "bio",
+      "avatar_path",
+      "avatar_changed_at",
+      "xp",
+      "profile_public",
+      "stats_public",
+      "allow_profile_comments",
+      "allow_friend_requests",
+      "searchable",
+      "is_verified",
+      "verified_at",
+      "verified_by_admin_id",
+      "ranking_visible",
+      "verification_token",
+      "is_banned",
+      "ban_expires_at",
+      "trust_status",
+      "risk_flags",
+      "registration_ip",
+      "created_at",
+      "last_login",
+      "last_login_ip",
+      "last_activity",
+      "session_version"
+    ],
+    "active_user_sessions": [
+      "id",
+      "user_id",
+      "session_hash",
+      "ip_address",
+      "user_agent_hash",
+      "created_at",
+      "last_seen"
+    ],
+    "rank_definitions": [
+      "id",
+      "name",
+      "min_xp",
+      "icon",
+      "color",
+      "description",
+      "is_active",
+      "created_at"
+    ],
+    "app_settings": [
+      "setting_key",
+      "setting_value",
+      "updated_at"
+    ],
+    "feature_page_blocks": [
+      "id",
+      "category_key",
+      "title",
+      "body",
+      "target_roles",
+      "is_active",
+      "created_by",
+      "disabled_at",
+      "updated_at",
+      "ended_at"
+    ],
+    "sandbox_element_blocks": [
+      "id",
+      "element_key",
+      "title",
+      "body",
+      "target_roles",
+      "is_active",
+      "created_by",
+      "disabled_at",
+      "updated_at",
+      "ended_at"
+    ],
+    "ranking_event_templates": [
+      "id",
+      "slug",
+      "name",
+      "description",
+      "multiplier",
+      "duration_days",
+      "season",
+      "is_active",
+      "created_at"
+    ],
+    "ranking_events": [
+      "id",
+      "template_id",
+      "name",
+      "description",
+      "multiplier",
+      "starts_at",
+      "ends_at",
+      "status",
+      "created_at"
+    ],
+    "admin_requests": [
+      "id",
+      "teacher_id",
+      "type",
+      "subject",
+      "message",
+      "status",
+      "admin_reply",
+      "replied_by",
+      "is_read",
+      "created_at",
+      "updated_at"
+    ],
+    "admin_request_replies": [
+      "id",
+      "request_id",
+      "admin_id",
+      "reply_text",
+      "created_at"
+    ],
+    "abuse_reports": [
+      "id",
+      "reporter_user_id",
+      "report_type",
+      "content_url",
+      "description",
+      "reporter_email",
+      "ip_address",
+      "user_agent",
+      "status",
+      "admin_note",
+      "handled_by",
+      "handled_at",
+      "created_at",
+      "updated_at"
+    ],
+    "lessons": [
+      "id",
+      "teacher_id",
+      "title",
+      "body",
+      "pdf_path",
+      "pdf_filename",
+      "pdf_download_allowed",
+      "qualification",
+      "lesson_type",
+      "status",
+      "due_at",
+      "created_at",
+      "updated_at"
+    ],
+    "admin_audit_log": [
+      "id",
+      "admin_id",
+      "action",
+      "target_type",
+      "target_id",
+      "details",
+      "ip_address",
+      "created_at"
+    ],
+    "banned_emails": [
+      "id",
+      "email",
+      "reason",
+      "banned_at",
+      "banned_by",
+      "expires_at"
+    ],
+    "banned_ips": [
+      "id",
+      "ip_address",
+      "reason",
+      "banned_at",
+      "banned_by",
+      "expires_at"
+    ],
+    "questions": [
+      "id",
+      "category",
+      "question_text",
+      "option_a",
+      "option_b",
+      "option_c",
+      "option_d",
+      "correct_answer",
+      "explanation",
+      "image_url"
+    ],
+    "test_results": [
+      "id",
+      "user_id",
+      "test_date",
+      "start_time",
+      "total_questions",
+      "correct_answers",
+      "score_percent",
+      "time_spent",
+      "mode",
+      "exclude_from_ranking"
+    ],
+    "user_question_progress": [
+      "id",
+      "user_id",
+      "question_id",
+      "times_seen",
+      "times_correct",
+      "last_seen",
+      "is_mastered"
+    ],
+    "test_answers": [
+      "id",
+      "result_id",
+      "question_id",
+      "user_answer",
+      "correct_answer",
+      "is_correct"
+    ],
+    "user_active_tests": [
+      "user_id",
+      "payload",
+      "updated_at"
+    ],
+    "notifications": [
+      "id",
+      "user_id",
+      "type",
+      "message",
+      "is_read",
+      "dedupe_key",
+      "action_url",
+      "created_at"
+    ],
+    "exams": [
+      "id",
+      "teacher_id",
+      "title",
+      "description",
+      "question_count",
+      "selected_questions",
+      "categories",
+      "difficulty_level",
+      "shuffle_questions",
+      "shuffle_answers",
+      "max_participants",
+      "time_per_question",
+      "total_time",
+      "exam_mode",
+      "auto_finish_on_time",
+      "allow_rejoin",
+      "anti_cheat_enabled",
+      "block_tab_switch",
+      "require_fullscreen",
+      "lobby_enabled",
+      "show_results_to_student",
+      "show_predicted_grade",
+      "show_correct_answers",
+      "randomize_per_student",
+      "lock_after_finish",
+      "pass_threshold",
+      "max_attempts",
+      "navigation_mode",
+      "allow_answer_changes",
+      "warning_limit",
+      "warning_action",
+      "late_join_cutoff_minutes",
+      "results_available_at",
+      "print_include_answer_key",
+      "available_from",
+      "available_until",
+      "grade_thresholds",
+      "created_at",
+      "updated_at"
+    ],
+    "exam_sessions": [
+      "id",
+      "exam_id",
+      "access_code",
+      "status",
+      "started_at",
+      "paused_at",
+      "paused_seconds",
+      "finished_at",
+      "expires_at",
+      "created_at"
+    ],
+    "exam_session_questions": [
+      "id",
+      "session_id",
+      "question_id",
+      "question_order",
+      "correct_answer_override",
+      "override_reason",
+      "override_by",
+      "override_at"
+    ],
+    "exam_participants": [
+      "id",
+      "session_id",
+      "user_id",
+      "first_name",
+      "last_name",
+      "class",
+      "status",
+      "current_question",
+      "correct_answers",
+      "total_answered",
+      "score_percent",
+      "time_spent",
+      "violation_count",
+      "started_at",
+      "finished_at",
+      "joined_at",
+      "last_activity"
+    ],
+    "exam_answers": [
+      "id",
+      "participant_id",
+      "session_id",
+      "question_id",
+      "question_order",
+      "user_answer",
+      "correct_answer",
+      "is_correct",
+      "time_spent",
+      "answered_at"
+    ],
+    "exam_violations": [
+      "id",
+      "participant_id",
+      "session_id",
+      "violation_type",
+      "question_id",
+      "details",
+      "created_at"
+    ],
+    "user_daily_missions": [
+      "id",
+      "user_id",
+      "mission_type",
+      "mission_description",
+      "target_value",
+      "current_value",
+      "xp_reward",
+      "is_completed",
+      "assigned_date",
+      "completed_at"
+    ],
+    "xp_events": [
+      "id",
+      "user_id",
+      "source",
+      "source_id",
+      "amount",
+      "description",
+      "created_at"
+    ],
+    "luki_spins": [
+      "id",
+      "user_id",
+      "spin_date",
+      "archetype",
+      "label",
+      "xp_delta",
+      "note",
+      "created_at"
+    ],
+    "user_education": [
+      "id",
+      "user_id",
+      "level",
+      "school_name",
+      "field",
+      "start_year",
+      "end_year",
+      "created_at"
+    ],
+    "user_certificates": [
+      "id",
+      "user_id",
+      "course_id",
+      "name",
+      "organization",
+      "certificate_code",
+      "obtained_date",
+      "description",
+      "created_at"
+    ],
+    "user_courses": [
+      "id",
+      "user_id",
+      "name",
+      "provider",
+      "completed_date",
+      "description",
+      "created_at"
+    ],
+    "user_volunteering": [
+      "id",
+      "user_id",
+      "organization",
+      "role_name",
+      "start_date",
+      "end_date",
+      "description",
+      "created_at"
+    ],
+    "user_languages": [
+      "id",
+      "user_id",
+      "language_name",
+      "level",
+      "created_at"
+    ],
+    "user_organizations": [
+      "id",
+      "user_id",
+      "name",
+      "role_name",
+      "start_date",
+      "end_date",
+      "description",
+      "created_at"
+    ],
+    "user_social_links": [
+      "id",
+      "user_id",
+      "platform",
+      "url",
+      "created_at"
+    ],
+    "profile_comments": [
+      "id",
+      "profile_user_id",
+      "author_id",
+      "comment_text",
+      "created_at"
+    ],
+    "friends": [
+      "id",
+      "user_id",
+      "friend_id",
+      "status",
+      "created_at"
+    ],
+    "duels": [
+      "id",
+      "challenger_id",
+      "opponent_id",
+      "category",
+      "question_count",
+      "question_ids",
+      "mode",
+      "preset",
+      "stake_xp",
+      "underdog_bonus",
+      "time_per_question_seconds",
+      "total_time_seconds",
+      "require_answer_confirmation",
+      "allow_early_finish",
+      "status",
+      "challenger_score_percent",
+      "opponent_score_percent",
+      "challenger_time_spent",
+      "opponent_time_spent",
+      "challenger_finished_at",
+      "opponent_finished_at",
+      "challenger_started_at",
+      "opponent_started_at",
+      "challenger_hidden_at",
+      "opponent_hidden_at",
+      "winner_id",
+      "revenge_parent_id",
+      "expires_at",
+      "created_at"
+    ],
+    "duel_answers": [
+      "id",
+      "duel_id",
+      "user_id",
+      "question_id",
+      "user_answer",
+      "is_correct",
+      "time_spent",
+      "answered_at"
+    ],
+    "exam_warnings": [
+      "id",
+      "participant_id",
+      "session_id",
+      "message",
+      "is_read",
+      "created_at"
+    ],
+    "unranked_usage": [
+      "user_id",
+      "used_date",
+      "usage_count"
+    ],
+    "all_in_duel_usage": [
+      "user_id",
+      "usage_date",
+      "usage_count",
+      "updated_at"
+    ],
+    "badges": [
+      "id",
+      "slug",
+      "name",
+      "description",
+      "icon",
+      "color",
+      "criteria_type",
+      "criteria_value",
+      "rarity",
+      "created_at"
+    ],
+    "user_badges": [
+      "id",
+      "user_id",
+      "badge_id",
+      "earned_at"
+    ],
+    "login_attempts": [
+      "id",
+      "ip_address",
+      "username",
+      "attempt_time",
+      "success"
+    ],
+    "password_resets": [
+      "id",
+      "user_id",
+      "token_hash",
+      "ip_address",
+      "expires_at",
+      "used_at",
+      "created_at"
+    ],
+    "user_mfa": [
+      "user_id",
+      "secret",
+      "enabled_at",
+      "recovery_codes_hash",
+      "created_at",
+      "updated_at"
+    ],
+    "rate_limit_events": [
+      "id",
+      "bucket",
+      "identity_hash",
+      "ip_address",
+      "created_at"
+    ],
+    "courses": [
+      "id",
+      "title",
+      "description",
+      "content",
+      "created_by",
+      "image_url",
+      "category",
+      "difficulty",
+      "estimated_hours",
+      "status",
+      "sequential_learning",
+      "has_certificate",
+      "start_date",
+      "end_date",
+      "created_at",
+      "updated_at"
+    ],
+    "course_shares": [
+      "id",
+      "course_id",
+      "shared_with_user_id",
+      "created_at"
+    ],
+    "course_modules": [
+      "id",
+      "course_id",
+      "title",
+      "description",
+      "sort_order",
+      "created_at"
+    ],
+    "course_custom_labs": [
+      "id",
+      "teacher_id",
+      "title",
+      "tool_key",
+      "instructions",
+      "topology_data",
+      "is_private",
+      "created_at"
+    ],
+    "course_items": [
+      "id",
+      "module_id",
+      "title",
+      "type",
+      "content",
+      "video_url",
+      "quiz_passing_score",
+      "lab_source",
+      "lab_tool_key",
+      "lab_custom_id",
+      "lab_instructions",
+      "sort_order",
+      "created_at"
+    ],
+    "course_quiz_questions": [
+      "id",
+      "item_id",
+      "question_text",
+      "option_a",
+      "option_b",
+      "option_c",
+      "option_d",
+      "correct_answer",
+      "explanation"
+    ],
+    "user_course_enrollments": [
+      "id",
+      "user_id",
+      "course_id",
+      "status",
+      "progress_percent",
+      "enrolled_at",
+      "completed_at"
+    ],
+    "user_course_progress": [
+      "id",
+      "user_id",
+      "course_id",
+      "item_id",
+      "status",
+      "quiz_score",
+      "quiz_attempts",
+      "completed_at"
+    ]
+  }
+}

@@ -133,7 +133,7 @@ $total = (int)$countStatement->fetchColumn();
 $pages = max(1, (int)ceil($total / $limit));
 $page = min($page, $pages);
 $offset = ($page - 1) * $limit;
-$statement = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
+$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.content, c.created_by, c.image_url, c.category, c.difficulty, c.estimated_hours, c.status, c.sequential_learning, c.has_certificate, c.start_date, c.end_date, c.created_at, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
 $statement->execute($params);
 $courses = $statement->fetchAll(PDO::FETCH_ASSOC);
 
@@ -403,7 +403,7 @@ include '../includes/header.php';
                                             <div class="friend-select-item" id="friend_item_<?php echo (int)$friend['id']; ?>">
                                                 <input class="form-check-input course-friend-checkbox d-none" type="checkbox" name="shared_with[]" value="<?php echo (int)$friend['id']; ?>" id="friend_<?php echo (int)$friend['id']; ?>">
                                                 <?php if ($avatar): ?>
-                                                    <img src="<?php echo htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($friendName, ENT_QUOTES, 'UTF-8'); ?>" class="friend-avatar-img">
+                                                    <img src="<?php echo htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($friendName, ENT_QUOTES, 'UTF-8'); ?>" class="friend-avatar-img" loading="lazy" decoding="async">
                                                 <?php else: ?>
                                                     <div class="friend-avatar-badge"><?php echo htmlspecialchars($firstLetter, ENT_QUOTES, 'UTF-8'); ?></div>
                                                 <?php endif; ?>

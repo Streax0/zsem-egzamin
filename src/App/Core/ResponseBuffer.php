@@ -57,12 +57,22 @@ class ResponseBuffer
             header('Server-Timing: ' . implode(', ', $parts));
         }
 
-        // 2. Minification
-        if ($this->minificationEnabled && !empty($buffer)) {
+        // 2. Check if output is JSON, AJAX or DEBUG mode where minification should be skipped
+        $trimmedBuffer = trim($buffer);
+        $isJsonOrAjax = (
+            (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') ||
+            (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json')) ||
+            (defined('APP_DEBUG') && APP_DEBUG === true) ||
+            (str_starts_with($trimmedBuffer, '{') && str_ends_with($trimmedBuffer, '}')) ||
+            (str_starts_with($trimmedBuffer, '[') && str_ends_with($trimmedBuffer, ']'))
+        );
+
+        // 3. Minification for HTML responses
+        if ($this->minificationEnabled && !empty($buffer) && !$isJsonOrAjax) {
             $buffer = $this->minifyHtml($buffer);
         }
 
-        // 3. Compression
+        // 4. Compression
         if ($this->compressionEnabled && !headers_sent() && !empty($buffer)) {
             $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
 

@@ -2,49 +2,60 @@ User-agent: GPTBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /courses.php
+Allow: /categories.php
+Allow: /dictionary.php
+Allow: /flashcards.php
+Allow: /qualification.php
+Allow: /ranking.php
+Allow: /pages/
 Allow: /llms.txt
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: ClaudeBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /courses.php
+Allow: /categories.php
+Allow: /dictionary.php
+Allow: /flashcards.php
+Allow: /qualification.php
+Allow: /ranking.php
+Allow: /pages/
 Allow: /llms.txt
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: Google-Extended
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /courses.php
+Allow: /categories.php
+Allow: /dictionary.php
+Allow: /flashcards.php
+Allow: /qualification.php
+Allow: /ranking.php
+Allow: /pages/
 Allow: /llms.txt
-Disallow: /
-
-User-agent: CCBot
-Allow: /author_damian.php
-Allow: /author_michal.php
-Allow: /landing.php
-Allow: /llms.txt
-Disallow: /
-
-User-agent: FacebookBot
-Allow: /author_damian.php
-Allow: /author_michal.php
-Allow: /landing.php
-Allow: /llms.txt
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: PerplexityBot
 Allow: /author_damian.php
 Allow: /author_michal.php
 Allow: /landing.php
+Allow: /courses.php
+Allow: /categories.php
+Allow: /dictionary.php
+Allow: /flashcards.php
+Allow: /qualification.php
+Allow: /ranking.php
+Allow: /pages/
 Allow: /llms.txt
-Disallow: /
-
-User-agent: Bytespider
-Allow: /author_damian.php
-Allow: /author_michal.php
-Allow: /landing.php
-Allow: /llms.txt
+Allow: /sitemap.xml
 Disallow: /
 
 User-agent: *
@@ -59,5 +70,6 @@ Disallow: /tmp/
 Disallow: /Security/
 Disallow: /user/
 Disallow: /scratch/
+Disallow: /data/
 
 Sitemap: https://zsem-egzamin.online/sitemap.xml

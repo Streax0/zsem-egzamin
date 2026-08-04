@@ -13,7 +13,7 @@ $sessionId = securityInputInt($_GET['session'] ?? 0, 0, PHP_INT_MAX, 0);
 
 // Load session
 $stmt = $pdo->prepare("
-    SELECT es.*, e.title, e.question_count, e.total_time, e.time_per_question,
+    SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at, e.title, e.question_count, e.total_time, e.time_per_question,
            e.shuffle_questions, e.shuffle_answers, e.exam_mode, e.auto_finish_on_time,
            e.anti_cheat_enabled, e.block_tab_switch, e.require_fullscreen,
            e.show_results_to_student, e.show_predicted_grade, e.grade_thresholds,
@@ -31,10 +31,10 @@ if (!$session || !in_array($session['status'], ['in_progress', 'paused'])) {
 
 // Load participant
 if ($isGuest) {
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL AND status IN ('taking_exam','in_lobby') ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL AND status IN ('taking_exam','in_lobby') ORDER BY id DESC LIMIT 1");
     $stmt->execute([$sessionId, guestExamParticipantId($sessionId)]);
 } else {
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? AND status IN ('taking_exam','in_lobby') ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND user_id = ? AND status IN ('taking_exam','in_lobby') ORDER BY id DESC LIMIT 1");
     $stmt->execute([$sessionId, $userId]);
 }
 $participant = $stmt->fetch();

@@ -307,7 +307,7 @@ $stmt->execute([$userId]);
 $currentXp = (int)$stmt->fetchColumn();
 $rankInfo = getRankInfoByXp($currentXp);
 
-$stmt = $pdo->prepare("SELECT * FROM luki_spins WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
+$stmt = $pdo->prepare("SELECT id, user_id, spin_date, archetype, label, xp_delta, note, created_at FROM luki_spins WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
 $stmt->execute([$userId]);
 $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

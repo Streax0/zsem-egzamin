@@ -14,7 +14,7 @@ $myId = $_SESSION['user_id'];
 $viewId = isset($_GET['id']) ? (int)$_GET['id'] : $myId;
 $isOwnProfile = ($viewId === $myId);
 
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, username, email, password_hash, role, first_name, last_name, class, class_year, class_suffix, bio, avatar_path, avatar_changed_at, xp, profile_public, stats_public, allow_profile_comments, allow_friend_requests, searchable, is_verified, verified_at, verified_by_admin_id, ranking_visible, verification_token, is_banned, ban_expires_at, trust_status, risk_flags, registration_ip, created_at, last_login, last_login_ip, last_activity, session_version FROM users WHERE id = ?");
 $stmt->execute([$viewId]);
 $userData = $stmt->fetch();
 
@@ -118,13 +118,13 @@ $profileSections = [
 ];
 try {
     $queries = [
-        'education' => "SELECT * FROM user_education WHERE user_id = ? ORDER BY start_year DESC",
-        'certificates' => "SELECT * FROM user_certificates WHERE user_id = ? ORDER BY obtained_date DESC, id DESC",
-        'courses' => "SELECT * FROM user_courses WHERE user_id = ? ORDER BY completed_date DESC, id DESC",
-        'volunteering' => "SELECT * FROM user_volunteering WHERE user_id = ? ORDER BY start_date DESC, id DESC",
-        'languages' => "SELECT * FROM user_languages WHERE user_id = ? ORDER BY language_name",
-        'organizations' => "SELECT * FROM user_organizations WHERE user_id = ? ORDER BY start_date DESC, id DESC",
-        'social_links' => "SELECT * FROM user_social_links WHERE user_id = ? ORDER BY platform",
+        'education' => "SELECT id, user_id, level, school_name, field, start_year, end_year, created_at FROM user_education WHERE user_id = ? ORDER BY start_year DESC",
+        'certificates' => "SELECT id, user_id, course_id, name, organization, certificate_code, obtained_date, description, created_at FROM user_certificates WHERE user_id = ? ORDER BY obtained_date DESC, id DESC",
+        'courses' => "SELECT id, user_id, name, provider, completed_date, description, created_at FROM user_courses WHERE user_id = ? ORDER BY completed_date DESC, id DESC",
+        'volunteering' => "SELECT id, user_id, organization, role_name, start_date, end_date, description, created_at FROM user_volunteering WHERE user_id = ? ORDER BY start_date DESC, id DESC",
+        'languages' => "SELECT id, user_id, language_name, level, created_at FROM user_languages WHERE user_id = ? ORDER BY language_name",
+        'organizations' => "SELECT id, user_id, name, role_name, start_date, end_date, description, created_at FROM user_organizations WHERE user_id = ? ORDER BY start_date DESC, id DESC",
+        'social_links' => "SELECT id, user_id, platform, url, created_at FROM user_social_links WHERE user_id = ? ORDER BY platform",
     ];
     foreach ($queries as $key => $sql) {
         $stmt = $pdo->prepare($sql);
@@ -132,7 +132,7 @@ try {
         $profileSections[$key] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     $stmt = $pdo->prepare("
-        SELECT pc.*, u.username, u.role, u.is_verified, u.avatar_path
+        SELECT pc.id, pc.profile_user_id, pc.author_id, pc.comment_text, pc.created_at, u.username, u.role, u.is_verified, u.avatar_path
         FROM profile_comments pc
         JOIN users u ON u.id = pc.author_id
         WHERE pc.profile_user_id = ?

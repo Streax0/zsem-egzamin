@@ -52,8 +52,8 @@ $statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.
 $statement->execute($params);
 $courses = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-$categoriesStmt = $pdo->query("SELECT DISTINCT category FROM courses WHERE category IS NOT NULL AND category != '' AND status = 'active' ORDER BY category ASC");
-$allCategories = $categoriesStmt->fetchAll(PDO::FETCH_COLUMN);
+$allCategoriesRows = dbQueryCached($pdo, "SELECT DISTINCT category FROM courses WHERE category IS NOT NULL AND category != '' AND status = 'active' ORDER BY category ASC", [], 300);
+$allCategories = array_column($allCategoriesRows, 'category');
 
 $difficultyLabels = ['beginner' => 'Początkujący', 'intermediate' => 'Średniozaawansowany', 'advanced' => 'Zaawansowany'];
 $difficultyColors = ['beginner' => 'success', 'intermediate' => 'warning', 'advanced' => 'danger'];
@@ -120,7 +120,7 @@ include 'includes/header.php';
                             <article class="col-12 col-md-6 col-xl-4">
                                 <div class="course-card h-100 d-flex flex-column">
                                     <?php if ($cover): ?>
-                                        <img class="course-cover" src="<?php echo htmlspecialchars($cover, ENT_QUOTES, 'UTF-8'); ?>" alt="Okładka kursu: <?php echo htmlspecialchars((string)$course['title'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy">
+                                        <img class="course-cover" src="<?php echo htmlspecialchars($cover, ENT_QUOTES, 'UTF-8'); ?>" alt="Okładka kursu: <?php echo htmlspecialchars((string)$course['title'], ENT_QUOTES, 'UTF-8'); ?>" loading="lazy" decoding="async">
                                     <?php else: ?>
                                         <div class="course-cover-placeholder" aria-hidden="true">
                                             <i class="bi <?php echo $isExt ? 'bi-box-arrow-up-right text-warning' : 'bi-journal-bookmark-fill'; ?>"></i>

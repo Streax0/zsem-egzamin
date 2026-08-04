@@ -13,7 +13,7 @@ $sessionId = (int)($_GET['session'] ?? 0);
 
 // Load session info
 $stmt = $pdo->prepare("
-    SELECT es.*, e.title, e.show_results_to_student, e.show_predicted_grade, e.show_correct_answers,
+    SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at, e.title, e.show_results_to_student, e.show_predicted_grade, e.show_correct_answers,
            e.results_available_at,
            e.grade_thresholds, e.question_count, e.pass_threshold, u.username as teacher_name
     FROM exam_sessions es
@@ -28,10 +28,10 @@ if (!$session) { redirect('../index.php'); }
 
 // Get participant data (get the latest one for this session/user)
 if ($isGuest) {
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND id = ? AND user_id IS NULL ORDER BY id DESC LIMIT 1");
     $stmt->execute([$sessionId, guestExamParticipantId($sessionId)]);
 } else {
-    $stmt = $pdo->prepare("SELECT * FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id, session_id, user_id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, time_spent, violation_count, started_at, finished_at, joined_at, last_activity FROM exam_participants WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 1");
     $stmt->execute([$sessionId, $userId]);
 }
 $participant = $stmt->fetch();
@@ -70,7 +70,7 @@ if ($session['show_predicted_grade'] && $session['grade_thresholds']) {
 // Get answers if results shown
 $answers = [];
 if ($showResultsToStudent) {
-    $stmt = $pdo->prepare("SELECT * FROM exam_answers WHERE participant_id = ? AND session_id = ? ORDER BY question_order");
+    $stmt = $pdo->prepare("SELECT id, participant_id, session_id, question_id, question_order, user_answer, correct_answer, is_correct, time_spent, answered_at FROM exam_answers WHERE participant_id = ? AND session_id = ? ORDER BY question_order");
     $stmt->execute([$participant['id'], $sessionId]);
     $answers = $stmt->fetchAll();
 
