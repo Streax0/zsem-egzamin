@@ -330,6 +330,78 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                         </div>
                     </div>
 
+                    <!-- ── Dynamic Ranking Filters (R6) ── -->
+                    <div class="card border-0 shadow-sm rounded-4 mb-4" id="rankingFiltersCard">
+                        <div class="card-body py-3 px-4">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1" for="filterClass">Klasa</label>
+                                    <select id="filterClass" class="form-select form-select-sm rounded-3">
+                                        <option value="">Wszystkie klasy</option>
+                                        <?php foreach (['1P','2P','3P','4P','5P','1T','2T','3T','4T','5T'] as $cls): ?>
+                                        <option value="<?= htmlspecialchars($cls) ?>"><?= htmlspecialchars($cls) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1" for="filterQual">Kwalifikacja</label>
+                                    <select id="filterQual" class="form-select form-select-sm rounded-3">
+                                        <option value="">Wszystkie</option>
+                                        <option value="INF.02">INF.02</option>
+                                        <option value="INF.03">INF.03</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label small fw-bold text-muted mb-1" for="filterTime">Okres</label>
+                                    <select id="filterTime" class="form-select form-select-sm rounded-3">
+                                        <option value="all">Wszystkie czasy</option>
+                                        <option value="week">Ten tydzień</option>
+                                        <option value="month">Ten miesiąc</option>
+                                        <option value="season">Sezon (90 dni)</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-3 d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm rounded-3 px-4 fw-bold flex-fill" id="applyFilters">
+                                        <i class="bi bi-funnel-fill me-1"></i>Filtruj
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm rounded-3" id="resetFilters" title="Resetuj filtry">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic filtered leaderboard (injected by JS when filters active) -->
+                    <div id="filteredRankingWrap" style="display:none" class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <h3 class="fw-bold fs-5 mb-0"><i class="bi bi-list-ol me-2 text-primary"></i>Wyniki filtrowane</h3>
+                            <span class="badge bg-primary bg-opacity-15 text-primary" id="filteredCount"></span>
+                            <span class="ms-auto text-muted small" id="filteredLabel"></span>
+                        </div>
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0 align-middle" id="filteredTable">
+                                        <thead>
+                                            <tr class="table-light">
+                                                <th class="ps-4" style="width:60px">#</th>
+                                                <th>Użytkownik</th>
+                                                <th>Klasa</th>
+                                                <th>XP</th>
+                                                <th>Testy</th>
+                                                <th>Śr. wynik</th>
+                                                <th>Odznaka</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="filteredTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /R6 Filters -->
+
                     <!-- Top 3 Podium Showcase -->
                     <?php if (count($topUsers) >= 3): ?>
                     <div class="row g-3 mb-4 podium-container align-items-end">
@@ -602,6 +674,80 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                 this.remove();
             }
         });
+
+        // ── R6: Dynamic Ranking Filters ───────────────────────────────────────
+        (function () {
+            const applyBtn  = document.getElementById('applyFilters');
+            const resetBtn  = document.getElementById('resetFilters');
+            const wrap      = document.getElementById('filteredRankingWrap');
+            const tbody     = document.getElementById('filteredTableBody');
+            const countEl   = document.getElementById('filteredCount');
+            const labelEl   = document.getElementById('filteredLabel');
+
+            async function fetchRanking() {
+                const cls   = document.getElementById('filterClass')?.value  || '';
+                const qual  = document.getElementById('filterQual')?.value   || '';
+                const time  = document.getElementById('filterTime')?.value   || 'all';
+
+                const params = new URLSearchParams({ class: cls, qualification: qual, timeframe: time });
+                if (applyBtn) { applyBtn.disabled = true; applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Ładowanie...'; }
+
+                try {
+                    const res  = await fetch('api/ranking_data.php?' + params, { credentials: 'same-origin' });
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.error);
+
+                    renderTable(data.leaderboard);
+
+                    const labels = [];
+                    if (cls)  labels.push(`Klasa: ${cls}`);
+                    if (qual) labels.push(`Kwalifikacja: ${qual}`);
+                    if (time !== 'all') labels.push({ week:'Tydzień', month:'Miesiąc', season:'Sezon' }[time] || time);
+
+                    if (countEl) countEl.textContent = data.total + ' wyników';
+                    if (labelEl) labelEl.textContent  = labels.length ? labels.join(' · ') : 'Wszystkie';
+                    if (wrap)   wrap.style.display = '';
+
+                } catch (err) {
+                    console.warn('Ranking fetch error:', err);
+                } finally {
+                    if (applyBtn) { applyBtn.disabled = false; applyBtn.innerHTML = '<i class="bi bi-funnel-fill me-1"></i>Filtruj'; }
+                }
+            }
+
+            function renderTable(rows) {
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                if (!rows.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Brak wyników dla wybranych filtrów.</td></tr>';
+                    return;
+                }
+                rows.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="ps-4 fw-bold">${r.rank <= 3 ? ['🥇','🥈','🥉'][r.rank-1] : '#'+r.rank}</td>
+                        <td class="fw-bold">${escHtml(r.username)}</td>
+                        <td>${escHtml(r.class || '—')}</td>
+                        <td class="fw-bold text-primary">${Number(r.xp).toLocaleString('pl-PL')}</td>
+                        <td>${r.test_count}</td>
+                        <td>${r.avg_score > 0 ? r.avg_score + '%' : '—'}</td>
+                        <td>${r.is_champion ? '<span class="badge bg-warning text-dark fw-bold"><i class="bi bi-crown-fill me-1"></i>Mistrz Klasy</span>' : ''}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function escHtml(str) {
+                return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            }
+
+            applyBtn?.addEventListener('click', fetchRanking);
+            resetBtn?.addEventListener('click', () => {
+                document.getElementById('filterClass').value = '';
+                document.getElementById('filterQual').value  = '';
+                document.getElementById('filterTime').value  = 'all';
+                if (wrap) wrap.style.display = 'none';
+            });
+        }());
     </script>
 </body>
 </html>

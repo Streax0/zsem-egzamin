@@ -41,18 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dbRole = $dbUser['role'] ?? $role;
         $rankingVisible = $dbRole === 'teacher' ? (isset($_POST['ranking_visible']) ? 1 : 0) : (int)($dbUser['ranking_visible'] ?? 0);
 
-        $hasCommentColumn = false;
-        $hasNewPrivacyColumns = false;
-        try {
-            $columnStmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'allow_profile_comments'");
-            $hasCommentColumn = (bool)$columnStmt->fetch();
-
-            $columnStmt2 = $pdo->query("SHOW COLUMNS FROM users LIKE 'show_missions'");
-            $hasNewPrivacyColumns = (bool)$columnStmt2->fetch();
-        } catch (PDOException $e) {
-            $hasCommentColumn = false;
-            $hasNewPrivacyColumns = false;
-        }
+        $hasCommentColumn = dbColumnExists($pdo, 'users', 'allow_profile_comments');
+        $hasNewPrivacyColumns = dbColumnExists($pdo, 'users', 'show_missions');
 
         if ($hasNewPrivacyColumns && $hasCommentColumn) {
             $stmt = $pdo->prepare("

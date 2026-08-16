@@ -176,6 +176,29 @@ h1, h2, h3, h4, h5, h6 {
   color: #60a5fa;
 }
 
+/* Sub-links (indented child items under a parent) */
+.sidebar-item.sidebar-subitem {
+  padding-left: 2.4rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 0.05rem;
+}
+
+.sidebar-item.sidebar-subitem i {
+  font-size: 0.95rem;
+}
+
+.sidebar-item.sidebar-subitem:hover {
+  color: #cbd5e1;
+}
+
+.sidebar-item.sidebar-subitem.active {
+  border-left-color: #6366f1;
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8;
+}
+
 .sidebar-footer {
   padding: 0.85rem 0.75rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);

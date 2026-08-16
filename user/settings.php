@@ -55,6 +55,10 @@ try {
 } catch (PDOException $e) {
     $mfaEnabled = false;
 }
+
+$deviceSessionManager = new \App\Core\DeviceSessionManager($pdo);
+$activeUserSessions = $deviceSessionManager->getUserSessions((int)$userId, function_exists('currentSessionHash') ? currentSessionHash() : '');
+
 $settingsHealth = [
     ['key' => 'profile', 'icon' => 'bi-person-check', 'label' => 'Profil', 'value' => ($username !== '' && $email !== '') ? 'OK' : 'Uzupełnij'],
     ['key' => 'security', 'icon' => 'bi-shield-lock', 'label' => 'Bezpieczeństwo', 'value' => $mfaEnabled ? 'MFA aktywne' : ($canUseMfa ? 'MFA opcjonalne' : 'Hasło')],
@@ -1207,6 +1211,57 @@ include '../includes/header.php';
                                         </form>
                                     </div>
 
+                                    <!-- Active Device Sessions Card (R7.4) -->
+                                    <div class="dashboard-panel mb-4 animate-in">
+                                        <div class="panel-header mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                            <h5 class="panel-title mb-0"><i class="bi bi-devices me-2 text-info"></i>Aktywne sesje i urządzenia</h5>
+                                            <?php if (count($activeUserSessions) > 1): ?>
+                                                <button type="button" class="btn btn-outline-warning btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#revokeAllExceptModal">
+                                                    <i class="bi bi-box-arrow-right me-1"></i>Wyloguj pozostałe urządzenia
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                        <p class="text-muted small mb-3">Zarządzaj urządzeniami, na których jesteś zalogowany. W razie potrzeby możesz unieważnić pojedynczą sesję lub wszystkie pozostałe.</p>
+                                        
+                                        <div class="list-group list-group-flush bg-transparent">
+                                            <?php if (empty($activeUserSessions)): ?>
+                                                <div class="text-muted small py-3 text-center">Brak zarejestrowanych aktywnych sesji.</div>
+                                            <?php else: ?>
+                                                <?php foreach ($activeUserSessions as $sess): ?>
+                                                    <div class="list-group-item bg-transparent px-0 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-secondary border-opacity-25">
+                                                        <div class="d-flex align-items-center gap-3">
+                                                            <div class="p-2 rounded-3 bg-secondary bg-opacity-10 text-primary fs-4">
+                                                                <i class="bi <?php echo htmlspecialchars($sess['icon'], ENT_QUOTES, 'UTF-8'); ?>"></i>
+                                                            </div>
+                                                            <div>
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <strong class="text-light"><?php echo htmlspecialchars($sess['browser'] . ' (' . $sess['os'] . ')', ENT_QUOTES, 'UTF-8'); ?></strong>
+                                                                    <?php if (!empty($sess['is_current'])): ?>
+                                                                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">Bieżące urządzenie</span>
+                                                                    <?php endif; ?>
+                                                                </div>
+                                                                <div class="text-muted small">
+                                                                    <span>IP: <code><?php echo htmlspecialchars($sess['ip_address'], ENT_QUOTES, 'UTF-8'); ?></code></span> &bull; 
+                                                                    <span>Aktywność: <?php echo htmlspecialchars($sess['last_seen_relative'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <?php if (empty($sess['is_current'])): ?>
+                                                            <form action="actions/revoke_session.php" method="POST" class="m-0">
+                                                                <?php echo csrfTokenField('revoke_session'); ?>
+                                                                <input type="hidden" name="action" value="revoke_single">
+                                                                <input type="hidden" name="session_hash" value="<?php echo htmlspecialchars($sess['session_hash'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">
+                                                                    <i class="bi bi-x-circle me-1"></i>Wyloguj
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
                                     <!-- 2FA Card -->
                                     <div class="dashboard-panel mb-4 animate-in">
                                         <div class="panel-header mb-4">
@@ -1228,7 +1283,7 @@ include '../includes/header.php';
                                                 </div>
                                             </div>
                                             <?php if ($canUseMfa): ?>
-                                            <a href="mfa.php" class="btn btn-outline-primary rounded-pill px-4">
+                                            <a href="../auth/mfa.php" class="btn btn-outline-primary rounded-pill px-4">
                                                 <i class="bi bi-shield-lock me-1"></i><?php echo $mfaEnabled ? 'Sprawdź kody' : 'Włącz 2FA'; ?>
                                             </a>
                                             <?php endif; ?>
@@ -2142,6 +2197,29 @@ include '../includes/header.php';
         }
     }
     </script>
+    <!-- Modal: Revoke All Sessions Except Current (R7.4) -->
+    <div class="modal fade" id="revokeAllExceptModal" tabindex="-1" aria-labelledby="revokeAllExceptModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="revokeAllExceptModalLabel"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Wylogowanie pozostałych urządzeń</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <form action="actions/revoke_session.php" method="POST">
+                    <?php echo csrfTokenField('revoke_session'); ?>
+                    <input type="hidden" name="action" value="revoke_all_except">
+                    <div class="modal-body">
+                        <p class="text-light mb-2">Czy na pewno chcesz wylogować wszystkie pozostałe urządzenia?</p>
+                        <p class="text-muted small mb-0">Wszystkie aktywne sesje na innych komputerach i telefonach zostaną natychmiast zakończone.</p>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Anuluj</button>
+                        <button type="submit" class="btn btn-warning rounded-pill">Wyloguj pozostałe urządzenia</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

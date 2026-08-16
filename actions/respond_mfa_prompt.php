@@ -49,7 +49,7 @@ try {
     }
     $_SESSION['mfa_prompt_accepted_id'] = $notificationId;
     setSessionMessage('info', 'Zeskanuj kod i wpisz kod z aplikacji, aby aktywować 2FA.');
-    redirect('../mfa.php?setup=1');
+    redirect('../auth/mfa.php?setup=1');
 } catch (PDOException $e) {
     error_log('Optional MFA prompt response failed: ' . $e->getMessage());
     setSessionMessage('error', 'Nie udało się zapisać decyzji 2FA.');

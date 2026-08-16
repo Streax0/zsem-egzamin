@@ -114,6 +114,56 @@ if ($flashMessage) {
     $flashType = (string)($flashMessage['type'] ?? 'info');
     $flashAlertClass = $flashType === 'error' ? 'danger' : (in_array($flashType, ['success', 'warning', 'info'], true) ? $flashType : 'info');
 }
+
+// SM-2: Load spaced-repetition state for current user
+$sm2State    = [];
+$sm2DueCount = 0;
+$sm2ReviewedToday = 0;
+if (!$isGuest && isset($_SESSION['user_id'])) {
+    $userId = (int)$_SESSION['user_id'];
+    $sm2Rows = [];
+    try {
+        $_s2Stmt = $pdo->prepare(
+            "SELECT card_key, easiness_factor, interval_days, repetition_count, next_review_date, last_rating
+             FROM flashcard_sm2 WHERE user_id = ?"
+        );
+        $_s2Stmt->execute([$userId]);
+        $sm2Rows = $_s2Stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        $sm2Rows = []; // Table may not exist yet
+    }
+    foreach ($sm2Rows as $row) {
+        $sm2State[$row['card_key']] = $row;
+        if ($row['next_review_date'] <= date('Y-m-d')) {
+            $sm2DueCount++;
+        }
+    }
+    // Count reviewed today (updated_at = today, last_rating >= 0)
+    try {
+        $_trStmt = $pdo->prepare(
+            "SELECT COUNT(*) as cnt FROM flashcard_sm2
+             WHERE user_id = ? AND DATE(updated_at) = CURDATE()"
+        );
+        $_trStmt->execute([$userId]);
+        $todayRow = $_trStmt->fetch(PDO::FETCH_ASSOC);
+        $sm2ReviewedToday = (int)($todayRow['cnt'] ?? 0);
+    } catch (Throwable $e) {
+        $sm2ReviewedToday = 0;
+    }
+    $sm2MasteredCount = count(array_filter($sm2State, fn($r) => (int)($r['interval_days'] ?? 0) >= 21));
+} else {
+    $sm2MasteredCount = 0;
+}
+
+// Add card_key (md5 of front) to each card for SM-2 tracking
+foreach ($cards as &$card) {
+    $card['card_key'] = md5($card['front']);
+    $sm2 = $sm2State[$card['card_key']] ?? null;
+    $card['sm2_due']      = $sm2 ? ($sm2['next_review_date'] <= date('Y-m-d') ? 1 : 0) : 0;
+    $card['sm2_interval'] = $sm2 ? (int)$sm2['interval_days'] : 0;
+    $card['sm2_reps']     = $sm2 ? (int)$sm2['repetition_count'] : 0;
+}
+unset($card);
 ?>
 <!DOCTYPE html>
 <html lang="pl">
@@ -178,8 +228,8 @@ if ($flashMessage) {
                         <div class="flashcard-stat-card">
                             <div class="stat-icon bg-success"><i class="bi bi-check-circle-fill"></i></div>
                             <div>
-                                <div class="stat-value" id="statMasteredCount">0</div>
-                                <div class="stat-label">Opanowane</div>
+                                <div class="stat-value" id="statMasteredCount"><?= $sm2MasteredCount ?></div>
+                                <div class="stat-label">Opanowane (SM-2)</div>
                             </div>
                         </div>
                     </div>
@@ -187,7 +237,7 @@ if ($flashMessage) {
                         <div class="flashcard-stat-card">
                             <div class="stat-icon bg-warning"><i class="bi bi-clock-history"></i></div>
                             <div>
-                                <div class="stat-value" id="statDueCount">0</div>
+                                <div class="stat-value" id="statDueCount"><?= $sm2DueCount ?></div>
                                 <div class="stat-label">Do powtórki dzisiaj</div>
                             </div>
                         </div>
@@ -338,16 +388,19 @@ if ($flashMessage) {
                             <span>Łatwe = Przesuń w prawo / <kbd class="kbd-badge">3</kbd> <i class="bi bi-arrow-right"></i></span>
                         </div>
 
-                        <!-- Rating Actions Bar (SM-2 Rating Buttons) -->
-                        <div class="flashcard-actions mt-3">
-                            <button class="btn btn-outline-danger btn-rating-hard" data-rate="hard">
-                                <i class="bi bi-x-circle me-1"></i>Trudne <span class="badge bg-danger bg-opacity-20 text-danger ms-1">1</span>
+                        <!-- SM-2 Rating Actions Bar (4-level) -->
+                        <div class="flashcard-actions mt-3" id="sm2RatingBar">
+                            <button class="btn btn-outline-danger btn-rating-sm2" data-sm2-rating="0" title="Nie pamiętam — powtórz jutro">
+                                <i class="bi bi-arrow-repeat me-1"></i>Znowu <span class="badge bg-danger bg-opacity-20 text-danger ms-1">1</span>
                             </button>
-                            <button class="btn btn-outline-primary btn-rating-medium" data-rate="medium">
-                                <i class="bi bi-clock-history me-1"></i>Średnie <span class="badge bg-primary bg-opacity-20 text-primary ms-1">2</span>
+                            <button class="btn btn-outline-warning btn-rating-sm2" data-sm2-rating="1" title="Pamiętam z trudnością">
+                                <i class="bi bi-exclamation-circle me-1"></i>Trudne <span class="badge bg-warning bg-opacity-20 text-warning ms-1">2</span>
                             </button>
-                            <button class="btn btn-outline-success btn-rating-easy" data-rate="easy">
-                                <i class="bi bi-check2-circle me-1"></i>Łatwe <span class="badge bg-success bg-opacity-20 text-success ms-1">3</span>
+                            <button class="btn btn-outline-primary btn-rating-sm2" data-sm2-rating="2" title="Pamiętam poprawnie">
+                                <i class="bi bi-check-circle me-1"></i>Dobre <span class="badge bg-primary bg-opacity-20 text-primary ms-1">3</span>
+                            </button>
+                            <button class="btn btn-outline-success btn-rating-sm2" data-sm2-rating="3" title="Pamiętam bez wysiłku">
+                                <i class="bi bi-lightning-charge-fill me-1"></i>Łatwe <span class="badge bg-success bg-opacity-20 text-success ms-1">4</span>
                             </button>
                         </div>
 
@@ -420,9 +473,77 @@ if ($flashMessage) {
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
 <script>
 window.zsemFlashcards = {
-    cards: <?php echo json_encode($cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+    cards: <?php echo json_encode($cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
+    sm2DueCount: <?= (int)$sm2DueCount ?>,
+    isGuest: <?= $isGuest ? 'true' : 'false' ?>
 };
 </script>
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/flashcards.js')); ?>"></script>
+<script>
+// SM-2 spaced repetition AJAX integration
+(function () {
+    'use strict';
+    const ratingBar = document.getElementById('sm2RatingBar');
+    if (!ratingBar || window.zsemFlashcards.isGuest) return;
+
+    // Get current card_key from the deck state exposed by flashcards.js
+    function getCurrentCardKey() {
+        const idx = window._flashcardDeckIndex;
+        if (idx == null) return null;
+        const cards = window.zsemFlashcards.cards;
+        return cards[idx] ? cards[idx].card_key : null;
+    }
+
+    ratingBar.addEventListener('click', async function (e) {
+        const btn = e.target.closest('[data-sm2-rating]');
+        if (!btn) return;
+        const rating  = parseInt(btn.dataset.sm2Rating, 10);
+        const cardKey = getCurrentCardKey();
+        if (!cardKey) return;
+
+        // Visual feedback
+        btn.disabled = true;
+        btn.classList.add('active');
+
+        try {
+            const fd = new FormData();
+            fd.append('card_key', cardKey);
+            fd.append('rating', rating);
+            const res  = await fetch('actions/flashcard_rate.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                // Update card sm2 metadata in memory
+                const idx = window._flashcardDeckIndex;
+                if (idx != null && window.zsemFlashcards.cards[idx]) {
+                    window.zsemFlashcards.cards[idx].sm2_interval = data.interval;
+                    window.zsemFlashcards.cards[idx].sm2_reps     = data.repetitions;
+                    window.zsemFlashcards.cards[idx].sm2_due      = 0;
+                }
+                // Show toast
+                const msg = `⏱ Następna powtórka za ${data.interval} ${data.interval === 1 ? 'dzień' : 'dni'}`;
+                showSm2Toast(msg, rating >= 2 ? 'success' : 'warning');
+            }
+        } catch (err) {
+            console.warn('SM-2 sync error:', err);
+        } finally {
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.classList.remove('active');
+            }, 800);
+        }
+    });
+
+    function showSm2Toast(message, type) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;
+            background:${type==='success'?'#16a34a':'#d97706'};color:#fff;
+            padding:.6rem 1.2rem;border-radius:12px;font-size:.85rem;font-weight:600;
+            box-shadow:0 4px 16px rgba(0,0,0,.18);animation:fadeInUp .3s ease`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+}());
+</script>
 </body>
 </html>

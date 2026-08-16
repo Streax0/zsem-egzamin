@@ -37,12 +37,7 @@ function adminFormatBanExpiry(?string $expiresAt): string {
 }
 
 function bannedEmailsTableExists(PDO $pdo): bool {
-    try {
-        $stmt = $pdo->query("SHOW TABLES LIKE 'banned_emails'");
-        return (bool) $stmt && $stmt->rowCount() > 0;
-    } catch (PDOException $e) {
-        return false;
-    }
+    return dbTableExists($pdo, 'banned_emails');
 }
 
 function ensureBannedEmailsTable(PDO $pdo): bool {
@@ -73,12 +68,7 @@ function ensureBannedEmailsTable(PDO $pdo): bool {
 }
 
 function bannedIpsTableExists(PDO $pdo): bool {
-    try {
-        $stmt = $pdo->query("SHOW TABLES LIKE 'banned_ips'");
-        return (bool) $stmt && $stmt->rowCount() > 0;
-    } catch (PDOException $e) {
-        return false;
-    }
+    return dbTableExists($pdo, 'banned_ips');
 }
 
 function ensureBannedIpsTable(PDO $pdo): bool {
@@ -345,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($userId <= 0) {
                 setSessionMessage('error', 'Nieprawidłowy użytkownik.');
             } elseif (resetMfaForUser($pdo, $userId)) {
-                addNotification($pdo, $userId, 'mfa_reset', 'Administrator zresetował 2FA na Twoim koncie. Skonfiguruj je ponownie przy następnym logowaniu.', 'mfa.php');
+                addNotification($pdo, $userId, 'mfa_reset', 'Administrator zresetował 2FA na Twoim koncie. Skonfiguruj je ponownie przy następnym logowaniu.', 'auth/mfa.php');
                 logAdminAction($pdo, $_SESSION['user_id'], 'reset_mfa', 'user', $userId);
                 setSessionMessage('success', '2FA użytkownika zostało zresetowane.');
             } else {
@@ -548,13 +538,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setSessionMessage('error', 'Nieprawidłowy użytkownik.');
             } else {
                 try {
-                    $hasCommentColumn = false;
-                    try {
-                        $columnStmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'allow_profile_comments'");
-                        $hasCommentColumn = (bool)$columnStmt->fetch();
-                    } catch (PDOException $e) {
-                        $hasCommentColumn = false;
-                    }
+                    $hasCommentColumn = dbColumnExists($pdo, 'users', 'allow_profile_comments');
                     $forcedVerified = 0;
                     $roleStmt = $pdo->prepare("SELECT role FROM users WHERE id = ? LIMIT 1");
                     $roleStmt->execute([$userId]);
@@ -638,8 +622,8 @@ if ($search !== '') {
 }
 
 try {
-    $columnStmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'allow_profile_comments'");
-    if ($columnStmt->fetch() && !empty($users)) {
+    $hasCommentColumn = dbColumnExists($pdo, 'users', 'allow_profile_comments');
+    if ($hasCommentColumn && !empty($users)) {
         $ids = array_map('intval', array_column($users, 'id'));
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $commentStmt = $pdo->prepare("SELECT id, allow_profile_comments FROM users WHERE id IN ($placeholders)");

@@ -388,7 +388,7 @@ function setFlashMessage($type, $message) {
  * Requires database connection to be established before calling.
  * 
  * @param int $userId The user ID to update
- * @param PDO|mysqli|null $dbConnection Optional database connection object
+ * @param PDO|null $dbConnection Optional database connection object
  * @return bool True on success, false on failure
  */
 function setUserLastLogin($userId, $dbConnection = null) {
@@ -402,27 +402,20 @@ function setUserLastLogin($userId, $dbConnection = null) {
     
     try {
         // Try to use provided database connection
-        if ($dbConnection !== null) {
-            if ($dbConnection instanceof PDO) {
-                // PDO connection
-                $stmt = $dbConnection->prepare(
-                    "UPDATE users SET last_login = :last_login WHERE id = :user_id"
-                );
-                $stmt->bindParam(':last_login', $lastLogin);
-                $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
-                return $stmt->execute();
-            } elseif ($dbConnection instanceof mysqli) {
-                // MySQLi connection
-                $stmt = $dbConnection->prepare(
-                    "UPDATE users SET last_login = ? WHERE id = ?"
-                );
-                $stmt->bind_param('si', $lastLogin, $userId);
-                return $stmt->execute();
-            }
+        if ($dbConnection !== null && $dbConnection instanceof PDO) {
+            $stmt = $dbConnection->prepare(
+                "UPDATE users SET last_login = :last_login WHERE id = :user_id"
+            );
+            $stmt->bindParam(':last_login', $lastLogin);
+            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            return $stmt->execute();
         }
         
         // Fallback: Try global database connection if available
-        if (isset($GLOBALS['db']) && ($GLOBALS['db'] instanceof PDO || $GLOBALS['db'] instanceof mysqli)) {
+        if (isset($GLOBALS['pdo']) && ($GLOBALS['pdo'] instanceof PDO)) {
+            return setUserLastLogin($userId, $GLOBALS['pdo']);
+        }
+        if (isset($GLOBALS['db']) && ($GLOBALS['db'] instanceof PDO)) {
             return setUserLastLogin($userId, $GLOBALS['db']);
         }
         

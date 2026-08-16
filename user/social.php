@@ -11,30 +11,6 @@ requireLogin();
 
 $myId = $_SESSION['user_id'];
 
-// Auto-patch missing database columns if not present
-try {
-    $pdo->query("SELECT show_online_status FROM users LIMIT 1");
-} catch (PDOException $e) {
-    if ($e->getCode() == '42S22' || str_contains($e->getMessage(), 'show_online_status') || str_contains($e->getMessage(), 'Unknown column')) {
-        try {
-            $pdo->exec("ALTER TABLE users ADD COLUMN show_online_status TINYINT(1) DEFAULT 1");
-        } catch (PDOException $ex) {
-            error_log('Failed to auto-add show_online_status column: ' . $ex->getMessage());
-        }
-    }
-}
-try {
-    $pdo->query("SELECT show_recent_activity FROM users LIMIT 1");
-} catch (PDOException $e) {
-    if ($e->getCode() == '42S22' || str_contains($e->getMessage(), 'show_recent_activity') || str_contains($e->getMessage(), 'Unknown column')) {
-        try {
-            $pdo->exec("ALTER TABLE users ADD COLUMN show_recent_activity TINYINT(1) DEFAULT 1");
-        } catch (PDOException $ex) {
-            error_log('Failed to auto-add show_recent_activity column: ' . $ex->getMessage());
-        }
-    }
-}
-
 // Handle actions (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {

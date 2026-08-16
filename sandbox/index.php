@@ -145,6 +145,23 @@ include '../includes/header.php';
                             </a>
                             <?php endif; ?>
                         <?php endforeach; ?>
+
+                        <!-- ── Nowe moduły interaktywne ── -->
+                        <a class="sandbox-tool-tile" href="cli_lab.php" style="border-color:rgba(57,211,83,.3);background:rgba(13,17,23,.04)">
+                            <span class="sandbox-tool-icon" style="color:#39d353"><i class="bi bi-terminal-fill"></i></span>
+                            <strong>CLI Lab — Terminal</strong>
+                            <span>Ćwicz polecenia Linux i Windows w symulowanym terminalu. Komendy sieciowe, systemctl, iptables i scenariusze egzaminacyjne.</span>
+                            <span class="sandbox-tool-chip" style="background:rgba(57,211,83,.15);color:#16a34a">Linux &amp; Windows</span>
+                            <i class="bi bi-arrow-right-short sandbox-arrow"></i>
+                        </a>
+
+                        <a class="sandbox-tool-tile" href="subnetting_challenge.php" style="border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.03)">
+                            <span class="sandbox-tool-icon" style="color:#6366f1"><i class="bi bi-router-fill"></i></span>
+                            <strong>Subnetting Challenge</strong>
+                            <span>Timed speed challenge — obliczaj sieć, broadcast, hosty z IPv4. Streak multiplier, 4 poziomy trudności i tabela wyników.</span>
+                            <span class="sandbox-tool-chip" style="background:rgba(99,102,241,.15);color:#4338ca">Mini-gra z XP</span>
+                            <i class="bi bi-arrow-right-short sandbox-arrow"></i>
+                        </a>
                     </section>
                 <?php else: ?>
                     <nav class="sandbox-tabs mb-4" aria-label="Narzędzia sandbox">

@@ -1,64 +1,79 @@
 -- ============================================================
 -- FULL UNIFIED SCHEMA - ZSEM Tech Platform
--- Zawiera bazę podstawową + wszystkie rozszerzenia (v2)
+-- Complete Canonical Database Schema (62 Tables, Topologically Sorted)
 -- ============================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 -- --------------------------------------------------------
--- Usuwanie istniejących tabel (kolejność ma znaczenie ze względu na klucze obce)
+-- 0. Usuwanie istniejacych tabel (dokladna odwrotna kolejnosc topologiczna)
 -- --------------------------------------------------------
-DROP TABLE IF EXISTS user_daily_missions;
-DROP TABLE IF EXISTS admin_audit_log;
-DROP TABLE IF EXISTS lessons;
-DROP TABLE IF EXISTS abuse_reports;
+DROP TABLE IF EXISTS user_course_progress;
+DROP TABLE IF EXISTS course_quiz_questions;
+DROP TABLE IF EXISTS exam_warnings;
+DROP TABLE IF EXISTS exam_violations;
+DROP TABLE IF EXISTS exam_answers;
+DROP TABLE IF EXISTS course_items;
+DROP TABLE IF EXISTS exam_participants;
+DROP TABLE IF EXISTS exam_session_questions;
+DROP TABLE IF EXISTS duel_answers;
+DROP TABLE IF EXISTS user_certificates;
+DROP TABLE IF EXISTS user_course_enrollments;
+DROP TABLE IF EXISTS course_modules;
+DROP TABLE IF EXISTS course_shares;
+DROP TABLE IF EXISTS exam_sessions;
+DROP TABLE IF EXISTS test_answers;
 DROP TABLE IF EXISTS admin_request_replies;
-DROP TABLE IF EXISTS admin_requests;
+DROP TABLE IF EXISTS app_status_deliveries;
+DROP TABLE IF EXISTS user_badges;
+DROP TABLE IF EXISTS user_question_progress;
 DROP TABLE IF EXISTS ranking_events;
-DROP TABLE IF EXISTS ranking_event_templates;
-DROP TABLE IF EXISTS sandbox_element_blocks;
-DROP TABLE IF EXISTS feature_page_blocks;
-DROP TABLE IF EXISTS app_settings;
-DROP TABLE IF EXISTS rank_definitions;
+DROP TABLE IF EXISTS user_passkeys;
+DROP TABLE IF EXISTS user_mfa;
+DROP TABLE IF EXISTS password_resets;
+DROP TABLE IF EXISTS all_in_duel_usage;
+DROP TABLE IF EXISTS unranked_usage;
+DROP TABLE IF EXISTS duels;
+DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS profile_comments;
 DROP TABLE IF EXISTS user_social_links;
 DROP TABLE IF EXISTS user_organizations;
 DROP TABLE IF EXISTS user_languages;
 DROP TABLE IF EXISTS user_volunteering;
 DROP TABLE IF EXISTS user_courses;
-DROP TABLE IF EXISTS user_certificates;
 DROP TABLE IF EXISTS user_education;
-DROP TABLE IF EXISTS xp_events;
+DROP TABLE IF EXISTS course_custom_labs;
+DROP TABLE IF EXISTS courses;
 DROP TABLE IF EXISTS luki_spins;
-DROP TABLE IF EXISTS user_badges;
-DROP TABLE IF EXISTS badges;
-DROP TABLE IF EXISTS duel_answers;
-DROP TABLE IF EXISTS duels;
-DROP TABLE IF EXISTS exam_warnings;
-DROP TABLE IF EXISTS exam_violations;
-DROP TABLE IF EXISTS exam_answers;
-DROP TABLE IF EXISTS exam_participants;
-DROP TABLE IF EXISTS exam_session_questions;
-DROP TABLE IF EXISTS exam_sessions;
+DROP TABLE IF EXISTS xp_events;
+DROP TABLE IF EXISTS user_daily_missions;
 DROP TABLE IF EXISTS exams;
-DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS notifications;
-DROP TABLE IF EXISTS unranked_usage;
-DROP TABLE IF EXISTS all_in_duel_usage;
-DROP TABLE IF EXISTS login_attempts;
 DROP TABLE IF EXISTS user_active_tests;
-DROP TABLE IF EXISTS test_answers;
-DROP TABLE IF EXISTS user_question_progress;
 DROP TABLE IF EXISTS test_results;
-DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS banned_ips;
 DROP TABLE IF EXISTS banned_emails;
+DROP TABLE IF EXISTS admin_audit_log;
+DROP TABLE IF EXISTS lessons;
+DROP TABLE IF EXISTS abuse_reports;
+DROP TABLE IF EXISTS admin_requests;
+DROP TABLE IF EXISTS sandbox_element_blocks;
+DROP TABLE IF EXISTS feature_page_blocks;
+DROP TABLE IF EXISTS app_statuses;
 DROP TABLE IF EXISTS active_user_sessions;
+DROP TABLE IF EXISTS rate_limit_events;
+DROP TABLE IF EXISTS registration_attempts;
+DROP TABLE IF EXISTS login_attempts;
+DROP TABLE IF EXISTS badges;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS ranking_event_templates;
+DROP TABLE IF EXISTS app_settings;
+DROP TABLE IF EXISTS rank_definitions;
 DROP TABLE IF EXISTS users;
 
 -- --------------------------------------------------------
--- 1. Tabela użytkowników (zintegrowana z v2)
+-- 1. users
 -- --------------------------------------------------------
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -79,6 +94,9 @@ CREATE TABLE users (
     stats_public TINYINT(1) DEFAULT 1,
     allow_profile_comments TINYINT(1) DEFAULT 1,
     allow_friend_requests TINYINT(1) DEFAULT 1,
+    show_missions TINYINT(1) NOT NULL DEFAULT 1,
+    show_online_status TINYINT(1) NOT NULL DEFAULT 1,
+    show_recent_activity TINYINT(1) NOT NULL DEFAULT 1,
     searchable TINYINT(1) DEFAULT 1,
     is_verified TINYINT(1) DEFAULT 0,
     verified_at DATETIME DEFAULT NULL,
@@ -106,22 +124,8 @@ CREATE TABLE users (
     INDEX idx_role_xp_activity (role, xp, last_activity)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE active_user_sessions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    session_hash CHAR(64) NOT NULL,
-    ip_address VARCHAR(45) DEFAULT NULL,
-    user_agent_hash CHAR(64) DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_user_session (user_id, session_hash),
-    INDEX idx_user_last_seen (user_id, last_seen),
-    INDEX idx_last_seen (last_seen),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- --------------------------------------------------------
--- 1d. Definicje rang XP
+-- 2. rank_definitions
 -- --------------------------------------------------------
 CREATE TABLE rank_definitions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -174,12 +178,158 @@ INSERT INTO rank_definitions (name, min_xp, icon, color, description) VALUES
 ('Grandmaster I', 56600, 'bi-trophy-fill', '#ef4444', 'Ultimate Grandmaster.'),
 ('Wujek luki', 75000, 'bi-crown-fill', '#facc15', 'Legenda ZSEM Tech.');
 
+-- --------------------------------------------------------
+-- 3. app_settings
+-- --------------------------------------------------------
 CREATE TABLE app_settings (
     setting_key VARCHAR(80) PRIMARY KEY,
     setting_value TEXT DEFAULT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 4. ranking_event_templates
+-- --------------------------------------------------------
+CREATE TABLE ranking_event_templates (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(120) NOT NULL UNIQUE,
+    name VARCHAR(160) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    multiplier DECIMAL(4,2) NOT NULL DEFAULT 1.10,
+    duration_days INT NOT NULL DEFAULT 7,
+    season VARCHAR(80) DEFAULT NULL,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 5. questions
+-- --------------------------------------------------------
+CREATE TABLE questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category VARCHAR(100) NOT NULL DEFAULT '',
+    question_text TEXT NOT NULL,
+    option_a VARCHAR(500) NOT NULL DEFAULT '',
+    option_b VARCHAR(500) NOT NULL DEFAULT '',
+    option_c VARCHAR(500) NOT NULL DEFAULT '',
+    option_d VARCHAR(500) NOT NULL DEFAULT '',
+    correct_answer CHAR(1) CHARACTER SET ascii NOT NULL,
+    explanation TEXT,
+    image_url VARCHAR(500) DEFAULT NULL,
+    INDEX idx_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 6. badges
+-- --------------------------------------------------------
+CREATE TABLE badges (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    icon VARCHAR(50) NOT NULL DEFAULT 'bi-award',
+    color VARCHAR(20) NOT NULL DEFAULT '#3b82f6',
+    criteria_type VARCHAR(50) NOT NULL,
+    criteria_value INT DEFAULT 1,
+    rarity ENUM('common', 'uncommon', 'rare', 'epic', 'legendary') DEFAULT 'common',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO badges (slug, name, description, icon, color, criteria_type, criteria_value, rarity) VALUES
+('first_perfect', 'Pierwsza setka', '100% poprawnych odpowiedzi na teście', 'bi-trophy-fill', '#f59e0b', 'perfect_score', 1, 'rare'),
+('winning_streak', 'Seria zwycięstw', '5 testów z rzędu z wynikiem >80%', 'bi-fire', '#ef4444', 'win_streak', 5, 'epic'),
+('bookworm', 'Bibliotekarz', 'Rozwiąż 500 pytań', 'bi-book-fill', '#8b5cf6', 'questions_answered', 500, 'uncommon'),
+('speedster', 'Błyskawica', 'Test ukończony w <5 min z wynikiem >90%', 'bi-lightning-fill', '#eab308', 'speed_test', 1, 'epic'),
+('sniper', 'Snajper', '10 testów z rzędu bez błędu', 'bi-crosshair', '#10b981', 'flawless_streak', 10, 'legendary'),
+('inf02_master', 'Mistrz INF.02', 'Opanowanie ponad 80% wszystkich pytań', 'bi-mortarboard-fill', '#6366f1', 'mastery_percent', 80, 'legendary'),
+('fair_player', 'Uczciwy gracz', '0 naruszeń w sprawdzianie nauczyciela', 'bi-shield-check', '#22c55e', 'zero_violations', 1, 'common'),
+('first_test', 'Pierwszy krok', 'Ukończ swój pierwszy test', 'bi-rocket-takeoff-fill', '#3b82f6', 'tests_completed', 1, 'common'),
+('test_veteran', 'Weteran', 'Ukończ 50 testów', 'bi-star-fill', '#f97316', 'tests_completed', 50, 'rare'),
+('night_owl', 'Nocna sowa', 'Rozwiąż test po godzinie 22:00', 'bi-moon-stars-fill', '#6366f1', 'night_test', 1, 'uncommon'),
+('early_bird', 'Ranny ptaszek', 'Rozwiąż test przed godziną 7:00', 'bi-sunrise-fill', '#f59e0b', 'early_test', 1, 'uncommon'),
+('social_butterfly', 'Towarzyski', 'Dodaj 10 znajomych', 'bi-people-fill', '#ec4899', 'friends_count', 10, 'uncommon'),
+('exam_survivor', 'Ocalały', 'Ukończ sprawdzian nauczyciela', 'bi-award-fill', '#14b8a6', 'exam_completed', 1, 'common'),
+('top_scorer', 'Najlepszy wynik', 'Zajmij 1. miejsce w sprawdzianie nauczyciela', 'bi-1-circle-fill', '#f59e0b', 'exam_first_place', 1, 'epic'),
+('marathon', 'Maratończyk', 'Rozwiąż łącznie 1000 pytań', 'bi-infinity', '#dc2626', 'questions_answered', 1000, 'rare');
+
+-- --------------------------------------------------------
+-- 7. login_attempts
+-- --------------------------------------------------------
+CREATE TABLE login_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45),
+    username VARCHAR(50),
+    attempt_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    success BOOLEAN DEFAULT FALSE,
+    INDEX idx_ip (ip_address),
+    INDEX idx_username_time (username, attempt_time),
+    INDEX idx_time (attempt_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 8. registration_attempts
+-- --------------------------------------------------------
+CREATE TABLE registration_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    email_hash CHAR(64) DEFAULT NULL,
+    success TINYINT(1) NOT NULL DEFAULT 0,
+    attempt_time DATETIME NOT NULL,
+    INDEX idx_ip_time (ip_address, attempt_time),
+    INDEX idx_email_time (email_hash, attempt_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 9. rate_limit_events
+-- --------------------------------------------------------
+CREATE TABLE rate_limit_events (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    bucket VARCHAR(80) NOT NULL,
+    identity_hash CHAR(64) NOT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_bucket_identity_created (bucket, identity_hash, created_at),
+    INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 10. active_user_sessions
+-- --------------------------------------------------------
+CREATE TABLE active_user_sessions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    session_hash CHAR(64) NOT NULL,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    user_agent_hash CHAR(64) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_session (user_id, session_hash),
+    INDEX idx_user_last_seen (user_id, last_seen),
+    INDEX idx_last_seen (last_seen),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 11. app_statuses
+-- --------------------------------------------------------
+CREATE TABLE app_statuses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(160) NOT NULL,
+    body TEXT NOT NULL,
+    level VARCHAR(20) NOT NULL DEFAULT 'info',
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    created_by INT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_active_created (is_active, created_at),
+    INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 12. feature_page_blocks
+-- --------------------------------------------------------
 CREATE TABLE feature_page_blocks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     category_key VARCHAR(80) NOT NULL,
@@ -196,6 +346,9 @@ CREATE TABLE feature_page_blocks (
     INDEX idx_active_disabled (is_active, disabled_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 13. sandbox_element_blocks
+-- --------------------------------------------------------
 CREATE TABLE sandbox_element_blocks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     element_key VARCHAR(120) NOT NULL,
@@ -212,34 +365,9 @@ CREATE TABLE sandbox_element_blocks (
     INDEX idx_active_disabled (is_active, disabled_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE ranking_event_templates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    slug VARCHAR(120) NOT NULL UNIQUE,
-    name VARCHAR(160) NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    multiplier DECIMAL(4,2) NOT NULL DEFAULT 1.10,
-    duration_days INT NOT NULL DEFAULT 7,
-    season VARCHAR(80) DEFAULT NULL,
-    is_active TINYINT(1) NOT NULL DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE ranking_events (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    template_id INT DEFAULT NULL,
-    name VARCHAR(160) NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    multiplier DECIMAL(4,2) NOT NULL DEFAULT 1.10,
-    starts_at DATETIME NOT NULL,
-    ends_at DATETIME NOT NULL,
-    status ENUM('scheduled','active','finished','cancelled') NOT NULL DEFAULT 'active',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (template_id) REFERENCES ranking_event_templates(id) ON DELETE SET NULL,
-    INDEX idx_status_dates (status, starts_at, ends_at),
-    INDEX idx_template (template_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+-- --------------------------------------------------------
+-- 14. admin_requests
+-- --------------------------------------------------------
 CREATE TABLE admin_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     teacher_id INT NOT NULL,
@@ -258,17 +386,9 @@ CREATE TABLE admin_requests (
     INDEX idx_teacher_created (teacher_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE admin_request_replies (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    request_id INT NOT NULL,
-    admin_id INT NOT NULL,
-    reply_text TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (request_id) REFERENCES admin_requests(id) ON DELETE CASCADE,
-    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_request_created (request_id, created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+-- --------------------------------------------------------
+-- 15. abuse_reports
+-- --------------------------------------------------------
 CREATE TABLE abuse_reports (
     id INT AUTO_INCREMENT PRIMARY KEY,
     reporter_user_id INT DEFAULT NULL,
@@ -284,12 +404,16 @@ CREATE TABLE abuse_reports (
     handled_at DATETIME DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (reporter_user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (handled_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_status_created (status, created_at),
     INDEX idx_reporter_created (reporter_user_id, created_at),
     INDEX idx_ip_created (ip_address, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 16. lessons
+-- --------------------------------------------------------
 CREATE TABLE lessons (
     id INT AUTO_INCREMENT PRIMARY KEY,
     teacher_id INT NOT NULL,
@@ -310,6 +434,9 @@ CREATE TABLE lessons (
     INDEX idx_qualification_status (qualification, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 17. admin_audit_log
+-- --------------------------------------------------------
 CREATE TABLE admin_audit_log (
     id INT AUTO_INCREMENT PRIMARY KEY,
     admin_id INT DEFAULT NULL,
@@ -325,7 +452,7 @@ CREATE TABLE admin_audit_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 1b. Tabela zablokowanych e-maili
+-- 18. banned_emails
 -- --------------------------------------------------------
 CREATE TABLE banned_emails (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -339,7 +466,7 @@ CREATE TABLE banned_emails (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 1c. Tabela zablokowanych adresów IP
+-- 19. banned_ips
 -- --------------------------------------------------------
 CREATE TABLE banned_ips (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -353,24 +480,7 @@ CREATE TABLE banned_ips (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 2. Tabela pytań
--- --------------------------------------------------------
-CREATE TABLE questions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    category VARCHAR(100) NOT NULL DEFAULT '',
-    question_text TEXT NOT NULL,
-    option_a VARCHAR(500) NOT NULL DEFAULT '',
-    option_b VARCHAR(500) NOT NULL DEFAULT '',
-    option_c VARCHAR(500) NOT NULL DEFAULT '',
-    option_d VARCHAR(500) NOT NULL DEFAULT '',
-    correct_answer CHAR(1) CHARACTER SET ascii NOT NULL,
-    explanation TEXT,
-    image_url VARCHAR(500) DEFAULT NULL,
-    INDEX idx_category (category)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- 3. Tabela wyników testów
+-- 20. test_results
 -- --------------------------------------------------------
 CREATE TABLE test_results (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -392,50 +502,18 @@ CREATE TABLE test_results (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 4. Tabela postępu użytkownika
+-- 21. user_active_tests
 -- --------------------------------------------------------
-CREATE TABLE user_question_progress (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    question_id INT NOT NULL,
-    times_seen INT DEFAULT 0,
-    times_correct INT DEFAULT 0,
-    last_seen DATETIME,
-    is_mastered BOOLEAN DEFAULT FALSE,
-    UNIQUE KEY unique_user_question (user_id, question_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id),
-    INDEX idx_question_id (question_id),
-    INDEX idx_mastered (is_mastered),
-    INDEX idx_user_mastered_last (user_id, is_mastered, last_seen),
-    INDEX idx_question_mastered (question_id, is_mastered)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- 5. Tabela odpowiedzi w testach
--- --------------------------------------------------------
-CREATE TABLE test_answers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    result_id INT NOT NULL,
-    question_id INT NOT NULL,
-    user_answer CHAR(1) CHARACTER SET ascii,
-    correct_answer CHAR(1) CHARACTER SET ascii NOT NULL,
-    is_correct BOOLEAN NOT NULL,
-    FOREIGN KEY (result_id) REFERENCES test_results(id) ON DELETE CASCADE,
-    INDEX idx_result_id (result_id),
-    INDEX idx_question_correct (question_id, is_correct),
-    INDEX idx_result_question (result_id, question_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE user_active_tests (
     user_id INT NOT NULL PRIMARY KEY,
     payload LONGTEXT NOT NULL,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_updated_at (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 6. Tabela powiadomień
+-- 22. notifications
 -- --------------------------------------------------------
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -453,7 +531,7 @@ CREATE TABLE notifications (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 7. Tabela sprawdzianów nauczyciela (exams)
+-- 23. exams
 -- --------------------------------------------------------
 CREATE TABLE exams (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -500,109 +578,7 @@ CREATE TABLE exams (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 8. Sesje egzaminacyjne
--- --------------------------------------------------------
-CREATE TABLE exam_sessions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    exam_id INT NOT NULL,
-    access_code VARCHAR(20) UNIQUE NOT NULL,
-    status ENUM('lobby', 'in_progress', 'paused', 'finished', 'expired') DEFAULT 'lobby',
-    started_at DATETIME DEFAULT NULL,
-    paused_at DATETIME DEFAULT NULL,
-    paused_seconds INT NOT NULL DEFAULT 0,
-    finished_at DATETIME DEFAULT NULL,
-    expires_at DATETIME NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
-    INDEX idx_code (access_code),
-    INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- 9. Pytania przypisane do sesji (Snapshot)
--- --------------------------------------------------------
-CREATE TABLE exam_session_questions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    session_id INT NOT NULL,
-    question_id INT NOT NULL,
-    question_order INT DEFAULT 0,
-    correct_answer_override CHAR(1) CHARACTER SET ascii DEFAULT NULL,
-    override_reason VARCHAR(255) DEFAULT NULL,
-    override_by INT DEFAULT NULL,
-    override_at DATETIME DEFAULT NULL,
-    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
-    INDEX idx_session (session_id),
-    INDEX idx_session_question (session_id, question_id),
-    INDEX idx_session_order (session_id, question_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- 10. Uczestnicy sprawdzianu
--- --------------------------------------------------------
-CREATE TABLE exam_participants (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    session_id INT NOT NULL,
-    user_id INT DEFAULT NULL,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    class VARCHAR(20) NOT NULL,
-    status ENUM('in_lobby', 'taking_exam', 'finished', 'removed', 'disconnected') DEFAULT 'in_lobby',
-    current_question INT DEFAULT 0,
-    correct_answers INT DEFAULT 0,
-    total_answered INT DEFAULT 0,
-    score_percent DECIMAL(5,2) DEFAULT 0,
-    time_spent INT DEFAULT 0,
-    violation_count INT DEFAULT 0,
-    started_at DATETIME DEFAULT NULL,
-    finished_at DATETIME DEFAULT NULL,
-    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_session (session_id),
-    INDEX idx_status (status),
-    INDEX idx_session_user_status (session_id, user_id, status),
-    INDEX idx_session_status_joined (session_id, status, joined_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- 11. Odpowiedzi w sprawdzianie
--- --------------------------------------------------------
-CREATE TABLE exam_answers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    participant_id INT NOT NULL,
-    session_id INT NOT NULL,
-    question_id INT NOT NULL,
-    question_order INT DEFAULT 0,
-    user_answer CHAR(1) CHARACTER SET ascii DEFAULT NULL,
-    correct_answer CHAR(1) CHARACTER SET ascii NOT NULL,
-    is_correct TINYINT(1) DEFAULT 0,
-    time_spent INT DEFAULT 0,
-    answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_participant_question (participant_id, question_id),
-    FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
-    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
-    INDEX idx_session_participant (session_id, participant_id),
-    INDEX idx_participant_order (participant_id, question_order)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- 12. Naruszenia zasad
--- --------------------------------------------------------
-CREATE TABLE exam_violations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    participant_id INT NOT NULL,
-    session_id INT NOT NULL,
-    violation_type ENUM('tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'other') NOT NULL,
-    question_id INT DEFAULT NULL,
-    details TEXT DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
-    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
--- 13. Misje dzienne
+-- 24. user_daily_missions
 -- --------------------------------------------------------
 CREATE TABLE user_daily_missions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -621,7 +597,7 @@ CREATE TABLE user_daily_missions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 13b. Dziennik XP i rozszerzone profile
+-- 25. xp_events
 -- --------------------------------------------------------
 CREATE TABLE xp_events (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -636,6 +612,9 @@ CREATE TABLE xp_events (
     INDEX idx_source (source, source_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 26. luki_spins
+-- --------------------------------------------------------
 CREATE TABLE luki_spins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -650,6 +629,51 @@ CREATE TABLE luki_spins (
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 27. courses
+-- --------------------------------------------------------
+CREATE TABLE courses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    content LONGTEXT,
+    created_by INT DEFAULT NULL,
+    image_url VARCHAR(255) DEFAULT NULL,
+    category VARCHAR(100) DEFAULT NULL,
+    difficulty ENUM('beginner', 'intermediate', 'advanced') DEFAULT NULL,
+    estimated_hours INT UNSIGNED DEFAULT NULL,
+    status ENUM('active', 'hidden', 'private') NOT NULL DEFAULT 'hidden',
+    sequential_learning TINYINT(1) NOT NULL DEFAULT 0,
+    has_certificate TINYINT(1) NOT NULL DEFAULT 1,
+    is_external TINYINT(1) NOT NULL DEFAULT 0,
+    external_url VARCHAR(500) DEFAULT NULL,
+    start_date DATE DEFAULT NULL,
+    end_date DATE DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_status (status),
+    INDEX idx_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 28. course_custom_labs
+-- --------------------------------------------------------
+CREATE TABLE course_custom_labs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    tool_key VARCHAR(50) NOT NULL,
+    instructions TEXT NOT NULL,
+    topology_data LONGTEXT NULL,
+    is_private TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 29. user_education
+-- --------------------------------------------------------
 CREATE TABLE user_education (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -663,23 +687,9 @@ CREATE TABLE user_education (
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE user_certificates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    course_id INT DEFAULT NULL,
-    name VARCHAR(160) NOT NULL,
-    organization VARCHAR(160) NOT NULL,
-    certificate_code VARCHAR(64) DEFAULT NULL,
-    obtained_date DATE DEFAULT NULL,
-    description TEXT DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE SET NULL,
-    UNIQUE KEY uk_user_course (user_id, course_id),
-    UNIQUE KEY uk_cert_code (certificate_code),
-    INDEX idx_user (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+-- --------------------------------------------------------
+-- 30. user_courses
+-- --------------------------------------------------------
 CREATE TABLE user_courses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -692,6 +702,9 @@ CREATE TABLE user_courses (
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 31. user_volunteering
+-- --------------------------------------------------------
 CREATE TABLE user_volunteering (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -705,6 +718,9 @@ CREATE TABLE user_volunteering (
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 32. user_languages
+-- --------------------------------------------------------
 CREATE TABLE user_languages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -715,6 +731,9 @@ CREATE TABLE user_languages (
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 33. user_organizations
+-- --------------------------------------------------------
 CREATE TABLE user_organizations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -728,6 +747,9 @@ CREATE TABLE user_organizations (
     INDEX idx_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 34. user_social_links
+-- --------------------------------------------------------
 CREATE TABLE user_social_links (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -738,6 +760,9 @@ CREATE TABLE user_social_links (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 35. profile_comments
+-- --------------------------------------------------------
 CREATE TABLE profile_comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     profile_user_id INT NOT NULL,
@@ -750,7 +775,7 @@ CREATE TABLE profile_comments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 14. Znajomi
+-- 36. friends
 -- --------------------------------------------------------
 CREATE TABLE friends (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -766,7 +791,7 @@ CREATE TABLE friends (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 14b. Pojedynki znajomych i ostrzeżenia egzaminacyjne
+-- 37. duels
 -- --------------------------------------------------------
 CREATE TABLE duels (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -805,32 +830,9 @@ CREATE TABLE duels (
     INDEX idx_challenger_status (challenger_id, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE duel_answers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    duel_id INT NOT NULL,
-    user_id INT NOT NULL,
-    question_id INT NOT NULL,
-    user_answer CHAR(1) CHARACTER SET ascii NOT NULL,
-    is_correct TINYINT(1) NOT NULL DEFAULT 0,
-    time_spent INT NOT NULL DEFAULT 0,
-    answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_duel_user_question (duel_id, user_id, question_id),
-    FOREIGN KEY (duel_id) REFERENCES duels(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE exam_warnings (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    participant_id INT NOT NULL,
-    session_id INT NOT NULL,
-    message VARCHAR(500) NOT NULL,
-    is_read TINYINT(1) NOT NULL DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
-    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
-    INDEX idx_participant_read (participant_id, is_read)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+-- --------------------------------------------------------
+-- 38. unranked_usage
+-- --------------------------------------------------------
 CREATE TABLE unranked_usage (
     user_id INT NOT NULL,
     used_date DATE NOT NULL,
@@ -839,6 +841,9 @@ CREATE TABLE unranked_usage (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 39. all_in_duel_usage
+-- --------------------------------------------------------
 CREATE TABLE all_in_duel_usage (
     user_id INT NOT NULL,
     usage_date DATE NOT NULL,
@@ -849,21 +854,93 @@ CREATE TABLE all_in_duel_usage (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 15. Odznaki (Badges)
+-- 40. password_resets
 -- --------------------------------------------------------
-CREATE TABLE badges (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    slug VARCHAR(50) UNIQUE NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
-    icon VARCHAR(50) NOT NULL DEFAULT 'bi-award',
-    color VARCHAR(20) NOT NULL DEFAULT '#3b82f6',
-    criteria_type VARCHAR(50) NOT NULL,
-    criteria_value INT DEFAULT 1,
-    rarity ENUM('common', 'uncommon', 'rare', 'epic', 'legendary') DEFAULT 'common',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE password_resets (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token_hash CHAR(64) NOT NULL UNIQUE,
+    ip_address VARCHAR(45) DEFAULT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_created (user_id, created_at),
+    INDEX idx_expires_used (expires_at, used_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+-- 41. user_mfa
+-- --------------------------------------------------------
+CREATE TABLE user_mfa (
+    user_id INT NOT NULL PRIMARY KEY,
+    secret VARCHAR(64) NOT NULL,
+    enabled_at DATETIME DEFAULT NULL,
+    recovery_codes_hash TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_enabled (enabled_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 42. user_passkeys
+-- --------------------------------------------------------
+CREATE TABLE user_passkeys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    credential_id VARCHAR(255) NOT NULL UNIQUE,
+    public_key TEXT NOT NULL,
+    counter INT NOT NULL DEFAULT 0,
+    device_name VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 43. ranking_events
+-- --------------------------------------------------------
+CREATE TABLE ranking_events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    template_id INT DEFAULT NULL,
+    name VARCHAR(160) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    multiplier DECIMAL(4,2) NOT NULL DEFAULT 1.10,
+    starts_at DATETIME NOT NULL,
+    ends_at DATETIME NOT NULL,
+    status ENUM('scheduled','active','finished','cancelled') NOT NULL DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (template_id) REFERENCES ranking_event_templates(id) ON DELETE SET NULL,
+    INDEX idx_status_dates (status, starts_at, ends_at),
+    INDEX idx_template (template_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 44. user_question_progress
+-- --------------------------------------------------------
+CREATE TABLE user_question_progress (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    question_id INT NOT NULL,
+    times_seen INT DEFAULT 0,
+    times_correct INT DEFAULT 0,
+    last_seen DATETIME,
+    is_mastered BOOLEAN DEFAULT FALSE,
+    UNIQUE KEY unique_user_question (user_id, question_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_question_id (question_id),
+    INDEX idx_mastered (is_mastered),
+    INDEX idx_user_mastered_last (user_id, is_mastered, last_seen),
+    INDEX idx_question_mastered (question_id, is_mastered)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 45. user_badges
+-- --------------------------------------------------------
 CREATE TABLE user_badges (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -875,182 +952,72 @@ CREATE TABLE user_badges (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- Seed: Odznaki domyślne
+-- 46. app_status_deliveries
 -- --------------------------------------------------------
-INSERT IGNORE INTO badges (slug, name, description, icon, color, criteria_type, criteria_value, rarity) VALUES
-('first_perfect', 'Pierwsza setka', '100% poprawnych odpowiedzi na teście', 'bi-trophy-fill', '#f59e0b', 'perfect_score', 1, 'rare'),
-('winning_streak', 'Seria zwycięstw', '5 testów z rzędu z wynikiem >80%', 'bi-fire', '#ef4444', 'win_streak', 5, 'epic'),
-('bookworm', 'Bibliotekarz', 'Rozwiąż 500 pytań', 'bi-book-fill', '#8b5cf6', 'questions_answered', 500, 'uncommon'),
-('speedster', 'Błyskawica', 'Test ukończony w <5 min z wynikiem >90%', 'bi-lightning-fill', '#eab308', 'speed_test', 1, 'epic'),
-('sniper', 'Snajper', '10 testów z rzędu bez błędu', 'bi-crosshair', '#10b981', 'flawless_streak', 10, 'legendary'),
-('inf02_master', 'Mistrz INF.02', 'Opanowanie ponad 80% wszystkich pytań', 'bi-mortarboard-fill', '#6366f1', 'mastery_percent', 80, 'legendary'),
-('fair_player', 'Uczciwy gracz', '0 naruszeń w sprawdzianie nauczyciela', 'bi-shield-check', '#22c55e', 'zero_violations', 1, 'common'),
-('first_test', 'Pierwszy krok', 'Ukończ swój pierwszy test', 'bi-rocket-takeoff-fill', '#3b82f6', 'tests_completed', 1, 'common'),
-('test_veteran', 'Weteran', 'Ukończ 50 testów', 'bi-star-fill', '#f97316', 'tests_completed', 50, 'rare'),
-('night_owl', 'Nocna sowa', 'Rozwiąż test po godzinie 22:00', 'bi-moon-stars-fill', '#6366f1', 'night_test', 1, 'uncommon'),
-('early_bird', 'Ranny ptaszek', 'Rozwiąż test przed godziną 7:00', 'bi-sunrise-fill', '#f59e0b', 'early_test', 1, 'uncommon'),
-('social_butterfly', 'Towarzyski', 'Dodaj 10 znajomych', 'bi-people-fill', '#ec4899', 'friends_count', 10, 'uncommon'),
-('exam_survivor', 'Ocalały', 'Ukończ sprawdzian nauczyciela', 'bi-award-fill', '#14b8a6', 'exam_completed', 1, 'common'),
-('top_scorer', 'Najlepszy wynik', 'Zajmij 1. miejsce w sprawdzianie nauczyciela', 'bi-1-circle-fill', '#f59e0b', 'exam_first_place', 1, 'epic'),
-('marathon', 'Maratończyk', 'Rozwiąż łącznie 1000 pytań', 'bi-infinity', '#dc2626', 'questions_answered', 1000, 'rare');
-
--- --------------------------------------------------------
--- Logowanie (Rate Limiting)
--- --------------------------------------------------------
-CREATE TABLE login_attempts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    ip_address VARCHAR(45),
-    username VARCHAR(50),
-    attempt_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    success BOOLEAN DEFAULT FALSE,
-    INDEX idx_ip (ip_address),
-    INDEX idx_username_time (username, attempt_time),
-    INDEX idx_time (attempt_time)
+CREATE TABLE app_status_deliveries (
+    status_id INT NOT NULL,
+    user_id INT NOT NULL,
+    delivered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (status_id, user_id),
+    FOREIGN KEY (status_id) REFERENCES app_statuses(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_status_delivery (user_id, delivered_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE password_resets (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    token_hash CHAR(64) NOT NULL UNIQUE,
-    ip_address VARCHAR(45) DEFAULT NULL,
+-- --------------------------------------------------------
+-- 47. admin_request_replies
+-- --------------------------------------------------------
+CREATE TABLE admin_request_replies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    admin_id INT NOT NULL,
+    reply_text TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES admin_requests(id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_request_created (request_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 48. test_answers
+-- --------------------------------------------------------
+CREATE TABLE test_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    result_id INT NOT NULL,
+    question_id INT NOT NULL,
+    user_answer CHAR(1) CHARACTER SET ascii,
+    correct_answer CHAR(1) CHARACTER SET ascii NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    FOREIGN KEY (result_id) REFERENCES test_results(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    INDEX idx_result_id (result_id),
+    INDEX idx_question_correct (question_id, is_correct),
+    INDEX idx_result_question (result_id, question_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 49. exam_sessions
+-- --------------------------------------------------------
+CREATE TABLE exam_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    exam_id INT NOT NULL,
+    access_code VARCHAR(20) UNIQUE NOT NULL,
+    status ENUM('lobby', 'in_progress', 'paused', 'finished', 'expired') DEFAULT 'lobby',
+    started_at DATETIME DEFAULT NULL,
+    paused_at DATETIME DEFAULT NULL,
+    paused_seconds INT NOT NULL DEFAULT 0,
+    finished_at DATETIME DEFAULT NULL,
     expires_at DATETIME NOT NULL,
-    used_at DATETIME DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user_created (user_id, created_at),
-    INDEX idx_expires_used (expires_at, used_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE user_mfa (
-    user_id INT NOT NULL PRIMARY KEY,
-    secret VARCHAR(64) NOT NULL,
-    enabled_at DATETIME DEFAULT NULL,
-    recovery_codes_hash TEXT DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_enabled (enabled_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE rate_limit_events (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    bucket VARCHAR(80) NOT NULL,
-    identity_hash CHAR(64) NOT NULL,
-    ip_address VARCHAR(45) DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_bucket_identity_created (bucket, identity_hash, created_at),
-    INDEX idx_created (created_at)
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+    INDEX idx_code (access_code),
+    INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- Aktualizacje istniejących instalacji bez kasowania danych
+-- 50. course_shares
 -- --------------------------------------------------------
-ALTER TABLE users ADD COLUMN IF NOT EXISTS allow_profile_comments TINYINT(1) DEFAULT 1 AFTER stats_public;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_path VARCHAR(255) DEFAULT NULL AFTER bio;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_changed_at DATETIME DEFAULT NULL AFTER avatar_path;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS ranking_visible TINYINT(1) NOT NULL DEFAULT 0 AFTER is_verified;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS verified_at DATETIME DEFAULT NULL AFTER is_verified;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS verified_by_admin_id INT DEFAULT NULL AFTER verified_at;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_expires_at DATETIME DEFAULT NULL AFTER is_banned;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS trust_status VARCHAR(30) NOT NULL DEFAULT 'trusted' AFTER is_banned;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS risk_flags TEXT DEFAULT NULL AFTER trust_status;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS session_version INT NOT NULL DEFAULT 1 AFTER last_activity;
-ALTER TABLE users ADD INDEX IF NOT EXISTS idx_ban_expiry (is_banned, ban_expires_at);
-ALTER TABLE users MODIFY role ENUM('user','teacher','admin','dyrektor','wujek_luki') DEFAULT 'user';
-ALTER TABLE users MODIFY xp INT DEFAULT 4100;
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS dedupe_key VARCHAR(160) DEFAULT NULL AFTER is_read;
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS action_url VARCHAR(500) DEFAULT NULL AFTER dedupe_key;
-ALTER TABLE abuse_reports ADD COLUMN IF NOT EXISTS reporter_user_id INT DEFAULT NULL AFTER id;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS preset VARCHAR(40) NOT NULL DEFAULT 'classic' AFTER mode;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS time_per_question_seconds INT DEFAULT NULL AFTER underdog_bonus;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS total_time_seconds INT DEFAULT NULL AFTER time_per_question_seconds;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS require_answer_confirmation TINYINT(1) NOT NULL DEFAULT 0 AFTER total_time_seconds;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS allow_early_finish TINYINT(1) NOT NULL DEFAULT 1 AFTER require_answer_confirmation;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS challenger_started_at DATETIME DEFAULT NULL AFTER opponent_finished_at;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS opponent_started_at DATETIME DEFAULT NULL AFTER challenger_started_at;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS challenger_hidden_at DATETIME DEFAULT NULL AFTER opponent_started_at;
-ALTER TABLE duels ADD COLUMN IF NOT EXISTS opponent_hidden_at DATETIME DEFAULT NULL AFTER challenger_hidden_at;
-ALTER TABLE exams ADD COLUMN IF NOT EXISTS navigation_mode VARCHAR(30) NOT NULL DEFAULT 'free' AFTER max_attempts;
-ALTER TABLE exams ADD COLUMN IF NOT EXISTS allow_answer_changes TINYINT(1) NOT NULL DEFAULT 1 AFTER navigation_mode;
-ALTER TABLE exams ADD COLUMN IF NOT EXISTS warning_limit TINYINT UNSIGNED DEFAULT NULL AFTER allow_answer_changes;
-ALTER TABLE exams ADD COLUMN IF NOT EXISTS warning_action VARCHAR(30) NOT NULL DEFAULT 'notify' AFTER warning_limit;
-ALTER TABLE exams ADD COLUMN IF NOT EXISTS late_join_cutoff_minutes TINYINT UNSIGNED DEFAULT NULL AFTER warning_action;
-ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_available_at DATETIME DEFAULT NULL AFTER late_join_cutoff_minutes;
-ALTER TABLE exams ADD COLUMN IF NOT EXISTS print_include_answer_key TINYINT(1) NOT NULL DEFAULT 0 AFTER results_available_at;
-ALTER TABLE exam_session_questions ADD COLUMN IF NOT EXISTS correct_answer_override CHAR(1) CHARACTER SET ascii DEFAULT NULL AFTER question_order;
-ALTER TABLE exam_session_questions ADD COLUMN IF NOT EXISTS override_reason VARCHAR(255) DEFAULT NULL AFTER correct_answer_override;
-ALTER TABLE exam_session_questions ADD COLUMN IF NOT EXISTS override_by INT DEFAULT NULL AFTER override_reason;
-ALTER TABLE exam_session_questions ADD COLUMN IF NOT EXISTS override_at DATETIME DEFAULT NULL AFTER override_by;
-ALTER TABLE exam_session_questions ADD INDEX IF NOT EXISTS idx_session_question (session_id, question_id);
-ALTER TABLE exam_session_questions ADD INDEX IF NOT EXISTS idx_session_order (session_id, question_order);
-ALTER TABLE profile_comments MODIFY comment_text VARCHAR(100) NOT NULL;
-ALTER TABLE test_results ADD INDEX IF NOT EXISTS idx_user_test_date (user_id, test_date);
-ALTER TABLE test_results ADD INDEX IF NOT EXISTS idx_ranking_tests (total_questions, exclude_from_ranking);
-ALTER TABLE test_results ADD INDEX IF NOT EXISTS idx_user_mode_date (user_id, mode, test_date);
-ALTER TABLE test_answers ADD INDEX IF NOT EXISTS idx_question_correct (question_id, is_correct);
-ALTER TABLE test_answers ADD INDEX IF NOT EXISTS idx_result_question (result_id, question_id);
-ALTER TABLE user_question_progress ADD INDEX IF NOT EXISTS idx_user_mastered_last (user_id, is_mastered, last_seen);
-ALTER TABLE user_question_progress ADD INDEX IF NOT EXISTS idx_question_mastered (question_id, is_mastered);
-ALTER TABLE user_active_tests ADD INDEX IF NOT EXISTS idx_updated_at (updated_at);
-ALTER TABLE exam_participants ADD INDEX IF NOT EXISTS idx_session_user_status (session_id, user_id, status);
-ALTER TABLE exam_participants ADD INDEX IF NOT EXISTS idx_session_status_joined (session_id, status, joined_at);
-ALTER TABLE exam_answers ADD INDEX IF NOT EXISTS idx_session_participant (session_id, participant_id);
-ALTER TABLE exam_answers ADD INDEX IF NOT EXISTS idx_participant_order (participant_id, question_order);
-ALTER TABLE notifications ADD INDEX IF NOT EXISTS idx_user_unread_created (user_id, is_read, created_at);
-ALTER TABLE notifications ADD INDEX IF NOT EXISTS idx_user_dedupe (user_id, dedupe_key, created_at);
-ALTER TABLE friends ADD INDEX IF NOT EXISTS idx_friend_lookup (user_id, friend_id, status);
-ALTER TABLE friends ADD INDEX IF NOT EXISTS idx_friend_reverse (friend_id, user_id, status);
-ALTER TABLE users ADD INDEX IF NOT EXISTS idx_role_xp_activity (role, xp, last_activity);
-ALTER TABLE users ADD INDEX IF NOT EXISTS idx_trust_status (trust_status);
-CREATE TABLE IF NOT EXISTS lessons (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    teacher_id INT NOT NULL,
-    title VARCHAR(160) NOT NULL,
-    body TEXT NOT NULL,
-    qualification VARCHAR(20) NOT NULL DEFAULT 'general',
-    lesson_type ENUM('lesson','homework') NOT NULL DEFAULT 'lesson',
-    status ENUM('published','archived') NOT NULL DEFAULT 'published',
-    due_at DATETIME DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_status_created (status, created_at),
-    INDEX idx_teacher_status (teacher_id, status),
-    INDEX idx_qualification_status (qualification, status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-CREATE TABLE IF NOT EXISTS luki_spins (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    spin_date DATE NOT NULL,
-    archetype VARCHAR(40) NOT NULL,
-    label VARCHAR(120) NOT NULL,
-    xp_delta INT NOT NULL DEFAULT 0,
-    note VARCHAR(255) DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_user_date (user_id, spin_date),
-    INDEX idx_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS courses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    content LONGTEXT,
-    created_by INT DEFAULT NULL,
-    image_url VARCHAR(255) DEFAULT NULL,
-    category VARCHAR(100) DEFAULT NULL,
-    difficulty ENUM('beginner', 'intermediate', 'advanced') DEFAULT NULL,
-    estimated_hours INT UNSIGNED DEFAULT NULL,
-    status ENUM('active', 'hidden', 'private') NOT NULL DEFAULT 'hidden',
-    sequential_learning TINYINT(1) NOT NULL DEFAULT 0,
-    has_certificate TINYINT(1) NOT NULL DEFAULT 1,
-    start_date DATE DEFAULT NULL,
-    end_date DATE DEFAULT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_status (status),
-    INDEX idx_category (category)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS course_shares (
+CREATE TABLE course_shares (
     id INT AUTO_INCREMENT PRIMARY KEY,
     course_id INT NOT NULL,
     shared_with_user_id INT NOT NULL,
@@ -1061,8 +1028,10 @@ CREATE TABLE IF NOT EXISTS course_shares (
     INDEX idx_course_share_user (shared_with_user_id, course_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
-CREATE TABLE IF NOT EXISTS course_modules (
+-- --------------------------------------------------------
+-- 51. course_modules
+-- --------------------------------------------------------
+CREATE TABLE course_modules (
     id INT AUTO_INCREMENT PRIMARY KEY,
     course_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -1073,19 +1042,113 @@ CREATE TABLE IF NOT EXISTS course_modules (
     INDEX idx_course_sort (course_id, sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS course_custom_labs (
+-- --------------------------------------------------------
+-- 52. user_course_enrollments
+-- --------------------------------------------------------
+CREATE TABLE user_course_enrollments (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    teacher_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    tool_key VARCHAR(50) NOT NULL,
-    instructions TEXT NOT NULL,
-    topology_data LONGTEXT NULL,
-    is_private TINYINT(1) NOT NULL DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+    user_id INT NOT NULL,
+    course_id INT NOT NULL,
+    status ENUM('active', 'completed') NOT NULL DEFAULT 'active',
+    progress_percent INT NOT NULL DEFAULT 0,
+    enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_user_course (user_id, course_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS course_items (
+-- --------------------------------------------------------
+-- 53. user_certificates
+-- --------------------------------------------------------
+CREATE TABLE user_certificates (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    course_id INT DEFAULT NULL,
+    name VARCHAR(160) NOT NULL,
+    organization VARCHAR(160) NOT NULL,
+    certificate_code VARCHAR(64) DEFAULT NULL,
+    obtained_date DATE DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE SET NULL,
+    UNIQUE KEY uk_user_course (user_id, course_id),
+    UNIQUE KEY uk_cert_code (certificate_code),
+    INDEX idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 54. duel_answers
+-- --------------------------------------------------------
+CREATE TABLE duel_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    duel_id INT NOT NULL,
+    user_id INT NOT NULL,
+    question_id INT NOT NULL,
+    user_answer CHAR(1) CHARACTER SET ascii NOT NULL,
+    is_correct TINYINT(1) NOT NULL DEFAULT 0,
+    time_spent INT NOT NULL DEFAULT 0,
+    answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_duel_user_question (duel_id, user_id, question_id),
+    FOREIGN KEY (duel_id) REFERENCES duels(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 55. exam_session_questions
+-- --------------------------------------------------------
+CREATE TABLE exam_session_questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    session_id INT NOT NULL,
+    question_id INT NOT NULL,
+    question_order INT DEFAULT 0,
+    correct_answer_override CHAR(1) CHARACTER SET ascii DEFAULT NULL,
+    override_reason VARCHAR(255) DEFAULT NULL,
+    override_by INT DEFAULT NULL,
+    override_at DATETIME DEFAULT NULL,
+    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    FOREIGN KEY (override_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_session (session_id),
+    INDEX idx_session_question (session_id, question_id),
+    INDEX idx_session_order (session_id, question_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 56. exam_participants
+-- --------------------------------------------------------
+CREATE TABLE exam_participants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    session_id INT NOT NULL,
+    user_id INT DEFAULT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    class VARCHAR(20) NOT NULL,
+    status ENUM('in_lobby', 'taking_exam', 'finished', 'removed', 'disconnected') DEFAULT 'in_lobby',
+    current_question INT DEFAULT 0,
+    correct_answers INT DEFAULT 0,
+    total_answered INT DEFAULT 0,
+    score_percent DECIMAL(5,2) DEFAULT 0,
+    time_spent INT DEFAULT 0,
+    violation_count INT DEFAULT 0,
+    started_at DATETIME DEFAULT NULL,
+    finished_at DATETIME DEFAULT NULL,
+    joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_session (session_id),
+    INDEX idx_status (status),
+    INDEX idx_session_user_status (session_id, user_id, status),
+    INDEX idx_session_status_joined (session_id, status, joined_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 57. course_items
+-- --------------------------------------------------------
+CREATE TABLE course_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     module_id INT NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -1104,7 +1167,63 @@ CREATE TABLE IF NOT EXISTS course_items (
     INDEX idx_module_sort (module_id, sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS course_quiz_questions (
+-- --------------------------------------------------------
+-- 58. exam_answers
+-- --------------------------------------------------------
+CREATE TABLE exam_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    participant_id INT NOT NULL,
+    session_id INT NOT NULL,
+    question_id INT NOT NULL,
+    question_order INT DEFAULT 0,
+    user_answer CHAR(1) CHARACTER SET ascii DEFAULT NULL,
+    correct_answer CHAR(1) CHARACTER SET ascii NOT NULL,
+    is_correct TINYINT(1) DEFAULT 0,
+    time_spent INT DEFAULT 0,
+    answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_participant_question (participant_id, question_id),
+    FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    INDEX idx_session_participant (session_id, participant_id),
+    INDEX idx_participant_order (participant_id, question_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 59. exam_violations
+-- --------------------------------------------------------
+CREATE TABLE exam_violations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    participant_id INT NOT NULL,
+    session_id INT NOT NULL,
+    violation_type ENUM('tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'other') NOT NULL,
+    question_id INT DEFAULT NULL,
+    details TEXT DEFAULT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 60. exam_warnings
+-- --------------------------------------------------------
+CREATE TABLE exam_warnings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    participant_id INT NOT NULL,
+    session_id INT NOT NULL,
+    message VARCHAR(500) NOT NULL,
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
+    INDEX idx_participant_read (participant_id, is_read)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 61. course_quiz_questions
+-- --------------------------------------------------------
+CREATE TABLE course_quiz_questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     item_id INT NOT NULL,
     question_text TEXT NOT NULL,
@@ -1117,20 +1236,10 @@ CREATE TABLE IF NOT EXISTS course_quiz_questions (
     FOREIGN KEY (item_id) REFERENCES course_items(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS user_course_enrollments (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    course_id INT NOT NULL,
-    status ENUM('active', 'completed') NOT NULL DEFAULT 'active',
-    progress_percent INT NOT NULL DEFAULT 0,
-    enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    completed_at DATETIME NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-    UNIQUE KEY uq_user_course (user_id, course_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS user_course_progress (
+-- --------------------------------------------------------
+-- 62. user_course_progress
+-- --------------------------------------------------------
+CREATE TABLE user_course_progress (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     course_id INT NOT NULL,
@@ -1145,3 +1254,48 @@ CREATE TABLE IF NOT EXISTS user_course_progress (
     UNIQUE KEY uq_user_item (user_id, item_id),
     INDEX idx_user_course_progress (user_id, course_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 63. flashcard_sm2  (SuperMemo-2 spaced repetition state)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS flashcard_sm2 (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    card_key VARCHAR(64) NOT NULL COMMENT 'md5(front) for dictionary-based cards',
+    easiness_factor FLOAT NOT NULL DEFAULT 2.5,
+    interval_days INT NOT NULL DEFAULT 1,
+    repetition_count INT NOT NULL DEFAULT 0,
+    next_review_date DATE NOT NULL DEFAULT (CURDATE()),
+    last_rating TINYINT DEFAULT NULL COMMENT '0=Again 1=Hard 2=Good 3=Easy',
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_card (user_id, card_key),
+    INDEX idx_sm2_review (user_id, next_review_date),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 64. subnetting_scores  (Subnetting Speed Challenge high scores)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS subnetting_scores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    score INT NOT NULL DEFAULT 0,
+    streak INT NOT NULL DEFAULT 0,
+    difficulty ENUM('easy','medium','hard','expert') NOT NULL DEFAULT 'medium',
+    achieved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_subnet_score (score DESC),
+    INDEX idx_subnet_user (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 65. question_hints  (optional per-question hint override storage)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS question_hints (
+    question_id INT NOT NULL PRIMARY KEY,
+    hint_tier1 TEXT DEFAULT NULL COMMENT 'Conceptual clue',
+    hint_tier2 VARCHAR(2) DEFAULT NULL COMMENT 'Two wrong answer letters to eliminate e.g. BC',
+    hint_tier3 TEXT DEFAULT NULL COMMENT 'Step-by-step reasoning (overrides explanation)',
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

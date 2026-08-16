@@ -114,12 +114,16 @@ function appDbReadableTlsFile(string $path, string $label): string {
 }
 
 function appDbPdoOptions(array $config): array {
+    $isPersistent = isset($config['persistent'])
+        ? (bool)$config['persistent']
+        : appConfigBool('MYSQL_PERSISTENT', appConfigBool('DB_PERSISTENT', false));
+
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
         PDO::ATTR_STRINGIFY_FETCHES => false,
-        PDO::ATTR_PERSISTENT => false,
+        PDO::ATTR_PERSISTENT => $isPersistent, // Defaults to PDO::ATTR_PERSISTENT => false
         PDO::ATTR_TIMEOUT => max(1, min(30, (int)($config['connect_timeout'] ?? 5))),
         PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
         PDO::MYSQL_ATTR_LOCAL_INFILE => false,
@@ -245,6 +249,7 @@ $appDbConfig = [
     'port' => DB_PORT,
     'socket' => configValue('MYSQL_SOCKET'),
     'database' => DB_NAME,
+    'persistent' => appConfigBool('MYSQL_PERSISTENT', appConfigBool('DB_PERSISTENT', false)),
     'connect_timeout' => appDbConfigInt('MYSQL_CONNECT_TIMEOUT', 5, 1, 30, 'DB_CONNECT_TIMEOUT'),
     'ssl_ca' => configValue('MYSQL_SSL_CA'),
     'ssl_cert' => configValue('MYSQL_SSL_CERT'),
@@ -282,24 +287,32 @@ if (defined('APP_DB_SKIP_CONNECT') && APP_DB_SKIP_CONNECT === true) {
 }
 
 if (!function_exists('dbQueryCached')) {
-    function dbQueryCached(\PDO $pdo, string $sql, array $params = [], int $ttl = 300, bool $fetchOne = false) {
+    function dbQueryCached(\PDO $pdo, string $sql, array $params = [], int $ttl = 300, bool $fetchOne = false, array $tags = []) {
+        static $memoryCache = [];
         static $dbQueryCount = 0;
         static $dbQueryTimeMs = 0.0;
+
+        $cacheKey = 'sql_' . md5($sql . '|' . json_encode($params)) . ($fetchOne ? '_one' : '_all');
+        if (array_key_exists($cacheKey, $memoryCache)) {
+            return $memoryCache[$cacheKey];
+        }
 
         $dbQueryCount++;
         $startTime = microtime(true);
 
-        $cacheKey = 'sql_' . md5($sql . '|' . json_encode($params));
         $engine = \App\Core\Engine::getInstance();
         $cache = ($engine && $engine->isBooted()) ? $engine->getCache() : null;
 
+        $isDbExecution = false;
         if ($cache) {
-            $result = $cache->remember($cacheKey, $ttl, function() use ($pdo, $sql, $params, $fetchOne) {
+            $result = $cache->remember($cacheKey, $ttl, function() use ($pdo, $sql, $params, $fetchOne, &$isDbExecution) {
+                $isDbExecution = true;
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
                 return $fetchOne ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            });
+            }, $tags);
         } else {
+            $isDbExecution = true;
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $result = $fetchOne ? $stmt->fetch(\PDO::FETCH_ASSOC) : $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -311,6 +324,20 @@ if (!function_exists('dbQueryCached')) {
             $engine->getResponseBuffer()->addTiming('db', $dbQueryTimeMs, "DB ({$dbQueryCount} queries)");
         }
 
+        // Slow query interception: threshold >= 100ms
+        if ($isDbExecution && $elapsed >= 100.0) {
+            if (class_exists('\\App\\Core\\Logger')) {
+                \App\Core\Logger::getInstance()->slowQuery($sql, $params, round($elapsed, 2), [
+                    'caller' => 'dbQueryCached',
+                    'cached' => false,
+                    'query_count' => $dbQueryCount,
+                    'fetch_mode' => $fetchOne ? 'fetchOne' : 'fetchAll',
+                    'tags' => $tags,
+                ]);
+            }
+        }
+
+        $memoryCache[$cacheKey] = $result;
         return $result;
     }
 }

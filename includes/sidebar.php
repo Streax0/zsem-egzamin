@@ -89,6 +89,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 <i class="bi bi-terminal"></i>
                 <span>Sandbox</span>
             </a>
+            <a href="<?php echo $base_url; ?>sandbox/cli_lab.php" class="sidebar-item sidebar-subitem <?php echo isActive('/sandbox/cli_lab.php', $php_self); ?>" title="CLI Lab — Terminal Linux/Windows">
+                <i class="bi bi-terminal-fill" style="color:#39d353"></i>
+                <span>CLI Lab</span>
+            </a>
+            <a href="<?php echo $base_url; ?>sandbox/subnetting_challenge.php" class="sidebar-item sidebar-subitem <?php echo isActive('/sandbox/subnetting_challenge.php', $php_self); ?>" title="Subnetting Speed Challenge">
+                <i class="bi bi-router-fill" style="color:#6366f1"></i>
+                <span>Subnetting Challenge</span>
+            </a>
 
             <div class="sidebar-group-title mt-3">Społeczność</div>
             <a href="<?php echo $base_url; ?>ranking.php" class="sidebar-item <?php echo isActive('/ranking.php', $php_self); ?>">
@@ -155,6 +163,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 <a href="<?php echo $base_url; ?>admin/index.php" class="sidebar-item <?php echo isActive('/admin/index.php', $php_self); ?>">
                     <i class="bi bi-shield-lock"></i>
                     <span>Panel Admin</span>
+                </a>
+                <a href="<?php echo $base_url; ?>admin/system_health.php" class="sidebar-item <?php echo isActive('/admin/system_health.php', $php_self); ?>">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Stan Systemu</span>
                 </a>
                 <a href="<?php echo $base_url; ?>admin/engine.php" class="sidebar-item <?php echo isActive('/admin/engine.php', $php_self); ?>"><i class="bi bi-cpu"></i> <span>Silnik i Security</span></a>
                 <a href="<?php echo $base_url; ?>admin/manage_questions.php" class="sidebar-item <?php echo isActive('/admin/manage_questions.php', $php_self); ?>">

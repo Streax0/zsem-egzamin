@@ -63,13 +63,7 @@ if (file_exists($pdfFile) && is_file($pdfFile)) {
     }
 } else {
     // Fallback: check database for old-style uploads
-    $hasPdfPath = false;
-    try {
-        $check = $pdo->query("SHOW COLUMNS FROM lessons LIKE 'pdf_path'");
-        $hasPdfPath = (bool)$check->fetch();
-    } catch (Throwable $e) {
-        // column doesn't exist
-    }
+    $hasPdfPath = dbColumnExists($pdo, 'lessons', 'pdf_path');
 
     if ($hasPdfPath) {
         $stmt2 = $pdo->prepare('SELECT pdf_path, pdf_filename, pdf_download_allowed FROM lessons WHERE id = ? LIMIT 1');
