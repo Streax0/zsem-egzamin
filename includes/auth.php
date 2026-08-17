@@ -414,52 +414,9 @@ if (!function_exists('requireLogin')) {
 
         if (!isLoggedIn()) {
             $return_url = urlencode($_SERVER['REQUEST_URI'] ?? '/');
-            $script = $_SERVER['PHP_SELF'] ?? '';
             $prefix = file_exists('config/db.php') ? '' : '../';
-
-            http_response_code(401);
             $login_url = $prefix . 'auth/login.php?return=' . $return_url;
-            $home_url = $prefix . 'index.php';
-            echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
-            echo '<title>Wymagane logowanie - ZSEM Tech</title>';
-            echo '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">';
-            echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">';
-            echo '<link href="' . $prefix . 'assets/css/fonts.css" rel="stylesheet">';
-            echo '<link rel="stylesheet" href="' . $prefix . 'assets/css/auth.css">';
-            echo '<style>';
-            echo 'body.auth-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 1rem; }';
-            echo '.auth-shell { min-height: unset; height: auto; max-width: 900px; width: 100%; }';
-            echo '.auth-form-panel { padding: 3rem 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }';
-            echo '.blocked-icon { font-size: 4.5rem; color: var(--color-primary, #4f46e5); margin-bottom: 1.5rem; line-height: 1; }';
-            echo '.blocked-badge { display: inline-block; padding: 0.4em 0.8em; font-size: 0.85em; font-weight: 700; color: #fff; background-color: #ef4444; border-radius: 50rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; }';
-            echo '.btn-action { font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.75rem; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 100%; margin-bottom: 0.75rem; }';
-            echo '.auth-info-panel h1 { font-size: 2.2rem; margin-bottom: 1rem; }';
-            echo '</style>';
-            echo '</head><body class="auth-page">';
-            echo '<div class="auth-shell">';
-            echo '<section class="auth-info-panel" aria-label="ZSEM Tech">';
-            echo '<div>';
-            echo '<div class="auth-brand"><i class="bi bi-mortarboard-fill"></i> ZSEM Tech</div>';
-            echo '<h1>Zaloguj się, aby kontynuować</h1>';
-            echo '<p class="text-muted fs-5 mb-0">Ta strona jest dostępna tylko dla zalogowanych użytkowników. Dołącz do nas, aby uzyskać pełny dostęp.</p>';
-            echo '</div>';
-            echo '<div class="auth-feature-grid mt-4">';
-            echo '<div class="auth-feature-card"><strong>Testy</strong><br><span class="small text-muted">INF.02 i arkusze</span></div>';
-            echo '<div class="auth-feature-card"><strong>Wyniki</strong><br><span class="small text-muted">postęp i ranking</span></div>';
-            echo '</div>';
-            echo '</section>';
-            echo '<main class="login-card auth-form-panel" role="main">';
-            echo '<div class="blocked-icon"><i class="bi bi-shield-lock-fill"></i></div>';
-            echo '<span class="blocked-badge">Dostęp ograniczony</span>';
-            echo '<h1 class="h3 fw-bold mb-3 text-white">Wymagane logowanie</h1>';
-            echo '<p class="text-muted mb-4">Wymagane jest uwierzytelnienie, aby wyświetlić tę stronę.</p>';
-            echo '<div class="w-100" style="max-width: 320px;">';
-            echo '<a class="btn btn-primary btn-action" href="' . htmlspecialchars($login_url, ENT_QUOTES) . '"><i class="bi bi-box-arrow-in-right me-2"></i>Zaloguj się</a>';
-            echo '<a class="btn btn-outline-light btn-action" href="' . htmlspecialchars($home_url, ENT_QUOTES) . '"><i class="bi bi-house me-2"></i>Strona główna</a>';
-            echo '</div>';
-            echo '</main>';
-            echo '</div>';
-            echo '</body></html>';
+            header('Location: ' . $login_url);
             exit();
         }
 

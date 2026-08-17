@@ -34,11 +34,15 @@ try {
     $result = $backupService->createBackup();
 
     echo "Backup created successfully!\n";
-    echo "  File: " . $result['filename'] . "\n";
-    echo "  Size: " . $result['size_formatted'] . "\n";
-    echo "  Tables: " . $result['tables_count'] . "\n";
-    echo "  Rows: " . $result['rows_count'] . "\n";
-    echo "  Duration: " . $result['duration_seconds'] . "s\n";
+    echo "  Compressed File : " . $result['filename'] . " (" . $result['size_formatted'] . ")\n";
+    if (!empty($result['encrypted'])) {
+        echo "  Encrypted File  : " . $result['encrypted_filename'] . " (" . $result['encrypted_size_formatted'] . ")\n";
+        echo "  Encryption Algo : " . $result['encryption_algorithm'] . "\n";
+        echo "  SHA-256 Checksum: " . $result['sha256_checksum'] . "\n";
+    }
+    echo "  Exported Tables : " . $result['tables_count'] . "\n";
+    echo "  Exported Rows   : " . $result['rows_count'] . "\n";
+    echo "  Execution Time  : " . $result['duration_seconds'] . "s\n";
 
     // Prune backups older than 7 days
     $pruned = $backupService->cleanupOldBackups(7);

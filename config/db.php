@@ -341,3 +341,12 @@ if (!function_exists('dbQueryCached')) {
         return $result;
     }
 }
+
+if (!function_exists('dbQuery')) {
+    function dbQuery(string $sql, array $params = [], bool $fetchOne = false) {
+        global $pdo;
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $fetchOne ? $stmt->fetch(PDO::FETCH_ASSOC) : $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+}

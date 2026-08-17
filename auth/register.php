@@ -189,15 +189,15 @@ $csrf_token = generateCsrfToken();
             <form method="POST" id="registerForm" data-kappicrypt="true" data-kappicrypt-badge="false">
                 <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                 
-                <div class="row g-3">
-                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6 auth-input-group has-icon">
                         <label class="form-label" for="first_name">Imię</label>
                         <div class="position-relative">
                             <i class="bi bi-person auth-input-icon"></i>
                             <input type="text" name="first_name" id="first_name" class="form-control" placeholder="Jan" value="<?= htmlspecialchars($first_name) ?>" maxlength="50" autocomplete="given-name" required>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                    <div class="col-12 col-md-6 auth-input-group has-icon">
                         <label class="form-label" for="last_name">Nazwisko</label>
                         <div class="position-relative">
                             <i class="bi bi-person-vcard auth-input-icon"></i>
@@ -225,8 +225,8 @@ $csrf_token = generateCsrfToken();
                     <div id="emailFeedback" class="small mt-1"></div>
                 </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6 auth-input-group has-icon">
                         <label class="form-label" for="classYear">Klasa</label>
                         <div class="position-relative">
                             <i class="bi bi-mortarboard auth-input-icon"></i>
@@ -238,7 +238,7 @@ $csrf_token = generateCsrfToken();
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3 auth-input-group has-icon">
+                    <div class="col-12 col-md-6 auth-input-group has-icon">
                         <label class="form-label" for="classSuffix">Oznaczenie klasy</label>
                         <div class="position-relative">
                             <i class="bi bi-tag auth-input-icon"></i>
@@ -247,8 +247,8 @@ $csrf_token = generateCsrfToken();
                     </div>
                 </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6 mb-3 position-relative password-field auth-input-group has-icon">
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6 position-relative password-field auth-input-group has-icon">
                         <label class="form-label" for="regPassword">Hasło</label>
                         <div class="position-relative">
                             <i class="bi bi-lock auth-input-icon"></i>
@@ -261,7 +261,7 @@ $csrf_token = generateCsrfToken();
                             <span id="passwordPolicyMessage">Wpisz hasło, aby sprawdzić wymagania.</span>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3 position-relative password-field auth-input-group has-icon">
+                    <div class="col-12 col-md-6 position-relative password-field auth-input-group has-icon">
                         <label class="form-label" for="confirm_password">Powtórz hasło</label>
                         <div class="position-relative">
                             <i class="bi bi-lock-fill auth-input-icon"></i>

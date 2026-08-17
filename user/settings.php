@@ -941,7 +941,7 @@ include '../includes/header.php';
                                 <h2 class="fw-bold mb-1">Ustawienia konta</h2>
                                 <p class="text-muted mb-0">Dane, prywatność, wygląd i zachowanie aplikacji.</p>
                             </div>
-                            <a href="user/profile.php" class="btn btn-outline-primary rounded-pill px-4"><i class="bi bi-person me-1"></i>Profil</a>
+                            <a href="profile.php" class="btn btn-outline-primary rounded-pill px-4"><i class="bi bi-person me-1"></i>Profil</a>
                         </div>
                     </div>
 
@@ -999,7 +999,7 @@ include '../includes/header.php';
                                         <div class="panel-header mb-4">
                                             <h5 class="panel-title mb-0"><i class="bi bi-person-gear me-2 text-primary"></i>Dane podstawowe</h5>
                                         </div>
-                                        <form action="actions/update_profile.php" method="POST" enctype="multipart/form-data">
+                                        <form action="../actions/update_profile.php" method="POST" enctype="multipart/form-data">
                                             <?php echo csrfTokenField(); ?>
                                             <div class="row g-3">
                                                 <div class="col-md-6">
@@ -1056,7 +1056,7 @@ include '../includes/header.php';
                                                 </div>
                                             </div>
                                         </form>
-                                        <form id="deleteAvatarForm" action="actions/update_profile.php" method="POST" style="display: none;">
+                                        <form id="deleteAvatarForm" action="../actions/update_profile.php" method="POST" style="display: none;">
                                             <?php echo csrfTokenField(); ?>
                                             <input type="hidden" name="return_to" value="settings.php">
                                             <input type="hidden" name="action" value="delete_avatar">
@@ -1089,7 +1089,7 @@ include '../includes/header.php';
                                         <div class="panel-header mb-4">
                                             <h5 class="panel-title mb-0"><i class="bi bi-eye-slash me-2 text-warning"></i>Ustawienia prywatności</h5>
                                         </div>
-                                        <form action="actions/update_privacy.php" method="POST">
+                                        <form action="../actions/update_privacy.php" method="POST">
                                             <?php echo csrfTokenField(); ?>
                                             <div class="row g-3">
                                                 <div class="col-md-6">
@@ -1159,7 +1159,7 @@ include '../includes/header.php';
                                         </div>
                                         <div class="p-3">
                                             <p>Twoje hasło korzysta ze starszego sposobu zabezpieczenia (MD5). Zalecamy jednorazową migrację do nowoczesnego standardu Argon2id.</p>
-                                            <form action="actions/migrate_md5.php" method="POST">
+                                            <form action="../actions/migrate_md5.php" method="POST">
                                                 <?php echo csrfTokenField(); ?>
                                                 <input type="hidden" name="return_to" value="settings.php">
                                                 <div class="mb-3">
@@ -1179,7 +1179,7 @@ include '../includes/header.php';
                                         <div class="panel-header mb-4">
                                             <h5 class="panel-title mb-0"><i class="bi bi-shield-lock me-2 text-danger"></i>Zmiana hasła</h5>
                                         </div>
-                                        <form action="actions/change_password.php" method="POST">
+                                        <form action="../actions/change_password.php" method="POST">
                                             <?php echo csrfTokenField(); ?>
                                             <input type="hidden" name="return_to" value="settings.php">
                                             <div class="row g-3">
@@ -1202,7 +1202,7 @@ include '../includes/header.php';
                                                 </div>
                                             </div>
                                         </form>
-                                        <form action="actions/logout_all_sessions.php" method="POST" class="mt-3">
+                                        <form action="../actions/logout_all_sessions.php" method="POST" class="mt-3">
                                             <?= csrfTokenField('logout_all') ?>
                                             <input type="hidden" name="include_current" value="1">
                                             <button type="submit" class="btn btn-outline-warning px-4">
@@ -1247,7 +1247,7 @@ include '../includes/header.php';
                                                             </div>
                                                         </div>
                                                         <?php if (empty($sess['is_current'])): ?>
-                                                            <form action="actions/revoke_session.php" method="POST" class="m-0">
+                                                            <form action="../actions/revoke_session.php" method="POST" class="m-0">
                                                                 <?php echo csrfTokenField('revoke_session'); ?>
                                                                 <input type="hidden" name="action" value="revoke_single">
                                                                 <input type="hidden" name="session_hash" value="<?php echo htmlspecialchars($sess['session_hash'], ENT_QUOTES, 'UTF-8'); ?>">
@@ -1349,7 +1349,7 @@ include '../includes/header.php';
                                                     <h6 class="fw-bold mb-1">Zresetuj postępy</h6>
                                                     <p class="text-muted small">Wszystkie Twoje wyniki, statystyki i XP zostaną usunięte. Konto pozostanie aktywne.</p>
                                                 </div>
-                                                <form action="actions/reset_progress.php" method="POST" onsubmit="return appConfirmSubmit(this, 'CZY NA PEWNO? Ta operacja jest nieodwracalna i usunie CAŁĄ Twoją historię nauki.')">
+                                                <form action="../actions/reset_progress.php" method="POST" onsubmit="return appConfirmSubmit(this, 'CZY NA PEWNO? Ta operacja jest nieodwracalna i usunie CAŁĄ Twoją historię nauki.')">
                                                     <?php echo csrfTokenField(); ?>
                                                     <button type="submit" class="btn btn-outline-warning btn-sm">Resetuj mój progres</button>
                                                 </form>
@@ -1359,7 +1359,7 @@ include '../includes/header.php';
                                                     <h6 class="fw-bold mb-1">Usuń konto</h6>
                                                     <p class="text-muted small">Trwale usuń swoje konto oraz wszystkie dane z serwera (Zgodnie z RODO). Tej operacji nie można cofnąć.</p>
                                                 </div>
-                                                <form action="actions/delete_account.php" method="POST" onsubmit="return appConfirmSubmit(this, 'UWAGA! Czy na pewno chcesz TRWALE USUNĄĆ swoje konto? Stracisz dostęp do wszystkich funkcji.')">
+                                                <form action="../actions/delete_account.php" method="POST" onsubmit="return appConfirmSubmit(this, 'UWAGA! Czy na pewno chcesz TRWALE USUNĄĆ swoje konto? Stracisz dostęp do wszystkich funkcji.')">
                                                     <?php echo csrfTokenField(); ?>
                                                     <button type="submit" class="btn btn-danger btn-sm">Usuń konto na zawsze</button>
                                                 </form>
@@ -2205,7 +2205,7 @@ include '../includes/header.php';
                     <h5 class="modal-title" id="revokeAllExceptModalLabel"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Wylogowanie pozostałych urządzeń</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Zamknij"></button>
                 </div>
-                <form action="actions/revoke_session.php" method="POST">
+                <form action="../actions/revoke_session.php" method="POST">
                     <?php echo csrfTokenField('revoke_session'); ?>
                     <input type="hidden" name="action" value="revoke_all_except">
                     <div class="modal-body">

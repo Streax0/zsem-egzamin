@@ -605,9 +605,10 @@ unset($qualExams);
                                                 </div>
                                             </div>
                                         </div>
-                            <?php endforeach; ?>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
+                        <?php endforeach; ?>
                     </div>
                 </section>
             </div>

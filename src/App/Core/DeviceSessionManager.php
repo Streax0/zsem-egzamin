@@ -257,9 +257,15 @@ class DeviceSessionManager
                 $stmt->execute([$userId]);
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
             } catch (Throwable $ex1) {
-                $stmt = $this->pdo->prepare("SELECT id, user_id, session_hash, ip_address, user_agent FROM active_user_sessions WHERE user_id = ?");
-                $stmt->execute([$userId]);
-                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                try {
+                    $stmt = $this->pdo->prepare("SELECT id, user_id, session_hash, ip_address, user_agent FROM active_user_sessions WHERE user_id = ?");
+                    $stmt->execute([$userId]);
+                    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } catch (Throwable $ex2) {
+                    $stmt = $this->pdo->prepare("SELECT id, user_id, session_hash, ip_address, created_at, last_seen FROM active_user_sessions WHERE user_id = ?");
+                    $stmt->execute([$userId]);
+                    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
             }
 
             $result = [];

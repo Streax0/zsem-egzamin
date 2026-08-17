@@ -116,6 +116,20 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                 <p class="text-muted small">Witaj ponownie! Zaloguj się, aby kontynuować naukę.</p>
             </div>
 
+            <div class="auth-notice-card mb-4" role="alert">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="auth-notice-icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="auth-notice-content">
+                        <div class="auth-notice-title">Ważny komunikat techniczny</div>
+                        <div class="auth-notice-text">
+                            Z przyczyn niezależnych od nas (awaria po stronie dostawcy serwera) baza danych uległa utracie. Wymagane jest ponowne <a href="register.php" class="auth-notice-link">utworzenie nowego konta</a>. Za powstałe utrudnienia serdecznie przepraszamy!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <?php if (!empty($errors)): ?>
                 <div class="alert alert-custom mb-4">
                     <ul class="mb-0 ps-3">
@@ -159,8 +173,8 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
                 </div>
                 <?php endif; ?>
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
+                <div class="auth-remember-row mb-4">
+                    <div class="form-check mb-0">
                         <input type="checkbox" name="remember" class="form-check-input" id="remember">
                         <label class="form-check-label small text-muted" for="remember">Zapamiętaj mnie</label>
                     </div>
