@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </a>
         <?php else: ?>
             <div class="sidebar-group-title mt-3">Nauka</div>
-            <a href="<?php echo $base_url; ?>categories.php" class="sidebar-item <?php echo isActive('/categories.php', $php_self); ?>">
+            <a href="<?php echo $base_url; ?>categories.php" class="sidebar-item <?php echo isActive('/categories.php', $php_self); ?>" <?php echo $isGuestSidebar ? 'data-guest-restricted="1" data-guest-feature="Kategorie pytań"' : ''; ?>>
                 <i class="bi bi-tags"></i>
                 <span>Kategorie</span>
             </a>
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </a>
 
             <div class="sidebar-group-title mt-3">Społeczność</div>
-            <a href="<?php echo $base_url; ?>ranking.php" class="sidebar-item <?php echo isActive('/ranking.php', $php_self); ?>">
+            <a href="<?php echo $base_url; ?>ranking.php" class="sidebar-item <?php echo isActive('/ranking.php', $php_self); ?>" <?php echo $isGuestSidebar ? 'data-guest-restricted="1" data-guest-feature="Ranking uczniów"' : ''; ?>>
                 <i class="bi bi-trophy"></i>
                 <span>Ranking</span>
             </a>

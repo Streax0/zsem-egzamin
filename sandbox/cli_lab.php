@@ -56,6 +56,68 @@ include '../includes/header.php';
         --term-font: 'Fira Code', 'Cascadia Code', Consolas, Menlo, Monaco, monospace;
     }
 
+    /* ── Color Themes ── */
+    .terminal-window.theme-ubuntu {
+        --term-bg: #300a24;
+        --term-titlebar: #2c001e;
+        --term-border: #5e2750;
+        --term-green: #4af626;
+        --term-cyan: #e95420;
+    }
+    .terminal-window.theme-powershell {
+        --term-bg: #012456;
+        --term-titlebar: #0c1021;
+        --term-border: #1e3a8a;
+        --term-green: #38bdf8;
+        --term-cyan: #facc15;
+    }
+    .terminal-window.theme-dracula {
+        --term-bg: #282a36;
+        --term-titlebar: #21222c;
+        --term-border: #44475a;
+        --term-green: #50fa7b;
+        --term-cyan: #8be9fd;
+    }
+    .terminal-window.theme-matrix {
+        --term-bg: #030a04;
+        --term-titlebar: #061708;
+        --term-border: #14532d;
+        --term-green: #22c55e;
+        --term-cyan: #4ade80;
+    }
+
+    /* ── Terminal Tabs ── */
+    .terminal-tabs {
+        display: flex;
+        background: rgba(0, 0, 0, 0.35);
+        border-bottom: 1px solid var(--term-border);
+        padding: 0 0.5rem;
+        gap: 2px;
+        overflow-x: auto;
+    }
+    .term-tab {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.72rem;
+        color: var(--term-dim);
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        user-select: none;
+    }
+    .term-tab:hover {
+        color: var(--term-white);
+        background: rgba(255, 255, 255, 0.04);
+    }
+    .term-tab.active {
+        color: var(--term-white);
+        border-bottom-color: var(--term-green);
+        background: rgba(255, 255, 255, 0.06);
+        font-weight: 600;
+    }
+
     /* ── Modern Terminal Container ── */
     .terminal-window {
         background: var(--term-bg);
@@ -590,6 +652,21 @@ include '../includes/header.php';
                                             <i class="bi bi-windows"></i> Windows
                                         </button>
                                     </div>
+                                    <div class="dropdown d-inline-block">
+                                        <button class="term-tool-btn dropdown-toggle" type="button" id="btnTermTheme" data-bs-toggle="dropdown" aria-expanded="false" title="Zmień motyw kolorystyczny">
+                                            <i class="bi bi-palette"></i> Motyw
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="btnTermTheme" style="font-size:0.8rem;">
+                                            <li><a class="dropdown-item active term-theme-opt" href="#" data-theme="default"><i class="bi bi-circle-fill text-primary me-2"></i>GitHub Dark (Domyślny)</a></li>
+                                            <li><a class="dropdown-item term-theme-opt" href="#" data-theme="ubuntu"><i class="bi bi-circle-fill text-danger me-2"></i>Ubuntu Purple</a></li>
+                                            <li><a class="dropdown-item term-theme-opt" href="#" data-theme="powershell"><i class="bi bi-circle-fill text-info me-2"></i>PowerShell Blue</a></li>
+                                            <li><a class="dropdown-item term-theme-opt" href="#" data-theme="dracula"><i class="bi bi-circle-fill text-warning me-2"></i>Dracula Pro</a></li>
+                                            <li><a class="dropdown-item term-theme-opt" href="#" data-theme="matrix"><i class="bi bi-circle-fill text-success me-2"></i>Matrix Green</a></li>
+                                        </ul>
+                                    </div>
+                                    <button class="term-tool-btn" id="btnTermSearch" title="Szukaj w historii komend (Ctrl+R)">
+                                        <i class="bi bi-search"></i>
+                                    </button>
                                     <button class="term-tool-btn" id="btnTermExport" title="Eksportuj log sesji do pliku .txt">
                                         <i class="bi bi-download"></i> Eksport
                                     </button>
@@ -602,6 +679,19 @@ include '../includes/header.php';
                                     <button class="term-tool-btn" id="btnTermFullscreen" title="Pełny ekran">
                                         <i class="bi bi-fullscreen"></i>
                                     </button>
+                                </div>
+                            </div>
+
+                            <!-- Terminal Tabs -->
+                            <div class="terminal-tabs" id="terminalTabs">
+                                <div class="term-tab active" data-tab="tab1" id="termTab1">
+                                    <i class="bi bi-terminal"></i> <span>student@zsem-lab</span>
+                                </div>
+                                <div class="term-tab" data-tab="tab2" id="termTab2">
+                                    <i class="bi bi-shield-lock text-danger"></i> <span>root@zsem-lab</span>
+                                </div>
+                                <div class="term-tab" data-tab="tab3" id="termTab3">
+                                    <i class="bi bi-file-earmark-code text-warning"></i> <span>nano (edytor)</span>
                                 </div>
                             </div>
 

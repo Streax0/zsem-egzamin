@@ -26,7 +26,7 @@ $WebAuthn = new WebAuthn($rpName, $rpId, ['android-key', 'android-safetynet', 'a
 if ($action === 'generate') {
     try {
         // Puste credentialIds = pozwalamy na użycie Discoverable Credentials (Resident Key)
-        $getArgs = $WebAuthn->getGetArgs([], 20, true, true, true, true, true, false);
+        $getArgs = $WebAuthn->getGetArgs([], 30, true, true, true, true, true, 'preferred');
         
         $_SESSION['webauthn_challenge'] = $WebAuthn->getChallenge();
         

@@ -412,6 +412,16 @@ if (!function_exists('requireLogin')) {
             return;
         }
 
+        if (isGuestMode()) {
+            $_SESSION['guest_restricted_notice'] = [
+                'title' => 'Dostęp tylko dla zalogowanych',
+                'message' => 'Ta sekcja lub kategoria jest dostępna wyłącznie dla zalogowanych użytkowników. Załóż darmowe konto w 30 sekund lub zaloguj się, aby odblokować pełen dostęp do platformy.',
+            ];
+            $prefix = file_exists('config/db.php') ? '' : '../';
+            header('Location: ' . $prefix . 'index.php?guest_prompt=1');
+            exit();
+        }
+
         if (!isLoggedIn()) {
             $return_url = urlencode($_SERVER['REQUEST_URI'] ?? '/');
             $prefix = file_exists('config/db.php') ? '' : '../';

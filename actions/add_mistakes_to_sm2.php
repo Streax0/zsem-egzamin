@@ -1,0 +1,98 @@
+<?php
+/**
+ * Add Test Mistakes to SM-2 Spaced Repetition Flashcards
+ *
+ * Accepts POST {result_id}
+ * Queries all wrong questions from test_answers for this result and inserts them into flashcard_sm2.
+ */
+declare(strict_types=1);
+
+require_once dirname(__DIR__) . '/config/db.php';
+require_once dirname(__DIR__) . '/includes/session.php';
+require_once dirname(__DIR__) . '/includes/auth.php';
+
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+
+startSecureSession();
+
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error' => 'Wymagane zalogowanie.']);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error' => 'Metoda niedozwolona.']);
+    exit;
+}
+
+requireJsonCsrfToken();
+
+$userId   = (int)$_SESSION['user_id'];
+$resultId = (int)($_POST['result_id'] ?? 0);
+
+if ($resultId <= 0) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'Nieprawidłowe ID wyniku testu.']);
+    exit;
+}
+
+try {
+    // Verify ownership of test result
+    $chkStmt = $pdo->prepare("SELECT id FROM test_results WHERE id = ? AND user_id = ?");
+    $chkStmt->execute([$resultId, $userId]);
+    if (!$chkStmt->fetch()) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Brak uprawnień do tego wyniku testu.']);
+        exit;
+    }
+
+    // Fetch all wrong question IDs from this test result
+    $ansStmt = $pdo->prepare("
+        SELECT ta.question_id
+        FROM test_answers ta
+        WHERE ta.result_id = ? AND (ta.is_correct = 0 OR ta.user_answer = '-' OR ta.user_answer != ta.correct_answer)
+    ");
+    $ansStmt->execute([$resultId]);
+    $wrongQids = $ansStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    if (empty($wrongQids)) {
+        echo json_encode([
+            'success' => true,
+            'added_count' => 0,
+            'message' => 'Gratulacje! W tym teście nie ma błędnych odpowiedzi.',
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // Insert or reset SM-2 card state for each wrong question
+    $added = 0;
+    $insStmt = $pdo->prepare("
+        INSERT INTO flashcard_sm2 (user_id, card_key, easiness_factor, interval_days, repetition_count, next_review_date, last_rating, updated_at)
+        VALUES (?, ?, 2.5, 1, 0, CURDATE(), NULL, NOW())
+        ON DUPLICATE KEY UPDATE
+            interval_days = 1,
+            repetition_count = 0,
+            next_review_date = CURDATE(),
+            updated_at = NOW()
+    ");
+
+    foreach ($wrongQids as $qid) {
+        $qid = (int)$qid;
+        if ($qid <= 0) continue;
+        $cardKey = 'q_' . $qid;
+        $insStmt->execute([$userId, $cardKey]);
+        $added++;
+    }
+
+    echo json_encode([
+        'success'     => true,
+        'added_count' => $added,
+        'message'     => "Dodano {$added} błędnych pytań do powtórek fiszkowych (SM-2). Możesz je powtórzyć w module Fiszek!",
+    ], JSON_UNESCAPED_UNICODE);
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Nie udało się dodać pytań do bazy fiszek.']);
+}

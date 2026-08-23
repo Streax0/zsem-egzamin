@@ -234,15 +234,11 @@ function appDbWriteFailureLog(Throwable $error): void {
 
 define('APP_ENV', configValue('APP_ENV', 'local'));
 define('APP_RUNTIME_SCHEMA_UPDATES', appConfigBool('APP_RUNTIME_SCHEMA_UPDATES', false));
-$genericDbLooksPostgres = configValue('DB_PORT') === '5432'
-    || strtolower(configValue('DB_USER')) === 'postgres'
-    || strtolower(configValue('DB_DRIVER')) === 'pgsql';
-
-define('DB_HOST', configValue('MYSQL_HOST', $genericDbLooksPostgres ? 'localhost' : configValue('DB_HOST', 'localhost')));
-define('DB_PORT', appDbConfigInt('MYSQL_PORT', 3306, 1, 65535, $genericDbLooksPostgres ? null : 'DB_PORT'));
-define('DB_NAME', configValue('MYSQL_DATABASE', $genericDbLooksPostgres ? 'rafifafi_egzamin' : configValue('DB_NAME', 'rafifafi_egzamin')));
-define('DB_USER', configValue('MYSQL_USER', $genericDbLooksPostgres ? 'root' : configValue('DB_USER', 'root')));
-define('DB_PASS', configValue('MYSQL_PASSWORD', configValue('MYSQL_PASS', $genericDbLooksPostgres ? '' : configValue('DB_PASS', configValue('DB_PASSWORD', '')))));
+define('DB_HOST', configValue('DB_HOST', configValue('MYSQL_HOST', '')));
+define('DB_PORT', appDbConfigInt('DB_PORT', 3306, 1, 65535, 'MYSQL_PORT'));
+define('DB_NAME', configValue('DB_NAME', configValue('MYSQL_DATABASE', '')));
+define('DB_USER', configValue('DB_USER', configValue('MYSQL_USER', '')));
+define('DB_PASS', configValue('DB_PASSWORD', configValue('DB_PASS', configValue('MYSQL_PASSWORD', configValue('MYSQL_PASS', '')))));
 
 $appDbConfig = [
     'host' => DB_HOST,

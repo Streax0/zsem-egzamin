@@ -65,6 +65,16 @@ $scenarioRegistry = [
     'inf02_win_powershell_diag' => ['title' => 'Diagnostyka sieci i usług w PowerShell', 'xp' => 25],
     'inf02_crontab_backup' => ['title' => 'Automatyzacja kopii zapasowych w cronie', 'xp' => 25],
     'inf08_ssh_hardening' => ['title' => 'Zabezpieczenie serwera SSH (sshd_config)', 'xp' => 30],
+    'inf02_lvm_volumes' => ['title' => 'Konfiguracja woluminów logicznych LVM', 'xp' => 40],
+    'inf02_raid1_mdadm' => ['title' => 'Tworzenie macierzy dyskowej RAID 1 w mdadm', 'xp' => 40],
+    'inf02_ps_dhcp_dns' => ['title' => 'PowerShell: Zarządzanie rolami DHCP i DNS w Windows', 'xp' => 35],
+    'inf03_mysql_adv_grant' => ['title' => 'MySQL: Relacje tabel, klucze obce i uprawnienia GRANT', 'xp' => 35],
+    'inf03_mysqldump_backup' => ['title' => 'Wykonywanie i przywracanie kopii bazy (mysqldump)', 'xp' => 30],
+    'inf08_ssh_hardened_cfg' => ['title' => 'Zaawansowane utwardzanie serwera OpenSSH', 'xp' => 35],
+    'inf08_iptables_nat_portfwd' => ['title' => 'iptables: Konfiguracja reguł NAT i Port Forwardingu', 'xp' => 40],
+    'inf08_fail2ban_setup' => ['title' => 'Ochrona przed atakami brute-force w Fail2ban', 'xp' => 35],
+    'inf02_ad_dsadd_mgmt' => ['title' => 'Zarządzanie Active Directory (dsadd / PowerShell)', 'xp' => 35],
+    'inf02_route_diag_traceroute' => ['title' => 'Diagnostyka routingu sieciowego i trasowania pakietów', 'xp' => 30],
 ];
 
 if (!isset($scenarioRegistry[$scenarioId])) {

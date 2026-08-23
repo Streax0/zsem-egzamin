@@ -149,57 +149,71 @@ include '../includes/header.php';
                     <!-- Quick Stats -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-4">
-                            <div class="dashboard-panel text-center animate-in">
+                            <div class="dashboard-panel text-center animate-in p-4 position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-10 fs-1 text-primary"><i class="bi bi-journal-bookmark-fill"></i></div>
                                 <div class="h1 fw-800 text-primary mb-1"><?= $totalExams ?></div>
-                                <div class="text-muted small">Sprawdzianów łącznie</div>
+                                <div class="text-muted small fw-semibold text-uppercase tracking-wider">Sprawdzianów łącznie</div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="dashboard-panel text-center animate-in" style="animation-delay:0.1s">
+                            <div class="dashboard-panel text-center animate-in p-4 position-relative overflow-hidden" style="animation-delay:0.1s">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-10 fs-1 text-success"><i class="bi bi-broadcast"></i></div>
                                 <div class="h1 fw-800 text-success mb-1"><?= count($activeExams) ?></div>
-                                <div class="text-muted small">Aktywnych sesji</div>
+                                <div class="text-muted small fw-semibold text-uppercase tracking-wider">Aktywnych sesji</div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="dashboard-panel text-center animate-in" style="animation-delay:0.2s">
+                            <div class="dashboard-panel text-center animate-in p-4 position-relative overflow-hidden" style="animation-delay:0.2s">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-10 fs-1 text-info"><i class="bi bi-people-fill"></i></div>
                                 <div class="h1 fw-800 text-info mb-1"><?= $totalParticipants ?></div>
-                                <div class="text-muted small">Uczestników łącznie</div>
+                                <div class="text-muted small fw-semibold text-uppercase tracking-wider">Uczestników łącznie</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Quick Actions -->
                     <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <a href="create_exam.php" class="dashboard-panel d-flex align-items-center gap-4 text-decoration-none hover-scale animate-in">
-                                <div class="icon-circle bg-primary bg-opacity-10 text-primary fs-3">
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <a href="create_exam.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100">
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary fs-4 p-3 rounded-4">
                                     <i class="bi bi-plus-square-fill"></i>
                                 </div>
                                 <div>
-                                    <h5 class="fw-bold mb-1 text-dark">Utwórz test online</h5>
+                                    <h6 class="fw-bold mb-1">Utwórz test online</h6>
                                     <p class="text-muted small mb-0">Skonfiguruj nowy test online.</p>
                                 </div>
                             </a>
                         </div>
-                        <div class="col-md-4">
-                            <a href="txt_generator.php" class="dashboard-panel d-flex align-items-center gap-4 text-decoration-none hover-scale animate-in" style="animation-delay: 0.1s">
-                                <div class="icon-circle bg-info bg-opacity-10 text-info fs-3">
-                                    <i class="bi bi-file-earmark-plus-fill"></i>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <a href="custom_exams.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100" style="animation-delay: 0.05s">
+                                <div class="icon-circle bg-warning bg-opacity-10 text-warning fs-4 p-3 rounded-4">
+                                    <i class="bi bi-collection-fill"></i>
                                 </div>
                                 <div>
-                                    <h5 class="fw-bold mb-1 text-dark">Generator bazy pytań</h5>
-                                    <p class="text-muted small mb-0">Masowe tworzenie pytań w formacie TXT.</p>
+                                    <h6 class="fw-bold mb-1">Baza pytań własnych</h6>
+                                    <p class="text-muted small mb-0">Zarządzaj autorskimi pytaniami.</p>
                                 </div>
                             </a>
                         </div>
-                        <div class="col-md-4">
-                            <a href="pdf_generator.php" class="dashboard-panel d-flex align-items-center gap-4 text-decoration-none hover-scale animate-in" style="animation-delay: 0.15s">
-                                <div class="icon-circle bg-danger bg-opacity-10 text-danger fs-3">
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <a href="txt_generator.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100" style="animation-delay: 0.1s">
+                                <div class="icon-circle bg-info bg-opacity-10 text-info fs-4 p-3 rounded-4">
+                                    <i class="bi bi-file-earmark-plus-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Generator z TXT</h6>
+                                    <p class="text-muted small mb-0">Masowe tworzenie pytań.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <a href="pdf_generator.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100" style="animation-delay: 0.15s">
+                                <div class="icon-circle bg-danger bg-opacity-10 text-danger fs-4 p-3 rounded-4">
                                     <i class="bi bi-file-earmark-pdf-fill"></i>
                                 </div>
                                 <div>
-                                    <h5 class="fw-bold mb-1 text-dark">Generator sprawdzianów</h5>
-                                    <p class="text-muted small mb-0">Łącz pytania z bazy i TXT, drukuj sprawdzian oraz osobny klucz.</p>
+                                    <h6 class="fw-bold mb-1">Generator PDF / Druk</h6>
+                                    <p class="text-muted small mb-0">Generuj arkusze z kluczem.</p>
                                 </div>
                             </a>
                         </div>
@@ -207,8 +221,14 @@ include '../includes/header.php';
 
                     <!-- Exam History -->
                     <div class="dashboard-panel animate-in" style="animation-delay:0.3s">
-                        <div class="panel-header d-flex justify-content-between align-items-center">
-                            <h5 class="panel-title mb-0"><i class="bi bi-clock-history me-2"></i>Historia sprawdzianów</h5>
+                        <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                            <h5 class="panel-title mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Historia sprawdzianów</h5>
+                            <?php if (!empty($exams)): ?>
+                                <div class="input-group input-group-sm rounded-pill overflow-hidden border border-secondary border-opacity-25" style="max-width: 260px;">
+                                    <span class="input-group-text bg-transparent border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" id="examFilterInput" class="form-control bg-transparent border-0 shadow-none ps-1" placeholder="Filtruj sprawdziany..." oninput="filterTeacherExams(this.value)">
+                                </div>
+                            <?php endif; ?>
                         </div>
 
                         <?php if (empty($exams)): ?>
@@ -221,7 +241,7 @@ include '../includes/header.php';
                             </div>
                         <?php else: ?>
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-hover align-middle mb-0" id="teacherExamsTable">
                                     <thead>
                                         <tr class="text-muted small">
                                             <th>NAZWA</th>
@@ -235,26 +255,26 @@ include '../includes/header.php';
                                     </thead>
                                     <tbody>
                                         <?php foreach ($exams as $exam): ?>
-                                        <tr>
+                                        <tr class="exam-row">
                                             <td>
-                                                <div class="fw-bold"><?= htmlspecialchars($exam['title']) ?></div>
+                                                <div class="fw-bold exam-title"><?= htmlspecialchars($exam['title']) ?></div>
                                             </td>
                                             <td>
                                                 <?php
                                                 $statusBadge = match($exam['status'] ?? 'none') {
-                                                    'lobby' => '<span class="badge bg-warning bg-opacity-10 text-warning">Lobby</span>',
-                                                    'in_progress' => '<span class="badge bg-success bg-opacity-10 text-success">W trakcie</span>',
-                                                    'paused' => '<span class="badge bg-info bg-opacity-10 text-info">Wstrzymany</span>',
-                                                    'finished' => '<span class="badge bg-secondary bg-opacity-10 text-secondary">Zakończony</span>',
-                                                    'expired' => '<span class="badge bg-danger bg-opacity-10 text-danger">Wygasły</span>',
-                                                    default => '<span class="badge bg-light text-muted">Niehostowany</span>',
+                                                    'lobby' => '<span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25"><i class="bi bi-hourglass-split me-1"></i>Lobby</span>',
+                                                    'in_progress' => '<span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25"><i class="bi bi-broadcast me-1 animate-pulse"></i>W trakcie</span>',
+                                                    'paused' => '<span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25"><i class="bi bi-pause-circle me-1"></i>Wstrzymany</span>',
+                                                    'finished' => '<span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25">Zakończony</span>',
+                                                    'expired' => '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25">Wygasły</span>',
+                                                    default => '<span class="badge bg-secondary bg-opacity-10 text-muted">Niehostowany</span>',
                                                 };
                                                 echo $statusBadge;
                                                 ?>
                                             </td>
                                             <td>
                                                 <?php if ($exam['access_code']): ?>
-                                                    <code class="fw-bold text-primary"><?= htmlspecialchars($exam['access_code']) ?></code>
+                                                    <code class="fw-bold text-primary px-2 py-1 bg-primary bg-opacity-10 rounded exam-code"><?= htmlspecialchars($exam['access_code']) ?></code>
                                                 <?php else: ?>
                                                     <span class="text-muted">—</span>
                                                 <?php endif; ?>
@@ -326,6 +346,17 @@ include '../includes/header.php';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
+        function filterTeacherExams(query) {
+            const term = (query || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('#teacherExamsTable tbody tr.exam-row');
+            rows.forEach(row => {
+                const title = row.querySelector('.exam-title')?.textContent?.toLowerCase() || '';
+                const code = row.querySelector('.exam-code')?.textContent?.toLowerCase() || '';
+                const match = !term || title.includes(term) || code.includes(term);
+                row.style.display = match ? '' : 'none';
+            });
+        }
+
         function copyShareLink(id) {
             const baseUrl = window.location.origin + window.location.pathname.replace('index.php', '');
             const shareUrl = baseUrl + 'clone_exam.php?id=' + id;

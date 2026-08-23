@@ -1140,6 +1140,11 @@ function pruneAppStatuses(PDO $pdo, int $limit = 10): void {
 }
 
 function getAppStatuses(PDO $pdo, bool $activeOnly = false, int $limit = 10): array {
+    static $statusCache = [];
+    $cacheKey = ($activeOnly ? '1' : '0') . '_' . $limit;
+    if (isset($statusCache[$cacheKey])) {
+        return $statusCache[$cacheKey];
+    }
     try {
         ensurePlatformEnhancements($pdo);
         $sql = "
@@ -1154,10 +1159,10 @@ function getAppStatuses(PDO $pdo, bool $activeOnly = false, int $limit = 10): ar
         $stmt = $pdo->prepare($sql);
         $stmt->bindValue(1, max(1, min(50, $limit)), PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $statusCache[$cacheKey] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log('Get app statuses failed: ' . $e->getMessage());
-        return [];
+        return $statusCache[$cacheKey] = [];
     }
 }
 
@@ -2859,6 +2864,12 @@ function updateQuestionProgress($pdo, $userId, $questionId, $isCorrect) {
  * @return array Associative array with user stats
  */
 function getUserStats($pdo, $userId) {
+    static $userStatsCache = [];
+    $cacheKey = (int)$userId;
+    if (isset($userStatsCache[$cacheKey])) {
+        return $userStatsCache[$cacheKey];
+    }
+
     // Return keys expected by the UI (`index.php`):
     // - tests_taken
     // - average_score
@@ -2920,14 +2931,14 @@ function getUserStats($pdo, $userId) {
         }
 
     } catch (PDOException $e) {
-        error_log("Error getting user stats: " . $e->getMessage());
+        error_log("Error in getUserStats: " . $e->getMessage());
     }
 
     // Backwards compatibility: provide legacy keys some templates still expect
     $stats['total_tests'] = $stats['tests_taken'];
     $stats['total_time_spent'] = $stats['total_time_seconds'];
 
-    return $stats;
+    return $userStatsCache[$cacheKey] = $stats;
 }
 
 /**
@@ -3182,6 +3193,12 @@ function getPublicQuestionCategories($pdo = null) {
  * Get stats for all categories including question counts and user progress
  */
 function getCategoryStats($pdo, $userId) {
+    static $catStatsCache = [];
+    $cacheKey = (int)$userId;
+    if (isset($catStatsCache[$cacheKey])) {
+        return $catStatsCache[$cacheKey];
+    }
+
     $questions = loadQuestions($pdo);
     $stats = [];
     
@@ -3225,7 +3242,7 @@ function getCategoryStats($pdo, $userId) {
         error_log("Error in getCategoryStats: " . $e->getMessage());
     }
     
-    return $stats;
+    return $catStatsCache[$cacheKey] = $stats;
 }
 
 function getQualificationInfo($code) {
@@ -3439,8 +3456,31 @@ function deleteLocalAvatarFile(string $avatarPath): bool {
 }
 
 function answerOptionText(array $question, string $letter): string {
-    $letter = strtolower(trim($letter));
-    return trim((string)($question['option_' . $letter] ?? ''));
+    $lower = strtolower(trim($letter));
+    $upper = strtoupper(trim($letter));
+    
+    if (isset($question['option_' . $lower]) && trim((string)$question['option_' . $lower]) !== '') {
+        return trim((string)$question['option_' . $lower]);
+    }
+    if (isset($question['answer_' . $lower]) && trim((string)$question['answer_' . $lower]) !== '') {
+        return trim((string)$question['answer_' . $lower]);
+    }
+    if (isset($question['options']) && is_array($question['options'])) {
+        if (isset($question['options'][$upper]) && trim((string)$question['options'][$upper]) !== '') {
+            return trim((string)$question['options'][$upper]);
+        }
+        if (isset($question['options'][$lower]) && trim((string)$question['options'][$lower]) !== '') {
+            return trim((string)$question['options'][$lower]);
+        }
+    }
+    if (isset($question[$upper]) && trim((string)$question[$upper]) !== '') {
+        return trim((string)$question[$upper]);
+    }
+    if (isset($question[$lower]) && trim((string)$question[$lower]) !== '') {
+        return trim((string)$question[$lower]);
+    }
+
+    return '';
 }
 
 function buildDistractorExplanation(array $question, string $letter, string $optionText, string $questionText = ''): string {
@@ -5213,8 +5253,31 @@ function getUsersPerformanceStreaks(PDO $pdo, array $userIds): array {
         }
     } catch (PDOException $e) {
         error_log('Bulk performance streak error: ' . $e->getMessage());
-        foreach ($userIds as $userId) {
-            $result[$userId] = getUserPerformanceStreak($pdo, $userId);
+        try {
+            $completedSql = completedFullTestSql('tr', 1, false);
+            $stmt = $pdo->prepare("
+                SELECT tr.user_id, tr.score_percent
+                FROM test_results tr
+                WHERE tr.user_id IN ({$placeholders})
+                  AND {$completedSql}
+                  AND COALESCE(tr.exclude_from_ranking, 0) = 0
+                ORDER BY tr.user_id, tr.test_date DESC, tr.id DESC
+            ");
+            $stmt->execute($userIds);
+            $scoresByUser = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $uid = (int)$row['user_id'];
+                if (!isset($scoresByUser[$uid]) || count($scoresByUser[$uid]) < 20) {
+                    $scoresByUser[$uid][] = (float)$row['score_percent'];
+                }
+            }
+            foreach ($userIds as $userId) {
+                $result[$userId] = classifyUserPerformanceStreakScores($scoresByUser[$userId] ?? []);
+            }
+        } catch (Throwable $e2) {
+            foreach ($userIds as $userId) {
+                $result[$userId] = classifyUserPerformanceStreakScores([]);
+            }
         }
     }
 
@@ -6349,14 +6412,19 @@ function validateTeacherMotivationLimits(string $text): array {
 }
 
 function userAvatarSrc($avatarPath, string $basePrefix = ''): ?string {
-    $avatarPath = trim((string)$avatarPath);
-    if ($avatarPath === '' || !preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $avatarPath)) {
-        return null;
+    static $avatarCache = [];
+    $cacheKey = (string)$avatarPath . '|' . $basePrefix;
+    if (array_key_exists($cacheKey, $avatarCache)) {
+        return $avatarCache[$cacheKey];
     }
-    if (!is_file(dirname(__DIR__) . '/' . $avatarPath)) {
-        return null;
+    $trimmed = trim((string)$avatarPath);
+    if ($trimmed === '' || !preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $trimmed)) {
+        return $avatarCache[$cacheKey] = null;
     }
-    return rtrim($basePrefix, '/') . ($basePrefix !== '' ? '/' : '') . ltrim($avatarPath, '/');
+    if (!is_file(dirname(__DIR__) . '/' . $trimmed)) {
+        return $avatarCache[$cacheKey] = null;
+    }
+    return $avatarCache[$cacheKey] = rtrim($basePrefix, '/') . ($basePrefix !== '' ? '/' : '') . ltrim($trimmed, '/');
 }
 
 function scanAvatarImageSafety($image, int $width, int $height): array {

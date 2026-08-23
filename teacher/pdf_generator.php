@@ -550,22 +550,50 @@ $extraHead = <<<HTML
         .generator-preset strong { display: block; font-size: 1rem; color: #1e293b; margin-bottom: 0.25rem; }
         .generator-preset span { display: block; color: #64748b; font-size: 0.8rem; line-height: 1.4; }
 
-        .nav-pills-custom { background: #f8fafc !important; border: 1px solid rgba(203, 213, 225, 0.8); }
+        .nav-pills-custom {
+            background: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+            padding: 0.35rem !important;
+            border-radius: 12px !important;
+            display: inline-flex !important;
+            gap: 0.35rem !important;
+        }
+        .nav-pills-custom .nav-item {
+            margin: 0 !important;
+        }
         .nav-pills-custom .nav-link {
-            border-radius: 8px;
-            padding: 0.75rem 1.25rem;
-            font-weight: 600;
-            color: #475569;
-            border: 1px solid transparent;
-            transition: all 0.2s;
+            border-radius: 9px !important;
+            padding: 0.6rem 1.25rem !important;
+            font-weight: 600 !important;
+            font-size: 0.88rem !important;
+            color: #334155 !important;
+            border: 1px solid transparent !important;
+            background: transparent !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+        }
+        .nav-pills-custom .nav-link i {
+            color: #64748b !important;
+            transition: color 0.2s ease !important;
         }
         .nav-pills-custom .nav-link:hover {
-            background: #f1f5f9;
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+            transform: none !important;
+        }
+        .nav-pills-custom .nav-link:hover i {
+            color: #0f172a !important;
         }
         .nav-pills-custom .nav-link.active {
-            background: #eff6ff;
-            color: #2563eb;
-            border-color: #bfdbfe;
+            background: #ffffff !important;
+            color: #2563eb !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+        }
+        .nav-pills-custom .nav-link.active i {
+            color: #2563eb !important;
         }
 
         /* Dark mode overrides for new UI */
@@ -615,8 +643,10 @@ $extraHead = <<<HTML
         body.dark-mode .generator-preset:hover::before { background: #60a5fa; }
         body.dark-mode .nav-pills-custom { background: #0f172a !important; border: 1px solid rgba(148, 163, 184, 0.1) !important; }
         body.dark-mode .nav-pills-custom .nav-link { color: #cbd5e1 !important; }
+        body.dark-mode .nav-pills-custom .nav-link i { color: #94a3b8 !important; }
         body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b !important; color: #f8fafc !important; }
-        body.dark-mode .nav-pills-custom .nav-link.active { background: rgba(37, 99, 235, 0.2) !important; color: #60a5fa !important; border: 1px solid rgba(37, 99, 235, 0.4) !important; }
+        body.dark-mode .nav-pills-custom .nav-link.active { background: #1e293b !important; color: #60a5fa !important; border: 1px solid rgba(37, 99, 235, 0.4) !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important; }
+        body.dark-mode .nav-pills-custom .nav-link.active i { color: #60a5fa !important; }
 
         .generator-title-row {
             display:flex;
@@ -704,11 +734,66 @@ $extraHead = <<<HTML
             justify-content:space-between;
             gap:.75rem;
             flex-wrap:wrap;
+            padding-bottom: .65rem;
+            margin-bottom: .75rem;
+            border-bottom: 1px solid #f1f5f9;
         }
-        .category-search { max-width:260px; }
-        .category-selector-grid { max-height:220px; overflow:auto; padding:.15rem; }
-        .category-btn-wrapper label { transition:all .2s ease; }
-        .category-btn-wrapper label:hover { transform:translateY(-1px); }
+        .category-tools-actions {
+            display:flex;
+            align-items:center;
+            gap:.5rem;
+            flex-wrap:wrap;
+        }
+        .category-search { min-width:200px; max-width:260px; border-radius: 999px; }
+        .category-selector-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            max-height:220px;
+            overflow-y:auto;
+            padding:.2rem .1rem;
+        }
+        .category-btn-wrapper label.btn {
+            border: 1.5px solid #cbd5e1 !important;
+            background: #f8fafc !important;
+            color: #1e293b !important;
+            font-weight: 600 !important;
+            border-radius: 999px !important;
+            padding: 0.4rem 0.9rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.35rem !important;
+            transition: all .2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            cursor: pointer;
+        }
+        .category-btn-wrapper label.btn i { color: #3b82f6 !important; }
+        .category-btn-wrapper label.btn .badge {
+            background: #e2e8f0 !important;
+            color: #475569 !important;
+            font-weight: 700 !important;
+            border-radius: 999px !important;
+            padding: 0.2rem 0.55rem !important;
+            font-size: 0.75rem !important;
+            transition: all 0.2s ease !important;
+        }
+        .category-btn-wrapper label.btn:hover {
+            border-color: #94a3b8 !important;
+            background: #ffffff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+        }
+        .btn-check:checked + label.btn {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            border-color: #1d4ed8 !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-2px) !important;
+        }
+        .btn-check:checked + label.btn i { color: #ffffff !important; }
+        .btn-check:checked + label.btn .badge {
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: #ffffff !important;
+        }
         .btn-check:checked + .btn-outline-primary {
             background-color:var(--bs-primary);
             color:#fff;
@@ -1277,17 +1362,19 @@ include '../includes/header.php';
                         </div>
                     </div>
 
-                                        <div class="generator-card mb-4">
+                    <div class="generator-card mb-4">
                         <div class="generator-card-header justify-content-between">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="icon-wrapper"><i class="bi bi-collection"></i></div>
                                 <h5>Źródło pytań</h5>
                             </div>
-                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-3 py-2"><?php echo count($allQuestions); ?> dostępnych pytań</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-layers me-1"></i><?php echo count($allQuestions); ?> dostępnych pytań
+                            </span>
                         </div>
                         <div class="generator-card-body">
 
-                            <ul class="nav nav-pills nav-pills-custom mb-4 gap-2 p-1 rounded-3 d-inline-flex" id="questionTabs" role="tablist">
+                            <ul class="nav nav-pills nav-pills-custom mb-4" id="questionTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link <?php echo $generatorMode === 'db' ? 'active' : ''; ?>" id="db-tab" data-bs-toggle="tab" data-bs-target="#db-questions" type="button" role="tab">
                                         <i class="bi bi-database me-2"></i>Baza Pytań
@@ -1309,21 +1396,28 @@ include '../includes/header.php';
 
                             <div class="tab-content" id="questionTabsContent">
                                 <div class="tab-pane fade <?php echo $generatorMode === 'db' ? 'show active' : ''; ?>" id="db-questions" role="tabpanel">
-                                    <div class="category-tools mb-3">
-                                        <label class="form-label fw-semibold mb-0">Kategorie pytań</label>
-                                        <div class="d-flex gap-2 flex-wrap">
+                                    <div class="category-tools">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label class="form-label fw-bold mb-0 text-secondary">Kategorie pytań</label>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill small"><?php echo count($categories); ?> kwalifikacji</span>
+                                        </div>
+                                        <div class="category-tools-actions">
                                             <input type="search" id="categorySearch" class="form-control form-control-sm category-search" placeholder="Szukaj kategorii...">
-                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" id="selectAllCategories">Zaznacz widoczne</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" id="clearCategories">Wyczyść</button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="selectAllCategories">
+                                                <i class="bi bi-check-all me-1"></i>Zaznacz widoczne
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="clearCategories">
+                                                <i class="bi bi-x-circle me-1"></i>Wyczyść
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="category-selector-grid d-flex flex-wrap gap-2 mb-3">
+                                    <div class="category-selector-grid mb-3">
                                         <?php foreach ($categories as $cat): ?>
                                             <div class="category-btn-wrapper" data-category-name="<?php echo htmlspecialchars(mb_strtolower($cat, 'UTF-8')); ?>">
                                                 <input type="checkbox" class="btn-check" name="categories[]" id="cat_<?php echo md5($cat); ?>" value="<?php echo htmlspecialchars($cat); ?>" autocomplete="off" <?php echo in_array($cat, $selectedCategories, true) ? 'checked' : ''; ?>>
-                                                <label class="btn btn-outline-primary rounded-pill px-3 py-2 btn-sm fw-medium" for="cat_<?php echo md5($cat); ?>">
+                                                <label class="btn" for="cat_<?php echo md5($cat); ?>">
                                                     <i class="bi bi-tag-fill me-1 small"></i><?php echo htmlspecialchars($cat); ?>
-                                                    <span class="badge bg-primary bg-opacity-10 text-dark ms-1 fw-bold"><?php echo (int)($categoryCounts[$cat] ?? 0); ?></span>
+                                                    <span class="badge ms-1"><?php echo (int)($categoryCounts[$cat] ?? 0); ?></span>
                                                 </label>
                                             </div>
                                         <?php endforeach; ?>
@@ -1782,646 +1876,15 @@ function printWorksheet() {
 
     win.opener = null;
     win.document.open();
-    win.document.write(`<?php
-$pageTitle = 'Generator sprawdzianów - ZSEM Tech';
-$extraCss = ['assets/css/dashboard-new.css'];
-$extraHead = <<<HTML
-<style>
-        body.pdf-generator-page { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #f8fafc; }
-        .generator-shell { max-width: 1480px; margin: 0 auto; }
-
-        /* New UI Styles */
-        .generator-card {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-        .generator-card-header {
-            background: #f8fafc;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .generator-card-header h5 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-        .generator-card-header .icon-wrapper {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: rgba(37, 99, 235, 0.1);
-            color: #2563eb;
-            display: grid;
-            place-items: center;
-            font-size: 1.1rem;
-        }
-        .generator-card-body {
-            padding: 1.5rem;
-        }
-
-        .form-floating-custom {
-            position: relative;
-        }
-        .form-floating-custom label {
-            position: absolute;
-            top: -0.6rem;
-            left: 0.75rem;
-            background: #fff;
-            padding: 0 0.25rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #64748b;
-            z-index: 5;
-        }
-        .form-floating-custom .form-control,
-        .form-floating-custom .form-select {
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-radius: 8px;
-            border-color: #cbd5e1;
-            box-shadow: none;
-            transition: all 0.2s;
-        }
-        .form-floating-custom .form-control:focus,
-        .form-floating-custom .form-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.25rem;
-        }
-
-        .toggle-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            transition: all 0.2s;
-            height: 100%;
-        }
-        .toggle-card:hover {
-            border-color: #cbd5e1;
-            background: #f8fafc;
-        }
-        .toggle-card .form-check-label {
-            font-weight: 600;
-            color: #334155;
-            cursor: pointer;
-        }
-
-        .generator-preset-row {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .generator-preset {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            background: linear-gradient(to bottom right, #ffffff, #f8fafc);
-            padding: 1rem;
-            text-align: left;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .generator-preset::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 4px; height: 100%;
-            background: #cbd5e1;
-            transition: all 0.2s ease;
-        }
-        .generator-preset:hover {
-            transform: translateY(-2px);
-            border-color: #94a3b8;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        }
-        .generator-preset:hover::before {
-            background: #2563eb;
-        }
-        .generator-preset strong { display: block; font-size: 1rem; color: #1e293b; margin-bottom: 0.25rem; }
-        .generator-preset span { display: block; color: #64748b; font-size: 0.8rem; line-height: 1.4; }
-
-        .nav-pills-custom { background: #f8fafc !important; border: 1px solid rgba(203, 213, 225, 0.8); }
-        .nav-pills-custom .nav-link {
-            border-radius: 8px;
-            padding: 0.75rem 1.25rem;
-            font-weight: 600;
-            color: #475569;
-            border: 1px solid transparent;
-            transition: all 0.2s;
-        }
-        .nav-pills-custom .nav-link:hover {
-            background: #f1f5f9;
-        }
-        .nav-pills-custom .nav-link.active {
-            background: #eff6ff;
-            color: #2563eb;
-            border-color: #bfdbfe;
-        }
-
-        /* Dark mode overrides for new UI */
-        body.dark-mode .generator-card {
-            background: #1e293b;
-            border-color: rgba(148, 163, 184, 0.1);
-        }
-        body.dark-mode .generator-card-header {
-            background: #0f172a;
-            border-color: rgba(148, 163, 184, 0.1);
-        }
-        body.dark-mode .generator-card-header h5 {
-            color: #f8fafc;
-        }
-        body.dark-mode .generator-card-header .icon-wrapper {
-            background: rgba(96, 165, 250, 0.15);
-            color: #60a5fa;
-        }
-        body.dark-mode .form-floating-custom label {
-            background: #1e293b;
-            color: #94a3b8;
-        }
-        body.dark-mode .form-floating-custom .form-control,
-        body.dark-mode .form-floating-custom .form-select {
-            background-color: #0f172a !important;
-            border-color: #334155 !important;
-        }
-        body.dark-mode .toggle-card {
-            border-color: #334155;
-            background: #0f172a;
-        }
-        body.dark-mode .toggle-card:hover {
-            background: #1e293b;
-            border-color: #475569;
-        }
-        body.dark-mode .toggle-card .form-check-label {
-            color: #cbd5e1;
-        }
-        body.dark-mode .generator-preset {
-            background: #0f172a;
-            border-color: #334155;
-        }
-        body.dark-mode .generator-preset::before {
-            background: #475569;
-        }
-        body.dark-mode .generator-preset strong { color: #f8fafc; }
-        body.dark-mode .generator-preset:hover::before { background: #60a5fa; }
-        body.dark-mode .nav-pills-custom { background: #0f172a !important; border: 1px solid rgba(148, 163, 184, 0.1) !important; }
-        body.dark-mode .nav-pills-custom .nav-link { color: #cbd5e1 !important; }
-        body.dark-mode .nav-pills-custom .nav-link:hover { background: #1e293b !important; color: #f8fafc !important; }
-        body.dark-mode .nav-pills-custom .nav-link.active { background: rgba(37, 99, 235, 0.2) !important; color: #60a5fa !important; border: 1px solid rgba(37, 99, 235, 0.4) !important; }
-
-        .generator-title-row {
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:1rem;
-            margin-bottom:1.5rem;
-        }
-        .generator-title-main {
-            display:flex;
-            align-items:center;
-            gap:.85rem;
-        }
-        .generator-title-icon {
-            width:34px;
-            height:34px;
-            border-radius:50%;
-            display:grid;
-            place-items:center;
-            color:#fff;
-            background:linear-gradient(135deg,#667eea,#2563eb);
-            box-shadow:0 10px 22px rgba(37,99,235,.20);
-            flex:0 0 auto;
-        }
-        .generator-panel {
-            border:1px solid rgba(148,163,184,.20);
-            box-shadow:0 16px 40px rgba(15,23,42,.06);
-        }
-        .source-method-grid {
-            display:grid;
-            grid-template-columns:repeat(3,minmax(0,1fr));
-            gap:.75rem;
-            margin-bottom:1rem;
-        }
-        .source-method-card {
-            border:1px solid rgba(148,163,184,.24);
-            border-radius:8px;
-            padding:.85rem;
-            background:linear-gradient(180deg,#fff,#f8fafc);
-            font-weight:800;
-            cursor:pointer;
-        }
-        .source-method-card span { display:block; color:#64748b; font-size:.78rem; font-weight:600; margin-top:.25rem; }
-        .nav-link.active + .source-method-card,
-        .btn-check:checked + .source-method-card {
-            border-color:#2563eb;
-            box-shadow:0 0 0 4px rgba(37,99,235,.1);
-        }
-        .config-section { border-left:3px solid var(--bs-primary); padding-left:1rem; }
-        .config-section h5 { color:var(--bs-primary); }
-        .generator-preset-row {
-            display:grid;
-            grid-template-columns:repeat(3,minmax(0,1fr));
-            gap:.75rem;
-        }
-        .generator-preset {
-            border:1px solid #dbe4f0;
-            border-radius:8px;
-            background:#fff;
-            padding:.75rem .9rem;
-            text-align:left;
-            transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-        }
-        .generator-preset:hover {
-            transform:translateY(-1px);
-            border-color:#2563eb;
-            box-shadow:0 10px 24px rgba(15,23,42,.08);
-        }
-        .generator-preset strong { display:block; font-size:.92rem; }
-        .generator-preset span { display:block; color:#64748b; font-size:.78rem; margin-top:.2rem; }
-        .generator-live-estimate {
-            border:1px solid #dbe4f0;
-            border-radius:8px;
-            background:#f8fafc;
-            padding:.65rem .8rem;
-            font-size:.86rem;
-            color:#475569;
-        }
-        @media (max-width: 768px) {
-            .generator-preset-row { grid-template-columns:1fr; }
-        }
-        .category-tools, .question-toolbar {
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:.75rem;
-            flex-wrap:wrap;
-        }
-        .category-search { max-width:260px; }
-        .category-selector-grid { max-height:220px; overflow:auto; padding:.15rem; }
-        .category-btn-wrapper label { transition:all .2s ease; }
-        .category-btn-wrapper label:hover { transform:translateY(-1px); }
-        .btn-check:checked + .btn-outline-primary {
-            background-color:var(--bs-primary);
-            color:#fff;
-            box-shadow:0 4px 12px rgba(59,130,246,.28);
-            transform:translateY(-1px);
-        }
-        .nav-link.active.btn-outline-primary {
-            background-color:var(--bs-primary) !important;
-            color:#fff !important;
-        }
-        .nav-link.btn-outline-primary:not(.active) { color:#212529 !important; }
-        .question-selector { max-height:420px; overflow-y:auto; background:#fff; }
-        .question-item { transition:all .18s ease; }
-        .question-item:hover { background-color:rgba(59,130,246,.05); }
-        .question-item.is-hidden,
-        .question-item.is-search-hidden,
-        .question-item.is-category-hidden,
-        .category-btn-wrapper.is-hidden { display:none !important; }
-        .option-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.4rem; }
-        .preview-actions {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:1rem;
-            flex-wrap:wrap;
-        }
-        .worksheet-page {
-            max-width: 880px;
-            margin: 0 auto;
-            background:#fff;
-            color:#111827;
-            border:1px solid #e5e7eb;
-            border-radius:8px;
-            padding:2.25rem;
-            box-shadow:0 14px 36px rgba(15,23,42,.07);
-        }
-        .worksheet-cover {
-            padding-bottom:1.25rem;
-            margin-bottom:1.15rem;
-            border-bottom:2px solid #111827;
-        }
-        .worksheet-title-row {
-            align-items:flex-start;
-            padding-top:.9rem;
-        }
-        .worksheet-title-row h1 {
-            line-height:1.16;
-        }
-        .worksheet-title-meta {
-            color:#475569;
-            max-width:720px;
-        }
-        .worksheet-student-header {
-            display:grid;
-            grid-template-columns:minmax(0,1fr) auto;
-            gap:1rem;
-            color:#374151;
-            font-size:.92rem;
-            margin-bottom:1.15rem;
-            padding:.85rem 1rem;
-            border:1px solid #d1d5db;
-            border-radius:8px;
-            background:#f8fafc;
-        }
-        .worksheet-student-lines { display:grid; gap:.35rem; }
-        .worksheet-group-chip {
-            display:inline-grid;
-            place-items:center;
-            min-width:1.65rem;
-            height:1.65rem;
-            margin:0 .35rem;
-            border-radius:4px;
-            background:#111827;
-            color:#fff;
-            font-weight:900;
-        }
-        .worksheet-points-total { justify-self:end; font-weight:700; color:#6b7280; white-space:nowrap; }
-        .worksheet-meta {
-            display:none;
-            grid-template-columns:repeat(4,minmax(0,1fr));
-            gap:.75rem;
-            margin-top:1rem;
-            font-size:.9rem;
-        }
-        .worksheet-meta div {
-            border:1px solid #dbe4f0;
-            border-radius:8px;
-            padding:.55rem .7rem;
-            min-height:44px;
-        }
-        .worksheet-question {
-            break-inside:avoid;
-            page-break-inside:avoid;
-            border-bottom:1px solid #e5e7eb;
-            border-radius:0;
-            padding:.65rem 0 .95rem;
-            margin-bottom:.15rem;
-        }
-        .worksheet-group-label {
-            display:inline-flex;
-            align-items:center;
-            gap:.45rem;
-            border-radius:999px;
-            padding:.35rem .75rem;
-            background:#dbeafe;
-            color:#1d4ed8;
-            font-weight:800;
-            margin:1rem 0 .75rem;
-        }
-        .worksheet-group-page + .worksheet-group-page {
-            margin-top: 1.25rem;
-            padding-top: 1rem;
-            border-top: 1px dashed #cbd5e1;
-        }
-        .worksheet-question h2 {
-            display:grid;
-            grid-template-columns:auto minmax(0,1fr) auto;
-            align-items:start;
-            gap:.45rem;
-            font-size:1rem;
-            line-height:1.42;
-        }
-        .worksheet-question-number {
-            display:inline-grid;
-            place-items:center;
-            min-width:1.35rem;
-            height:1.35rem;
-            border-radius:3px;
-            background:#111827;
-            color:#fff;
-            font-size:.82rem;
-            font-weight:900;
-            line-height:1;
-            margin-top:.05rem;
-        }
-        .worksheet-question-points {
-            color:#6b7280;
-            font-size:.8rem;
-            font-weight:700;
-            white-space:nowrap;
-        }
-        .worksheet-options {
-            display:grid;
-            grid-template-columns:repeat(2,minmax(0,1fr));
-            gap:.5rem 1rem;
-            margin-top:.75rem;
-        }
-        .worksheet-option {
-            display:flex;
-            align-items:flex-start;
-            gap:.45rem;
-            border:0;
-            border-radius:0;
-            padding:.25rem 0;
-            min-height:24px;
-            line-height:1.38;
-        }
-        .worksheet-option strong {
-            display:inline-grid;
-            place-items:center;
-            width:1.35rem;
-            height:1.35rem;
-            border:1px solid #111827;
-            border-radius:4px;
-            font-size:.8rem;
-            line-height:1;
-            flex:0 0 auto;
-        }
-        .worksheet-open-space {
-            height:128px;
-            border:1px solid #d1d5db;
-            border-radius:0;
-            margin-top:.75rem;
-            background-color:#fff;
-            background-image:
-                linear-gradient(#d8dce2 1px, transparent 1px),
-                linear-gradient(90deg, #d8dce2 1px, transparent 1px);
-            background-size:18px 18px;
-        }
-        .answer-key-page {
-            page-break-before:always;
-            break-before:page;
-            margin-top:2rem;
-        }
-        .answer-key {
-            columns:4 140px;
-            border:1px solid #d1d5db;
-            border-radius:8px;
-            padding:.75rem 1rem;
-            background:#f8fafc;
-        }
-        .answer-key div { break-inside:avoid; padding:.25rem 0; }
-        .worksheet-footer { margin-top:2rem; padding-top:.7rem; border-top:1px solid #9ca3af; font-size:.8rem; color:#4b5563; display:flex; justify-content:space-between; gap:1rem; align-items:center; }
-        .txt-format-box {
-            background:#f8fafc;
-            border:1px solid #e2e8f0;
-            border-radius:8px;
-            padding:1rem;
-        }
-        .manual-q-item { border:1px solid rgba(148,163,184,.22); border-radius:8px; padding:1rem; background:#fff; }
-        .manual-q-item + .manual-q-item { margin-top:.85rem; }
-        .manual-q-textarea,
-        .manual-q-explanation {
-            resize: vertical;
-            max-height: 220px;
-            overflow: auto;
-        }
-        .manual-q-explanation {
-            max-height: 180px;
-        }
-        .worksheet-brand-strip { display:none; }
-        .worksheet-brand-mark {
-            width:40px;
-            height:40px;
-            border-radius:8px;
-            display:grid;
-            place-items:center;
-            background:rgba(255,255,255,.16);
-            font-weight:900;
-        }
-        body.dark-mode .generator-panel,
-        body.dark-mode .question-selector,
-        body.dark-mode .txt-format-box,
-        body.dark-mode .source-method-card,
-        body.dark-mode .generator-preset,
-        body.dark-mode .generator-live-estimate,
-        body.dark-mode .manual-q-item,
-        body.dark-mode .card.bg-light {
-            background:#111827 !important;
-            border-color:rgba(148,163,184,.24) !important;
-            color:#e5e7eb;
-        }
-        body.dark-mode.pdf-generator-page {
-            --bs-body-bg:#0f172a;
-            --bs-body-color:#f8fafc;
-            --bs-secondary-bg:#0f172a;
-            --bs-tertiary-bg:#111827;
-            --bs-border-color:rgba(148,163,184,.38);
-            --bs-form-control-bg:#0f172a;
-        }
-        body.dark-mode .generator-title-row,
-        body.dark-mode .generator-title-row .text-muted,
-        body.dark-mode .generator-preset span,
-        body.dark-mode .source-method-card span {
-            color:#94a3b8 !important;
-        }
-        body.dark-mode .generator-preset strong,
-        body.dark-mode .source-method-card,
-        body.dark-mode .manual-q-item .fw-bold,
-        body.dark-mode .txt-format-box .fw-bold {
-            color:#f8fafc !important;
-        }
-        body.dark-mode .generator-preset:hover,
-        body.dark-mode .source-method-card:hover {
-            border-color:#60a5fa !important;
-            box-shadow:0 10px 24px rgba(0,0,0,.24);
-        }
-        body.dark-mode .nav-link.btn-outline-primary:not(.active) {
-            color:#dbeafe !important;
-            border-color:rgba(96,165,250,.42) !important;
-            background:rgba(15,23,42,.56) !important;
-        }
-        body.dark-mode.pdf-generator-page .form-control,
-        body.dark-mode.pdf-generator-page .form-select,
-        body.dark-mode.pdf-generator-page textarea {
-            background:#0f172a !important;
-            background-color:#0f172a !important;
-            border-color:rgba(148,163,184,.38) !important;
-            color:#f8fafc !important;
-            box-shadow:none !important;
-        }
-        body.dark-mode.pdf-generator-page input.form-control,
-        body.dark-mode.pdf-generator-page textarea.form-control {
-            appearance:none;
-            color-scheme:dark;
-            background-image:none !important;
-            -webkit-text-fill-color:#f8fafc !important;
-            box-shadow:0 0 0 1000px #0f172a inset !important;
-        }
-        body.dark-mode.pdf-generator-page input[type="number"].form-control,
-        body.dark-mode.pdf-generator-page input[type="text"].form-control {
-            background-color:#0f172a !important;
-            color:#f8fafc !important;
-        }
-        body.dark-mode.pdf-generator-page .form-control:focus,
-        body.dark-mode.pdf-generator-page .form-select:focus,
-        body.dark-mode.pdf-generator-page textarea:focus {
-            border-color:#60a5fa !important;
-            box-shadow:0 0 0 .2rem rgba(96,165,250,.18) !important;
-        }
-        body.dark-mode.pdf-generator-page .form-control::placeholder,
-        body.dark-mode.pdf-generator-page textarea::placeholder {
-            color:#94a3b8 !important;
-        }
-        body.dark-mode.pdf-generator-page .form-check-input:not(:checked) {
-            background-color:#e5e7eb;
-            border-color:#cbd5e1;
-        }
-        body.dark-mode .question-item {
-            border-color:rgba(148,163,184,.22) !important;
-        }
-        body.dark-mode .question-item:hover {
-            background:rgba(96,165,250,.10);
-        }
-        body.dark-mode .category-btn-wrapper label.btn-outline-primary {
-            color:#dbeafe;
-            border-color:rgba(96,165,250,.38);
-        }
-        body.dark-mode .worksheet-page {
-            background:#fff !important;
-            color:#111827 !important;
-            border-color:#e5e7eb !important;
-            box-shadow:0 16px 38px rgba(0,0,0,.34);
-        }
-        body.dark-mode .worksheet-page,
-        body.dark-mode .worksheet-page h1,
-        body.dark-mode .worksheet-page h2,
-        body.dark-mode .worksheet-page h3,
-        body.dark-mode .worksheet-page p,
-        body.dark-mode .worksheet-page .fw-bold,
-        body.dark-mode .worksheet-page .worksheet-option,
-        body.dark-mode .worksheet-page .worksheet-meta div {
-            color:#111827 !important;
-        }
-        body.dark-mode .worksheet-page .text-muted,
-        body.dark-mode .worksheet-page .worksheet-footer {
-            color:#64748b !important;
-        }
-        body.dark-mode .worksheet-page .worksheet-brand-strip,
-        body.dark-mode .worksheet-page .worksheet-brand-strip *,
-        body.dark-mode .worksheet-page .worksheet-brand-mark {
-            color:#fff !important;
-        }
-        body.dark-mode .worksheet-page .worksheet-question,
-        body.dark-mode .worksheet-page .worksheet-option,
-        body.dark-mode .worksheet-page .worksheet-meta div {
-            background:#fff !important;
-            border-color:#d1d5db !important;
-        }
-        @media (max-width: 767.98px) {
-            .generator-title-row,
-            .worksheet-title-row {
-                align-items:flex-start;
-                flex-direction:column;
-            }
-            .source-method-grid { grid-template-columns:1fr; }
-            .option-grid, .worksheet-options, .worksheet-meta, .worksheet-student-header { grid-template-columns:1fr; }
-            .worksheet-points-total { justify-self:start; }
-            .worksheet-page { padding:1rem; }
-        }
+    win.document.write(`<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>${title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #fff; color: #111827; }
+        ${css}
         @media print {
             @page { size:A4; margin:12mm; }
             html, body { background:#fff !important; color:#111827 !important; }
@@ -2445,10 +1908,10 @@ $extraHead = <<<HTML
             a[href]::after { content:""; }
         }
     </style>
-HTML;
-$bodyClasses = ['pdf-generator-page'];
-include '../includes/header.php';
-?>${printable.outerHTML}</body>
+</head>
+<body class="bg-white p-4">
+    ${printable.outerHTML}
+</body>
 </html>`);
     win.document.close();
     win.focus();

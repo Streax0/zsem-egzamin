@@ -302,6 +302,21 @@ $csrf_token = generateCsrfToken();
                     <p class="small text-muted">Masz już konto? <a href="login.php" class="text-primary text-decoration-none fw-semibold">Zaloguj się</a></p>
                 </div>
             </form>
+            <div class="position-relative my-4 text-center">
+                <hr class="text-secondary opacity-25">
+                <span class="position-absolute top-50 start-50 translate-middle px-3 bg-dark text-muted small fw-semibold" style="letter-spacing: 0.5px; font-size: 0.72rem;">LUB WYPRÓBUJ BEZ LOGOWANIA</span>
+            </div>
+            <form action="../actions/start_guest.php" method="POST" class="m-0">
+                <?php echo csrfTokenField('guest_start'); ?>
+                <input type="hidden" name="target" value="test">
+                <button type="submit" class="btn btn-outline-light guest-mode-btn w-100 py-2 d-flex align-items-center justify-content-center gap-3 rounded-3 shadow-sm border border-secondary border-opacity-25">
+                    <i class="bi bi-incognito fs-4 text-warning"></i>
+                    <div class="text-start">
+                        <div class="fw-bold">Tryb gościa</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Rozwiązuj testy, fiszki i dołączaj do sprawdzianów bez konta</div>
+                    </div>
+                </button>
+            </form>
         </main>
     </div>
     <?php include __DIR__ . '/../includes/cookie_consent.php'; ?>

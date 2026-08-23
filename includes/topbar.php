@@ -243,6 +243,330 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php endif; ?>
 
+<?php
+$guestRestrictedNotice = $_SESSION['guest_restricted_notice'] ?? null;
+unset($_SESSION['guest_restricted_notice']);
+if ($isGuestTopbar || $isFullyLoggedOut || $guestRestrictedNotice || isset($_GET['guest_prompt'])):
+?>
+<style>
+/* ===== Guest Restricted Modal Animations & Glassmorphism ===== */
+.guest-restricted-dialog {
+    width: min(92vw, 460px);
+    padding: 0;
+    border: 0;
+    border-radius: 28px;
+    background: #ffffff;
+    box-shadow: 0 30px 90px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin: 0;
+}
+.guest-restricted-dialog[open] {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+.guest-restricted-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.68);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.guest-restricted-dialog[open]::backdrop {
+    opacity: 1;
+}
+.guest-dialog-card {
+    position: relative;
+    padding: 2.25rem 2rem 1.85rem;
+    text-align: center;
+    background: radial-gradient(circle at top, rgba(245, 158, 11, 0.1) 0%, transparent 65%);
+}
+.guest-dialog-glow {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0) 70%);
+    filter: blur(35px);
+    pointer-events: none;
+}
+.guest-dialog-icon-wrap {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 1.15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.guest-dialog-icon-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 26px;
+    border: 2px dashed rgba(245, 158, 11, 0.45);
+    animation: guestIconSpin 22s linear infinite;
+}
+@keyframes guestIconSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.guest-dialog-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.9rem;
+    box-shadow: 0 12px 28px rgba(245, 158, 11, 0.45);
+    animation: guestIconFloat 3s ease-in-out infinite alternate;
+}
+@keyframes guestIconFloat {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-4px) scale(1.04); }
+}
+.guest-benefit-pill {
+    background: rgba(15, 23, 42, 0.03);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 14px;
+    padding: 0.55rem 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.82rem;
+    text-align: left;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.guest-benefit-pill:hover {
+    transform: translateY(-2px);
+    background: rgba(15, 23, 42, 0.06);
+}
+.guest-btn-primary {
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    padding: 0.75rem 1.5rem !important;
+    box-shadow: 0 10px 25px rgba(245, 158, 11, 0.35) !important;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.guest-btn-primary:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 14px 35px rgba(245, 158, 11, 0.5) !important;
+    color: #ffffff !important;
+}
+.guest-btn-secondary {
+    background: rgba(15, 23, 42, 0.04) !important;
+    color: #0f172a !important;
+    font-weight: 600 !important;
+    border: 1px solid rgba(15, 23, 42, 0.1) !important;
+    border-radius: 999px !important;
+    padding: 0.7rem 1.5rem !important;
+    transition: all 0.25s ease !important;
+}
+.guest-btn-secondary:hover {
+    background: rgba(15, 23, 42, 0.08) !important;
+    transform: translateY(-1px) !important;
+}
+.guest-dialog-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(15, 23, 42, 0.05);
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+.guest-dialog-close:hover {
+    background: rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+    transform: rotate(90deg);
+}
+
+/* ===== Dark Mode ===== */
+body.dark-mode .guest-restricted-dialog {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+body.dark-mode .guest-dialog-card {
+    background: radial-gradient(circle at top, rgba(245, 158, 11, 0.14) 0%, transparent 65%);
+}
+body.dark-mode .guest-benefit-pill {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
+body.dark-mode .guest-btn-secondary {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #f8fafc !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+body.dark-mode .guest-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+body.dark-mode .guest-dialog-close {
+    background: rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
+}
+body.dark-mode .guest-dialog-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+</style>
+
+<dialog class="guest-restricted-dialog" id="guestRestrictedModal" aria-labelledby="guestRestrictedTitle" aria-describedby="guestRestrictedText">
+    <button type="button" class="guest-dialog-close" onclick="closeGuestModal()" aria-label="Zamknij popup">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="guest-dialog-card">
+        <div class="guest-dialog-glow"></div>
+        
+        <div class="guest-dialog-icon-wrap">
+            <div class="guest-dialog-icon-ring"></div>
+            <div class="guest-dialog-icon">
+                <i class="bi bi-lock-fill" aria-hidden="true"></i>
+            </div>
+        </div>
+
+        <div class="badge bg-warning bg-opacity-25 text-warning px-3 py-1 rounded-pill fw-bold text-uppercase small mb-2" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+            <i class="bi bi-stars me-1"></i>Strefa Zalogowanego
+        </div>
+
+        <h2 class="h4 fw-800 mb-2" id="guestRestrictedTitle" style="color: var(--text-main, #0f172a);">
+            <?php echo htmlspecialchars((string)($guestRestrictedNotice['title'] ?? 'Dostęp tylko dla zalogowanych')); ?>
+        </h2>
+        
+        <p class="text-muted mb-3" id="guestRestrictedText" style="font-size: 0.88rem; line-height: 1.55;">
+            <?php echo htmlspecialchars((string)($guestRestrictedNotice['message'] ?? 'Ta kategoria i zaawansowane sekcje platformy są dostępne wyłącznie dla zalogowanych uczniów. Załóż darmowe konto w 30 sekund i zyskaj pełen dostęp!')); ?>
+        </p>
+
+        <!-- Benefits grid -->
+        <div class="d-flex flex-column gap-2 mb-3">
+            <div class="guest-benefit-pill">
+                <div class="rounded-circle bg-warning bg-opacity-20 text-warning p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="line-height: 1.2;">Szkolny Ranking & Punkty XP</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Zbieraj punkty za każdy test i zdobywaj odznaki</div>
+                </div>
+            </div>
+            <div class="guest-benefit-pill">
+                <div class="rounded-circle bg-info bg-opacity-20 text-info p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                    <i class="bi bi-swords"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="line-height: 1.2;">Pojedynki 1 na 1 z klasą</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Rzucaj wyzwania znajomym na pytania CKE</div>
+                </div>
+            </div>
+            <div class="guest-benefit-pill">
+                <div class="rounded-circle bg-success bg-opacity-20 text-success p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.85rem;">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="line-height: 1.2;">Trwały zapis postępów</div>
+                    <div class="text-muted" style="font-size: 0.72rem;">Historia odpowiedzi, statystyki i analiza błędów</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-column gap-2">
+            <a href="<?php echo htmlspecialchars($base_url); ?>auth/register.php" class="btn guest-btn-primary d-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-person-plus-fill"></i>
+                <span>Załóż darmowe konto</span>
+            </a>
+            <a href="<?php echo htmlspecialchars($base_url); ?>auth/login.php" class="btn guest-btn-secondary d-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Zaloguj się</span>
+            </a>
+            <button type="button" class="btn btn-link text-muted text-decoration-none py-1 small mt-1" onclick="closeGuestModal()">
+                Kontynuuj jako gość
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<script>
+window.closeGuestModal = function() {
+    const modal = document.getElementById('guestRestrictedModal');
+    if (!modal) return;
+    if (typeof modal.close === 'function') {
+        modal.close();
+    } else {
+        modal.removeAttribute('open');
+    }
+};
+
+window.showGuestRestrictedPrompt = function(title, message) {
+    const modal = document.getElementById('guestRestrictedModal');
+    if (!modal) return;
+    if (title) {
+        const titleEl = document.getElementById('guestRestrictedTitle');
+        if (titleEl) titleEl.textContent = title;
+    }
+    if (message) {
+        const textEl = document.getElementById('guestRestrictedText');
+        if (textEl) textEl.textContent = message;
+    }
+    if (typeof modal.showModal === 'function') {
+        modal.showModal();
+    } else {
+        modal.setAttribute('open', '');
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('guestRestrictedModal');
+    if (modal) {
+        // Close on backdrop click
+        modal.addEventListener('click', function(e) {
+            const rect = modal.getBoundingClientRect();
+            const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height
+                && rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
+            if (!isInDialog) {
+                closeGuestModal();
+            }
+        });
+    }
+
+    <?php if ($guestRestrictedNotice || isset($_GET['guest_prompt'])): ?>
+    window.showGuestRestrictedPrompt();
+    <?php endif; ?>
+
+    document.querySelectorAll('[data-guest-restricted]').forEach(el => {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            const featureName = this.getAttribute('data-guest-feature') || 'Ta sekcja';
+            window.showGuestRestrictedPrompt(
+                'Dostęp tylko dla zalogowanych',
+                featureName + ' jest dostępna wyłącznie dla zarejestrowanych uczniów. Załóż darmowe konto w 30 sekund lub zaloguj się, aby uzyskać pełny dostęp!'
+            );
+        });
+    });
+});
+</script>
+<?php endif; ?>
+
 <?php if (is_array($pageBlockAdminNotice)): ?>
 <div class="container-fluid px-4 pt-3 feature-block-notice">
     <div class="alert alert-warning border-0 shadow-sm mb-0" role="status">

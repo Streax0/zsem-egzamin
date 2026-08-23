@@ -324,14 +324,20 @@ $extraHead = <<<HTML
         body.dark-mode .settings-release-grid span {
             display: flex;
             align-items: center;
-            gap: .45rem;
-            background: rgba(255, 255, 255, 0.02) !important;
-            border: 1px solid rgba(255, 255, 255, 0.06) !important;
-            border-radius: 8px;
-            padding: .55rem .65rem;
+            gap: .55rem;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 10px;
+            padding: .6rem .8rem;
             color: #e2e8f0 !important;
             font-size: .82rem;
-            font-weight: 700;
+            font-weight: 600;
+            transition: all .2s ease;
+        }
+        body.dark-mode .settings-release-grid span:hover {
+            background: rgba(99, 102, 241, 0.08) !important;
+            border-color: rgba(99, 102, 241, 0.3) !important;
+            transform: translateX(3px);
         }
 
         body.light-mode .settings-status-card {
@@ -371,14 +377,20 @@ $extraHead = <<<HTML
         body.light-mode .settings-release-grid span {
             display: flex;
             align-items: center;
-            gap: .45rem;
+            gap: .55rem;
             background: rgba(15, 23, 42, 0.02) !important;
-            border: 1px solid rgba(15, 23, 42, 0.05) !important;
-            border-radius: 8px;
-            padding: .55rem .65rem;
+            border: 1px solid rgba(15, 23, 42, 0.06) !important;
+            border-radius: 10px;
+            padding: .6rem .8rem;
             color: #334155 !important;
             font-size: .82rem;
-            font-weight: 700;
+            font-weight: 600;
+            transition: all .2s ease;
+        }
+        body.light-mode .settings-release-grid span:hover {
+            background: rgba(99, 102, 241, 0.06) !important;
+            border-color: rgba(99, 102, 241, 0.25) !important;
+            transform: translateX(3px);
         }
         
         .settings-release-grid {
@@ -387,7 +399,8 @@ $extraHead = <<<HTML
             gap: .5rem;
         }
         .settings-release-grid span i {
-            color: #818cf8 !important;
+            color: #6366f1 !important;
+            font-size: 1rem;
             flex: 0 0 auto;
         }
         
@@ -994,6 +1007,22 @@ include '../includes/header.php';
                             <div class="tab-content" id="settings-tab-content">
                                 <!-- Pane 1: Profile -->
                                 <div class="tab-pane fade show active" id="pane-profile" role="tabpanel" aria-labelledby="tab-profile">
+                                    <?php
+                                    $profileScore = 20;
+                                    if (!empty($userSettings['avatar_path'])) $profileScore += 20;
+                                    if (!empty($userSettings['first_name']) || !empty($userSettings['last_name'])) $profileScore += 20;
+                                    if (!empty($userSettings['bio'])) $profileScore += 20;
+                                    if ($mfaEnabled) $profileScore += 20;
+                                    ?>
+                                    <div class="dashboard-panel mb-4 p-3 border-0 bg-primary bg-opacity-10 animate-in">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="small fw-bold text-primary"><i class="bi bi-person-badge me-1"></i>Kompletność profilu</span>
+                                            <span class="badge bg-primary rounded-pill"><?= $profileScore ?>%</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px; background: rgba(59, 130, 246, 0.15);">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $profileScore ?>%;" aria-valuenow="<?= $profileScore ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
                                     <!-- Profile Card -->
                                     <div class="dashboard-panel mb-4 animate-in">
                                         <div class="panel-header mb-4">
@@ -1189,11 +1218,20 @@ include '../includes/header.php';
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Nowe hasło</label>
-                                                    <input type="password" name="new_password" class="form-control" required>
+                                                    <input type="password" name="new_password" id="newPasswordInput" class="form-control" required oninput="checkPasswordStrength(this.value)">
+                                                    <div class="progress mt-2" style="height: 5px; display: none;" id="pwdStrengthBar">
+                                                        <div class="progress-bar" id="pwdStrengthFill" style="width: 0%;"></div>
+                                                    </div>
+                                                    <div class="small mt-2" id="pwdRequirements">
+                                                        <div class="text-muted" id="reqLen"><i class="bi bi-circle me-1"></i>Min. 8 znaków</div>
+                                                        <div class="text-muted" id="reqUpper"><i class="bi bi-circle me-1"></i>Wielka litera</div>
+                                                        <div class="text-muted" id="reqNum"><i class="bi bi-circle me-1"></i>Cyfra lub znak specjalny</div>
+                                                    </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Powtórz nowe hasło</label>
-                                                    <input type="password" name="confirm_password" class="form-control" required>
+                                                    <input type="password" name="confirm_password" id="confirmPasswordInput" class="form-control" required oninput="checkPasswordMatch()">
+                                                    <div class="small mt-2 text-muted" id="reqMatch"><i class="bi bi-circle me-1"></i>Zgodność obu haseł</div>
                                                 </div>
                                                 <div class="col-12 mt-4">
                                                     <button type="submit" class="btn btn-outline-danger px-4">
@@ -1568,40 +1606,79 @@ include '../includes/header.php';
                                         <!-- Sidebar Stack Panel -->
                                         <div class="col-12 col-xl-5 settings-side-stack">
                                             <div class="dashboard-panel mb-4 animate-in">
-                                                <div class="panel-header mb-3">
-                                                    <h5 class="panel-title mb-0"><i class="bi bi-info-circle me-2 text-info"></i>Informacje</h5>
+                                                <div class="panel-header mb-3 d-flex justify-content-between align-items-center">
+                                                    <h5 class="panel-title mb-0"><i class="bi bi-info-circle me-2 text-info"></i>Informacje o systemie</h5>
+                                                    <span class="badge bg-primary bg-opacity-20 text-primary fw-bold px-2 py-1 rounded-pill" style="font-size:0.75rem;">v2.5 Release</span>
                                                 </div>
-                                                <div class="small">
+                                                <div class="small p-2 rounded-3 mb-3" style="background: rgba(148, 163, 184, 0.08);">
                                                     <div class="d-flex justify-content-between mb-2">
-                                                        <span class="text-muted">Wersja aplikacji:</span>
-                                                        <span class="fw-bold">2.2 Release</span>
+                                                        <span class="text-muted"><i class="bi bi-tag me-1"></i>Wersja platformy:</span>
+                                                        <span class="fw-bold text-primary">2.5 Release (ZSEM Tech Lab)</span>
                                                     </div>
                                                     <div class="d-flex justify-content-between mb-2">
-                                                        <span class="text-muted">ID Użytkownika:</span>
+                                                        <span class="text-muted"><i class="bi bi-person-badge me-1"></i>ID Użytkownika:</span>
                                                         <span class="fw-bold">#<?php echo $userId; ?></span>
                                                     </div>
+                                                    <div class="d-flex justify-content-between mb-2">
+                                                        <span class="text-muted"><i class="bi bi-shield-lock me-1"></i>Bezpieczeństwo:</span>
+                                                        <span class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i>FIDO2 / OWASP Hardened</span>
+                                                    </div>
                                                     <div class="d-flex justify-content-between">
-                                                        <span class="text-muted">Ostatnie logowanie:</span>
+                                                        <span class="text-muted"><i class="bi bi-clock-history me-1"></i>Ostatnie logowanie:</span>
                                                         <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
                                                     </div>
                                                 </div>
+
+                                                <!-- Changelog 2.5 Release (Najnowsza) -->
+                                                <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+                                                    <div class="settings-release-title mb-0">2.5 Release</div>
+                                                    <span class="badge bg-success bg-opacity-15 text-success rounded-pill fw-bold" style="font-size:0.68rem;">Najnowsza</span>
+                                                </div>
+                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.5 Release</div>
+                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.5 Release">
+                                                    <span><i class="bi bi-terminal-fill"></i> 10 nowych scenariuszy CKE w CLI Lab (LVM, RAID 1, PowerShell DHCP/DNS, MySQL GRANT, Fail2ban, SSH)</span>
+                                                    <span><i class="bi bi-fingerprint"></i> Logowanie biometryczne FIDO2 / Passkeys z resident keys i user verification</span>
+                                                    <span><i class="bi bi-palette-fill"></i> Multi-tab terminal & 5 motywów kolorystycznych (GitHub, Ubuntu, Dracula, Matrix, PS)</span>
+                                                    <span><i class="bi bi-clock-history"></i> Automatyczna retencja i czyszczenie logów audytowych (30 dni)</span>
+                                                    <span><i class="bi bi-shield-check"></i> Utwardzenie uprawnień BOLA/IDOR w komentarzach, zaproszeniach i resetach</span>
+                                                </div>
+
+                                                <!-- Changelog 2.4 Release -->
+                                                <div class="settings-release-title mt-3 mb-2">2.4 Release</div>
+                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.4 Release</div>
+                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.4 Release">
+                                                    <span><i class="bi bi-card-checklist"></i> Spaced Repetition: Eksport błędnych odpowiedzi do talii fiszek SM-2</span>
+                                                    <span><i class="bi bi-shield-lock-fill"></i> Ochrona przed CSRF na wszystkich akcjach POST i rate limiting minigier</span>
+                                                    <span><i class="bi bi-lightning-charge-fill"></i> Usunięcie wycieków pamięci i cachowanie skanów arkuszy egzaminacyjnych</span>
+                                                </div>
+
+                                                <!-- Changelog 2.3 Release -->
+                                                <div class="settings-release-title mt-3 mb-2">2.3 Release</div>
+                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.3 Release</div>
+                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.3 Release">
+                                                    <span><i class="bi bi-pie-chart-fill"></i> Rzeczywisty wykres radarowy umiejętności z bazy odpowiedzi CKE</span>
+                                                    <span><i class="bi bi-bookmark-star-fill"></i> System zakładek pytań i zgłaszania błędów merytorycznych</span>
+                                                </div>
+
                                                 <!-- Changelog 2.2 Release -->
                                                 <div class="settings-release-title mt-3 mb-2">2.2 Release</div>
                                                 <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.2 Release</div>
-                                                <div class="settings-release-grid" aria-label="Changelog wersji 2.2 Release">
+                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.2 Release">
                                                     <span><i class="bi bi-shield-check"></i> Dodano popup potwierdzenia dla domen ZSEM</span>
                                                     <span><i class="bi bi-palette"></i> Ulepszono wygląd i responsywność ustawień</span>
                                                     <span><i class="bi bi-lightning-charge"></i> Zoptymalizowano zapytania SQL i pętle</span>
                                                     <span><i class="bi bi-bug"></i> Naprawiono błędy CSP i usunięto martwy kod</span>
                                                 </div>
+
                                                 <!-- Test compliance requirement: Changelog 2.1 BETA -->
                                                 <div class="settings-release-title mt-3 mb-2">Changelog 2.1 BETA</div>
-                                                <div class="settings-release-grid" aria-label="Changelog wersji 2.1 BETA">
+                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.1 BETA">
                                                     <span><i class="bi bi-gear-fill"></i> Zooptymalizowano backend</span>
                                                     <span><i class="bi bi-folder2-open"></i> Zmieniono strukturę plików</span>
                                                     <span><i class="bi bi-bug-fill"></i> Poprawiono błędy</span>
                                                     <span><i class="bi bi-journal-bookmark-fill"></i> Zaczęto prace nad "Kursami"</span>
                                                 </div>
+
                                                 <!-- Test compliance requirement: 2.0 Release / Changelog 2.0 Release -->
                                                 <div class="settings-release-title mt-3 mb-2">2.0 Release</div>
                                                 <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.0 Release</div>
@@ -2196,6 +2273,83 @@ include '../includes/header.php';
             showNotice('Wystąpił błąd podczas usuwania: ' + err.message, 'danger');
         }
     }
+
+    function checkPasswordStrength(val) {
+        const bar = document.getElementById('pwdStrengthBar');
+        const fill = document.getElementById('pwdStrengthFill');
+        const reqLen = document.getElementById('reqLen');
+        const reqUpper = document.getElementById('reqUpper');
+        const reqNum = document.getElementById('reqNum');
+        
+        if (!val) {
+            if (bar) bar.style.display = 'none';
+            return;
+        }
+        if (bar) bar.style.display = 'flex';
+        
+        let score = 0;
+        const hasLen = val.length >= 8;
+        const hasUpper = /[A-Z]/.test(val);
+        const hasNum = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val);
+        
+        if (hasLen) score += 40;
+        if (hasUpper) score += 30;
+        if (hasNum) score += 30;
+        
+        if (reqLen) {
+            reqLen.className = hasLen ? 'text-success small' : 'text-muted small';
+            reqLen.innerHTML = (hasLen ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-circle me-1"></i>') + 'Min. 8 znaków';
+        }
+        if (reqUpper) {
+            reqUpper.className = hasUpper ? 'text-success small' : 'text-muted small';
+            reqUpper.innerHTML = (hasUpper ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-circle me-1"></i>') + 'Wielka litera';
+        }
+        if (reqNum) {
+            reqNum.className = hasNum ? 'text-success small' : 'text-muted small';
+            reqNum.innerHTML = (hasNum ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-circle me-1"></i>') + 'Cyfra lub znak specjalny';
+        }
+        
+        if (fill) {
+            fill.style.width = score + '%';
+            if (score < 40) {
+                fill.className = 'progress-bar bg-danger';
+            } else if (score < 80) {
+                fill.className = 'progress-bar bg-warning';
+            } else {
+                fill.className = 'progress-bar bg-success';
+            }
+        }
+        checkPasswordMatch();
+    }
+
+    function checkPasswordMatch() {
+        const p1 = document.getElementById('newPasswordInput')?.value || '';
+        const p2 = document.getElementById('confirmPasswordInput')?.value || '';
+        const reqMatch = document.getElementById('reqMatch');
+        if (!reqMatch || !p2) return;
+        const matches = p1 !== '' && p1 === p2;
+        reqMatch.className = matches ? 'text-success small' : 'text-danger small';
+        reqMatch.innerHTML = (matches ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-x-circle-fill me-1"></i>') + (matches ? 'Hasła są identyczne' : 'Hasła nie są identyczne');
+    }
+
+    // URL Hash tab synchronization
+    window.addEventListener('DOMContentLoaded', () => {
+        const hash = window.location.hash;
+        if (hash) {
+            const targetTab = document.querySelector(`a[data-bs-toggle="pill"][href="${hash}"]`);
+            if (targetTab && window.bootstrap && window.bootstrap.Tab) {
+                new bootstrap.Tab(targetTab).show();
+            }
+        }
+        document.querySelectorAll('a[data-bs-toggle="pill"]').forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', (e) => {
+                const target = e.target.getAttribute('href');
+                if (target && history.replaceState) {
+                    history.replaceState(null, '', target);
+                }
+            });
+        });
+    });
     </script>
     <!-- Modal: Revoke All Sessions Except Current (R7.4) -->
     <div class="modal fade" id="revokeAllExceptModal" tabindex="-1" aria-labelledby="revokeAllExceptModalLabel" aria-hidden="true">

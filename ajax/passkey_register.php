@@ -54,7 +54,7 @@ if ($action === 'generate') {
     }
     
     try {
-        $createArgs = $WebAuthn->getCreateArgs((string)$userId, $username, $username, 20, true, false, null, $excludeCredentialIds);
+        $createArgs = $WebAuthn->getCreateArgs((string)$userId, $username, $username, 30, 'required', 'preferred', null, $excludeCredentialIds);
         $_SESSION['webauthn_challenge'] = $WebAuthn->getChallenge();
         
         echo securityJsonEncode(['status' => 'success', 'options' => $createArgs]);

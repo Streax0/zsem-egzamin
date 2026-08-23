@@ -27,5 +27,11 @@ if ($target === 'exam') {
     $code = preg_replace('/[^A-Z0-9]/', '', strtoupper((string)($_POST['access_code'] ?? '')));
     guestRedirect('../exam/join.php' . ($code !== '' ? '?code=' . urlencode($code) : ''));
 }
+if ($target === 'flashcards') {
+    guestRedirect('../flashcards.php');
+}
+if ($target === 'categories') {
+    guestRedirect('../categories.php');
+}
 
 guestRedirect('../test.php?setup=1&new=1');

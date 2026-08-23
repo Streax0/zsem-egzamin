@@ -28,41 +28,59 @@ $userId = (int)$_SESSION['user_id'];
 // Canonical display order
 $displayCategories = ['Sieci', 'Systemy', 'Sprzęt', 'Bezpieczeństwo', 'Kable/Normy', 'Adresacja'];
 
-// Mode → category proxy mapping
-$modeMap = [
-    'exam'            => 'Sieci',
-    'practice'        => 'Systemy',
-    'single'          => 'Sprzęt',
-    'exam_simulator'  => 'Bezpieczeństwo',
-];
-
 // Build aggregated per-category data
 $stats = [];
 foreach ($displayCategories as $cat) {
     $stats[$cat] = ['total' => 0, 'correct' => 0];
 }
 
-// Fetch test results grouped by mode as category proxy
-$testRows = [];
-try {
-    $_tStmt = $pdo->prepare(
-        "SELECT mode, AVG(score_percent) as avg_score, COUNT(*) as test_count
-         FROM test_results
-         WHERE user_id = ? AND total_questions >= 5
-         GROUP BY mode"
-    );
-    $_tStmt->execute([$userId]);
-    $testRows = $_tStmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (Throwable $e) {
-    $testRows = [];
+/**
+ * Maps technical CKE questions to the 6 radar domains based on content and category.
+ */
+function mapQuestionToRadarDomain(string $cat, string $text): string {
+    $c = mb_strtolower($cat . ' ' . $text);
+    if (preg_match('/(mask|cidr|podsiec|vlsm|ipv4|ipv6|\/24|\/28|brama domyślna|adres hosta)/iu', $c)) {
+        return 'Adresacja';
+    }
+    if (preg_match('/(skrętk|światłow|kabel|złącz|rj-45|t568|ieee 802|kategori|ekranowan)/iu', $c)) {
+        return 'Kable/Normy';
+    }
+    if (preg_match('/(szyfr|hasł|firewall|zapor|bezpiecz|certyfikat|tls|ssl|wpa|atak|malware|wirus)/iu', $c)) {
+        return 'Bezpieczeństwo';
+    }
+    if (preg_match('/(linux|windows server|active directory|domena|gpo|usług|system|partycj|uprawnien|chmod|cron)/iu', $c)) {
+        return 'Systemy';
+    }
+    if (preg_match('/(procesor|ram|dysk|płyt|zasilacz|karta graficzn|lutown|miernik|gniazd|socket|bios|uefi|chłodzen|drukark)/iu', $c)) {
+        return 'Sprzęt';
+    }
+    return 'Sieci';
 }
 
-foreach ($testRows as $row) {
-    $cat = $modeMap[$row['mode']] ?? null;
-    if ($cat && isset($stats[$cat])) {
-        $stats[$cat]['total']   += (int)$row['test_count'];
-        $stats[$cat]['correct'] += (int)round($row['test_count'] * ($row['avg_score'] / 100));
+// Fetch user test answers joined with question details
+try {
+    $_ansStmt = $pdo->prepare("
+        SELECT q.category, q.question_text, ta.is_correct
+        FROM test_answers ta
+        JOIN test_results tr ON tr.id = ta.result_id
+        JOIN questions q ON q.id = ta.question_id
+        WHERE tr.user_id = ?
+        ORDER BY ta.id DESC
+        LIMIT 500
+    ");
+    $_ansStmt->execute([$userId]);
+    $rows = $_ansStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rows as $r) {
+        $domain = mapQuestionToRadarDomain((string)($r['category'] ?? ''), (string)($r['question_text'] ?? ''));
+        if (isset($stats[$domain])) {
+            $stats[$domain]['total']++;
+            if ((int)($r['is_correct'] ?? 0) === 1) {
+                $stats[$domain]['correct']++;
+            }
+        }
     }
+} catch (Throwable $e) {
+    // Fallback if table doesn't have answers yet
 }
 
 // Fetch overall average for fallback

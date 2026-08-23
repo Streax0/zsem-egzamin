@@ -24,11 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($action === 'accept') {
-        $stmt = $pdo->prepare("UPDATE friends SET status = 'accepted' WHERE user_id = ? AND friend_id = ?");
+        $stmt = $pdo->prepare("UPDATE friends SET status = 'accepted' WHERE user_id = ? AND friend_id = ? AND status = 'pending'");
         $stmt->execute([$otherUserId, $myId]);
-        setSessionMessage('success', 'Zaproszenie zostało zaakceptowane!');
+        if ($stmt->rowCount() > 0) {
+            setSessionMessage('success', 'Zaproszenie zostało zaakceptowane!');
+        } else {
+            setSessionMessage('info', 'Nie znaleziono oczekującego zaproszenia.');
+        }
     } elseif ($action === 'reject') {
-        $stmt = $pdo->prepare("DELETE FROM friends WHERE user_id = ? AND friend_id = ?");
+        $stmt = $pdo->prepare("DELETE FROM friends WHERE user_id = ? AND friend_id = ? AND status = 'pending'");
         $stmt->execute([$otherUserId, $myId]);
         setSessionMessage('info', 'Zaproszenie zostało odrzucone.');
     }

@@ -32,6 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+requireJsonCsrfToken();
+
 $userId     = (int)$_SESSION['user_id'];
 $questionId = (int)($_POST['question_id'] ?? 0);
 $tier       = (int)($_POST['tier'] ?? 0);
@@ -40,6 +42,21 @@ if ($questionId <= 0 || $tier < 1 || $tier > 3) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'Nieprawidłowe parametry']);
     exit;
+}
+
+// Block Tier 3 hints during active exam sessions to prevent exam answer leaks
+if ($tier === 3) {
+    $hasActiveExam = (function_exists('hasActiveTestInSession') && hasActiveTestInSession())
+        || (isset($_SESSION['test_active']) && $_SESSION['test_active'] === true)
+        || (isset($_SESSION['exam_id']) && (int)$_SESSION['exam_id'] > 0);
+    if ($hasActiveExam) {
+        http_response_code(403);
+        echo json_encode([
+            'success' => false,
+            'error'   => 'Podpowiedzi 3. stopnia (pełna odpowiedź) są zablokowane podczas trwającego egzaminu.',
+        ]);
+        exit;
+    }
 }
 
 // XP costs per tier
@@ -64,13 +81,14 @@ if (!$question) {
     exit;
 }
 
-// Check user has enough XP
-$_uStmt = $pdo->prepare("SELECT xp FROM users WHERE id = ?");
-$_uStmt->execute([$userId]);
-$userRow = $_uStmt->fetch(PDO::FETCH_ASSOC) ?: [];
-$currentXp = (int)($userRow['xp'] ?? 0);
+// Atomically deduct XP
+$deductStmt = $pdo->prepare("UPDATE users SET xp = xp - ? WHERE id = ? AND xp >= ?");
+$deductStmt->execute([$xpCost, $userId, $xpCost]);
 
-if ($currentXp < $xpCost) {
+if ($deductStmt->rowCount() !== 1) {
+    $_uStmt = $pdo->prepare("SELECT xp FROM users WHERE id = ?");
+    $_uStmt->execute([$userId]);
+    $currentXp = (int)$_uStmt->fetchColumn();
     echo json_encode([
         'success' => false,
         'error'   => "Za mało XP. Potrzebujesz {$xpCost} XP, masz {$currentXp} XP.",
@@ -79,7 +97,13 @@ if ($currentXp < $xpCost) {
     exit;
 }
 
-$response = ['success' => true, 'tier' => $tier, 'xp_cost' => $xpCost];
+// Fetch updated balance
+$_uStmt = $pdo->prepare("SELECT xp FROM users WHERE id = ?");
+$_uStmt->execute([$userId]);
+$newXp = (int)$_uStmt->fetchColumn();
+$_SESSION['xp'] = $newXp;
+
+$response = ['success' => true, 'tier' => $tier, 'xp_cost' => $xpCost, 'new_xp' => $newXp];
 
 if ($tier === 1) {
     // --- Tier 1: Conceptual clue ---
@@ -128,12 +152,5 @@ if ($tier === 1) {
     }
     $response['hint'] = $explanation;
 }
-
-// Deduct XP
-$newXp = max(0, $currentXp - $xpCost);
-$pdo->prepare("UPDATE users SET xp = ? WHERE id = ?")->execute([$newXp, $userId]);
-$_SESSION['xp'] = $newXp;
-
-$response['new_xp'] = $newXp;
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE);

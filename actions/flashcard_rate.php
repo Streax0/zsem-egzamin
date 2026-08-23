@@ -29,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+requireJsonCsrfToken();
+
 $userId   = (int)$_SESSION['user_id'];
 $cardKey  = trim((string)($_POST['card_key'] ?? ''));
 $rating   = (int)($_POST['rating'] ?? -1);

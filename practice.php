@@ -276,55 +276,70 @@ function normalizePracticeTags(array $tags, string $qual): array {
     return $out;
 }
 
-// Dynamically scan the sheets/ directory and build the exam sheets database
-$exams = [];
-$sheetsDir = __DIR__ . '/sheets/';
-if (is_dir($sheetsDir)) {
-    $folders = scandir($sheetsDir);
-    foreach ($folders as $folder) {
-        if ($folder === '.' || $folder === '..') continue;
-        $folderPath = $sheetsDir . $folder;
-        if (is_dir($folderPath)) {
-            // Extract qualification from folder name
-            $qualCode = '';
-            if (preg_match('/INF[\s._]*(\d+)/i', $folder, $m)) {
-                $qualCode = 'INF.' . sprintf('%02d', $m[1]);
-            } else {
-                $qualCode = $folder;
-            }
-            
-            $files = scandir($folderPath);
-            foreach ($files as $file) {
-                if (pathinfo($file, PATHINFO_EXTENSION) !== 'pdf') continue;
-                
-                $parsed = parseExamFile($file);
-                $year = $parsed['year'] ?? 2020;
-                $session = $parsed['session'];
-                $key = $year . '-' . $session;
-                
-                if (!isset($exams[$qualCode])) {
-                    $exams[$qualCode] = [];
-                }
-                if (!isset($exams[$qualCode][$key])) {
-                    $exams[$qualCode][$key] = [
-                        'qual' => $qualCode,
-                        'year' => $year,
-                        'session' => $session,
-                        'exam_file' => null,
-                        'grading_file' => null,
-                        'file_name_raw' => $file
-                    ];
-                }
-                
-                $filePathRel = 'sheets/' . $folder . '/' . $file;
-                if ($parsed['is_grading']) {
-                    $exams[$qualCode][$key]['grading_file'] = $filePathRel;
+// Dynamically scan the sheets/ directory and build the exam sheets database (cached for 1h)
+$sheetsCacheFile = sys_get_temp_dir() . '/zsem_sheets_cache.json';
+$exams = null;
+if (file_exists($sheetsCacheFile) && (time() - filemtime($sheetsCacheFile) < 3600)) {
+    $cachedContent = @file_get_contents($sheetsCacheFile);
+    if ($cachedContent) {
+        $parsedExams = json_decode($cachedContent, true);
+        if (is_array($parsedExams)) {
+            $exams = $parsedExams;
+        }
+    }
+}
+
+if (!is_array($exams)) {
+    $exams = [];
+    $sheetsDir = __DIR__ . '/sheets/';
+    if (is_dir($sheetsDir)) {
+        $folders = scandir($sheetsDir);
+        foreach ($folders as $folder) {
+            if ($folder === '.' || $folder === '..') continue;
+            $folderPath = $sheetsDir . $folder;
+            if (is_dir($folderPath)) {
+                // Extract qualification from folder name
+                $qualCode = '';
+                if (preg_match('/INF[\s._]*(\d+)/i', $folder, $m)) {
+                    $qualCode = 'INF.' . sprintf('%02d', $m[1]);
                 } else {
-                    $exams[$qualCode][$key]['exam_file'] = $filePathRel;
+                    $qualCode = $folder;
+                }
+                
+                $files = scandir($folderPath);
+                foreach ($files as $file) {
+                    if (pathinfo($file, PATHINFO_EXTENSION) !== 'pdf') continue;
+                    
+                    $parsed = parseExamFile($file);
+                    $year = $parsed['year'] ?? 2020;
+                    $session = $parsed['session'];
+                    $key = $year . '-' . $session;
+                    
+                    if (!isset($exams[$qualCode])) {
+                        $exams[$qualCode] = [];
+                    }
+                    if (!isset($exams[$qualCode][$key])) {
+                        $exams[$qualCode][$key] = [
+                            'qual' => $qualCode,
+                            'year' => $year,
+                            'session' => $session,
+                            'exam_file' => null,
+                            'grading_file' => null,
+                            'file_name_raw' => $file
+                        ];
+                    }
+                    
+                    $filePathRel = 'sheets/' . $folder . '/' . $file;
+                    if ($parsed['is_grading']) {
+                        $exams[$qualCode][$key]['grading_file'] = $filePathRel;
+                    } else {
+                        $exams[$qualCode][$key]['exam_file'] = $filePathRel;
+                    }
                 }
             }
         }
     }
+    @file_put_contents($sheetsCacheFile, json_encode($exams, JSON_UNESCAPED_UNICODE));
 }
 
 // Sort exams by year desc, then session desc (Czerwiec > Styczeń)
@@ -597,6 +612,8 @@ unset($qualExams);
                                                     <?php endif; ?>
                                                     <button type="button" class="sheet-btn sheet-btn-primary w-100 justify-content-center mt-2 py-2 text-primary border-0"
                                                             style="background: rgba(37,99,235,0.08);"
+                                                            aria-controls="examGuideModal"
+                                                            aria-expanded="false"
                                                             data-qual="<?php echo htmlspecialchars($qCode); ?>"
                                                             data-year="<?php echo htmlspecialchars($exam['year']); ?>"
                                                             data-session="<?php echo htmlspecialchars($exam['session']); ?>"
@@ -719,7 +736,7 @@ function showExamGuide(btn) {
     
     document.getElementById('modal-qual-badge').innerText = qual;
     document.getElementById('examGuideModalLabel').innerText = session + ' ' + year + ' - Poradnik';
-    document.getElementById('modal-overview-text').innerHTML = overview;
+    document.getElementById('modal-overview-text').textContent = overview || '';
     renderBadgeList(document.getElementById('modal-areas-container'), areas, 'text-success');
     renderBadgeList(document.getElementById('modal-concepts-container'), concepts, 'text-primary');
     
@@ -734,7 +751,7 @@ function showExamGuide(btn) {
             <div class="sheet-step-num mt-1 flex-shrink-0" style="width: 28px; height: 28px; border-radius: 8px; background: rgba(37,99,235,0.15); color: var(--primary-color-dark); display: grid; place-items: center; font-weight: 800; font-size: 0.85rem;">${stepNum++}</div>
             <div>
                 <div class="fw-bold" style="color: var(--text-main); font-size: 0.95rem;">${escapeHtml(title)}</div>
-                <div class="text-muted small" style="line-height: 1.6;">${text}</div>
+                <div class="text-muted small" style="line-height: 1.6;">${escapeHtml(String(text || ''))}</div>
             </div>
         `;
         container.appendChild(item);

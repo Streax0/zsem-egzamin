@@ -24,8 +24,8 @@ try {
             $stmt = $pdo->prepare("DELETE FROM profile_comments WHERE id = ?");
             $stmt->execute([$commentId]);
         } else {
-            $stmt = $pdo->prepare("DELETE FROM profile_comments WHERE id = ? AND author_id = ?");
-            $stmt->execute([$commentId, $userId]);
+            $stmt = $pdo->prepare("DELETE FROM profile_comments WHERE id = ? AND (author_id = ? OR profile_user_id = ?)");
+            $stmt->execute([$commentId, $userId, $userId]);
         }
         setSessionMessage('success', 'Komentarz został usunięty.');
         redirect('../user/profile.php?id=' . $profileId);

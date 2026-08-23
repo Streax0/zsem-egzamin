@@ -40,6 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("DELETE FROM user_badges WHERE user_id = ?");
         $stmt->execute([$userId]);
 
+        // 5. Delete SM-2 flashcards progress
+        try {
+            $stmt = $pdo->prepare("DELETE FROM flashcard_sm2 WHERE user_id = ?");
+            $stmt->execute([$userId]);
+        } catch (Throwable $e) {}
+
         $pdo->commit();
         setSessionMessage('success', 'Twój progres został pomyślnie zresetowany. Możesz zacząć naukę od nowa!');
     } catch (Exception $e) {

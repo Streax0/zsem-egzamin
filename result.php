@@ -80,11 +80,35 @@ if (!$guestResultId) {
     $answers = $answers_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Fallback: Load questions for full text (handles both DB and JSON seamlessly)
-$allQuestions = loadQuestions($pdo);
+// Efficient lookup: Load only questions present in this test result
+$neededQids = [];
+foreach ($answers as $ans) {
+    $qid = (int)($ans['question_id'] ?? 0);
+    if ($qid > 0) {
+        $neededQids[$qid] = $qid;
+    }
+}
+
 $questions_map = [];
-foreach ($allQuestions as $q) {
-    $questions_map[(int)$q['id']] = $q;
+if (!empty($neededQids)) {
+    try {
+        $qPlaceholders = implode(',', array_fill(0, count($neededQids), '?'));
+        $qStmt = $pdo->prepare("SELECT id, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url, category FROM questions WHERE id IN ($qPlaceholders)");
+        $qStmt->execute(array_values($neededQids));
+        foreach ($qStmt->fetchAll(PDO::FETCH_ASSOC) as $qRow) {
+            $questions_map[(int)$qRow['id']] = $qRow;
+        }
+    } catch (Throwable $e) {}
+
+    // Fallback for non-DB storage if some questions weren't in MySQL
+    if (count($questions_map) < count($neededQids) && function_exists('loadQuestions')) {
+        foreach (loadQuestions($pdo) as $q) {
+            $qid = (int)($q['id'] ?? 0);
+            if (isset($neededQids[$qid])) {
+                $questions_map[$qid] = $q;
+            }
+        }
+    }
 }
 
 $answerQualifications = [];
@@ -832,8 +856,8 @@ $shareCardData = [
                                 </div>
                             </div>
                             <div class="col-lg-4 d-flex justify-content-center mt-5 mt-lg-0">
-                                <div class="score-circle" style="position: relative; width: 180px; height: 180px; background: transparent; border: none; box-shadow: none;">
-                                    <svg viewBox="0 0 36 36" class="circular-chart" style="width: 100%; height: 100%;">
+                                <div class="score-circle" role="meter" aria-valuenow="<?php echo round($score_percent); ?>" aria-valuemin="0" aria-valuemax="100" aria-label="Twój wynik procentowy" style="position: relative; width: 180px; height: 180px; background: transparent; border: none; box-shadow: none;">
+                                    <svg viewBox="0 0 36 36" class="circular-chart" style="width: 100%; height: 100%;" aria-hidden="true">
                                         <path class="circle-bg"
                                             d="M18 2.0845
                                             a 15.9155 15.9155 0 0 1 0 31.831
@@ -857,6 +881,26 @@ $shareCardData = [
                         </div>
                     </div>
 
+                    <?php if ($guestResultId): ?>
+                    <!-- Guest Mode Callout -->
+                    <div class="alert alert-warning border-0 rounded-4 shadow-sm p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3 animate-in">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-warning bg-opacity-25 text-warning p-2 fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-incognito"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">Rozwiązałeś test w trybie gościa</div>
+                                <div class="small text-muted">Twój wynik nie jest zapisywany w rankingu ani statystykach profilu. Załóż darmowe konto, aby zbierać XP i odznaki.</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="auth/register.php" class="btn btn-warning btn-sm rounded-pill px-4 fw-semibold text-dark">
+                                <i class="bi bi-person-plus-fill me-1"></i>Załóż konto
+                            </a>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
                     <!-- Action buttons -->
                     <div class="result-actions mb-4 animate-in" style="animation-delay: 0.1s;">
                         <a href="test.php?setup=1" class="btn btn-primary">
@@ -865,9 +909,20 @@ $shareCardData = [
                         <a href="index.php" class="btn btn-outline-dark">
                             <i class="bi bi-grid-fill me-2"></i>Dashboard
                         </a>
+                        <?php if ($guestResultId): ?>
+                        <a href="auth/register.php" class="btn btn-outline-warning">
+                            <i class="bi bi-person-plus me-2"></i>Zapisuj wyniki
+                        </a>
+                        <?php else: ?>
                         <a href="user/progress.php" class="btn btn-outline-dark">
                             <i class="bi bi-clock-history me-2"></i>Historia
                         </a>
+                        <?php endif; ?>
+                        <?php if (!$guestResultId && $wrongAnswers > 0): ?>
+                        <button type="button" class="btn btn-outline-warning" id="addMistakesToSm2Btn" onclick="addMistakesToSm2(<?php echo (int)$result_id; ?>)">
+                            <i class="bi bi-stack me-2"></i>Dodaj błędy do Fiszek (SM-2)
+                        </button>
+                        <?php endif; ?>
                         <button type="button" class="btn btn-outline-primary" id="saveResultImageBtn" data-bs-toggle="modal" data-bs-target="#resultShareModal">
                             <i class="bi bi-image me-2"></i>Udostępnij wynik
                         </button>
@@ -1378,6 +1433,47 @@ $shareCardData = [
             explanationBox.classList.remove('d-none');
 
             questionModal.show();
+        }
+
+        function addMistakesToSm2(resultId) {
+            const btn = document.getElementById('addMistakesToSm2Btn');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Zapisuję...';
+
+            const csrfToken = <?php echo json_encode(generateCsrfToken()); ?>;
+            const formData = new FormData();
+            formData.append('result_id', resultId);
+            formData.append('csrf_token', csrfToken);
+
+            fetch('actions/add_mistakes_to_sm2.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrfToken
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    btn.className = 'btn btn-success';
+                    btn.innerHTML = `<i class="bi bi-check-lg me-2"></i>Dodano (${data.added_count})`;
+                    if (window.AppDialogs && typeof window.AppDialogs.toast === 'function') {
+                        window.AppDialogs.toast(data.message, 'success');
+                    }
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-stack me-2"></i>Spróbuj ponownie';
+                    if (window.AppDialogs && typeof window.AppDialogs.toast === 'function') {
+                        window.AppDialogs.toast(data.error || 'Wystąpił błąd', 'danger');
+                    }
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-stack me-2"></i>Błąd połączenia';
+            });
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" integrity="sha384-HAH79XdRvHr6axVGh4xQWVCp14kcd32bNk4Xu0sHDHtFQ42n6BAM8ykvB47dGz6D" crossorigin="anonymous"></script>

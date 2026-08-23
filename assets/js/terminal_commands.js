@@ -1509,6 +1509,77 @@
             return 'crontab: crontab updated.';
         },
 
+        // ── LVM Management ──
+        'pvcreate': (a) => {
+            if (!a[0]) return '  pvcreate: missing device operand';
+            return `  Physical volume "${a[0]}" successfully created.`;
+        },
+        'pvs': () => `  PV         VG        Fmt  Attr PSize   PFree \n  /dev/sdb1  vg_dane   lvm2 a--  20.00g  10.00g\n  /dev/sdc1  vg_dane   lvm2 a--  20.00g  20.00g`,
+        'pvdisplay': () => `  --- Physical volume ---\n  PV Name               /dev/sdb1\n  VG Name               vg_dane\n  PV Size               20.00 GiB\n  Allocatable           yes\n  PE Size               4.00 MiB\n  Total PE              5119\n  Allocated PE          2560\n  PV UUID               uYh9-3kLk-9N2a-Pl71`,
+        'vgcreate': (a) => {
+            if (a.length < 2) return '  vgcreate: missing volume group name and physical volume(s)';
+            return `  Volume group "${a[0]}" successfully created`;
+        },
+        'vgs': () => `  VG        #PV #LV #SN Attr   VSize  VFree \n  vg_dane     2   1   0 wz--n- 39.99g 29.99g`,
+        'vgdisplay': () => `  --- Volume group ---\n  VG Name               vg_dane\n  Format                lvm2\n  VG Access             read/write\n  VG Status             resizable\n  Cur LV                1\n  Cur PV                2\n  VG Size               39.99 GiB\n  Alloc PE / Size       2560 / 10.00 GiB\n  Free  PE / Size       7678 / 29.99 GiB`,
+        'lvcreate': (a) => {
+            if (a.length < 2) return '  lvcreate: please specify size and volume group name';
+            const nameIdx = a.indexOf('-n');
+            const name = nameIdx !== -1 ? a[nameIdx + 1] : 'lv_dane';
+            return `  Logical volume "${name}" created.`;
+        },
+        'lvs': () => `  LV      VG      Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert\n  lv_dane vg_dane -wi-a----- 10.00g`,
+        'lvdisplay': () => `  --- Logical volume ---\n  LV Path                /dev/vg_dane/lv_dane\n  LV Name                lv_dane\n  VG Name                vg_dane\n  LV Write Access        read/write\n  LV Status              available\n  LV Size                10.00 GiB`,
+
+        // ── RAID Management ──
+        'mdadm': (a) => {
+            if (a.includes('--create') || a.includes('-C')) {
+                const dev = a.find(arg => arg.startsWith('/dev/')) || '/dev/md0';
+                return `mdadm: Defaulting to version 1.2 metadata\nmdadm: array ${dev} started.`;
+            }
+            if (a.includes('--detail') || a.includes('-D')) {
+                return `/dev/md0:\n           Version : 1.2\n        Raid Level : raid1\n        Array Size : 20955136 (19.98 GiB)\n      Raid Devices : 2\n     Total Devices : 2\n             State : clean \n    Active Devices : 2\n    Working Devices: 2\n    Number   Major   Minor   RaidDevice State\n       0       8       16        0      active sync   /dev/sdb\n       1       8       32        1      active sync   /dev/sdc`;
+            }
+            return 'mdadm: manage MD devices (software RAID)\nUsage: mdadm --create /dev/mdX --level=1 --raid-devices=N /dev/sd...';
+        },
+
+        // ── Fail2ban ──
+        'fail2ban-client': (a) => {
+            if (a.includes('status')) {
+                if (a.includes('sshd')) {
+                    return `Status for the jail: sshd\n|- Filter\n|  |- Currently failed: 2\n|  |- Total failed:     18\n|  \`- File list:        /var/log/auth.log\n\`- Actions\n   |- Currently banned: 1\n   |- Total banned:     3\n   \`- Banned IP list:   198.51.100.44`;
+                }
+                return `Status\n|- Number of jail:      1\n\`- Jail list:   sshd`;
+            }
+            if (a.includes('banip') || a.includes('set')) {
+                return '26738: [sshd] Ban 198.51.100.44';
+            }
+            return 'fail2ban-client: Fail2ban CLI control interface';
+        },
+
+        // ── mysqldump ──
+        'mysqldump': () => {
+            return `-- MySQL dump 10.13  Distrib 8.0.34, for Linux (x86_64)\n-- Host: localhost    Database: bazatest\n-- Server version 8.0.34\n/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;\n-- Dumping data for table \`klienci\`\nLOCK TABLES \`klienci\` WRITE;\nINSERT INTO \`klienci\` VALUES (1,'Jan','Kowalski','jan@zsem.pl');\nUNLOCK TABLES;\n-- Dump completed on 2026-08-23 20:00:00`;
+        },
+
+        // ── Network Tracing ──
+        'traceroute': (a) => {
+            const host = a.find(arg => !arg.startsWith('-')) || 'google.pl';
+            return `traceroute to ${host} (142.250.203.195), 30 hops max, 60 byte packets\n 1  gateway (192.168.1.1)  0.642 ms  0.518 ms  0.490 ms\n 2  10.100.0.1 (10.100.0.1)  4.120 ms  4.089 ms  4.110 ms\n 3  isp-core-01.net.pl (195.114.0.1)  8.432 ms  8.320 ms  8.401 ms\n 4  ${host} (142.250.203.195)  12.180 ms  12.090 ms  12.140 ms`;
+        },
+        'mtr': (a) => LINUX_COMMANDS.traceroute(a),
+
+        // ── Filesystem & Mounting ──
+        'mkfs.ext4': (a) => {
+            if (!a[0]) return 'mkfs.ext4: missing device operand';
+            return `mke2fs 1.46.5 (30-Dec-2021)\nCreating filesystem with 2621440 4k blocks and 655360 inodes\nFilesystem UUID: 98dfa283-4a11-47c1-a209-1fa329b8c012\nSuperblock backups stored on blocks: 32768, 98304, 163840\nWriting inode tables: done\nCreating journal (16384 blocks): done\nWriting superblocks and filesystem accounting information: done`;
+        },
+        'mount': (a) => {
+            if (!a[0]) return '/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro)\n/dev/vg_dane/lv_dane on /mnt/dane type ext4 (rw,relatime)\ntmpfs on /run type tmpfs (rw,nosuid,noexec,relatime,size=805060k,mode=755)';
+            return '';
+        },
+        'umount': () => '',
+
         // ── Sub-Shell Invocations ────────────────────────────────────────────
 
         'nano': (a, term) => {
@@ -1755,25 +1826,41 @@
             return '\r\nMicrosoft DiskPart version 10.0.19041.3636\r\nCopyright (C) Microsoft Corporation.\r\nOn computer: ZSEM-STUDENT\r\n';
         },
 
+        'tracert': (a) => {
+            const host = a.find(arg => !arg.startsWith('-')) || '8.8.8.8';
+            return `\r\nTracing route to ${host} [${host}]\r\nover a maximum of 30 hops:\r\n\r\n  1    <1 ms    <1 ms    <1 ms  192.168.1.1\r\n  2     4 ms     4 ms     3 ms  10.100.0.1\r\n  3     9 ms     8 ms     9 ms  ${host}\r\n\r\nTrace complete.\r\n`;
+        },
+        'dsadd': (a) => {
+            if (a.length < 2) return 'dsadd failed: insufficient parameters.\r\n';
+            return `dsadd succeeded: ${a.join(' ')}\r\n`;
+        },
         'chcp': (a) => a[0] ? `Active code page: ${a[0]}\r\n` : `Active code page: 852\r\n`,
         'where': (a) => `C:\\Windows\\System32\\${a[0] || 'cmd'}.exe\r\n`
     };
 
     // ════════════════════════════════════════════════════════════════════════════
-    // 6. MAN PAGES DATABASE
+    // 6. MAN PAGES DATABASE & CKE KNOWLEDGE REPOSITORY
     // ════════════════════════════════════════════════════════════════════════════
 
     const MAN_PAGES = {
-        'ls': 'LS(1) - List directory contents\n\nSYNOPSIS:\n  ls [OPTION]... [FILE]...\n\nOPTIONS:\n  -a, --all    do not ignore entries starting with .\n  -l           use a long listing format\n  -h           human-readable sizes',
-        'cd': 'CD(1) - Change the shell working directory\n\nSYNOPSIS:\n  cd [DIRECTORY]',
-        'chmod': 'CHMOD(1) - Change file mode bits\n\nSYNOPSIS:\n  chmod [OPTION]... MODE[,MODE]... FILE...\n\nEXAMPLES:\n  chmod 750 script.sh\n  chmod u+rwx,g+rx,o-rwx file.txt',
-        'chown': 'CHOWN(1) - Change file owner and group\n\nSYNOPSIS:\n  chown [OPTION]... [OWNER][:[GROUP]] FILE...',
-        'systemctl': 'SYSTEMCTL(1) - Control the systemd system and service manager\n\nCOMMANDS:\n  start UNIT...\n  stop UNIT...\n  restart UNIT...\n  status UNIT...\n  enable UNIT...\n  disable UNIT...',
-        'apachectl': 'APACHECTL(8) - Apache HTTP server control interface\n\nCOMMANDS:\n  configtest, -t   Run a configuration file syntax test\n  graceful         Gracefully restart Apache',
-        'iptables': 'IPTABLES(8) - Administration tool for IPv4 packet filtering and NAT\n\nSYNOPSIS:\n  iptables -A INPUT -p tcp --dport 80 -j ACCEPT\n  iptables -A INPUT -p tcp --dport 8080 -j DROP',
-        'ufw': 'UFW(8) - Program for managing a netfilter firewall\n\nCOMMANDS:\n  ufw enable\n  ufw status\n  ufw allow 22/tcp\n  ufw deny 8080/tcp',
-        'ip': 'IP(8) - Show / manipulate routing, network devices, interfaces and tunnels\n\nCOMMANDS:\n  ip a, ip addr\n  ip route\n  ip link',
-        'tar': 'TAR(1) - An archiving utility\n\nEXAMPLES:\n  tar -czvf archive.tar.gz /path/to/dir\n  tar -xzvf archive.tar.gz\n  tar -tf archive.tar.gz'
+        'ls': 'LS(1) - Wyświetla zawartość katalogu\n\nSKŁADNIA:\n  ls [OPCJE]... [PLIK]...\n\nOPCJE:\n  -a, --all    wyświetla pliki ukryte (zaczynające się od kropki)\n  -l           format długi (uprawnienia, właściciel, rozmiar, data)\n  -h           czytelne jednostki rozmiaru (KB, MB)\n\nWSKAZÓWKA CKE:\n  Częste polecenie egzaminacyjne: `ls -la /etc` w celu sprawdzenia uprawnień.',
+        'cd': 'CD(1) - Zmiana bieżącego katalogu roboczego\n\nSKŁADNIA:\n  cd [KATALOG]\n\nPRZYKŁADY:\n  cd ~          przejście do katalogu domowego (/home/student)\n  cd ..         przejście katalog wyżej\n  cd /var/www   ścieżka bezwzględna',
+        'chmod': 'CHMOD(1) - Zmiana uprawnień dostępu do plików/katalogów\n\nSKŁADNIA:\n  chmod [OPCJE]... TRYB[,TRYB]... PLIK...\n\nFORMAT NUMERYCZNY:\n  4 = Odczyt (r), 2 = Zapis (w), 1 = Wykonanie (x)\n\nPRZYKŁADY CKE:\n  chmod 750 skrypt.sh   (rwxr-x--- : właściciel pełne, grupa r+x, inni brak)\n  chmod 644 plik.conf   (rw-r--r-- : standardowe dla plików konfiguracyjnych)\n  chmod -R 775 /var/www (rekurencyjnie)',
+        'chown': 'CHOWN(1) - Zmiana właściciela i grupy pliku\n\nSKŁADNIA:\n  chown [OPCJE]... WŁAŚCICIEL[:GRUPA] PLIK...\n\nPRZYKŁADY CKE:\n  chown student:www-data /var/www/html -R\n  chown root:shadow /etc/shadow',
+        'systemctl': 'SYSTEMCTL(1) - Zarządzanie usługami systemd\n\nKOMENDY:\n  start USŁUGA     uruchamia usługę\n  stop USŁUGA      zatrzymuje usługę\n  restart USŁUGA   restartuje usługę po zmianie konfiguracji\n  status USŁUGA    sprawdza stan aktywności i ostatnie błędy\n  enable USŁUGA    włącza autostart przy starcie systemu\n  disable USŁUGA   wyłącza autostart',
+        'apache2ctl': 'APACHE2CTL(8) - Narzędzie diagnostyczne serwera Apache2\n\nKOMENDY:\n  configtest, -t   weryfikuje poprawność składniową plików w /etc/apache2\n  graceful         przeładowuje konfigurację bez zrywania sesji',
+        'iptables': 'IPTABLES(8) - Zapora sieciowa i translacja adresów (NAT)\n\nPRZYKŁADY CKE:\n  iptables -A INPUT -p tcp --dport 80 -j ACCEPT\n  iptables -A INPUT -p tcp --dport 22 -s 192.168.1.0/24 -j ACCEPT\n  iptables -A INPUT -j DROP\n  iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE',
+        'ufw': 'UFW(8) - Uncomplicated Firewall dla Ubuntu/Debiana\n\nKOMENDY:\n  ufw enable\n  ufw status verbose\n  ufw allow 80/tcp\n  ufw deny from 192.168.1.50',
+        'ip': 'IP(8) - Konfiguracja interfejsów, routingu i tuneli\n\nPRZYKŁADY CKE:\n  ip a, ip addr show dev eth0\n  ip addr add 192.168.1.100/24 dev eth0\n  ip route add default via 192.168.1.1\n  ip link set eth0 up',
+        'ifconfig': 'IFCONFIG(8) - Klasyczne narzędzie konfiguracji sieci (net-tools)\n\nPRZYKŁADY:\n  ifconfig eth0 192.168.1.100 netmask 255.255.255.0 up',
+        'pvcreate': 'PVCREATE(8) - Inicjalizacja dysków fizycznych dla LVM\n\nSKŁADNIA:\n  pvcreate /dev/sdb1 /dev/sdc1',
+        'vgcreate': 'VGCREATE(8) - Tworzenie grupy woluminów LVM\n\nSKŁADNIA:\n  vgcreate vg_dane /dev/sdb1',
+        'lvcreate': 'LVCREATE(8) - Tworzenie woluminu logicznego LVM\n\nSKŁADNIA:\n  lvcreate -n lv_dane -L 10G vg_dane',
+        'mdadm': 'MDADM(8) - Zarządzanie macierzami dyskowymi RAID w systemie Linux\n\nPRZYKŁADY CKE:\n  mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc\n  cat /proc/mdstat\n  mdadm --detail /dev/md0',
+        'fail2ban-client': 'FAIL2BAN-CLIENT(1) - Zarządzanie demonem blokowania brute-force\n\nKOMENDY:\n  fail2ban-client status sshd\n  fail2ban-client set sshd banip 198.51.100.44\n  fail2ban-client set sshd unbanip 198.51.100.44',
+        'mysqldump': 'MYSQLDUMP(1) - Eksport bazy danych do pliku SQL\n\nSKŁADNIA:\n  mysqldump -u root -p nazwa_bazy > kopia.sql\n\nODTWORZENIE:\n  mysql -u root -p nowa_baza < kopia.sql',
+        'traceroute': 'TRACEROUTE(8) - Śledzenie trasy pakietów IP do hosta docelowego\n\nSKŁADNIA:\n  traceroute google.pl   (Windows: tracert google.pl)',
+        'tar': 'TAR(1) - Archiwizacja i kompresja plików\n\nPRZYKŁADY:\n  tar -czvf backup.tar.gz /var/www\n  tar -xzvf backup.tar.gz -C /opt'
     };
 
     // ════════════════════════════════════════════════════════════════════════════
@@ -2600,6 +2687,367 @@
                     validate: (cmd) => /^cut\s+-d:?\s+-f1/i.test(cmd)
                 }
             ]
+        },
+        {
+            id: 'inf02_lvm_volumes',
+            title: 'Konfiguracja woluminów logicznych LVM',
+            cat: 'inf02_sys',
+            catLabel: 'INF.02 Systemy',
+            badgeColor: 'info',
+            stars: '★★★',
+            xp: 40,
+            os: 'linux',
+            desc: 'Utwórz wolumin fizyczny, grupę woluminów, wolumin logiczny lv_dane, sformatuj w ext4 i zamontuj w /mnt/dane.',
+            steps: [
+                {
+                    task: 'Zainicjuj wolumin fizyczny PV na dysku /dev/sdb1: pvcreate /dev/sdb1',
+                    ckeDesc: 'Tworzenie struktury LVM Physical Volume na partycji dysku.',
+                    syntaxHint: 'pvcreate /dev/sdb1',
+                    hint: 'Wpisz `pvcreate /dev/sdb1`.',
+                    validate: (cmd) => /^pvcreate\s+\/dev\/sdb1/i.test(cmd)
+                },
+                {
+                    task: 'Utwórz grupę woluminów VG o nazwie vg_dane: vgcreate vg_dane /dev/sdb1',
+                    ckeDesc: 'Łączenie woluminów fizycznych w pulę Volume Group.',
+                    syntaxHint: 'vgcreate vg_dane /dev/sdb1',
+                    hint: 'Wpisz `vgcreate vg_dane /dev/sdb1`.',
+                    validate: (cmd) => /^vgcreate\s+vg_dane\s+\/dev\/sdb1/i.test(cmd)
+                },
+                {
+                    task: 'Utwórz wolumin logiczny LV o rozmiarze 10G i nazwie lv_dane: lvcreate -n lv_dane -L 10G vg_dane',
+                    ckeDesc: 'Wydzielenie woluminu logicznego z grupy woluminów.',
+                    syntaxHint: 'lvcreate -n lv_dane -L 10G vg_dane',
+                    hint: 'Wpisz `lvcreate -n lv_dane -L 10G vg_dane` lub `lvcreate -L 10G -n lv_dane vg_dane`.',
+                    validate: (cmd) => /^lvcreate.*-n\s+lv_dane.*vg_dane/i.test(cmd) || /^lvcreate.*-L\s+10G.*vg_dane/i.test(cmd)
+                },
+                {
+                    task: 'Sformatuj wolumin logiczny w systemie plików ext4: mkfs.ext4 /dev/vg_dane/lv_dane',
+                    ckeDesc: 'Tworzenie systemu plików na nowo utworzonym woluminie logicznym.',
+                    syntaxHint: 'mkfs.ext4 /dev/vg_dane/lv_dane',
+                    hint: 'Wpisz `mkfs.ext4 /dev/vg_dane/lv_dane`.',
+                    validate: (cmd) => /^mkfs\.ext4\s+\/dev\/vg_dane\/lv_dane/i.test(cmd)
+                },
+                {
+                    task: 'Zamontuj wolumin logiczny w punkcie montowania /mnt/dane: mount /dev/vg_dane/lv_dane /mnt/dane',
+                    ckeDesc: 'Montowanie systemu plików w drzewie katalogów Linux.',
+                    syntaxHint: 'mount /dev/vg_dane/lv_dane /mnt/dane',
+                    hint: 'Wpisz `mount /dev/vg_dane/lv_dane /mnt/dane`.',
+                    validate: (cmd) => /^mount\s+\/dev\/vg_dane\/lv_dane\s+\/mnt\/dane/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_raid1_mdadm',
+            title: 'Tworzenie macierzy dyskowej RAID 1 w mdadm',
+            cat: 'inf02_sys',
+            catLabel: 'INF.02 Systemy',
+            badgeColor: 'info',
+            stars: '★★★',
+            xp: 40,
+            os: 'linux',
+            desc: 'Utwórz programową macierz lustrzaną RAID 1 (/dev/md0) z dwóch dysków /dev/sdb i /dev/sdc.',
+            steps: [
+                {
+                    task: 'Utwórz macierz RAID 1: mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc',
+                    ckeDesc: 'Konfiguracja lustrzanej macierzy dyskowej zapewniającej redundancję danych.',
+                    syntaxHint: 'mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc',
+                    hint: 'Wpisz `mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc`.',
+                    validate: (cmd) => /^mdadm\s+(--create|-C)\s+\/dev\/md0.*(--level=1|-l\s*1).*\/dev\/sdb/i.test(cmd)
+                },
+                {
+                    task: 'Sprawdź stan synchronizacji macierzy w pliku /proc/mdstat: cat /proc/mdstat',
+                    ckeDesc: 'Odczyt wirtualnego pliku statusu sterownika programowego RAID w jądrze Linux.',
+                    syntaxHint: 'cat /proc/mdstat',
+                    hint: 'Wpisz `cat /proc/mdstat`.',
+                    validate: (cmd) => /^cat\s+\/proc\/mdstat/i.test(cmd)
+                },
+                {
+                    task: 'Wyświetl szczegółowe informacje o macierzy: mdadm --detail /dev/md0',
+                    ckeDesc: 'Weryfikacja stanu urządzeń składowych i sum kontrolnych macierzy.',
+                    syntaxHint: 'mdadm --detail /dev/md0',
+                    hint: 'Wpisz `mdadm --detail /dev/md0`.',
+                    validate: (cmd) => /^mdadm\s+(--detail|-D)\s+\/dev\/md0/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_ps_dhcp_dns',
+            title: 'PowerShell: Zarządzanie rolami DHCP i DNS w Windows',
+            cat: 'inf02_net',
+            catLabel: 'INF.02 Windows',
+            badgeColor: 'primary',
+            stars: '★★★',
+            xp: 35,
+            os: 'windows',
+            desc: 'Utwórz zakres adresów DHCP oraz strefę wyszukiwania i rekord A w serwerze DNS za pomocą poleceń PowerShell.',
+            steps: [
+                {
+                    task: 'Utwórz zakres DHCP: Add-DhcpServerv4Scope -Name "Podsiec_Pracownia" -StartRange 192.168.10.100 -EndRange 192.168.10.200 -SubnetMask 255.255.255.0',
+                    ckeDesc: 'Konfiguracja puli przydziału adresów IPv4 dla stacji roboczych.',
+                    syntaxHint: 'Add-DhcpServerv4Scope -Name "Podsiec_Pracownia" -StartRange 192.168.10.100 -EndRange 192.168.10.200 -SubnetMask 255.255.255.0',
+                    hint: 'Wpisz `Add-DhcpServerv4Scope -Name "Podsiec_Pracownia" -StartRange 192.168.10.100 -EndRange 192.168.10.200 -SubnetMask 255.255.255.0`.',
+                    validate: (cmd) => /Add-DhcpServerv4Scope.*192\.168\.10\.100/i.test(cmd)
+                },
+                {
+                    task: 'Dodaj strefę podstawową DNS: Add-DnsServerPrimaryZone -Name "zsem.local" -ZoneFile "zsem.local.dns"',
+                    ckeDesc: 'Tworzenie strefy wyszukiwania do przodu w usłudze Microsoft DNS.',
+                    syntaxHint: 'Add-DnsServerPrimaryZone -Name "zsem.local" -ZoneFile "zsem.local.dns"',
+                    hint: 'Wpisz `Add-DnsServerPrimaryZone -Name "zsem.local" -ZoneFile "zsem.local.dns"`.',
+                    validate: (cmd) => /Add-DnsServerPrimaryZone.*zsem\.local/i.test(cmd)
+                },
+                {
+                    task: 'Utwórz rekord hosta (A): Add-DnsServerResourceRecordA -ZoneName "zsem.local" -Name "serwer" -IPv4Address "192.168.10.10"',
+                    ckeDesc: 'Mapowanie nazwy domenowej serwera na statyczny adres IPv4.',
+                    syntaxHint: 'Add-DnsServerResourceRecordA -ZoneName "zsem.local" -Name "serwer" -IPv4Address "192.168.10.10"',
+                    hint: 'Wpisz `Add-DnsServerResourceRecordA -ZoneName "zsem.local" -Name "serwer" -IPv4Address "192.168.10.10"`.',
+                    validate: (cmd) => /Add-DnsServerResourceRecordA.*zsem\.local.*192\.168\.10\.10/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf03_mysql_adv_grant',
+            title: 'MySQL: Relacje tabel, klucze obce i uprawnienia GRANT',
+            cat: 'inf03_db',
+            catLabel: 'INF.03 Bazy',
+            badgeColor: 'success',
+            stars: '★★★',
+            xp: 35,
+            os: 'linux',
+            desc: 'Utwórz użytkownika bazy danych technik i nadaj uprawnienia SELECT oraz INSERT do bazy egzamin.',
+            steps: [
+                {
+                    task: 'Uruchom monitor bazy danych: mysql -u root -p',
+                    ckeDesc: 'Logowanie do konsoli CLI serwera bazy danych MySQL / MariaDB.',
+                    syntaxHint: 'mysql -u root -p',
+                    hint: 'Wpisz `mysql -u root -p` lub po prostu `mysql`.',
+                    validate: (cmd, os, vfs, net, term) => term.currentSubShell === 'mysql' || /^mysql/i.test(cmd)
+                },
+                {
+                    task: 'Utwórz konto użytkownika technik: CREATE USER \'technik\'@\'localhost\' IDENTIFIED BY \'Zsem2026!\';',
+                    ckeDesc: 'Definiowanie nowego konta użytkownika bazy danych z uwierzytelnianiem hasłem.',
+                    syntaxHint: 'CREATE USER \'technik\'@\'localhost\' IDENTIFIED BY \'Zsem2026!\';',
+                    hint: 'Wpisz `CREATE USER \'technik\'@\'localhost\' IDENTIFIED BY \'Zsem2026!\';`.',
+                    validate: (cmd) => /CREATE\s+USER.*technik/i.test(cmd)
+                },
+                {
+                    task: 'Nadaj uprawnienia do bazy: GRANT SELECT, INSERT ON egzamin.* TO \'technik\'@\'localhost\';',
+                    ckeDesc: 'Przyznawanie selektywnych praw DML do bazy danych zgodnie z zasadą najmniejszych uprawnień.',
+                    syntaxHint: 'GRANT SELECT, INSERT ON egzamin.* TO \'technik\'@\'localhost\';',
+                    hint: 'Wpisz `GRANT SELECT, INSERT ON egzamin.* TO \'technik\'@\'localhost\';`.',
+                    validate: (cmd) => /GRANT\s+SELECT.*INSERT.*ON.*TO.*technik/i.test(cmd)
+                },
+                {
+                    task: 'Przeładuj tabele uprawnień serwera: FLUSH PRIVILEGES;',
+                    ckeDesc: 'Wymuszenie natychmiastowego załadowania zmienionych uprawnień przez silnik MySQL.',
+                    syntaxHint: 'FLUSH PRIVILEGES;',
+                    hint: 'Wpisz `FLUSH PRIVILEGES;`.',
+                    validate: (cmd) => /FLUSH\s+PRIVILEGES/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf03_mysqldump_backup',
+            title: 'Wykonywanie i przywracanie kopii bazy (mysqldump)',
+            cat: 'inf03_db',
+            catLabel: 'INF.03 Bazy',
+            badgeColor: 'success',
+            stars: '★★☆',
+            xp: 30,
+            os: 'linux',
+            desc: 'Wykonaj pełny zrzut bazy danych bazatest do pliku backup.sql i sprawdź jego rozmiar.',
+            steps: [
+                {
+                    task: 'Wykonaj kopię bazy danych: mysqldump -u root -p bazatest > backup.sql',
+                    ckeDesc: 'Eksport struktury tabel i rekordów do formatu instrukcji SQL.',
+                    syntaxHint: 'mysqldump -u root -p bazatest > backup.sql',
+                    hint: 'Wpisz `mysqldump -u root -p bazatest > backup.sql`.',
+                    validate: (cmd) => /mysqldump.*bazatest.*backup\.sql/i.test(cmd) || /mysqldump/i.test(cmd)
+                },
+                {
+                    task: 'Sprawdź istnienie i rozmiar pliku zrzutu: ls -lh backup.sql',
+                    ckeDesc: 'Weryfikacja poprawności utworzenia pliku kopii zapasowej.',
+                    syntaxHint: 'ls -lh backup.sql',
+                    hint: 'Wpisz `ls -lh backup.sql` lub `ls -l`.',
+                    validate: (cmd) => /^ls.*backup\.sql/i.test(cmd) || /^ls/i.test(cmd)
+                },
+                {
+                    task: 'Zaimportuj kopię do nowej bazy: mysql -u root -p nowa_baza < backup.sql',
+                    ckeDesc: 'Odtworzenie bazy danych z pliku tekstowego zrzutu SQL.',
+                    syntaxHint: 'mysql -u root -p nowa_baza < backup.sql',
+                    hint: 'Wpisz `mysql -u root -p nowa_baza < backup.sql`.',
+                    validate: (cmd) => /mysql.*nowa_baza.*backup\.sql/i.test(cmd) || /mysql/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf08_ssh_hardened_cfg',
+            title: 'Zaawansowane utwardzanie serwera OpenSSH',
+            cat: 'inf08_sec',
+            catLabel: 'INF.08 Bezpieczeństwo',
+            badgeColor: 'danger',
+            stars: '★★★',
+            xp: 35,
+            os: 'linux',
+            desc: 'Otwórz /etc/ssh/sshd_config w edytorze nano, przetestuj składnię sshd -t i zrestartuj usługę ssh.',
+            steps: [
+                {
+                    task: 'Otwórz konfigurację serwera SSH w nano: nano /etc/ssh/sshd_config',
+                    ckeDesc: 'Edycja parametrów bezpieczeństwa demona OpenSSH (port, autoryzacja kluczem, root login).',
+                    syntaxHint: 'nano /etc/ssh/sshd_config',
+                    hint: 'Wpisz `nano /etc/ssh/sshd_config`.',
+                    validate: (cmd) => /nano\s+\/etc\/ssh\/sshd_config/i.test(cmd)
+                },
+                {
+                    task: 'Sprawdź poprawność składniową pliku konfiguracyjnego: sshd -t',
+                    ckeDesc: 'Weryfikacja konfiguracji przed restartem usługi chroniąca przed odcięciem dostępu.',
+                    syntaxHint: 'sshd -t',
+                    hint: 'Wpisz `sshd -t`.',
+                    validate: (cmd) => /^sshd\s+-t/i.test(cmd)
+                },
+                {
+                    task: 'Zrestartuj usługę serwera SSH: systemctl restart ssh',
+                    ckeDesc: 'Załadowanie nowej konfiguracji przez demona sshd.',
+                    syntaxHint: 'systemctl restart ssh',
+                    hint: 'Wpisz `systemctl restart ssh` lub `systemctl restart sshd`.',
+                    validate: (cmd) => /^systemctl\s+restart\s+ssh/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf08_iptables_nat_portfwd',
+            title: 'iptables: Konfiguracja reguł NAT i Port Forwardingu',
+            cat: 'inf08_sec',
+            catLabel: 'INF.08 Bezpieczeństwo',
+            badgeColor: 'danger',
+            stars: '★★★',
+            xp: 40,
+            os: 'linux',
+            desc: 'Skonfiguruj maskaradę (SNAT) na interfejsie wyjściowym oraz przekierowanie portu TCP 8080 na serwer wewnętrzny.',
+            steps: [
+                {
+                    task: 'Włącz maskaradę pakietów wychodzących: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE',
+                    ckeDesc: 'Konfiguracja Source NAT (SNAT) umożliwiająca dostęp do internetu dla hostów sieci LAN.',
+                    syntaxHint: 'iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE',
+                    hint: 'Wpisz `iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE`.',
+                    validate: (cmd) => /iptables.*-t\s+nat.*POSTROUTING.*MASQUERADE/i.test(cmd)
+                },
+                {
+                    task: 'Przekieruj port 8080 na wewnętrzny serwer WWW: iptables -t nat -A PREROUTING -p tcp --dport 8080 -j DNAT --to-destination 192.168.1.100:80',
+                    ckeDesc: 'Konfiguracja Destination NAT (DNAT / Port Forwarding) dla usług wewnątrz sieci.',
+                    syntaxHint: 'iptables -t nat -A PREROUTING -p tcp --dport 8080 -j DNAT --to-destination 192.168.1.100:80',
+                    hint: 'Wpisz `iptables -t nat -A PREROUTING -p tcp --dport 8080 -j DNAT --to-destination 192.168.1.100:80`.',
+                    validate: (cmd) => /iptables.*-t\s+nat.*PREROUTING.*DNAT.*192\.168\.1\.100/i.test(cmd)
+                },
+                {
+                    task: 'Wyświetl tablicę reguł NAT z licznikami pakietów: iptables -t nat -L -v -n',
+                    ckeDesc: 'Weryfikacja stanu reguł tablicy NAT bez rozwiązywania nazw DNS.',
+                    syntaxHint: 'iptables -t nat -L -v -n',
+                    hint: 'Wpisz `iptables -t nat -L -v -n` lub `iptables -t nat -L`.',
+                    validate: (cmd) => /iptables.*-t\s+nat.*-L/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf08_fail2ban_setup',
+            title: 'Ochrona przed atakami brute-force w Fail2ban',
+            cat: 'inf08_sec',
+            catLabel: 'INF.08 Bezpieczeństwo',
+            badgeColor: 'danger',
+            stars: '★★★',
+            xp: 35,
+            os: 'linux',
+            desc: 'Sprawdź stan ochrony Fail2ban dla usługi SSH i zablokuj atakujący adres IP.',
+            steps: [
+                {
+                    task: 'Sprawdź stan usługi ochrony: systemctl status fail2ban',
+                    ckeDesc: 'Weryfikacja aktywności demona analizującego logi uwierzytelniania.',
+                    syntaxHint: 'systemctl status fail2ban',
+                    hint: 'Wpisz `systemctl status fail2ban`.',
+                    validate: (cmd) => /^systemctl\s+status\s+fail2ban/i.test(cmd)
+                },
+                {
+                    task: 'Sprawdź statystyki zablokowanych adresów w celi sshd: fail2ban-client status sshd',
+                    ckeDesc: 'Odczyt listy zablokowanych adresów IP oraz liczby nieudanych prób logowania.',
+                    syntaxHint: 'fail2ban-client status sshd',
+                    hint: 'Wpisz `fail2ban-client status sshd`.',
+                    validate: (cmd) => /^fail2ban-client\s+status\s+sshd/i.test(cmd)
+                },
+                {
+                    task: 'Zablokuj ręcznie adres IP atakującego: fail2ban-client set sshd banip 198.51.100.44',
+                    ckeDesc: 'Natychmiastowe zablokowanie adresu w regułach zapory sieciowej przez Fail2ban.',
+                    syntaxHint: 'fail2ban-client set sshd banip 198.51.100.44',
+                    hint: 'Wpisz `fail2ban-client set sshd banip 198.51.100.44`.',
+                    validate: (cmd) => /^fail2ban-client\s+set\s+sshd\s+banip/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_ad_dsadd_mgmt',
+            title: 'Zarządzanie Active Directory (dsadd / PowerShell)',
+            cat: 'inf02_sys',
+            catLabel: 'INF.02 Windows',
+            badgeColor: 'primary',
+            stars: '★★★',
+            xp: 35,
+            os: 'windows',
+            desc: 'Utwórz jednostkę organizacyjną (OU) Pracownicy oraz nowego użytkownika z wymuszeniem zmiany hasła.',
+            steps: [
+                {
+                    task: 'Utwórz jednostkę organizacyjną: dsadd ou "ou=Pracownicy,dc=zsem,dc=local"',
+                    ckeDesc: 'Tworzenie struktury logicznej kont w domenie Active Directory.',
+                    syntaxHint: 'dsadd ou "ou=Pracownicy,dc=zsem,dc=local"',
+                    hint: 'Wpisz `dsadd ou "ou=Pracownicy,dc=zsem,dc=local"`.',
+                    validate: (cmd) => /^dsadd\s+ou/i.test(cmd)
+                },
+                {
+                    task: 'Utwórz użytkownika w domenie: dsadd user "cn=Jan Kowalski,ou=Pracownicy,dc=zsem,dc=local" -pwd "ZsemPass123!" -mustchpwd yes',
+                    ckeDesc: 'Dodawanie konta domenowego z hasłem startowym i wymogiem zmiany przy pierwszym logowaniu.',
+                    syntaxHint: 'dsadd user "cn=Jan Kowalski,ou=Pracownicy,dc=zsem,dc=local" -pwd "ZsemPass123!" -mustchpwd yes',
+                    hint: 'Wpisz `dsadd user "cn=Jan Kowalski,ou=Pracownicy,dc=zsem,dc=local" -pwd "ZsemPass123!" -mustchpwd yes`.',
+                    validate: (cmd) => /^dsadd\s+user/i.test(cmd)
+                },
+                {
+                    task: 'Utwórz lokalne konto serwisowe w PowerShell: New-LocalUser -Name "Serwis" -Description "Konto serwisowe"',
+                    ckeDesc: 'Tworzenie lokalnego konta użytkownika w systemie Windows za pomocą cmdletu PowerShell.',
+                    syntaxHint: 'New-LocalUser -Name "Serwis" -Description "Konto serwisowe"',
+                    hint: 'Wpisz `New-LocalUser -Name "Serwis" -Description "Konto serwisowe"`.',
+                    validate: (cmd) => /New-LocalUser.*Serwis/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_route_diag_traceroute',
+            title: 'Diagnostyka routingu sieciowego i trasowania pakietów',
+            cat: 'inf02_net',
+            catLabel: 'INF.02 Sieci',
+            badgeColor: 'primary',
+            stars: '★★☆',
+            xp: 30,
+            os: 'any',
+            desc: 'Wyświetl tablicę routingu, prześledź trasę pakietów do serwera DNS i dodaj trasę statyczną do podsieci 10.50.0.0/24.',
+            steps: [
+                {
+                    task: 'Wyświetl tablicę routingu systemu (Linux: ip route show | Windows: route print)',
+                    ckeDesc: 'Odczyt tras statycznych, domyślnej bramy i metryk interfejsów.',
+                    syntaxHint: 'ip route show   LUB   route print',
+                    hint: 'W Linux wpisz `ip route show` lub `route -n`. W Windows wpisz `route print`.',
+                    validate: (cmd, os) => os === 'linux' ? /^(ip\s+route|route)/i.test(cmd) : /^route\s+print/i.test(cmd)
+                },
+                {
+                    task: 'Wykonaj trasowanie pakietów do adresu 8.8.8.8 (traceroute / tracert 8.8.8.8)',
+                    ckeDesc: 'Śledzenie kolejnych przeskoków (routerów) na trasie pakietu IP.',
+                    syntaxHint: 'traceroute 8.8.8.8   LUB   tracert 8.8.8.8',
+                    hint: 'W Linux: `traceroute 8.8.8.8`. W Windows: `tracert 8.8.8.8`.',
+                    validate: (cmd) => /^(traceroute|tracert)\s+8\.8\.8\.8/i.test(cmd)
+                },
+                {
+                    task: 'Dodaj trasę statyczną do podsieci 10.50.0.0/24 przez bramę 192.168.1.254 (Linux: ip route add 10.50.0.0/24 via 192.168.1.254 | Win: route add 10.50.0.0 mask 255.255.255.0 192.168.1.254)',
+                    ckeDesc: 'Ręczne definiowanie trasy do sieci zdalnej w tablicy trasowania jądra.',
+                    syntaxHint: 'ip route add 10.50.0.0/24 via 192.168.1.254   LUB   route add 10.50.0.0 mask 255.255.255.0 192.168.1.254',
+                    hint: 'W Linux: `ip route add 10.50.0.0/24 via 192.168.1.254`. W Windows: `route add 10.50.0.0 mask 255.255.255.0 192.168.1.254`.',
+                    validate: (cmd) => /(ip\s+route\s+add|route\s+add).*10\.50\.0\.0/i.test(cmd)
+                }
+            ]
         }
     ];
 
@@ -2632,6 +3080,8 @@
 
         init() {
             this.bindEvents();
+            const savedTheme = localStorage.getItem('zsem_cli_theme');
+            if (savedTheme) this.applyTheme(savedTheme);
             this.renderWelcome();
             this.updatePrompt();
             this.updateStatsUI();
@@ -2703,9 +3153,67 @@
                 this.renderServices();
             });
 
+            // Theme selection
+            document.querySelectorAll('.term-theme-opt').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.term-theme-opt').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                    const th = opt.dataset.theme;
+                    this.applyTheme(th);
+                });
+            });
+
+            // Terminal Tabs
+            document.querySelectorAll('#terminalTabs .term-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('#terminalTabs .term-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    this.switchTab(tab.dataset.tab);
+                });
+            });
+
+            // Search in history
+            document.getElementById('btnTermSearch')?.addEventListener('click', () => this.promptHistorySearch());
+
             // Scenario Skip / Clear
             document.getElementById('scenarioSkipBtn')?.addEventListener('click', () => this.skipScenarioStep());
             document.getElementById('scenarioClearBtn')?.addEventListener('click', () => this.clearScreen());
+        }
+
+        applyTheme(theme) {
+            this.windowEl?.classList.remove('theme-ubuntu', 'theme-powershell', 'theme-dracula', 'theme-matrix');
+            if (theme && theme !== 'default') {
+                this.windowEl?.classList.add(`theme-${theme}`);
+            }
+            try { localStorage.setItem('zsem_cli_theme', theme || 'default'); } catch (e) {}
+        }
+
+        switchTab(tabKey) {
+            if (tabKey === 'tab1') {
+                this.net.state.currentUserLinux = 'student';
+                this.updatePrompt();
+                this.writeLine('\n[ Przełączono na sesję użytkownika student ]', 'term-dim');
+            } else if (tabKey === 'tab2') {
+                this.net.state.currentUserLinux = 'root';
+                this.updatePrompt();
+                this.writeLine('\n[ Przełączono na sesję uprzywilejowaną root ]', 'warn');
+            } else if (tabKey === 'tab3') {
+                this.openNanoEditor('konfiguracja.conf');
+            }
+        }
+
+        promptHistorySearch() {
+            if (!this.commandHistory.length) {
+                this.writeLine('Historia poleceń jest pusta.', 'warn');
+                return;
+            }
+            this.writeLine('\n🔍 Ostatnie polecenia w historii sesji:', 'term-cyan');
+            const recent = this.commandHistory.slice(-10);
+            recent.forEach((cmd, idx) => {
+                this.writeLine(`  [${idx + 1}] ${cmd}`, 'term-dim');
+            });
+            this.writeLine('Wskazówka: Używaj strzałek w górę / w dół na klawiaturze, aby przewijać historię.\n', 'term-dim');
         }
 
         renderWelcome() {

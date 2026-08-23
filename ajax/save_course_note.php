@@ -22,6 +22,14 @@ if (!is_array($data)) {
     $data = $_POST;
 }
 
+$action = (string)($data['action'] ?? 'save');
+if ($action !== 'load') {
+    $csrfToken = (string)($data['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf_token'] ?? '')));
+    if (!validateCsrfToken($csrfToken) && !securityValidateRequestCsrf()) {
+        securitySendJson(['success' => false, 'message' => 'Nieprawidłowy token CSRF.'], 403);
+    }
+}
+
 $itemId = (int)($data['item_id'] ?? 0);
 $courseId = (int)($data['course_id'] ?? 0);
 $noteContent = trim((string)($data['note'] ?? ''));

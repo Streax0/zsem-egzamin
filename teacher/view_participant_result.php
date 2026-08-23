@@ -73,10 +73,7 @@ foreach (getQuestionsByIds($pdo, $sessionQuestionIds) as $question) {
     $allQuestionsMap[(int)$question['id']] = $question;
 }
 $flashMsg = getSessionMessage();
-
-?>
-<?php
-$pageTitle = 'Szczegóły wyniku: <?= htmlspecialchars($participant['first_name'] . ' ' . $participant['last_name']) ?>';
+$pageTitle = 'Szczegóły wyniku: ' . htmlspecialchars($participant['first_name'] . ' ' . $participant['last_name']);
 $extraCss = ['assets/css/dashboard-new.css'];
 include '../includes/header.php';
 ?>

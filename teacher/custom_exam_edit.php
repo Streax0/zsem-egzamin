@@ -133,9 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $flashMsg = getSessionMessage();
-?>
-<?php
-$pageTitle = '<?= $isEdit ? 'Edytuj' : 'Nowy' ?> sprawdzian – ZSEM Tech';
+$pageTitle = ($isEdit ? 'Edytuj' : 'Nowy') . ' sprawdzian – ZSEM Tech';
 $extraCss = ['assets/css/dashboard-new.css'];
 $extraHead = <<<HTML
 <style>

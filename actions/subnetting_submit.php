@@ -28,7 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$userId     = (int)$_SESSION['user_id'];
+requireJsonCsrfToken();
+
+$userId = (int)$_SESSION['user_id'];
+if (function_exists('securityConsumeRateLimit') && !securityConsumeRateLimit('subnetting:submit:' . $userId, 30, 60)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'error' => 'Zbyt wiele prób. Odczekaj chwilę.']);
+    exit;
+}
 $networkIp  = trim((string)($_POST['network_ip'] ?? ''));
 $cidr       = (int)($_POST['cidr'] ?? 0);
 $difficulty = in_array($_POST['difficulty'] ?? '', ['easy','medium','hard','expert'])
@@ -96,14 +103,29 @@ $xpMap = ['easy' => 5, 'medium' => 10, 'hard' => 20, 'expert' => 35];
 $xpEarned = 0;
 
 if ($allRight) {
-    $xpEarned = $xpMap[$difficulty] ?? 10;
+    $rawXp = $xpMap[$difficulty] ?? 10;
+    
+    // Check daily XP cap (max 250 XP/day for subnetting game)
+    $dailyCap = 250;
+    $todayXp = 0;
+    try {
+        $_capStmt = $pdo->prepare("SELECT COALESCE(SUM(score), 0) FROM subnetting_scores WHERE user_id = ? AND achieved_at >= CURDATE()");
+        $_capStmt->execute([$userId]);
+        $todayXp = (int)$_capStmt->fetchColumn();
+    } catch (Throwable $e) {}
 
-    // Update user XP
-    $pdo->prepare("UPDATE users SET xp = xp + ? WHERE id = ?")->execute([$xpEarned, $userId]);
+    $xpEarned = max(0, min($rawXp, $dailyCap - $todayXp));
 
-    // Record high score
-    $pdo->prepare("INSERT INTO subnetting_scores (user_id, score, difficulty) VALUES (?,?,?)")
-        ->execute([$userId, $xpEarned, $difficulty]);
+    // Update user XP if under cap
+    if ($xpEarned > 0) {
+        $pdo->prepare("UPDATE users SET xp = xp + ? WHERE id = ?")->execute([$xpEarned, $userId]);
+    }
+
+    // Record score
+    try {
+        $pdo->prepare("INSERT INTO subnetting_scores (user_id, score, difficulty) VALUES (?,?,?)")
+            ->execute([$userId, $xpEarned, $difficulty]);
+    } catch (Throwable $e) {}
 }
 
 // Fetch top 10 scores for the leaderboard

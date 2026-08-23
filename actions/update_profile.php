@@ -173,7 +173,7 @@ if (empty($errors) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ??
                 $filename = 'user_' . $userId . '_' . bin2hex(secureRandomBytes(6)) . '.webp';
                 $dest = $uploadDir . '/' . $filename;
                 if (!saveAvatarWebpWithinLimit($source, $width, $height, $dest)) {
-                    $errors[] = 'Nie udało się skompresować zdjęcia profilowego poniżej 25 KB. Wybierz prostszy lub mniejszy kadr.';
+                    $errors[] = 'Nie udało się skompresować zdjęcia profilowego poniżej 200 KB. Wybierz prostszy lub mniejszy kadr.';
                 } else {
                     $avatarPath = 'uploads/avatars/' . $filename;
                     $avatarDestination = $dest;

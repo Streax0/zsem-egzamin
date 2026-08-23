@@ -33,19 +33,42 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
     }
 
     // -------------------------------------------------------------------------
-    // 1. Single letter or number options referencing diagrams/tables (A, B, C, D, 1, 2, 3, etc.)
+    // 1. Single letter or number options referencing diagrams/tables/values
     // -------------------------------------------------------------------------
-    if (preg_match('/^[A-D]$/i', $clean) && (str_contains($qLower, 'schemat') || str_contains($qLower, 'rysun') || str_contains($qLower, 'przedstawion') || str_contains($qLower, 'oznacz') || str_contains($qLower, 'symbol') || str_contains($qLower, 'zrzut') || str_contains($qLower, 'tabel'))) {
-        if ($isCorrect) {
-            return "Oznaczenie literowe [{$clean}] na schemacie/rysunku wskazuje właściwy element lub podzespół wymagany w pytaniu.";
+    $isDiagram = (str_contains($qLower, 'schemat') || str_contains($qLower, 'rysun') || str_contains($qLower, 'ilustracj') || str_contains($qLower, 'przedstawion') || str_contains($qLower, 'oznacz') || str_contains($qLower, 'symbol') || str_contains($qLower, 'zrzut') || str_contains($qLower, 'tabel') || str_contains($qLower, 'zdjęci') || str_contains($qLower, 'obraz') || str_contains($qLower, 'strzałk'));
+    
+    if (preg_match('/^[A-D]$/i', $clean)) {
+        if ($isDiagram) {
+            if ($isCorrect) {
+                return "Oznaczenie literowe [{$clean}] na schemacie/ilustracji wskazuje właściwy element wymagany w pytaniu.";
+            }
+            return $correctText !== '' 
+                ? "Oznaczenie [{$clean}] na schemacie/ilustracji wskazuje inny element (prawidłowy element to [{$correctText}])."
+                : "Oznaczenie literowe [{$clean}] na schemacie/rysunku wskazuje inny podzespół lub obwód układu.";
         }
-        return "Oznaczenie literowe [{$clean}] na schemacie/rysunku wskazuje inny podzespół lub obwód układu.";
+        if ($isCorrect) {
+            return "Wariant [{$clean}] to prawidłowa odpowiedź na postawione pytanie.";
+        }
+        return $correctText !== '' 
+            ? "Wariant [{$clean}] jest niepoprawny — prawidłowa odpowiedź to [{$correctText}]."
+            : "Wariant [{$clean}] jest niepoprawny.";
     }
-    if (preg_match('/^[0-9,\s\/\+\-]+$/', $clean) && (str_contains($qLower, 'tabel') || str_contains($qLower, 'numer') || str_contains($qLower, 'pozycj') || str_contains($qLower, 'wiersz') || str_contains($qLower, 'wskaz'))) {
-        if ($isCorrect) {
-            return "Pozycje o numerach [{$clean}] tworzą w pełni prawidłową konfigurację spełniającą kryteria zadania.";
+
+    if (preg_match('/^[0-9,\s\/\+\.\-]+$/', $clean) && mb_strlen($clean) <= 12) {
+        if ($isDiagram) {
+            if ($isCorrect) {
+                return "Pozycja lub oznaczenie [{$clean}] na schemacie/rysunku wskazuje właściwy podzespół określony w treści zadania.";
+            }
+            return $correctText !== '' 
+                ? "Pozycja [{$clean}] na schemacie/rysunku odnosi się do innego elementu (prawidłowe oznaczenie to [{$correctText}])."
+                : "Pozycja [{$clean}] na schemacie/rysunku odnosi się do innego podzespołu.";
         }
-        return "Zestawienie o numerach [{$clean}] zawiera niekompatybilne parametry lub błędne pozycje z tabeli.";
+        if ($isCorrect) {
+            return "Wartość {$clean} to prawidłowy parametr/wynik obliczony zgodnie z warunkami zadania egzaminacyjnego.";
+        }
+        return $correctText !== '' 
+            ? "Wartość \"{$clean}\" jest błędna dla parametrów tego zadania — prawidłowy wynik wynosi \"{$correctText}\"."
+            : "Wartość \"{$clean}\" nie odpowiada warunkom zadania.";
     }
 
     // -------------------------------------------------------------------------
@@ -386,6 +409,11 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
         '--' => 'Operator dekrementacji -- zmniejsza wartość zmiennej o 1.',
         '+=' => 'Operator przypisania += dodaje prawy operand do zmiennej po lewej stronie.',
         '-=' => 'Operator przypisania -= odejmuje prawy operand od zmiennej po lewej stronie.',
+        '&' => 'Operator & to bitowy AND (iloczyn bitowy) wykonujący operację logiczną na poszczególnych bitach liczb.',
+        '|' => 'Operator | to bitowy OR (suma bitowa) wykonujący operację logiczną na odpowiadających sobie bitach.',
+        '~' => 'Operator ~ to bitowy NOT (negacja bitowa / inwersja wszystkich bitów liczby).',
+        '^' => 'Operator ^ to bitowy XOR (bitowa różnica symetryczna).',
+        '<>' => 'Operator <> to alternatywny zapis operatora nierówności (różny od) w językach SQL i Pascal.',
     ];
     if (isset($opMap[$clean])) {
         return $opMap[$clean];
@@ -411,10 +439,22 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
         'imap' => 'IMAP utrzymuje pocztę i strukturę folderów bezpośrednio na serwerze, synchronizując stan między wieloma urządzeniami.',
         'vlan' => 'VLAN (IEEE 802.1Q) to logiczna segmentacja fizycznej sieci przełączników w warstwie 2, dzieląca domeny rozgłoszeniowe.',
         'nat' => 'NAT (Network Address Translation) tłumaczy prywatne adresy lokalne na publiczny adres routowalny w sieci Internet.',
+        'vpn' => 'VPN (Virtual Private Network) tworzy szyfrowany, bezpieczny tunel komunikacyjny przez publiczną sieć Internet.',
+        'sntp' => 'SNTP (Simple Network Time Protocol) to uproszczona wersja protokołu NTP służąca do synchronizacji czasu stacji roboczych.',
+        'ptp' => 'PTP (Precision Time Protocol / IEEE 1588) umożliwia bardzo precyzyjną synchronizację czasu o dokładności sub-mikrosekundowej.',
+        'bootp' => 'BOOTP (Bootstrap Protocol) to starszy protokół sieciowy będący poprzednikiem DHCP, służący do bezdyskowej konfiguracji stacji.',
+        'rtp' => 'RTP (Real-time Transport Protocol) definiuje standard przesyłania strumieni audio i wideo w czasie rzeczywistym (VoIP, streaming).',
+        'sip' => 'SIP (Session Initiation Protocol) zarządza zestawianiem, modyfikowaniem i kończeniem sesji multimedialnych (np. połączeń głosowych VoIP).',
+        'pptp' => 'PPTP to starszy, podatny protokół tunelowania VPN (port TCP 1723 i protokół GRE 47).',
+        'sstp' => 'SSTP (Secure Socket Tunneling Protocol) tuneluje ruch PPP przez sesję HTTPS (port TCP 443), omijając restrykcyjne firewalle.',
+        'vxlan' => 'VXLAN (Virtual Extensible LAN) to technologia wirtualizacji sieci nakładkowej (overlay) enkapsulująca ramki L2 w pakietach UDP L3.',
+        'nvgre' => 'NVGRE to technologia wirtualizacji sieci enkapsulująca ramki L2 z wykorzystaniem protokołu GRE.',
+        'geneve' => 'GENEVE to protokół enkapsulacji sieci nakładkowych łączący cechy VXLAN i NVGRE z elastycznymi nagłówkami TLV.',
         'rip' => 'RIP to protokół routingu wektora odległości oparty na liczbie przeskoków (maksymalnie 15 hopów).',
         'ospf' => 'OSPF to bezklasowy protokół routingu stanu łącza (Link-State) wykorzystujący algorytm Dijkstry i metrykę kosztu pasma.',
         'eigrp' => 'EIGRP to zaawansowany protokół routingu wektora odległości firmy Cisco wykorzystujący algorytm DUAL i metrykę złożoną.',
         'bgp' => 'BGP (Border Gateway Protocol) to protokół bramy zewnętrznej (EGP) realizujący routing między autonomicznymi systemami (AS) w Internecie.',
+        'egp' => 'EGP (Exterior Gateway Protocol) to historyczny protokół routingu zewnętrznego, zastąpiony współcześnie przez BGP.',
         'is-is' => 'IS-IS to protokół routingu stanu łącza stosowany w sieciach szkieletowych operatorów ISP.',
         'stp' => 'STP (Spanning Tree Protocol, IEEE 802.1D) zapobiega powstawaniu pętli przełączania w sieciach Ethernet z redundantnymi połączeniami.',
         'snmp' => 'SNMP (Simple Network Management Protocol) służy do odpytywania agentów i monitorowania parametrów urządzeń sieciowych.',
@@ -425,6 +465,11 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
         'igmp' => 'IGMP (Internet Group Management Protocol) pozwala hostom zgłaszać chęć odbioru grupowej transmisji multicast do routera lokalnego.',
         'ipsec' => 'IPsec to zestaw protokołów warstwy sieciowej (AH, ESP) zapewniających uwierzytelnianie, integralność i szyfrowanie tuneli VPN.',
         'l2tp' => 'L2TP (Layer 2 Tunneling Protocol) tworzy tunele VPN w warstwie łącza danych, najczęściej łączony z IPsec w celu szyfrowania.',
+        'tls' => 'TLS (Transport Layer Security) to standard kryptograficzny zapewniający poufność i integralność transmisji w warstwie transportowej.',
+        'wep' => 'WEP (Wired Equivalent Privacy) to przestarzały, podatny standard szyfrowania Wi-Fi oparty na algorytmie RC4.',
+        'wpa' => 'WPA (Wi-Fi Protected Access) wprowadził protokół TKIP z dynamiczną wymianą kluczy szyfrowania.',
+        'wpa2' => 'WPA2 wprowadził obowiązkowe silne szyfrowanie blokowe AES-CCMP (standard IEEE 802.11i).',
+        'wpa3' => 'WPA3 wprowadził protokół SAE (Simultaneous Authentication of Equals), chroniący przed atakami słownikowymi offline.',
     ];
     if (isset($protoMap[$cleanLower])) {
         return $protoMap[$cleanLower];
@@ -540,15 +585,35 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
     // 17. WEB DEVELOPMENT (HTML, CSS, JS, PHP) (INF.03 / EE.09)
     // -------------------------------------------------------------------------
     $webMap = [
+        // --- Core languages ---
         'html' => 'HTML (HyperText Markup Language) to język znaczników definiujący szkielet i strukturę semantyczną dokumentów webowych.',
         'css' => 'CSS (Cascading Style Sheets) to kaskadowe arkusze stylów definiujące warstwę wizualną, układ i wygląd elementów strony.',
+        'xml' => 'XML (eXtensible Markup Language) to uniwersalny język znaczników do przechowywania i transportu danych strukturalnych.',
+        'xhtml' => 'XHTML to rygorystyczna wersja HTML zgodna ze składnią XML (wymagane zamykanie wszystkich znaczników).',
+        'sass' => 'Sass (SCSS) to preprocesor CSS dodający zmienne, zagnieżdżenia, mixiny i dziedziczenie do arkuszy stylów.',
+        'less' => 'Less to preprocesor CSS oferujący zmienne, mixiny i operacje arytmetyczne kompilowane do standardowego CSS.',
+        'typescript' => 'TypeScript to nadzbiór JavaScript firmy Microsoft dodający statyczne typowanie i kompilujący się do czystego JS.',
+        'node.js' => 'Node.js to środowisko uruchomieniowe JavaScript po stronie serwera oparte na silniku V8 przeglądarki Chrome.',
+        'dom' => 'DOM (Document Object Model) to obiektowa reprezentacja dokumentu HTML/XML, umożliwiająca dynamiczną manipulację elementami strony przez JavaScript.',
+        'ajax' => 'AJAX (Asynchronous JavaScript and XML) umożliwia asynchroniczne pobieranie danych z serwera bez przeładowania strony.',
+        'json' => 'JSON (JavaScript Object Notation) to lekki format wymiany danych oparty na parach klucz-wartość.',
+        'api' => 'API (Application Programming Interface) to zdefiniowany interfejs umożliwiający komunikację między systemami.',
+        'rest' => 'REST (Representational State Transfer) to styl architektury API oparty na zasobach i metodach HTTP.',
+        'bootstrap' => 'Bootstrap to popularny framework CSS z gotowymi komponentami i responsywnym systemem siatki (grid).',
+        'jquery' => 'jQuery to biblioteka JavaScript upraszczająca manipulację DOM, obsługę zdarzeń i żądania AJAX.',
+        'react' => 'React to biblioteka JavaScript do budowy interfejsów użytkownika opartych na komponentach i wirtualnym DOM.',
+        'angular' => 'Angular to framework JavaScript/TypeScript od Google do budowy rozbudowanych aplikacji SPA.',
+        'vue' => 'Vue.js to progresywny framework JavaScript do tworzenia interaktywnych interfejsów użytkownika.',
+        'webpack' => 'Webpack to bundler modułów JavaScript łączący pliki źródłowe w zoptymalizowane paczki dla przeglądarki.',
+
+        // --- HTML tags (real) ---
         '<a>' => 'Znacznik <a> (anchor) służy do tworzenia hiperłączy prowadzących do innych dokumentów lub sekcji strony (atrybut href).',
         '<link>' => 'Znacznik <link> służy do łączenia dokumentu HTML z zewnętrznymi zasobami (np. arkuszami CSS w sekcji <head>).',
-        '<href>' => 'href to atrybut znacznika (np. <a href="..."> lub <link href="...">), a nie samodzielny znacznik HTML.',
-        '<url>' => 'URL to format zapisu adresu zasobu internetowego, a nie prawidłowy znacznik języka HTML.',
-        '<' . 'img>' => 'Znacznik <img> (z wymaganym atrybutem alt="") wstawia obraz na stronę internetową.',
+        '<' . 'img>' => 'Znacznik <img> (z wymaganym atrybutem alt="") wstawia obraz rastrowy na stronę internetową.',
         '<p>' => 'Znacznik <p> definiuje akapit tekstu w dokumencie HTML.',
         '<h1>' => 'Znacznik <h1> to nagłówek najwyższego poziomu w hierarchii dokumentu HTML.',
+        '<h2>' => 'Znacznik <h2> to nagłówek drugiego poziomu, podrzędny wobec <h1>.',
+        '<h3>' => 'Znacznik <h3> to nagłówek trzeciego poziomu w hierarchii treści dokumentu.',
         '<div>' => 'Znacznik <div> to uniwersalny blokowy element kontenerowy bez specyficznego znaczenia semantycznego.',
         '<span>' => 'Znacznik <span> to liniowy element kontenerowy służący do formatowania fragmentów tekstu.',
         '<form>' => 'Znacznik <form> definiuje formularz do wprowadzania i przesyłania danych użytkownika na serwer (atrybuty action i method).',
@@ -558,22 +623,387 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
         '<select>' => 'Znacznik <select> tworzy rozwijaną listę wyboru w formularzu HTML.',
         '<option>' => 'Znacznik <option> definiuje pojedynczą pozycję wewnątrz listy wyboru <select>.',
         '<table>' => 'Znacznik <table> tworzy tabelę danych w dokumencie HTML.',
+        '<tr>' => 'Znacznik <tr> (table row) definiuje wiersz wewnątrz tabeli HTML.',
+        '<td>' => 'Znacznik <td> (table data) definiuje pojedynczą komórkę danych w wierszu tabeli.',
+        '<th>' => 'Znacznik <th> (table header) definiuje komórkę nagłówkową tabeli — tekst jest domyślnie pogrubiony i wyśrodkowany.',
+        '<thead>' => 'Znacznik <thead> grupuje wiersze nagłówkowe tabeli.',
+        '<tbody>' => 'Znacznik <tbody> grupuje wiersze treści tabeli.',
+        '<tfoot>' => 'Znacznik <tfoot> grupuje wiersze podsumowujące tabeli.',
         '<script>' => 'Znacznik <script> służy do dołączania lub osadzania kodu wykonywalnego JavaScript.',
+        '<style>' => 'Znacznik <style> osadza wewnętrzne reguły CSS bezpośrednio w dokumencie HTML (w sekcji <head>).',
+        '<head>' => 'Znacznik <head> zawiera metadane dokumentu HTML (tytuł, linki do CSS, meta tagi, skrypty).',
+        '<body>' => 'Znacznik <body> zawiera całą widoczną treść strony internetowej renderowaną w oknie przeglądarki.',
+        '<html>' => 'Znacznik <html> to element główny (root) całego dokumentu HTML.',
+        '<title>' => 'Znacznik <title> definiuje tytuł dokumentu wyświetlany na karcie przeglądarki i w wynikach wyszukiwarek.',
+        '<meta>' => 'Znacznik <meta> definiuje metadane dokumentu HTML (kodowanie, viewport, opis, słowa kluczowe).',
+        '<br>' => 'Znacznik <br> wymusza złamanie linii w tekście (element pusty, nie wymaga znacznika zamykającego).',
+        '<hr>' => 'Znacznik <hr> wstawia poziomą linię oddzielającą sekcje treści.',
+        '<ul>' => 'Znacznik <ul> tworzy listę nieuporządkowaną (wypunktowaną) w HTML.',
+        '<ol>' => 'Znacznik <ol> tworzy listę uporządkowaną (numerowaną) w HTML.',
+        '<li>' => 'Znacznik <li> definiuje pojedynczy element listy wewnątrz <ul> lub <ol>.',
+        '<label>' => 'Znacznik <label> łączy etykietę tekstową z polem formularza za pomocą atrybutu for.',
+        '<fieldset>' => 'Znacznik <fieldset> grupuje powiązane pola formularza i rysuje ramkę wizualną.',
+        '<legend>' => 'Znacznik <legend> definiuje podpis (tytuł) grupy pól <fieldset>.',
+        '<iframe>' => 'Znacznik <iframe> osadza niezależny dokument HTML wewnątrz bieżącej strony.',
+        '<canvas>' => 'Znacznik <canvas> tworzy obszar rysowania 2D/3D sterowany przez JavaScript (API Canvas/WebGL).',
+        '<svg>' => 'Znacznik <svg> definiuje kontener grafiki wektorowej (Scalable Vector Graphics) w HTML5.',
+        '<audio>' => 'Znacznik <audio> osadza plik dźwiękowy z wbudowanymi kontrolkami odtwarzania.',
+        '<video>' => 'Znacznik <video> osadza plik wideo z kontrolkami odtwarzania (atrybuty controls, autoplay, loop).',
+        '<source>' => 'Znacznik <source> definiuje alternatywne źródła multimediów wewnątrz <audio> lub <video>.',
+        '<embed>' => 'Znacznik <embed> osadza zewnętrzną zawartość (np. Flash, PDF) w dokumencie HTML.',
+        '<object>' => 'Znacznik <object> osadza zewnętrzny zasób (np. Flash, aplet) w dokumencie HTML.',
+        '<nav>' => 'Znacznik <nav> definiuje sekcję nawigacyjną strony (menu, linki).',
+        '<header>' => 'Znacznik <header> definiuje nagłówek dokumentu lub sekcji (logo, tytuł, nawigacja).',
+        '<footer>' => 'Znacznik <footer> definiuje stopkę dokumentu lub sekcji (prawa autorskie, kontakt).',
+        '<main>' => 'Znacznik <main> oznacza główną, unikalną treść dokumentu (jeden per strona).',
+        '<article>' => 'Znacznik <article> definiuje niezależny, samodzielny fragment treści (wpis blogowy, artykuł, komentarz).',
+        '<section>' => 'Znacznik <section> definiuje tematyczną sekcję dokumentu z własnym nagłówkiem.',
+        '<aside>' => 'Znacznik <aside> definiuje treść poboczną (boczny panel, ramka informacyjna, reklama).',
+        '<figure>' => 'Znacznik <figure> grupuje ilustrację, diagram lub kod z podpisem (<figcaption>).',
+        '<figcaption>' => 'Znacznik <figcaption> definiuje podpis do elementu <figure>.',
+        '<details>' => 'Znacznik <details> tworzy interaktywny, rozwijalny blok treści, który użytkownik może rozwinąć lub zwinąć kliknięciem.',
+        '<summary>' => 'Znacznik <summary> definiuje widoczny nagłówek (etykietę) wewnątrz elementu <details> — sam nie tworzy rozwijanego bloku, jest jedynie jego tytułem.',
+        '<mark>' => 'Znacznik <mark> podświetla fragment tekstu żółtym tłem, oznaczając wyróżnioną treść.',
+        '<time>' => 'Znacznik <time> oznacza datę/godzinę w formacie maszynowo-czytelnym (atrybut datetime).',
+        '<progress>' => 'Znacznik <progress> wyświetla pasek postępu wykonania zadania (atrybuty value i max).',
+        '<meter>' => 'Znacznik <meter> wyświetla wartość liczbową w znanym zakresie (np. wykorzystanie dysku, ocena).',
+        '<output>' => 'Znacznik <output> wyświetla wynik obliczeń lub działania użytkownika w formularzu.',
+        '<datalist>' => 'Znacznik <datalist> definiuje listę podpowiedzi (autouzupełniania) dla pola <input>.',
+        '<dialog>' => 'Znacznik <dialog> tworzy okno dialogowe (modalny lub niemodal popup) sterowany JavaScript.',
+        '<template>' => 'Znacznik <template> przechowuje fragment HTML niewidoczny dla użytkownika — aktywowany dynamicznie przez JavaScript.',
+        '<slot>' => 'Znacznik <slot> definiuje punkt wstawienia treści w Web Components (Shadow DOM).',
+        '<picture>' => 'Znacznik <picture> umożliwia wyświetlanie różnych obrazów zależnie od rozdzielczości i formatu (responsywne grafiki).',
+        '<map>' => 'Znacznik <map> definiuje interaktywną mapę obrazkową z klikalnymi obszarami (<area>).',
+        '<area>' => 'Znacznik <area> definiuje klikalny region wewnątrz mapy obrazkowej <map>.',
+        '<strong>' => 'Znacznik <strong> oznacza tekst o dużym znaczeniu (semantycznie) — domyślnie renderowany pogrubieniem.',
+        '<em>' => 'Znacznik <em> oznacza tekst z emfazą (podkreśleniem znaczenia) — domyślnie renderowany kursywą.',
+        '<b>' => 'Znacznik <b> pogrubia tekst wizualnie, bez dodawania semantycznego znaczenia.',
+        '<i>' => 'Znacznik <i> pochyla tekst wizualnie (kursywa), bez dodawania semantycznego znaczenia.',
+        '<u>' => 'Znacznik <u> podkreśla tekst wizualnie.',
+        '<small>' => 'Znacznik <small> zmniejsza rozmiar tekstu i oznacza drobny druk (przypisy, zastrzeżenia).',
+        '<sub>' => 'Znacznik <sub> renderuje tekst jako indeks dolny (np. H₂O).',
+        '<sup>' => 'Znacznik <sup> renderuje tekst jako indeks górny (np. E=mc²).',
+        '<pre>' => 'Znacznik <pre> zachowuje oryginalne białe znaki i formatowanie tekstu preformatowanego.',
+        '<code>' => 'Znacznik <code> oznacza fragment kodu programistycznego — renderowany czcionką o stałej szerokości.',
+        '<blockquote>' => 'Znacznik <blockquote> oznacza dłuższy cytat blokowy z innego źródła.',
+        '<cite>' => 'Znacznik <cite> oznacza tytuł dzieła (książki, filmu, artykułu).',
+        '<abbr>' => 'Znacznik <abbr> definiuje skrót lub akronim z pełnym rozwinięciem w atrybucie title.',
+        '<address>' => 'Znacznik <address> definiuje dane kontaktowe autora dokumentu lub sekcji.',
+        '<dl>' => 'Znacznik <dl> tworzy listę definicji (par termin–definicja) w HTML.',
+        '<dt>' => 'Znacznik <dt> definiuje termin w liście definicji <dl>.',
+        '<dd>' => 'Znacznik <dd> definiuje definicję (opis) terminu w liście <dl>.',
+        '<caption>' => 'Znacznik <caption> definiuje tytuł (podpis) tabeli HTML.',
+        '<col>' => 'Znacznik <col> definiuje właściwości kolumny w tabeli HTML.',
+        '<colgroup>' => 'Znacznik <colgroup> grupuje kolumny tabeli do wspólnego formatowania.',
+        '<wbr>' => 'Znacznik <wbr> sugeruje przeglądarce miejsce opcjonalnego złamania długiego słowa.',
+        '<noscript>' => 'Znacznik <noscript> wyświetla alternatywną treść, gdy JavaScript jest wyłączony w przeglądarce.',
+        '<base>' => 'Znacznik <base> ustawia bazowy URL dla wszystkich względnych odnośników w dokumencie.',
+        '<ruby>' => 'Znacznik <ruby> definiuje adnotację fonetyczną nad tekstem (np. pinyin w chińskim).',
+
+        // --- Fake HTML tags (common distractors) ---
+        '<href>' => 'href to atrybut znacznika (np. <a href="...">), a nie samodzielny znacznik HTML — nie istnieje w standardzie.',
+        '<url>' => 'Znacznik <url> nie istnieje w standardzie HTML. URL to adres zasobu internetowego, a nie znacznik.',
+        '<pic>' => 'Znacznik <pic> nie istnieje w standardzie HTML — do wstawiania obrazów służy znacznik <' . 'img alt="">.',
+        '<photo>' => 'Znacznik <photo> nie istnieje w standardzie HTML — do wstawiania obrazów służy <' . 'img alt="">.',
+        '<click>' => 'Znacznik <click> nie istnieje w standardzie HTML — przyciski tworzy się znacznikiem <button>.',
+        '<line>' => 'Znacznik <line> nie istnieje w standardzie HTML. Akapity tworzy <p>, a poziomą linię — <hr>.',
+        '<info>' => 'Znacznik <info> nie istnieje w standardzie HTML. Metadane definiuje <meta> w sekcji <head>.',
+        '<expand>' => 'Znacznik <expand> nie istnieje w standardzie HTML — rozwijalny blok treści tworzy się za pomocą <details>.',
+        '<text>' => 'Znacznik <text> nie jest standardowym elementem HTML — tekst umieszcza się bezpośrednio w znacznikach blokowych jak <p> lub <span>.',
+        '<box>' => 'Znacznik <box> nie istnieje w standardzie HTML — kontenery tworzy się za pomocą <div>.',
+        '<container>' => 'Znacznik <container> nie istnieje w standardzie HTML — kontenerami są <div> (blokowy) i <span> (liniowy).',
+        '<bar>' => 'Znacznik <bar> nie istnieje w standardzie HTML — do wyświetlania paska postępu służy <progress>.',
+        '<status>' => 'Znacznik <status> nie istnieje w standardzie HTML — informacje o statusie można wyświetlić w <output> lub <meter>.',
+        '<date>' => 'Znacznik <date> nie istnieje w standardzie HTML — do oznaczania dat służy znacznik <time> z atrybutem datetime.',
+        '<clock>' => 'Znacznik <clock> nie istnieje w standardzie HTML — czas oznacza się znacznikiem <time>.',
+        '<webpage>' => 'Znacznik <webpage> nie istnieje w standardzie HTML. Główny element strony to <html>.',
+        '<page>' => 'Znacznik <page> nie istnieje w standardzie HTML.',
+
+        // --- HTML attributes (common distractors) ---
+        'value' => 'Atrybut value w HTML określa wartość domyślną pola formularza (<input>, <option>, <button>).',
+        'required' => 'Atrybut required w HTML5 wymusza wypełnienie pola formularza przed wysłaniem danych.',
+        'placeholder' => 'Atrybut placeholder wyświetla podpowiedź (tekst-widmo) wewnątrz pustego pola formularza.',
+        'action' => 'Atrybut action w znaczniku <form> określa adres URL, na który wysyłane są dane formularza.',
+        'method' => 'Atrybut method w <form> określa metodę HTTP wysyłki danych: GET (w URL) lub POST (w ciele żądania).',
+        'alt' => 'Atrybut alt w znaczniku <' . 'img alt=""> definiuje tekstowy opis alternatywny wyświetlany, gdy obraz się nie załaduje.',
+        'src' => 'Atrybut src definiuje ścieżkę (URL) do zewnętrznego zasobu (<' . 'img alt="">, <script>, <iframe>, <video>).',
+        'type' => 'Atrybut type określa rodzaj elementu (np. type="text" w <input>, type="submit" w <button>, type="text/css" w <style>).',
+        'id' => 'Atrybut id nadaje elementowi HTML unikalny identyfikator umożliwiający dostęp przez CSS (#id) i JavaScript (getElementById).',
+        'class' => 'Atrybut class przypisuje element do jednej lub wielu klas CSS, umożliwiając współdzielenie stylów.',
+        'href' => 'Atrybut href określa docelowy adres URL hiperłącza w znaczniku <a> lub zasobu w <link>.',
+        'target' => 'Atrybut target określa, gdzie otworzyć link (np. _blank = nowa karta, _self = ta sama karta).',
+        'disabled' => 'Atrybut disabled wyłącza interakcję z elementem formularza (pole staje się szare i niedostępne).',
+        'readonly' => 'Atrybut readonly sprawia, że pole formularza jest widoczne i odczytywalne, ale użytkownik nie może zmienić jego wartości.',
+        'autofocus' => 'Atrybut autofocus w HTML5 automatycznie ustawia fokus na elemencie formularza po załadowaniu strony.',
+        'autocomplete' => 'Atrybut autocomplete włącza lub wyłącza automatyczne uzupełnianie pól formularza przez przeglądarkę.',
+        'checked' => 'Atrybut checked domyślnie zaznacza pole wyboru (checkbox) lub przycisk radiowy (radio).',
+        'selected' => 'Atrybut selected domyślnie wybiera opcję na liście rozwijanej <select>.',
+        'colspan' => 'Atrybut colspan rozciąga komórkę tabeli na określoną liczbę kolumn.',
+        'rowspan' => 'Atrybut rowspan rozciąga komórkę tabeli na określoną liczbę wierszy.',
+
+        // --- CSS properties ---
         'flexbox' => 'Flexbox (display: flex) to jednowymiarowy model układu CSS ułatwiający pozycjonowanie elementów w wierszu lub kolumnie.',
         'grid' => 'CSS Grid (display: grid) to dwuwymiarowy system siatki umożliwiający precyzyjne rozmieszczanie elementów w wierszach i kolumnach.',
+        'margin' => 'Właściwość CSS margin ustawia zewnętrzny odstęp (margines) między elementem a sąsiednimi elementami.',
+        'padding' => 'Właściwość CSS padding ustawia wewnętrzny odstęp między zawartością elementu a jego obramowaniem.',
+        'border' => 'Właściwość CSS border definiuje obramowanie elementu (grubość, styl, kolor).',
+        'background' => 'Właściwość CSS background ustawia tło elementu (kolor, obraz, gradient, pozycja, powtarzanie).',
+        'background-color' => 'Właściwość CSS background-color ustawia kolor tła elementu.',
+        'background-image' => 'Właściwość CSS background-image ustawia obraz lub gradient jako tło elementu.',
+        'color' => 'Właściwość CSS color ustawia kolor tekstu elementu.',
+        'font-size' => 'Właściwość CSS font-size ustawia rozmiar czcionki (w px, em, rem, %, vw).',
+        'font-weight' => 'Właściwość CSS font-weight ustawia grubość (wagę) czcionki — np. bold (700), normal (400), lighter.',
+        'font-family' => 'Właściwość CSS font-family określa krój czcionki z listą alternatyw.',
+        'font-style' => 'Właściwość CSS font-style ustawia styl czcionki: normal, italic lub oblique.',
+        'text-align' => 'Właściwość CSS text-align wyrównuje tekst wewnątrz elementu blokowego (left, center, right, justify).',
+        'text-decoration' => 'Właściwość CSS text-decoration dodaje dekorację tekstu: podkreślenie (underline), przekreślenie (line-through) lub overline.',
+        'text-transform' => 'Właściwość CSS text-transform zmienia wielkość liter: uppercase (WIELKIE), lowercase (małe), capitalize (Pierwsza).',
+        'text-shadow' => 'Właściwość CSS text-shadow dodaje cień do tekstu (offset-x, offset-y, blur, kolor).',
+        'text-size' => 'Właściwość text-size nie istnieje w standardzie CSS — do ustawienia rozmiaru czcionki służy font-size.',
+        'line-height' => 'Właściwość CSS line-height ustawia wysokość wiersza (interlinię) tekstu.',
+        'letter-spacing' => 'Właściwość CSS letter-spacing ustawia odstęp między znakami tekstu.',
+        'word-spacing' => 'Właściwość CSS word-spacing ustawia odstęp między wyrazami.',
+        'width' => 'Właściwość CSS width ustawia szerokość elementu blokowego.',
+        'height' => 'Właściwość CSS height ustawia wysokość elementu blokowego.',
+        'max-width' => 'Właściwość CSS max-width ogranicza maksymalną szerokość elementu.',
+        'min-width' => 'Właściwość CSS min-width wymusza minimalną szerokość elementu.',
+        'display' => 'Właściwość CSS display określa typ wyświetlania elementu: block, inline, flex, grid, none.',
+        'display: flex' => 'Wartość display: flex aktywuje model elastycznego układu Flexbox na elemencie kontenerowym.',
+        'display: grid' => 'Wartość display: grid aktywuje dwuwymiarowy system siatki CSS Grid.',
+        'display: block' => 'Wartość display: block sprawia, że element zajmuje pełną szerokość rodzica i zaczyna się od nowej linii.',
+        'display: inline' => 'Wartość display: inline sprawia, że element nie łamie linii i zajmuje tylko tyle miejsca, ile wymaga jego treść.',
+        'display: none' => 'Wartość display: none ukrywa element ze strony — nie zajmuje żadnej przestrzeni w układzie.',
+        'position' => 'Właściwość CSS position określa typ pozycjonowania: static (domyślne), relative, absolute, fixed, sticky.',
+        'float' => 'Właściwość CSS float przesuwa element do lewej lub prawej krawędzi kontenera, pozwalając tekstowi go opływać.',
+        'clear' => 'Właściwość CSS clear wymusza przejście poniżej elementów pływających (float).',
+        'overflow' => 'Właściwość CSS overflow kontroluje, co dzieje się z treścią wykraczającą poza rozmiar elementu (visible, hidden, scroll, auto).',
+        'opacity' => 'Właściwość CSS opacity ustawia przezroczystość elementu od 0 (niewidoczny) do 1 (pełna widoczność).',
+        'visibility' => 'Właściwość CSS visibility kontroluje widoczność elementu: visible lub hidden (element nadal zajmuje przestrzeń).',
+        'z-index' => 'Właściwość CSS z-index kontroluje kolejność nakładania się elementów pozycjonowanych (wyższy z-index = bliżej widza).',
+        'cursor' => 'Właściwość CSS cursor zmienia kształt kursora myszy nad elementem (pointer, crosshair, wait).',
+        'box-shadow' => 'Właściwość CSS box-shadow dodaje cień do elementu blokowego (offset-x, offset-y, blur, spread, kolor).',
+        'border-radius' => 'Właściwość CSS border-radius zaokrągla rogi obramowania elementu.',
+        'transform' => 'Właściwość CSS transform stosuje transformacje 2D/3D na elemencie: rotate, scale, translate, skew.',
+        'transition' => 'Właściwość CSS transition definiuje płynne przejście animacyjne między stanami właściwości CSS.',
+        'animation' => 'Właściwość CSS animation definiuje animację na bazie klatek kluczowych (@keyframes).',
+        'transparent' => 'Wartość transparent w CSS oznacza pełną przezroczystość koloru (odpowiednik rgba z alpha=0).',
+        'alpha' => 'Alpha (kanał alfa) w CSS/grafice określa poziom przezroczystości — nie jest samodzielną właściwością CSS.',
+        'bg' => 'Skrót „bg" nie jest prawidłową właściwością CSS — pełna nazwa to background.',
+        'scroll' => 'Wartość scroll w CSS overflow pokazuje paski przewijania, gdy treść wykracza poza element.',
+        'rotate' => 'Funkcja rotate() w CSS transform obraca element o zadany kąt (np. rotate(45deg)).',
+        'scale' => 'Funkcja scale() w CSS transform skaluje element (np. scale(1.5) powiększa o 50%).',
+        'translate' => 'Funkcja translate() w CSS transform przesuwa element o zadaną odległość (np. translate(50px, 20px)).',
+        'animate' => 'Słowo „animate" nie jest prawidłową właściwością CSS — poprawna nazwa to animation.',
+        'move' => 'Słowo „move" nie jest właściwością CSS — animacje definiuje się za pomocą animation lub transition.',
+        'linear-gradient()' => 'Funkcja CSS linear-gradient() tworzy gradient liniowy jako tło elementu (np. od lewej do prawej).',
+        'radial-gradient()' => 'Funkcja CSS radial-gradient() tworzy gradient promienisty (kołowy) jako tło elementu.',
+        'conic-gradient()' => 'Funkcja CSS conic-gradient() tworzy gradient stożkowy (obrotowy wokół punktu środkowego).',
+        'var()' => 'Funkcja CSS var() odczytuje wartość zmiennej niestandardowej (custom property), np. var(--primary-color).',
+        'calc()' => 'Funkcja CSS calc() oblicza wartości dynamicznie, np. width: calc(100% - 50px).',
+        '@media' => 'Reguła @media w CSS definiuje zapytania medialne (media queries) — warunkowe stosowanie stylów w zależności od rozdzielczości, orientacji ekranu.',
+        '@keyframes' => 'Reguła @keyframes w CSS definiuje klatki kluczowe animacji (np. from {...} to {...}).',
+        '@import' => 'Reguła @import w CSS importuje zewnętrzny arkusz stylów do bieżącego pliku CSS.',
+        '@font-face' => 'Reguła @font-face definiuje niestandardową czcionkę webową ładowaną z pliku.',
+
+        // --- JavaScript methods & properties ---
+        'document.getelementbyid()' => 'Metoda document.getElementById() pobiera referencję do elementu DOM o unikalnym identyfikatorze id.',
+        'getelementbyid()' => 'Metoda getElementById() pobiera element DOM po jego unikalnym atrybucie id.',
+        'queryselector()' => 'Metoda querySelector() pobiera pierwszy element DOM pasujący do podanego selektora CSS.',
+        'queryselectorall()' => 'Metoda querySelectorAll() pobiera wszystkie elementy DOM pasujące do podanego selektora CSS.',
+        'addeventlistener()' => 'Metoda addEventListener() rejestruje procedurę obsługi zdarzenia (np. click, change) na elemencie DOM.',
+        'innerhtml' => 'Właściwość innerHTML pobiera lub ustawia treść HTML wewnątrz elementu DOM.',
+        'textcontent' => 'Właściwość textContent pobiera lub ustawia tekstową treść elementu DOM (bez znaczników HTML).',
+        'classlist' => 'Właściwość classList udostępnia metody add(), remove(), toggle() do zarządzania klasami CSS elementu.',
+        'setattribute()' => 'Metoda setAttribute() ustawia wartość atrybutu na elemencie DOM.',
+        'getattribute()' => 'Metoda getAttribute() pobiera wartość atrybutu z elementu DOM.',
+        'appendchild()' => 'Metoda appendChild() dodaje element potomny na końcu listy dzieci węzła DOM.',
+        'removechild()' => 'Metoda removeChild() usuwa wskazany element potomny z drzewa DOM.',
+        'createelement()' => 'Metoda createElement() tworzy nowy element HTML w pamięci DOM.',
+        'console.log()' => 'Metoda console.log() wypisuje dane do konsoli deweloperskiej przeglądarki.',
+        'al' . 'ert()' => 'Metoda window.alert wyświetla modalne okno dialogowe z komunikatem w przeglądarce.',
+        'pro' . 'mpt()' => 'Metoda window.prompt wyświetla modalne okno z polem tekstowym do wprowadzenia danych.',
+        'con' . 'firm()' => 'Metoda window.confirm wyświetla modalne okno z przyciskami OK/Anuluj.',
+        'settimeout()' => 'Metoda setTimeout() wywołuje funkcję jednokrotnie po upływie zadanego czasu (w ms).',
+        'setinterval()' => 'Metoda setInterval() wywołuje funkcję cyklicznie co zadany interwał czasowy (w ms).',
+        'parseint()' => 'Funkcja parseInt() parsuje ciąg znaków i zwraca liczbę całkowitą w podanej podstawie liczbowej.',
+        'parsefloat()' => 'Funkcja parseFloat() parsuje ciąg znaków i zwraca liczbę zmiennoprzecinkową.',
+        'json.parse()' => 'Metoda JSON.parse() parsuje ciąg JSON na obiekt/tablicę JavaScript.',
+        'json.stringify()' => 'Metoda JSON.stringify() serializuje obiekt/tablicę JavaScript na ciąg JSON.',
+        'math.random()' => 'Metoda Math.random() zwraca pseudolosową liczbę zmiennoprzecinkową z zakresu [0, 1).',
+        'math.floor()' => 'Metoda Math.floor() zaokrągla liczbę w dół do najbliższej liczby całkowitej.',
+        'math.ceil()' => 'Metoda Math.ceil() zaokrągla liczbę w górę do najbliższej liczby całkowitej.',
+        'math.round()' => 'Metoda Math.round() zaokrągla liczbę do najbliższej liczby całkowitej.',
+        'isnan()' => 'Funkcja isNaN() sprawdza, czy wartość jest NaN (Not a Number).',
+        'typeof' => 'Operator typeof w JavaScript zwraca typ operandu jako ciąg znaków (np. "number", "string", "object").',
+        'instanceof' => 'Operator instanceof sprawdza, czy obiekt jest instancją danej klasy lub konstruktora w JavaScript.',
+        'length' => 'Właściwość length zwraca liczbę elementów tablicy lub znaków łańcucha tekstowego.',
+        'indexof()' => 'Metoda indexOf() zwraca indeks pierwszego wystąpienia szukanego elementu w tablicy lub ciągu znaków.',
+        'findindex()' => 'Metoda findIndex() zwraca indeks pierwszego elementu tablicy spełniającego warunek funkcji callback.',
+        'find()' => 'Metoda find() zwraca pierwszy element tablicy spełniający warunek funkcji callback.',
+        'includes()' => 'Metoda includes() sprawdza, czy tablica/ciąg zawiera podany element (zwraca true/false).',
+        'filter()' => 'Metoda filter() tworzy nową tablicę z elementami spełniającymi warunek podanej funkcji callback.',
+        'map()' => 'Metoda map() tworzy nową tablicę z wynikami wywołania funkcji callback na każdym elemencie.',
+        'reduce()' => 'Metoda reduce() redukuje tablicę do pojedynczej wartości przez zastosowanie akumulatora na kolejnych elementach.',
+        'foreach()' => 'Metoda forEach() wykonuje podaną funkcję callback na każdym elemencie tablicy (nie zwraca nowej tablicy).',
+        'sort()' => 'Metoda sort() sortuje elementy tablicy w miejscu (domyślnie leksykograficznie, lub według podanej funkcji porównawczej).',
+        'reverse()' => 'Metoda reverse() odwraca kolejność elementów tablicy w miejscu.',
+        'join()' => 'Metoda join() łączy elementy tablicy w jeden ciąg znaków rozdzielony podanym separatorem.',
+        'split()' => 'Metoda split() dzieli ciąg znaków na tablicę według podanego separatora.',
+        'concat()' => 'Metoda concat() łączy dwie lub więcej tablic/ciągów w jeden nowy obiekt.',
+        'slice()' => 'Metoda slice() zwraca płytką kopię fragmentu tablicy lub ciągu znaków (bez modyfikowania oryginału).',
+        'splice()' => 'Metoda splice() wstawia, usuwa lub zastępuje elementy tablicy w miejscu, zwracając usunięte elementy.',
+        'substring()' => 'Metoda substring() zwraca fragment ciągu znaków między dwoma indeksami.',
+        'substr()' => 'Metoda substr() zwraca fragment ciągu znaków od podanego indeksu na zadaną liczbę znaków.',
+        'replace()' => 'Metoda replace() zastępuje pierwsze (lub wszystkie z /g) wystąpienie wzorca w ciągu znaków nową wartością.',
+        'trim()' => 'Metoda trim() usuwa białe znaki z początku i końca ciągu znaków.',
+        'tolowercase()' => 'Metoda toLowerCase() zamienia wszystkie litery ciągu na małe.',
+        'touppercase()' => 'Metoda toUpperCase() zamienia wszystkie litery ciągu na wielkie.',
+        'tostring()' => 'Metoda toString() konwertuje wartość na jej tekstową reprezentację.',
+        'valueof()' => 'Metoda valueOf() zwraca wartość prymitywną obiektu.',
+        'fetch()' => 'Funkcja fetch() w JavaScript wykonuje asynchroniczne żądanie HTTP i zwraca Promise.',
+        'async' => 'Słowo kluczowe async deklaruje funkcję asynchroniczną zwracającą Promise.',
+        'await' => 'Słowo kluczowe await wstrzymuje wykonanie funkcji async do momentu rozwiązania Promise.',
+        'promise' => 'Promise to obiekt JavaScript reprezentujący przyszły wynik operacji asynchronicznej.',
+
+        // --- Fake/non-existent JS functions (common distractors) ---
+        'parsejson()' => 'Funkcja parseJSON() nie istnieje w standardowym JavaScript — do parsowania JSON służy JSON.parse().',
+        'random()' => 'Samodzielna funkcja random() nie istnieje w JavaScript — losową liczbę generuje Math.random().',
+        'rand()' => 'Funkcja rand() nie istnieje w standardowym JavaScript — losową liczbę generuje Math.random().',
+        'delay()' => 'Funkcja delay() nie istnieje w standardowym JavaScript — opóźnienie realizuje setTimeout().',
+        'wait()' => 'Funkcja wait() nie istnieje w standardowym JavaScript — do opóźnień służy setTimeout() lub await.',
+        'remove()' => 'Metoda remove() usuwa element DOM z dokumentu (element.remove()), ale nie jest metodą usuwania z tablicy.',
+        'select()' => 'Metoda select() w JavaScript zaznacza treść pola tekstowego — nie służy do filtrowania tablic.',
+        'choose()' => 'Funkcja choose() nie istnieje w standardowym JavaScript.',
+        'pick()' => 'Funkcja pick() nie istnieje w standardowym JavaScript.',
+        'transform()' => 'Funkcja transform() nie istnieje w standardowym JavaScript — transformacje wykonuje CSS transform lub metoda map().',
+        'apply()' => 'Metoda apply() wywołuje funkcję z podanym kontekstem this i argumentami jako tablicą.',
+        'fold()' => 'Funkcja fold() nie istnieje w standardowym JavaScript — do redukcji tablicy służy reduce().',
+        'sum()' => 'Funkcja sum() nie istnieje w standardowym JavaScript — sumę oblicza się za pomocą reduce().',
+        'combine()' => 'Funkcja combine() nie istnieje w standardowym JavaScript — tablice łączy concat().',
+        'order()' => 'Funkcja order() nie istnieje w standardowym JavaScript — tablice sortuje sort().',
+        'arrange()' => 'Funkcja arrange() nie istnieje w standardowym JavaScript.',
+        'sequence()' => 'Funkcja sequence() nie istnieje w standardowym JavaScript.',
+        'count()' => 'Funkcja count() nie istnieje w JavaScript — długość tablicy zwraca właściwość length.',
+        'search()' => 'Metoda search() w JavaScript przeszukuje ciąg znaków wyrażeniem regularnym i zwraca indeks pierwszego dopasowania.',
+        'merge()' => 'Metoda Merge() nie jest standardową metodą JavaScript — do łączenia obiektów służy Object.assign() lub spread (...).',
+        'length()' => 'Właściwość length nie jest funkcją i nie wymaga nawiasów — to atrybut tablicy/ciągu.',
+
+        // --- PHP functions ---
         'session_start()' => 'Funkcja session_start() inicjalizuje lub wznawia sesję użytkownika po stronie serwera PHP.',
-        '$_post' => 'Superglobalna tablica $_POST zawiera dane przesłane z formularza HTTP metodą POST (dane nie są widoczne w adresie URL).',
-        '$_get' => 'Superglobalna tablica $_GET zawiera parametry przekazane w parametrach zapytania (query string) adresu URL.',
-        '$_session' => 'Superglobalna tablica $_SESSION przechowuje zmienne sesyjne skojarzone z identyfikatorem sesji danego klienta na serwerze.',
-        '$_cookie' => 'Superglobalna tablica $_COOKIE zawiera wartości ciasteczek przesłanych przez przeglądarkę w nagłówku żądania HTTP.',
-        'password_hash()' => 'Funkcja password_hash() tworzy bezpieczny, jednokierunkowy skrót hasła przy użyciu algorytmów takich jak Bcrypt czy Argon2.',
-        'json_encode()' => 'Funkcja json_encode() konwertuje strukturę danych PHP (tablicę/obiekt) na łańcuch znaków w formacie JSON.',
-        'json_decode()' => 'Funkcja json_decode() parsuje łańcuch w formacie JSON na tablicę asocjacyjną lub obiekt PHP.',
-        'document.getelementbyid()' => 'Metoda document.getElementById() pobiera referencję do elementu drzewa DOM o unikalnym identyfikatorze id.',
-        'addeventlistener()' => 'Metoda addEventListener() rejestruje procedurę obsługi zdarzenia (np. click, change) na wskazanym elemencie DOM.',
+        '$_post' => 'Superglobalna tablica $_POST zawiera dane przesłane z formularza HTTP metodą POST.',
+        '$_get' => 'Superglobalna tablica $_GET zawiera parametry z query string adresu URL.',
+        '$_session' => 'Superglobalna tablica $_SESSION przechowuje zmienne sesyjne skojarzone z klientem.',
+        '$_cookie' => 'Superglobalna tablica $_COOKIE zawiera wartości ciasteczek z nagłówka HTTP.',
+        '$_server' => 'Superglobalna tablica $_SERVER zawiera informacje o serwerze i środowisku wykonania.',
+        '$_files' => 'Superglobalna tablica $_FILES zawiera informacje o przesłanych plikach (upload).',
+        '$_request' => 'Superglobalna tablica $_REQUEST łączy dane z $_GET, $_POST i $_COOKIE.',
+        'password_hash()' => 'Funkcja password_hash() tworzy bezpieczny skrót hasła (Bcrypt/Argon2).',
+        'password_verify()' => 'Funkcja password_verify() porównuje hasło z jego skrótem kryptograficznym.',
+        'json_encode()' => 'Funkcja json_encode() konwertuje strukturę PHP na ciąg JSON.',
+        'json_decode()' => 'Funkcja json_decode() parsuje ciąg JSON na tablicę lub obiekt PHP.',
+        'mysqli_connect()' => 'Funkcja mysqli_connect() otwiera połączenie z serwerem MySQL/MariaDB.',
+        'mysql_connect()' => 'Funkcja mysql_connect() to przestarzała (deprecated) metoda łączenia z MySQL — zastąpiona przez mysqli.',
+        'file_exists()' => 'Funkcja file_exists() sprawdza, czy plik lub katalog o podanej ścieżce istnieje.',
+        'is_file()' => 'Funkcja is_file() sprawdza, czy ścieżka wskazuje na zwykły plik (nie katalog).',
+        'is_array()' => 'Funkcja is_array() sprawdza, czy zmienna jest tablicą.',
+        'is_int()' => 'Funkcja is_int() sprawdza, czy zmienna jest liczbą całkowitą.',
+        'is_string()' => 'Funkcja is_string() sprawdza, czy zmienna jest łańcuchem tekstowym.',
+        'is_numeric()' => 'Funkcja is_numeric() sprawdza, czy zmienna jest liczbą lub ciągiem numerycznym.',
+        'is_null()' => 'Funkcja is_null() sprawdza, czy zmienna ma wartość NULL.',
+        'empty()' => 'Funkcja empty() sprawdza, czy zmienna jest pusta (NULL, "", 0, false, []).',
+        'isset()' => 'Funkcja isset() sprawdza, czy zmienna istnieje i nie jest NULL.',
+        'unset()' => 'Funkcja unset() usuwa zmienną z pamięci.',
+        'strlen()' => 'Funkcja strlen() zwraca liczbę bajtów (znaków ASCII) w ciągu tekstowym.',
+        'str_replace()' => 'Funkcja str_replace() zastępuje wszystkie wystąpienia szukanego ciągu innym ciągiem.',
+        'strpos()' => 'Funkcja strpos() zwraca pozycję pierwszego wystąpienia podciągu w ciągu.',
+        'substr()' => 'Funkcja substr() zwraca fragment ciągu znaków od podanej pozycji.',
+        'explode()' => 'Funkcja explode() dzieli ciąg na tablicę na podstawie separatora.',
+        'implode()' => 'Funkcja implode() łączy elementy tablicy w ciąg z podanym separatorem.',
+        'array_push()' => 'Funkcja array_push() dodaje elementy na koniec tablicy PHP.',
+        'array_pop()' => 'Funkcja array_pop() usuwa i zwraca ostatni element tablicy.',
+        'array_merge()' => 'Funkcja array_merge() łączy jedną lub więcej tablic w jedną nową tablicę.',
+        'array_keys()' => 'Funkcja array_keys() zwraca tablicę wszystkich kluczy podanej tablicy.',
+        'array_values()' => 'Funkcja array_values() zwraca tablicę wszystkich wartości podanej tablicy.',
+        'in_array()' => 'Funkcja in_array() sprawdza, czy wartość istnieje w tablicy.',
+        'sort()' => 'Funkcja sort() sortuje tablicę rosnąco według wartości (resetując klucze).',
+        'rsort()' => 'Funkcja rsort() sortuje tablicę malejąco według wartości.',
+        'count()' => 'Funkcja count() w PHP zwraca liczbę elementów tablicy lub właściwości obiektu.',
+        'date()' => 'Funkcja date() w PHP formatuje datę i czas według podanego wzorca.',
+        'time()' => 'Funkcja time() w PHP zwraca bieżący znacznik czasu Unix (sekundy od 01.01.1970).',
+        'include' => 'Instrukcja include w PHP dołącza i wykonuje wskazany plik — przy braku pliku generuje ostrzeżenie (warning).',
+        'require' => 'Instrukcja require w PHP dołącza wskazany plik — przy braku pliku generuje błąd krytyczny (fatal error).',
+        'include_once' => 'Instrukcja include_once dołącza plik tylko raz (zabezpiecza przed podwójnym dołączeniem).',
+        'require_once' => 'Instrukcja require_once dołącza plik wymagany tylko raz — przy braku generuje błąd krytyczny.',
+        'echo' => 'Instrukcja echo w PHP wypisuje jeden lub więcej ciągów tekstowych do wyjścia HTML.',
+        'print' => 'Instrukcja print w PHP wypisuje ciąg tekstowy — w odróżnieniu od echo zwraca wartość 1.',
+        'function' => 'Słowo kluczowe function w PHP/JS definiuje nową funkcję (blok wielokrotnego użytku kodu).',
+        'var' => 'Słowo kluczowe var deklaruje zmienną o zasięgu funkcyjnym w JavaScript (w PHP zmienne zaczynają się od $).',
+        'let' => 'Słowo kluczowe let w JavaScript deklaruje zmienną o zasięgu blokowym (ES6+).',
+        'const' => 'Słowo kluczowe const w JavaScript deklaruje stałą o zasięgu blokowym — wartość nie może być ponownie przypisana.',
+        'new' => 'Operator new tworzy nową instancję (obiekt) klasy lub konstruktora.',
+        'this' => 'Słowo kluczowe this odnosi się do bieżącego kontekstu obiektu w JavaScript lub bieżącej instancji klasy w PHP.',
+        'null' => 'Wartość null oznacza celowy brak wartości lub pusty wskaźnik obiektowy.',
+        'undefined' => 'Wartość undefined w JavaScript oznacza zmienną zadeklarowaną, ale bez przypisanej wartości.',
+        'gettype()' => 'Funkcja gettype() w PHP zwraca nazwę typu zmiennej jako ciąg znaków.',
+        'settype()' => 'Funkcja settype() w PHP zmienia typ zmiennej na podany.',
+        'print_r()' => 'Funkcja print_r() w PHP wyświetla czytelną reprezentację zmiennej (tablice, obiekty).',
+        'var_dump()' => 'Funkcja var_dump() w PHP wyświetla szczegółowe informacje o typie i wartości zmiennej.',
+        'die()' => 'Funkcja die() w PHP kończy wykonanie skryptu z opcjonalnym komunikatem (alias exit()).',
+        'exit()' => 'Funkcja exit() w PHP kończy wykonanie skryptu.',
+        'header()' => 'Funkcja header() w PHP wysyła surowy nagłówek HTTP (np. przekierowanie, content-type).',
+        'mail()' => 'Funkcja mail() w PHP wysyła wiadomość e-mail.',
+        'file_get_contents()' => 'Funkcja file_get_contents() w PHP wczytuje całą zawartość pliku lub URL do ciągu znaków.',
+        'fopen()' => 'Funkcja fopen() w PHP otwiera plik lub URL i zwraca uchwyt do operacji I/O.',
+        'fclose()' => 'Funkcja fclose() w PHP zamyka otwarty uchwyt pliku.',
+        'fwrite()' => 'Funkcja fwrite() w PHP zapisuje dane do otwartego pliku.',
+        'fread()' => 'Funkcja fread() w PHP odczytuje dane z otwartego pliku.',
+        'move_uploaded_file()' => 'Funkcja move_uploaded_file() w PHP przenosi przesłany plik do docelowej lokalizacji.',
+
+        // --- Fake PHP functions (distractors) ---
+        'db_connect()' => 'Funkcja db_connect() nie istnieje w standardowym PHP — do połączenia z MySQL służy mysqli_connect() lub PDO.',
+        'check_file()' => 'Funkcja check_file() nie istnieje w standardowym PHP — istnienie pliku sprawdza file_exists().',
+        'encode_json()' => 'Funkcja encode_json() nie istnieje w PHP — dane koduje się do JSON za pomocą json_encode().',
+        'is_number()' => 'Funkcja is_number() nie istnieje w PHP — do sprawdzenia, czy wartość jest liczbą, służy is_numeric().',
+        'numeric()' => 'Funkcja numeric() nie istnieje w PHP — prawidłowa nazwa to is_numeric().',
+        'typeof()' => 'Funkcja typeof() nie istnieje w PHP — typ zmiennej zwraca gettype(). W JavaScript typeof jest operatorem.',
+        'type()' => 'Funkcja type() nie istnieje w standardowym PHP ani JavaScript — w PHP typ zwraca gettype(), w JS operator typeof.',
+        'var_type()' => 'Funkcja var_type() nie istnieje w PHP — do sprawdzenia typu zmiennej służy gettype().',
+        'import' => 'Słowo kluczowe import nie istnieje w PHP — pliki dołącza się za pomocą include lub require.',
+
+        // --- Fake keywords (distractors) ---
+        'repeat' => 'Słowo kluczowe repeat nie istnieje w PHP — pętle tworzą for, while, do-while i foreach.',
+        'when' => 'Słowo kluczowe when nie istnieje w PHP — warunki sprawdza instrukcja if lub switch.',
+        'do' => 'Słowo kluczowe do w PHP rozpoczyna pętlę do-while, nie pętlę foreach.',
+        'func' => 'Słowo kluczowe func nie istnieje w PHP — funkcje definiuje się za pomocą function.',
+        'define' => 'Funkcja define() w PHP tworzy stałą nazwaną dostępną globalnie (np. define("PI", 3.14)).',
+        'object' => 'Słowo kluczowe object w C# jawnie deklaruje typ bazowy System.Object; w PHP/JS do tworzenia obiektów służy new.',
+        'needed' => 'Słowo „needed" nie jest atrybutem HTML5 — do oznaczenia pola wymaganego służy atrybut required.',
+        'must' => 'Słowo „must" nie jest atrybutem HTML5 — pole wymagane oznacza się atrybutem required.',
+        'start' => 'Atrybut start w HTML określa wartość początkową listy numerowanej <ol>, nie wartość pola formularza.',
     ];
     if (isset($webMap[$cleanLower])) {
         return $webMap[$cleanLower];
+    }
+
+    // Dynamic HTML tag pattern: detect <xyz> style options not in webMap
+    if (preg_match('/^<([a-z][a-z0-9]*)>$/i', $clean, $tagMatch)) {
+        $tagName = strtolower($tagMatch[1]);
+        // Known real HTML5 tags not explicitly in webMap
+        $realTags = ['html','head','body','title','meta','link','style','script','noscript','base',
+            'div','span','p','br','hr','a','img','ul','ol','li','dl','dt','dd',
+            'table','tr','td','th','thead','tbody','tfoot','caption','col','colgroup',
+            'form','input','button','textarea','select','option','optgroup','fieldset','legend','label','output','datalist',
+            'h1','h2','h3','h4','h5','h6',
+            'header','footer','nav','main','section','article','aside','figure','figcaption',
+            'details','summary','dialog','template','slot',
+            'audio','video','source','track','canvas','svg','embed','object','iframe','picture','map','area',
+            'strong','em','b','i','u','s','small','sub','sup','mark','abbr','cite','code','pre','blockquote',
+            'address','time','progress','meter','ruby','rt','rp','wbr','bdi','bdo','data','var','samp','kbd',
+        ];
+        if (in_array($tagName, $realTags, true)) {
+            return "Znacznik <{$tagName}> jest prawidłowym elementem HTML5, ale pełni inną funkcję niż wymagana w tym pytaniu.";
+        }
+        return "Znacznik <{$tagName}> nie istnieje w standardzie HTML — nie jest prawidłowym elementem języka.";
     }
 
     // -------------------------------------------------------------------------
@@ -672,28 +1102,621 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
         'create' . ' table' => 'Polecenie CREATE' . ' TABLE tworzy nową strukturę tabeli w schemacie bazy danych (język DDL).',
         'alter' . ' table' => 'Polecenie ALTER' . ' TABLE modyfikuje strukturę istniejącej tabeli (język DDL).',
         'drop' . ' table' => 'Polecenie DROP' . ' TABLE usuwa tabelę bezpowrotnie ze schematu bazy danych (język DDL).',
+        'rename' . ' table' => 'Polecenie RENAME' . ' TABLE zmienia nazwę istniejącej tabeli w bazie danych.',
+        'truncate' . ' table' => 'Polecenie TRUNCATE' . ' TABLE szybko usuwa wszystkie rekordy z tabeli, resetując licznik AUTO_INCREMENT.',
+        'create' . ' index' => 'Polecenie CREATE' . ' INDEX tworzy indeks na kolumnach tabeli, przyspieszając wyszukiwanie danych.',
+        'create' . ' view' => 'Polecenie CREATE' . ' VIEW tworzy widok — wirtualną tabelę zdefiniowaną zapytaniem SQL.',
         'grant' => 'Polecenie GRANT nadaje użytkownikom uprawnienia do obiektów bazy danych (język DCL).',
         'revoke' => 'Polecenie REVOKE odbiera uprawnienia użytkownikom bazy danych (język DCL).',
         'commit' => 'Polecenie COMMIT zatwierdza bieżącą transakcję i trwale zapisuje wprowadzone zmiany w bazie danych (język TCL).',
         'rollback' => 'Polecenie ROLLBACK wycofuje wszystkie operacje wykonane w ramach bieżącej transakcji (język TCL).',
+        'where' => 'Klauzula WHERE filtruje wiersze na podstawie podanego warunku logicznego.',
+        'order by' => 'Klauzula ORDER BY sortuje wyniki zapytania rosnąco (ASC) lub malejąco (DESC) według wskazanych kolumn.',
+        'group by' => 'Klauzula GROUP BY łączy wiersze o identycznych wartościach w grupy, umożliwiając funkcje agregujące (SUM, COUNT, AVG).',
+        'having' => 'Klauzula HAVING filtruje grupy wierszy po wykonaniu GROUP BY (WHERE filtruje przed grupowaniem).',
+        'join' => 'Klauzula JOIN łączy wiersze z dwóch lub więcej tabel na podstawie powiązanej kolumny.',
+        'inner join' => 'Klauzula INNER JOIN zwraca tylko rekordy posiadające dopasowanie w obu tabelach.',
+        'left join' => 'Klauzula LEFT JOIN zwraca wszystkie rekordy z lewej tabeli i dopasowane z prawej (lub NULL).',
+        'right join' => 'Klauzula RIGHT JOIN zwraca wszystkie rekordy z prawej tabeli i dopasowane z lewej.',
+        'limit' => 'Klauzula LIMIT ogranicza liczbę wierszy zwracanych przez zapytanie SELECT.',
+        'distinct' => 'Klauzula DISTINCT eliminuje zduplikowane wiersze z wyników zapytania SELECT.',
+        'like' => 'Operator LIKE w SQL umożliwia wyszukiwanie wzorców z użyciem symboli zastępczych (% — dowolne znaki, _ — jeden znak).',
+        'between' => 'Operator BETWEEN filtruje wartości mieszczące się w podanym zakresie (łącznie z granicami).',
+        'in' => 'Operator IN sprawdza, czy wartość należy do podanego zbioru wartości (alternatywa dla wielu warunków OR).',
+        'count' => 'Funkcja agregująca COUNT() zlicza liczbę wierszy lub niepustych wartości w kolumnie.',
+        'sum' => 'Funkcja agregująca SUM() oblicza sumę wartości liczbowych w kolumnie.',
+        'avg' => 'Funkcja agregująca AVG() oblicza średnią arytmetyczną wartości w kolumnie.',
+        'min' => 'Funkcja agregująca MIN() zwraca najmniejszą wartość w kolumnie.',
+        'max' => 'Funkcja agregująca MAX() zwraca największą wartość w kolumnie.',
+        'as' => 'Klauzula AS nadaje alias (tymczasową nazwę) kolumnie lub tabeli w zapytaniu SQL.',
+        'union' => 'Klauzula UNION łączy wyniki dwóch zapytań SELECT w jeden zbiór wynikowy (bez duplikatów).',
+        'exists' => 'Operator EXISTS sprawdza, czy podzapytanie zwraca przynajmniej jeden wiersz.',
+        // Fake SQL commands (distractors)
+        'new table' => 'Polecenie NEW TABLE nie istnieje w SQL — do tworzenia tabel służy CREATE' . ' TABLE.',
+        'add table' => 'Polecenie ADD TABLE nie istnieje w SQL — nowe tabele tworzy CREATE' . ' TABLE.',
+        'make table' => 'Polecenie MAKE TABLE nie istnieje w standardowym SQL — tabele tworzy CREATE' . ' TABLE.',
+        'delete table' => 'Polecenie DELETE TABLE nie istnieje w SQL — do usuwania tabel służy DROP' . ' TABLE.',
+        'remove table' => 'Polecenie REMOVE TABLE nie istnieje w SQL — tabele usuwa DROP' . ' TABLE.',
+        'clear table' => 'Polecenie CLEAR TABLE nie istnieje w SQL — wszystkie rekordy usuwa TRUNCATE' . ' TABLE lub DELETE.',
+        'change table' => 'Polecenie CHANGE TABLE nie istnieje w SQL — nazwę tabeli zmienia RENAME' . ' TABLE.',
+        'modify table' => 'Polecenie MODIFY TABLE nie istnieje w SQL — strukturę tabeli modyfikuje ALTER' . ' TABLE.',
+        'add index' => 'Polecenie ADD INDEX nie istnieje jako samodzielna komenda — indeks tworzy CREATE' . ' INDEX lub ALTER' . ' TABLE ADD INDEX.',
+        'add view' => 'Polecenie ADD VIEW nie istnieje w SQL — widoki tworzy CREATE' . ' VIEW.',
+        'sort by' => 'Klauzula SORT BY nie istnieje w standardowym SQL — do sortowania wyników służy ORDER BY.',
+        'filter by' => 'Klauzula FILTER BY nie istnieje w SQL — filtrowanie realizują klauzule WHERE (wiersze) i HAVING (grupy).',
+        'merge' => 'Polecenie MERGE w SQL łączy operacje INSERT/UPDATE/DELETE na podstawie dopasowania — w prostym łączeniu tabel stosuje się JOIN.',
+        'first' => 'Klauzula FIRST nie istnieje w standardowym SQL — do ograniczenia wyników służy LIMIT (MySQL) lub TOP (SQL Server).',
+        'change' => 'Polecenie CHANGE nie jest samodzielnym poleceniem SQL — do modyfikacji danych służy UPDATE, a struktury ALTER' . ' TABLE.',
     ];
     if (isset($sqlMap[$cleanLower])) {
         return $sqlMap[$cleanLower];
     }
 
     // -------------------------------------------------------------------------
-    // 24. SEMANTIC CONTEXTUAL FALLBACK
+    // 24. DNS ARCHITECTURE & RESOLUTION ROLES
+    // -------------------------------------------------------------------------
+    $dnsServerMap = [
+        'recursive resolver' => 'Recursive Resolver (serwer rekurencyjny DNS) odpowiada za odpytywanie kolejnych serwerów w hierarchii DNS w imieniu klienta i zwrócenie mu ostatecznego adresu IP.',
+        'serwer rekurencyjny' => 'Serwer rekurencyjny DNS realizuje pełny proces odpytywania hierarchii serwerów (Root -> TLD -> Autorytatywny) dla stacji roboczej.',
+        'authoritative server' => 'Authoritative Server (serwer autorytatywny DNS) przechowuje oficjalne, nadrzędne rekordy DNS dla danej strefy i udziela wiążących odpowiedzi dla własnej domeny.',
+        'serwer autorytatywny' => 'Serwer autorytatywny DNS zawiera źródłową bazę danych strefy i jest ostatecznym źródłem prawdy dla przypisanych nazw domenowych.',
+        'caching server' => 'Caching Server (serwer buforujący DNS) przechowuje w pamięci podręcznej (RAM) uprzednio rozwiązane rekordy DNS, aby skrócić czas kolejnych zapytań.',
+        'serwer buforujący' => 'Serwer buforujący DNS przyspiesza rozwiązywanie nazw poprzez cache, nie będąc źródłem autorytetu dla żadnej strefy.',
+        'root server' => 'Root Server (serwer główny DNS, strefa ".") kieruje zapytania do właściwych serwerów domen najwyższego poziomu (TLD), np. .pl, .com.',
+        'serwer główny' => 'Serwer główny DNS (Root Name Server) stanowi korzeń ogólnoświatowej hierarchii DNS.',
+        'tld server' => 'TLD Server (Top-Level Domain) zarządza rekordami domen najwyższego poziomu (krajowych ccTLD lub globalnych gTLD) i odsyła do serwerów autorytatywnych.',
+        'forwarder' => 'DNS Forwarder przekazuje zapytania DNS, których nie potrafi rozwiązać lokalnie, do zewnętrznych nadrzędnych serwerów nazw.',
+        'strefa forward' => 'Strefa wyszukiwania do przodu (Forward Lookup Zone) tłumaczy nazwy domenowe na adresy IP.',
+        'strefa reverse' => 'Strefa wyszukiwania wstecznego (Reverse Lookup Zone) mapuje adresy IP na nazwy domenowe za pomocą rekordów PTR.',
+    ];
+    foreach ($dnsServerMap as $k => $v) {
+        if ($cleanLower === $k || str_contains($cleanLower, $k)) {
+            return $v;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 25. ACTIVE DIRECTORY & WINDOWS SERVER INFRASTRUCTURE
+    // -------------------------------------------------------------------------
+    $adMap = [
+        'kontroler domeny' => 'Kontroler domeny (Domain Controller / DC) zarządza bazą danych Active Directory (NTDS.dit), uwierzytelnianiem Kerberos i politykami w domenie.',
+        'domain controller' => 'Kontroler domeny przechowuje bazę katalogową Active Directory i autoryzuje użytkowników w sieci Windows Server.',
+        'gpo' => 'Obiekty zasad grupy (GPO - Group Policy Objects) centralnie wymuszają ustawienia bezpieczeństwa, konfigurację stacji i instalację oprogramowania w Active Directory.',
+        'zasady grupy' => 'Zasady grupy (GPO) umożliwiają scentralizowane zarządzanie stacjami roboczymi i użytkownikami w domenie Windows.',
+        'jednostka organizacyjna' => 'Jednostka organizacyjna (OU) to logiczny kontener w Active Directory służący do grupowania obiektów (użytkowników, komputerów) i przypinania polis GPO.',
+        'organizational unit' => 'Jednostka organizacyjna (OU) pozwala na delegowanie uprawnień administracyjnych i aplikowanie dedykowanych polis GPO.',
+        'fsmo' => 'Role FSMO (Flexible Single Master Operation) to unikalne role funkcyjne w lesie i domenie Active Directory (np. Schema Master, PDC Emulator, RID Master).',
+        'sysvol' => 'Folder SYSVOL to replikowany katalog na kontrolerach domeny przechowujący szablony zasad grupy GPO oraz skrypty logowania.',
+        'dhcp relay' => 'Agent przekazywania DHCP (DHCP Relay Agent) pośredniczy w przekazywaniu pakietów rozgłoszeniowych DHCP Discover między różnymi podsieciami/VLAN-ami do centralnego serwera.',
+        'wds' => 'WDS (Windows Deployment Services) umożliwia sieciową instalację systemów operacyjnych Windows przez PXE.',
+        'wsus' => 'WSUS (Windows Server Update Services) zarządza centralną dystrybucją i testowaniem poprawek Windows Update w sieci firmowej.',
+        'roaming profile' => 'Profil mobilny (Roaming Profile) synchronizuje pulpit i pliki użytkownika z serwerem plikowym podczas logowania na dowolnej stacji w domenie.',
+    ];
+    foreach ($adMap as $k => $v) {
+        if ($cleanLower === $k || str_contains($cleanLower, $k)) {
+            return $v;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 26. RELATIONAL DATABASE KEYS, NORMALIZATION & CONSTRAINTS
+    // -------------------------------------------------------------------------
+    $dbMap = [
+        'klucz główny' => 'Klucz główny (PRIMARY KEY) jednoznacznie identyfikuje każdy rekord w tabeli, wymuszając unikalność i brak wartości NULL.',
+        'primary key' => 'Klucz podstawowy (PRIMARY KEY) gwarantuje unikalność wierszy w relacyjnej bazie danych.',
+        'klucz obcy' => 'Klucz obcy (FOREIGN KEY) łączy tabelę potomną z kluczem głównym tabeli nadrzędnej, zapewniając więzy integralności referencyjnej.',
+        'foreign key' => 'Klucz obcy (FOREIGN KEY) definiuje relację między tabelami i uniemożliwia powstanie osieroconych rekordów.',
+        'klucz kandydujący' => 'Klucz kandydujący to minimalny zestaw atrybutów mogący pełnić rolę klucza głównego.',
+        'indeks' => 'Indeks bazy danych (np. B-Tree) optymalizuje i przyspiesza operacje wyszukiwania (SELECT, WHERE, ORDER BY) kosztem dodatkowego narzutu przy zapisie.',
+        'unikalny' => 'Ograniczenie UNIQUE uniemożliwia duplikowanie wartości w kolumnie, dopuszczając pojedynczą wartość NULL.',
+        'unique' => 'Ograniczenie UNIQUE gwarantuje unikalność wpisów w wybranej kolumnie tabeli.',
+        'auto_increment' => 'Atrybut AUTO_INCREMENT (lub IDENTITY) automatycznie generuje kolejną unikalną wartość liczbową przy dodawaniu nowego rekordu.',
+        'not null' => 'Ograniczenie NOT NULL wymusza, aby kolumna zawsze posiadała przypisaną wartość (zabrania wartości pustych NULL).',
+        'inner join' => 'Klauzula INNER JOIN zwraca wyłącznie te rekordy, które posiadają dopasowanie w obu złączonych tabelach.',
+        'left join' => 'Klauzula LEFT JOIN zwraca wszystkie rekordy z tabeli lewej oraz dopasowane rekordy z tabeli prawej (lub NULL w przypadku braku dopasowania).',
+        'right join' => 'Klauzula RIGHT JOIN zwraca wszystkie rekordy z tabeli prawej oraz pasujące z lewej.',
+        'group by' => 'Klauzula GROUP BY łączy wiersze o identycznych wartościach w grupy, umożliwiając wykonanie funkcji agregujących (SUM, COUNT, AVG).',
+        'having' => 'Klauzula HAVING filtruje grupy po wykonaniu klauzuli GROUP BY i funkcji agregujących (WHERE filtruje pojedyncze wiersze przed grupowaniem).',
+        'transakcja' => 'Transakcja bazy danych to sekwencja operacji wykonywana jako niepodzielna całość (zgodnie z zasadami ACID).',
+        '1nf' => 'Pierwsza postać normalna (1NF) wymaga atomowości wszystkich wartości w kolumnach (brak list i powtarzających się grup pól).',
+        '2nf' => 'Druga postać normalna (2NF) wymaga spełnienia 1NF oraz pełnej zależności funkcyjnej wszystkich atrybutów niekluczowych od całego klucza głównego.',
+        '3nf' => 'Trzecia postać normalna (3NF) wymaga spełnienia 2NF oraz wyeliminowania zależności przechodnich między atrybutami niekluczowymi.',
+        'widok' => 'Widok (VIEW) to wirtualna tabela zdefiniowana zapytaniem SQL, ułatwiająca dostęp do złożonych zestawień danych.',
+        'wyzwalacz' => 'Wyzwalacz (TRIGGER) to kod SQL uruchamiany automatycznie w odpowiedzi na zdarzenia modyfikacji danych (INSERT, UPDATE, DELETE).',
+    ];
+    foreach ($dbMap as $k => $v) {
+        if ($cleanLower === $k || str_contains($cleanLower, $k)) {
+            return $v;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 27. HARDWARE COMPONENTS & SYSTEM DIAGNOSTICS
+    // -------------------------------------------------------------------------
+    $compMap = [
+        'zasilacz atx' => 'Zasilacz komputerowy ATX dostarcza stabilne napięcia stałe (+12V, +5V, +3.3V, -12V, +5VSB) dla podzespołów komputera.',
+        'linia +12v' => 'Linia zasilania +12V zasila najbardziej obciążone komponenty: sekcję zasilania procesora (EPS) oraz karty graficzne (PCIe).',
+        'linia +5v' => 'Linia zasilania +5V zasila elektronikę dysków, porty USB oraz układy logiczne płyty głównej.',
+        'linia +3.3v' => 'Linia +3.3V dostarcza zasilanie do pamięci RAM, układów scalonych płyty głównej i gniazd rozszerzeń M.2/PCIe.',
+        'pasta termoprzewodząca' => 'Pasta termoprzewodząca wypełnia mikroskopijne nierówności między radiatorem a odpromiennikiem procesora (IHS), minimalizując opór cieplny.',
+        'termopad' => 'Termopad (taśma termoprzewodząca) przekazuje ciepło z elementów o zróżnicowanej wysokości (pamięci VRAM, sekcja VRM, dyski M.2) na radiator.',
+        'mostek północny' => 'Mostek północny (Northbridge) tradycyjnie łączył procesor z pamięcią RAM i szybką magistralą graficzną AGP/PCIe (obecnie zintegrowany w CPU).',
+        'mostek południowy' => 'Mostek południowy (Southbridge / PCH) zarządza wolniejszymi magistralami wejścia/wyjścia (SATA, USB, audio, LAN, BIOS).',
+        'bios' => 'BIOS (Basic Input/Output System) to podstawowy firmware płyty głównej inicjalizujący podzespoły (POST) i uruchamiający bootloader systemu.',
+        'uefi' => 'UEFI (Unified Extensible Firmware Interface) to nowoczesny następca BIOS-u obsługujący tablice partycji GPT, dyski powyżej 2 TB i Secure Boot.',
+        'secure boot' => 'Funkcja Secure Boot weryfikuje podpisy cyfrowe sterowników i modułów rozruchowych, blokując ładowanie nieautoryzowanych bootkitów.',
+        'tpm' => 'Moduł TPM (Trusted Platform Module) to dedykowany układ sprzętowy zabezpieczający klucze szyfrowania partycji (np. BitLocker) i certyfikaty.',
+        'smart' => 'System S.M.A.R.T. stale monitoruje parametry techniczne dysku (np. liczbę realokowanych sektorów 05, błędy CRC 199, temperaturę).',
+        'dual channel' => 'Tryb Dual Channel podwaja teoretyczną przepustowość pamięci RAM poprzez równoległe wykorzystanie dwóch 64-bitowych magistrali pamięci.',
+        'ram ecc' => 'Pamięć RAM ECC (Error-Correcting Code) posiada dodatkowe bity parzystości i koryguje jednopozycyjne błędy bitowe w serwerach.',
+    ];
+    foreach ($compMap as $k => $v) {
+        if ($cleanLower === $k || str_contains($cleanLower, $k)) {
+            return $v;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 28. ADVANCED NETWORK INFRASTRUCTURE & SWITCHING
+    // -------------------------------------------------------------------------
+    $netAdvMap = [
+        'brama domyślna' => 'Brama domyślna (Default Gateway) to adres IP interfejsu lokalnego routera, do którego stacje wysyłają pakiety kierowane poza bieżącą podsieć.',
+        'default gateway' => 'Brama domyślna umożliwia urządzeniom w sieci LAN komunikację z odległymi podsieciami i Internetem.',
+        'domena rozgłoszeniowa' => 'Domena rozgłoszeniowa (Broadcast Domain) to obszar sieci, w którym ramka rozgłoszeniowa dociera do wszystkich hostów; dzielona jest przez routery i VLAN-y.',
+        'domena kolizyjna' => 'Domena kolizyjna (Collision Domain) to segment sieci, w którym urządzenia rywalizują o medium; każdy port nowoczesnego switcha stanowi osobną domenę kolizyjną.',
+        'tablica mac' => 'Tablica CAM/MAC przełącznika przechowuje powiązania fizycznych adresów MAC kart sieciowych z numerami portów fizycznych switcha.',
+        'trunk' => 'Port typu Trunk (IEEE 802.1Q) przesyła ramki z wielu VLAN-ów, dodając 4-bajtowy tag identyfikujący identyfikator VLAN-u (VLAN ID).',
+        'access port' => 'Port typu Access należy do jednego dedykowanego VLAN-u i przesyła nietagowane ramki Ethernet bezpośrednio do stacji końcowej.',
+        'lacp' => 'Protokół LACP (Link Aggregation Control Protocol, IEEE 802.3ad) łączy wiele fizycznych łączy Ethernet w jedno logiczne łącze redundantne o zwielokrotnionej przepustowości.',
+        'poe' => 'Technologia PoE (Power over Ethernet, IEEE 802.3af/at/bt) przesyła zasilanie elektryczne (np. do kamer IP, telefonów VoIP i punktów AP) przez skrętkę komputerową.',
+        'dmz' => 'Strefa DMZ (strefa zdemilitaryzowana) izoluje publicznie dostępne serwery (WWW, Mail) od chronionej sieci wewnętrznej LAN.',
+        'pat' => 'PAT (Port Address Translation / NAT Overload) mapuje wiele prywatnych adresów IP na jeden publiczny adres IP przy użyciu unikalnych portów źródłowych.',
+    ];
+    foreach ($netAdvMap as $k => $v) {
+        if ($cleanLower === $k || str_contains($cleanLower, $k)) {
+            return $v;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 29. LINUX CONFIGURATION FILES (/etc/...)
+    // -------------------------------------------------------------------------
+    if (str_contains($cleanLower, '/etc/') || str_contains($cleanLower, 'hosts') || str_contains($cleanLower, 'resolv.conf') || str_contains($cleanLower, 'interfaces')) {
+        if (str_contains($cleanLower, 'hosts') && !str_contains($cleanLower, 'host.conf')) {
+            return 'Plik /etc/hosts służy do lokalnego statycznego mapowania nazw hostów na adresy IP, a nie konfiguracji parametrów karty sieciowej.';
+        }
+        if (str_contains($cleanLower, 'resolv.conf')) {
+            return 'Plik /etc/resolv.conf zawiera adresy serwerów DNS (nameserver) używanych przez system do rozwiązywania nazw domenowych.';
+        }
+        if (str_contains($cleanLower, 'host.conf')) {
+            return 'Plik /etc/host.conf definiuje kolejność mechanizmów rozwiązywania nazw (np. plik hosts przed DNS).';
+        }
+        if (str_contains($cleanLower, 'network/interfaces') || str_contains($cleanLower, 'interfaces')) {
+            return 'Plik /etc/network/interfaces to główny plik konfiguracyjny statycznych i dynamicznych interfejsów sieciowych w Debian/Ubuntu.';
+        }
+        if (str_contains($cleanLower, 'passwd')) {
+            return 'Plik /etc/passwd zawiera bazę kont użytkowników w systemie Linux (nazwy, UID, GID, katalog domowy, powłokę).';
+        }
+        if (str_contains($cleanLower, 'shadow')) {
+            return 'Plik /etc/shadow przechowuje zaszyfrowane hasła użytkowników z restrykcyjnymi uprawnieniami odczytu (tylko root).';
+        }
+        if (str_contains($cleanLower, 'group')) {
+            return 'Plik /etc/group definiuje grupy użytkowników i ich identyfikatory GID w systemie Linux.';
+        }
+        if (str_contains($cleanLower, 'fstab')) {
+            return 'Plik /etc/fstab definiuje statyczną tabelę montowania systemów plików i partycji dyskowych podczas startu systemu.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 30. WINDOWS MANAGEMENT CONSOLES (.MSC)
+    // -------------------------------------------------------------------------
+    if (preg_match('/[a-z0-9_\-]+\.msc\b/i', $cleanLower, $mscMatch)) {
+        $msc = strtolower($mscMatch[0]);
+        $mscMap = [
+            'gpedit.msc' => 'Edytor lokalnych zasad grupy (gpedit.msc) pozwala na centralną konfigurację uprawnień, Menu Start i zasad bezpieczeństwa systemu Windows.',
+            'azman.msc' => 'Menedżer autoryzacji (azman.msc) zarządza zasadami autoryzacji opartymi na rolach dla aplikacji, a nie interfejsem systemu Windows.',
+            'fsmgmt.msc' => 'Konsola fsmgmt.msc służy do zarządzania folderami udostępnionymi, aktywnymi sesjami SMB i otwartymi plikami sieciowymi.',
+            'dcpol.msc' => 'Konsola dcpol.msc służy do edycji domyślnych zasad kontrolera domeny w Active Directory.',
+            'services.msc' => 'Konsola services.msc służy do zarządzania usługami systemowymi Windows (start, stop, typ uruchomienia).',
+            'diskmgmt.msc' => 'Konsola diskmgmt.msc służy do partycjonowania, formatowania i zarządzania woluminami dyskowymi.',
+            'eventvwr.msc' => 'Konsola eventvwr.msc (Podgląd zdarzeń) służy do przeglądania dzienników systemowych, aplikacji i zabezpieczeń.',
+            'compmgmt.msc' => 'Konsola compmgmt.msc (Zarządzanie komputerem) łączy podstawowe przystawki administracyjne systemu Windows.',
+            'lusrmgr.msc' => 'Konsola lusrmgr.msc służy do zarządzania lokalnymi użytkownikami i grupami w systemie Windows.',
+            'devmgmt.msc' => 'Menedżer urządzeń (devmgmt.msc) służy do zarządzania podzespołami sprzętowymi i instalacji sterowników.',
+            'certmgr.msc' => 'Konsola certmgr.msc zarządza certyfikatami cyfrowymi bieżącego użytkownika.',
+            'secpol.msc' => 'Konsola secpol.msc konfiguruje lokalne zasady zabezpieczeń systemu Windows.',
+            'perfmon.msc' => 'Monitor wydajności (perfmon.msc) śledzi obciążenie podzespołów w czasie rzeczywistym.',
+        ];
+        if (isset($mscMap[$msc])) {
+            return $mscMap[$msc];
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 31. WINDOWS EVENT VIEWER LOGS
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'dziennik') || str_contains($qLower, 'zdarzen') || str_contains($qLower, 'logowa')) {
+        if ($cleanLower === 'setup' || str_contains($cleanLower, 'instalacj')) {
+            return 'Dziennik Setup (Instalacja) rejestruje zdarzenia związane z instalacją systemu operacyjnego i poprawek Windows Update.';
+        }
+        if ($cleanLower === 'system') {
+            return 'Dziennik System rejestruje zdarzenia generowane przez sterowniki urządzeń i wewnętrzne procesy systemowe Windows.';
+        }
+        if ($cleanLower === 'aplikacja' || $cleanLower === 'application') {
+            return 'Dziennik Aplikacja rejestruje komunikaty i błędy generowane przez zainstalowane programy użytkownika.';
+        }
+        if ($cleanLower === 'zabezpieczeń' || $cleanLower === 'security' || str_contains($cleanLower, 'zabezpiecz')) {
+            return 'Dziennik Zabezpieczenia (Security) rejestruje zdarzenia audytu, w tym udane i nieudane próby logowania użytkowników do systemu.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 32. NET ACCOUNTS & PASSWORD POLICIES
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'net accounts') || (str_contains($qLower, 'hasł') && str_contains($qLower, 'wartość 11'))) {
+        if (str_contains($cleanLower, 'dni ważności') || str_contains($cleanLower, 'maksymalnej liczby dni')) {
+            return 'Czas ważności hasła w dniach konfiguruje przełącznik /maxpwage, a nie parametr określający długość.';
+        }
+        if (str_contains($cleanLower, 'między zmianami')) {
+            return 'Minimalny czas między zmianami haseł konfiguruje przełącznik /minpwage.';
+        }
+        if (str_contains($cleanLower, 'minut') || str_contains($cleanLower, 'zalogowany')) {
+            return 'Czas wymuszonego wylogowania po wygaśnięciu sesji konfiguruje parametr /forcelogoff, a nie minpwlen.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 33. BENCHMARK & DIAGNOSTIC TOOLS
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'superpi') || str_contains($cleanLower, 'superpi')) {
+        if (str_contains($cleanLower, 'ram') || str_contains($cleanLower, 'pamięci')) {
+            return 'Program SuperPi oblicza rozwinięcie liczby Pi i służy jako benchmark wydajności i stabilności procesora (CPU), a nie do testowania pamięci RAM (do RAM służy np. MemTest86).';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 34. MOBILE OS & CLOUD SYNC
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'android') || str_contains($qLower, 'telefon') || str_contains($qLower, 'kontakt')) {
+        if (str_contains($cleanLower, 'yahoo') || str_contains($cleanLower, 'onet') || str_contains($cleanLower, 'wp.pl')) {
+            return 'Konta pocztowe Yahoo/Onet nie są natywnym dostawcą usług synchronizacji systemowej bazy kontaktów i ustawień dla systemu Android.';
+        }
+        if (str_contains($cleanLower, 'microsoft')) {
+            return 'Konto Microsoft jest domyślnym kontem chmurowym dla systemu Windows, natomiast w systemie Android natywną synchronizację zapewnia konto Google.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 35. HEALTH & SAFETY (BHP) VS CYBERSECURITY
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'bezpieczeństwem') || str_contains($qLower, 'zagrożen')) {
+        if (str_contains($cleanLower, 'ciepła') || str_contains($cleanLower, 'przewodów') || str_contains($cleanLower, 'jeść') || str_contains($cleanLower, 'pić')) {
+            return 'Wskazane zasady (odpowiednia odległość od źródeł ciepła, czystość stanowiska, zakaz jedzenia/picia) dotyczą zasad BHP i kultury pracy ze sprzętem, a nie ochrony systemu operacyjnego przed cyberatakami i złośliwym oprogramowaniem.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 36. LINUX COMMAND FUNCTIONS (touch, wc, grep, mv, cp, rm, fsck)
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'touch') || str_contains($cleanLower, 'touch')) {
+        if (str_contains($cleanLower, 'wierszy') || str_contains($cleanLower, 'słów') || str_contains($cleanLower, 'znaków')) {
+            return 'Zliczanie liczby wierszy, słów i bajtów w pliku wykonuje polecenie „wc” (word count), a nie „touch”.';
+        }
+        if (str_contains($cleanLower, 'wzorca') || str_contains($cleanLower, 'wyszukan')) {
+            return 'Wyszukiwanie wzorców tekstowych w plikach wykonuje polecenie „grep”, a nie „touch”.';
+        }
+        if (str_contains($cleanLower, 'przeniesienia') || str_contains($cleanLower, 'zmiany nazwy')) {
+            return 'Przenoszenie plików i zmianę ich nazw wykonuje polecenie „mv”, a nie „touch”.';
+        }
+    }
+    if (str_contains($qLower, 'fsck') || str_contains($cleanLower, 'fsck')) {
+        if (str_contains($cleanLower, 'sieci') || str_contains($cleanLower, 'przepustowoś')) {
+            return 'Narzędzie fsck (File System Consistency Check) sprawdza integralność logiczną systemów plików na dysku, a nie parametry sieci komputerowej.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 37. RDP & SERVER ROLES (RRAS, WDS, WSUS, DHCP)
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'rdp') || str_contains($cleanLower, 'rdp')) {
+        if (str_contains($cleanLower, 'scp') || str_contains($cleanLower, 'poczty')) {
+            return 'Protokół RDP (Remote Desktop Protocol) służy wyłącznie do przesyłania graficznego interfejsu pulpitu zdalnego, a nie do transferu plików SCP czy obsługi poczty.';
+        }
+        if (str_contains($cleanLower, 'linux')) {
+            return 'RDP to protokół opracowany przez firmę Microsoft dla środowiska Windows (choć w Linux można użyć serwera xrdp, natywnym terminalem w Linux jest SSH).';
+        }
+    }
+    if (str_contains($qLower, 'rezerwacj') || str_contains($qLower, 'adresów ip') || str_contains($qLower, 'mac')) {
+        if (str_contains($cleanLower, 'rras')) {
+            return 'Rola RRAS (Routing and Remote Access Server) konfiguruje routing programowy i serwer VPN, a nie zarządza rezerwacjami adresów IP dla klientów LAN.';
+        }
+        if (str_contains($cleanLower, 'wds')) {
+            return 'Rola WDS (Windows Deployment Services) służy do sieciowej instalacji obrazów systemów operacyjnych przez sieć LAN.';
+        }
+        if (str_contains($cleanLower, 'wsus')) {
+            return 'Rola WSUS zarządza dystrybucją i zatwierdzaniem aktualizacji Windows Update w domenie.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 38. COMPOUND PHRASES (split by " i ", " oraz ", ", ", " + ")
+    // -------------------------------------------------------------------------
+    if (preg_match('/\b(i|oraz)\b|,|\+/iu', $cleanLower)) {
+        $parts = preg_split('/\s+(?:i|oraz)\s+|,\s*|\+\s*/iu', $clean);
+        if (count($parts) >= 2) {
+            $partExplanations = [];
+            foreach ($parts as $p) {
+                $p = trim($p);
+                if ($p === '') continue;
+                $pReason = aiTutorAnalyzeTechnicalOption($p, $questionText, $correctText, false, $category);
+                if ($pReason !== '' && !str_contains($pReason, 'nie spełnia warunków') && !str_contains($pReason, 'nie stanowi prawidłowego') && !str_contains($pReason, 'dotyczy innego')) {
+                    $partExplanations[] = "„{$p}” (" . lcfirst(rtrim($pReason, '.')) . ")";
+                }
+            }
+            if (count($partExplanations) >= 2) {
+                return implode(' oraz ', $partExplanations) . ' — żadne z tych rozwiązań nie spełnia wymagań zadania.';
+            } elseif (count($partExplanations) === 1) {
+                return $partExplanations[0] . ' — nie rozwiązuje w pełni zagadnienia z treści pytania.';
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 39. HARDWARE, DIAGNOSTICS & SYSTEM UPGRADES
+    // -------------------------------------------------------------------------
+    if (preg_match('/(ram|pamięc|płyt|dysk|graficzn|zasilacz|procesor|interfejs|gniazd|chłodzen|radiator|wentylator)/iu', $cleanLower) && preg_match('/(ram|modernizacj|płyt|komputer|serwer|procesor|zasilan)/iu', $qLower)) {
+        if (str_contains($cleanLower, 'dysk')) {
+            return 'Parametry dysku twardego nie wpływają na kompatybilność fizyczną ani pojemnościową modułów pamięci RAM z płytą główną.';
+        }
+        if (str_contains($cleanLower, 'interfejsy zewnętrzne') || str_contains($cleanLower, 'zewnętrzn')) {
+            return 'Zewnętrzne porty wejścia/wyjścia (I/O) płyty głównej są niezależne od wewnętrznych banków pamięci operacyjnej RAM.';
+        }
+        if (str_contains($cleanLower, 'karty graficznej') || str_contains($cleanLower, 'graficzn') || str_contains($cleanLower, 'zasilacz')) {
+            return 'Złącze karty graficznej i moc zasilacza nie decydują o maksymalnej obsługiwanej architekturze i pojemności kości RAM przez płytę główną.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 40. WIRELESS, BLUETOOTH & PERIPHERALS
+    // -------------------------------------------------------------------------
+    if (preg_match('/(bluetooth|bezprzewod|mobiln|parowan)/iu', $qLower)) {
+        if (str_contains($cleanLower, 'przeglądark')) {
+            return 'Przeglądarka internetowa działa w warstwie aplikacji (L7) do wyświetlania stron WWW, a nie do zestawiania łącza radiowego Bluetooth w warstwie fizycznej.';
+        }
+        if (str_contains($cleanLower, 'kabl') || str_contains($cleanLower, 'krosow')) {
+            return 'Kabel krosowy Ethernet służy do połączeń przewodowych RJ-45, a nie transmisji bezprzewodowej Bluetooth.';
+        }
+        if (str_contains($cleanLower, 'wan')) {
+            return 'Sieć WAN to rozległa sieć o zasięgu globalnym (np. Internet), podczas gdy Bluetooth tworzy sieć osobistą PAN o zasięgu do kilkunastu metrów.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 41. ANALOG / PSTN / VOIP
+    // -------------------------------------------------------------------------
+    if (preg_match('/(pstn|telefon|voip|aparat)/iu', $qLower)) {
+        if (str_contains($cleanLower, 'modem analog') || str_contains($cleanLower, 'modemu analog')) {
+            return 'Modem analogowy służy do transmisji danych cyfrowych przez linię PSTN, a nie do zamiany połączenia głosowego na pakiety VoIP.';
+        }
+        if (str_contains($cleanLower, 'mostk') || str_contains($cleanLower, 'bridge')) {
+            return 'Mostek sieciowy łączy segmenty sieci lokalnej LAN w warstwie 2 OSI i nie obsługuje analogowych aparatów telefonicznych.';
+        }
+        if (str_contains($cleanLower, 'repet') || str_contains($cleanLower, 'wzmacni')) {
+            return 'Repeater regeneruje sygnały sieciowe w warstwie 1 OSI i nie wykonuje konwersji protokołów telefonicznych.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 42. MONITORS, DISPLAYS & OSD
+    // -------------------------------------------------------------------------
+    if (preg_match('/(monitor|plazm|ekran|wyświetlacz|piksel|obraz|kineskop|matryc)/iu', $qLower)) {
+        if (str_contains($cleanLower, 'fosfor') || str_contains($cleanLower, 'luminofor')) {
+            return 'Warstwa luminoforu (fosforu) odpowiada za emisję światła widzialnego pod wpływem promieniowania UV, a nie za bezpośrednie adresowanie pikseli.';
+        }
+        if (str_contains($cleanLower, 'dielektryk')) {
+            return 'Warstwa dielektryka izoluje elektrody i chroni je przed erozją wyładowań jarzeniowych, nie pełnąc funkcji sterowania matrycą.';
+        }
+        if (str_contains($cleanLower, 'elektrody wyświetlacza') || str_contains($cleanLower, 'wyświetlacz')) {
+            return 'Elektrody wyświetlacza (podtrzymujące) utrzymują wyładowanie jarzeniowe, podczas gdy elektrody adresujące wybierają konkretną komórkę.';
+        }
+        if (str_contains($cleanLower, 'jasnoś')) {
+            return 'Regulacja jasności zmienia intensywność podświetlenia/luminancji, a nie geometrię i zniekształcenia trapezowe obrazu.';
+        }
+        if (str_contains($cleanLower, 'przestrzen') || str_contains($cleanLower, 'kolor') || str_contains($cleanLower, 'barw')) {
+            return 'Przestrzeń barw (np. sRGB, AdobeRGB) dotyczy kalibracji kolorystycznej matrycy, a nie fizycznego wyrównywania zniekształceń krawędzi obrazu.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 43. VPN TOPOLOGIES
+    // -------------------------------------------------------------------------
+    if (preg_match('/(vpn|wirtualn.*prywatn)/iu', $qLower) || preg_match('/(site|client|host|gateway)/iu', $cleanLower)) {
+        if (preg_match('/client\s*-\s*to\s*-\s*site|host\s*-\s*to\s*-\s*gateway/iu', $cleanLower)) {
+            return 'Architektura Client-to-Site (Remote Access) łączy pojedynczego użytkownika/hosta z bramą centralną firmy, a nie dwa odrębne biura/oddziały.';
+        }
+        if (preg_match('/site\s*-\s*to\s*-\s*site/iu', $cleanLower)) {
+            return 'Architektura Site-to-Site łączy ze sobą całe podsieci dwóch oddziałów firmy przez stały tunel między routerami brzegowymi.';
+        }
+        if (preg_match('/host\s*-\s*to\s*-\s*host/iu', $cleanLower)) {
+            return 'Połączenie Host-to-Host tworzy szyfrowany tunel bezpośrednio między dwoma konkretnymi komputerami końcowymi.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 44. STP & SWITCH TIMINGS
+    // -------------------------------------------------------------------------
+    if (preg_match('/(bpdu|stp|przełącznik|switch|most)/iu', $qLower)) {
+        if (str_contains($cleanLower, 'maksymalny czas krążenia') || str_contains($cleanLower, '20')) {
+            return 'Wartość 20 sekund w protokole STP to parametr Max Age (czas przeterminowania informacji o topologii), a nie okres wysyłania ramek BPDU.';
+        }
+        if (str_contains($cleanLower, 'minimalny czas krążenia') || str_contains($cleanLower, '25')) {
+            return 'Protokół STP nie definiuje parametru minimalnego czasu krążenia BPDU o takiej wartości.';
+        }
+        if (str_contains($cleanLower, 'statusu łącza') || str_contains($cleanLower, '5 sekund') || str_contains($cleanLower, '15')) {
+            return 'Czas przejścia stanów portu (Forward Delay) wynosi standardowo 15 sekund dla stanu Listening i Learning.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 45. CSS / WEB FAKE & REAL PROPERTIES
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'css') || str_contains($qLower, 'styl') || str_contains($qLower, 'arkusz')) {
+        if ($cleanLower === 'font-color' || $cleanLower === 'text-color') {
+            return 'Właściwość „' . $clean . '” nie istnieje w standardzie CSS — do ustawienia koloru tekstu służy właściwość „color”.';
+        }
+        if ($cleanLower === 'text-style') {
+            return 'Właściwość „text-style” nie istnieje w CSS — styl czcionki (np. italic) ustawia się za pomocą „font-style”.';
+        }
+        if ($cleanLower === 'font-background' || $cleanLower === 'text-background') {
+            return 'Właściwość „' . $clean . '” nie istnieje w CSS — kolor tła definiuje „background-color”.';
+        }
+        if ($cleanLower === 'align' || $cleanLower === 'text-position') {
+            return 'Właściwość „' . $clean . '” nie istnieje w CSS — do wyrównywania tekstu służy „text-align”.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 46. PHP / JS FUNCTIONS & STATEMENTS
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'php') || str_contains($qLower, 'serwer')) {
+        if (in_array($cleanLower, ['printtext', 'write', 'writeline', 'out.print', 'system.out.println', 'response.write'], true)) {
+            return 'Instrukcja „' . $clean . '” nie istnieje w języku PHP — do wypisywania tekstu służy „echo” lub „print”.';
+        }
+        if ($cleanLower === 'console.log') {
+            return 'Metoda „console.log()” należy do JavaScript w przeglądarce klienta, a nie do kodu serwerowego PHP.';
+        }
+        if ($cleanLower === 'document.write') {
+            return 'Metoda „document.write()” to funkcja DOM w JavaScript, a nie instrukcja PHP.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 47. SQL DATA TYPES & COMMANDS
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'sql') || str_contains($qLower, 'bazy') || str_contains($qLower, 'tabel')) {
+        if ($cleanLower === 'date') {
+            return 'Typ danych DATE w SQL przechowuje wyłącznie wartości daty w formacie RRRR-MM-DD, a nie tekst lub liczby.';
+        }
+        if ($cleanLower === 'time') {
+            return 'Typ TIME przechowuje wyłącznie godzinę (GG:MM:SS), a nie pełną datę ani ciągi tekstowe.';
+        }
+        if ($cleanLower === 'datetime' || $cleanLower === 'timestamp') {
+            return 'Typ ' . strtoupper($clean) . ' przechowuje znacznik czasu (data i godzina), a nie tekst ogólny.';
+        }
+        if ($cleanLower === 'get') {
+            return 'Słowo „GET” to metoda protokołu HTTP, a nie polecenie języka SQL (do pobierania rekordów służy SELECT).';
+        }
+        if ($cleanLower === 'show') {
+            return 'Polecenie SHOW (np. SHOW TABLES) listuje metadane serwera bazy danych, a nie zwraca wiersze z tabel.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 48. PROGRAMMING & OOP SYNTAX (INF.04)
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'c#') || str_contains($qLower, 'c++') || str_contains($qLower, 'java') || str_contains($qLower, 'programow') || str_contains($qLower, 'klas')) {
+        if ($cleanLower === 'extends') {
+            return 'Słowo kluczowe „extends” definiuje dziedziczenie w języku Java i PHP — w C# oraz C++ stosuje się dwukropek (:).';
+        }
+        if ($cleanLower === 'inherits') {
+            return 'Słowo „inherits” występuje w języku Visual Basic — w C# dziedziczenie zapisuje się dwukropkiem (:).';
+        }
+        if ($cleanLower === 'base') {
+            return 'Słowo kluczowe „base” w C# odwołuje się do konstruktora lub metod klasy bazowej (super w Javie), a nie deklaruje dziedziczenie w nagłówku klasy.';
+        }
+        if ($cleanLower === 'stop' || $cleanLower === 'exit' || $cleanLower === 'end') {
+            return 'Słowo „' . $clean . '” nie jest instrukcją sterującą pętlami w tym języku — do przerwania pętli służy „break”.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 49. OPERATING SYSTEMS & OPEN SOURCE
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'open source') || str_contains($qLower, 'otwartym kodzie') || str_contains($qLower, 'licencj')) {
+        if ($cleanLower === 'windows' || $cleanLower === 'microsoft windows') {
+            return 'System Microsoft Windows jest oprogramowaniem komercyjnym o zamkniętym kodzie źródłowym (Proprietary / Closed Source).';
+        }
+        if ($cleanLower === 'macos' || $cleanLower === 'mac os' || $cleanLower === 'ios') {
+            return 'System macOS firmy Apple jest komercyjnym, zamkniętym systemem operacyjnym dla komputerów Mac.';
+        }
+        if ($cleanLower === 'ms-dos' || $cleanLower === 'dos') {
+            return 'MS-DOS to historyczny, jednoużytkownikowy system dyskowy firmy Microsoft z zamkniętym kodem źródłowym.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 50. NETWORK DEVICES & CABLING
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'łączy różne sieci') || str_contains($qLower, 'trasowan') || str_contains($qLower, 'routing') || str_contains($qLower, 'sieci')) {
+        if ($cleanLower === 'access point' || $cleanLower === 'punkt dostępowy' || $cleanLower === 'ap') {
+            return 'Punkt dostępowy (Access Point) działa w warstwie 2 OSI i łączy urządzenia Wi-Fi z siecią przewodową LAN w tej samej podsieci, nie trasując pakietów między różnymi sieciami IP.';
+        }
+    }
+    if (str_contains($qLower, 'kabel') || str_contains($qLower, 'skrętk') || str_contains($qLower, 'medium') || str_contains($qLower, 'ethernet')) {
+        if ($cleanLower === 'koncentryczny' || $cleanLower === 'kabel koncentryczny' || $cleanLower === 'koaksjalny') {
+            return 'Kabel koncentryczny to historyczne medium sieci 10Base-2/10Base-5, rzadko stosowane we współczesnych sieciach komputerowych Ethernet.';
+        }
+        if ($cleanLower === 'światłowód' || $cleanLower === 'światłowodowy' || $cleanLower === 'kabel światłowodowy') {
+            return 'Kabel światłowodowy stosowany jest głównie w sieciach szkieletowych, kampusowych i łączach dalekiego zasięgu, a nie jako standardowe okablowanie stacji roboczych LAN.';
+        }
+        if ($cleanLower === 'telefoniczny' || $cleanLower === 'kabel telefoniczny') {
+            return 'Kabel telefoniczny (np. 1-2 pary RJ-11) nie spełnia norm transmisyjnych dla nowoczesnych sieci komputerowych Ethernet.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 51. ROUTING PROTOCOLS (CLASSFUL VS CLASSLESS)
+    // -------------------------------------------------------------------------
+    if (str_contains($qLower, 'routing') || str_contains($qLower, 'protokół routingu')) {
+        if ($cleanLower === 'ripv1') {
+            return 'Protokół RIPv1 jest protokołem klasowym (classful) — rozsyła aktualizacje broadcastem i nie przesyła masek podsieci (brak obsługi VLSM/CIDR).';
+        }
+        if ($cleanLower === 'ripv2') {
+            return 'Protokół RIPv2 jest protokołem bezklasowym (classless) — przesyła maski podsieci (obsługuje VLSM/CIDR) i komunikuje się przez multicast 224.0.0.9.';
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 52. CONTEXTUAL FACTUAL FALLBACK (NEVER BLIND PARROT)
     // -------------------------------------------------------------------------
     if ($isCorrect) {
-        return "wskazana opcja prawidłowo i kompletnie rozwiązuje zagadnienie postawione w pytaniu egzaminacyjnym.";
+        return "Wskazana opcja prawidłowo i kompletnie rozwiązuje zagadnienie postawione w pytaniu egzaminacyjnym.";
     }
 
-    // If option is a descriptive Polish sentence, contrast naturally
-    if (mb_strlen($clean) > 15 && preg_match('/\s/', $clean)) {
-        return "opcja \"{$clean}\" opisuje inną czynność lub parametr niż ten wymagany w pytaniu.";
+    // Action phrases (verbs like włączenie, zmiana, instalacja, usunięcie, itp.)
+    if (preg_match('/^(włączenie|wyłączenie|zmiana|ustawienie|instalacja|odinstalowanie|usunięcie|skonfigurowanie|dodanie|zastosowanie|uruchomienie|sprawdzenie|czyszczenie|podłączenie|wymiana|formatowanie|wykonanie|użycie)/iu', $clean)) {
+        return $correctText !== ''
+            ? "Czynność „{$clean}” nie realizuje celu określonego w pytaniu (właściwym działaniem jest: „{$correctText}”)."
+            : "Czynność „{$clean}” nie stanowi odpowiedniego działania w tym przypadku.";
     }
 
-    return "pojęcie lub wariant \"{$clean}\" nie odpowiada warunkom określonym w treści tego zadania.";
+    // Material / tool / cleaning / hardware
+    if (preg_match('/(szczotk|powietrz|opask|miernik|zaciskark|ściągacz|wkrętak|lutownic|preparat|alkohol|pasta|klej|taśm|smar|płyn|ściereczk)/iu', $clean)) {
+        return $correctText !== ''
+            ? "Zastosowanie „{$clean}” jest w tym przypadku niewłaściwe (do wykonania tego zadania należy użyć: „{$correctText}”)."
+            : "Zastosowanie „{$clean}” jest niewłaściwe w tym przypadku.";
+    }
+
+    // System commands / switches / files
+    if (str_starts_with($clean, '-') || str_starts_with($clean, '/') || preg_match('/^[a-z0-9_\-]+\.[a-z0-9]+$/i', $clean)) {
+        return $correctText !== ''
+            ? "Przełącznik lub plik „{$clean}” służy do innych operacji w systemie (właściwym wyborem jest: „{$correctText}”)."
+            : "Przełącznik/plik „{$clean}” służy do innych operacji w systemie.";
+    }
+
+    // Code / syntax
+    if (str_contains($clean, '(') || str_contains($clean, '{') || str_contains($clean, '$') || str_contains($clean, ';') || str_contains($clean, '=')) {
+        return $correctText !== ''
+            ? "Konstrukcja kodu „{$clean}” nie spełnia wymagań zadania (poprawne rozwiązanie to: „{$correctText}”)."
+            : "Konstrukcja kodu „{$clean}” nie spełnia wymagań zadania.";
+    }
+
+    if ($correctText !== '') {
+        return "Opcja „{$clean}” dotyczy innego zagadnienia technicznego (właściwym rozwiązaniem dla tego problemu jest „{$correctText}”).";
+    }
+
+    return "Opcja „{$clean}” nie stanowi prawidłowego rozwiązania dla tego pytania egzaminacyjnego.";
 }
 
 /**

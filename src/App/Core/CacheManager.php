@@ -10,7 +10,10 @@ class CacheManager
     private int $misses = 0;
     private string $apcuPrefix = 'app_cache_';
     private array $tagVersionsMemory = [];
+    private array $memoryCache = [];
     private string $tagMapFile;
+    private int $writeCounter = 0;
+    private int $maxFiles = 200;
 
     public function __construct(?string $cacheDir = null)
     {
@@ -145,6 +148,7 @@ class CacheManager
 
         $purgedCount = 0;
         foreach (array_keys($keysToPurge) as $key) {
+            unset($this->memoryCache[(string)$key]);
             if ($this->delete((string)$key)) {
                 $purgedCount++;
             }
@@ -184,6 +188,18 @@ class CacheManager
 
     public function get(string $key, $default = null)
     {
+        // 0. Try Request Memory Cache (L1)
+        if (isset($this->memoryCache[$key])) {
+            $entry = $this->memoryCache[$key];
+            if ($entry['expires_at'] === 0 || time() <= $entry['expires_at']) {
+                if (empty($entry['tags']) || $this->validateTagVersions($entry['tags'])) {
+                    $this->hits++;
+                    return $entry['value'];
+                }
+            }
+            unset($this->memoryCache[$key]);
+        }
+
         // 1. Try APCu
         if ($this->isApcuAvailable()) {
             $success = false;
@@ -192,16 +208,27 @@ class CacheManager
                 if (is_array($cached) && array_key_exists('__c_val', $cached) && array_key_exists('__c_tags', $cached)) {
                     if ($this->validateTagVersions($cached['__c_tags'])) {
                         $this->hits++;
+                        $this->memoryCache[$key] = [
+                            'value' => $cached['__c_val'],
+                            'expires_at' => 0,
+                            'tags' => $cached['__c_tags'],
+                        ];
                         return $cached['__c_val'];
                     } else {
                         // Stale tag version - invalidate
                         apcu_delete($this->apcuPrefix . $key);
                         $this->deleteFile($key);
+                        unset($this->memoryCache[$key]);
                         $this->misses++;
                         return $default;
                     }
                 }
                 $this->hits++;
+                $this->memoryCache[$key] = [
+                    'value' => $cached,
+                    'expires_at' => 0,
+                    'tags' => [],
+                ];
                 return $cached;
             }
         }
@@ -241,6 +268,7 @@ class CacheManager
             if ($this->isApcuAvailable()) {
                 apcu_delete($this->apcuPrefix . $key);
             }
+            unset($this->memoryCache[$key]);
             $this->misses++;
             return $default;
         }
@@ -252,6 +280,7 @@ class CacheManager
                 if ($this->isApcuAvailable()) {
                     apcu_delete($this->apcuPrefix . $key);
                 }
+                unset($this->memoryCache[$key]);
                 $this->misses++;
                 return $default;
             }
@@ -277,6 +306,12 @@ class CacheManager
             }
         }
 
+        $this->memoryCache[$key] = [
+            'value' => $value,
+            'expires_at' => (int)($payload['expires_at'] ?? 0),
+            'tags' => $payload['tags'] ?? [],
+        ];
+
         $this->hits++;
         return $value;
     }
@@ -285,6 +320,13 @@ class CacheManager
     {
         $expiresAt = $ttl > 0 ? time() + $ttl : 0;
         $tagsMap = $this->getTagVersionsMap($tags);
+
+        // Store in Request Memory Cache (L1)
+        $this->memoryCache[$key] = [
+            'value' => $value,
+            'expires_at' => $expiresAt,
+            'tags' => $tagsMap,
+        ];
 
         // Update tag map index if tags present
         if (!empty($tags)) {
@@ -340,6 +382,13 @@ class CacheManager
             fflush($fp);
             flock($fp, LOCK_UN);
             fclose($fp);
+
+            // Periodic garbage collection (every 25 writes)
+            $this->writeCounter++;
+            if ($this->writeCounter % 25 === 0) {
+                $this->pruneExpired();
+            }
+
             return true;
         }
 
@@ -364,6 +413,7 @@ class CacheManager
     public function delete(string $key): bool
     {
         $deleted = true;
+        unset($this->memoryCache[$key]);
 
         if ($this->isApcuAvailable()) {
             apcu_delete($this->apcuPrefix . $key);
@@ -381,6 +431,7 @@ class CacheManager
     {
         $success = true;
         $this->tagVersionsMemory = [];
+        $this->memoryCache = [];
 
         if (in_array($type, ['apcu', 'all'], true)) {
             if ($this->isApcuAvailable()) {
@@ -432,6 +483,61 @@ class CacheManager
         }
 
         return $success;
+    }
+
+    public function pruneExpired(?int $maxLimit = null): int
+    {
+        $limit = $maxLimit ?? $this->maxFiles;
+        $purged = 0;
+        $files = glob($this->cacheDir . '/cache_*.json');
+        if (!is_array($files) || empty($files)) {
+            return 0;
+        }
+
+        $now = time();
+        $activeFiles = [];
+
+        foreach ($files as $file) {
+            if (!is_file($file)) continue;
+            $size = @filesize($file);
+            if ($size === 0 || $size === false) {
+                @unlink($file);
+                $purged++;
+                continue;
+            }
+
+            $fp = @fopen($file, 'rb');
+            if (!$fp) continue;
+            flock($fp, LOCK_SH);
+            $header = stream_get_contents($fp, 512);
+            flock($fp, LOCK_UN);
+            fclose($fp);
+
+            if ($header && preg_match('/"expires_at"\s*:\s*(\d+)/', $header, $matches)) {
+                $exp = (int)$matches[1];
+                if ($exp > 0 && $now > $exp) {
+                    @unlink($file);
+                    $purged++;
+                    continue;
+                }
+            }
+
+            $activeFiles[$file] = @filemtime($file) ?: $now;
+        }
+
+        // Enforce max file count limit (LRU / FIFO)
+        if (count($activeFiles) > $limit) {
+            asort($activeFiles);
+            $toDelete = count($activeFiles) - (int)($limit * 0.75);
+            foreach (array_keys($activeFiles) as $oldFile) {
+                if ($toDelete <= 0) break;
+                @unlink($oldFile);
+                $purged++;
+                $toDelete--;
+            }
+        }
+
+        return $purged;
     }
 
     public function remember(string $key, int $ttl, callable $callback, array $tags = [])

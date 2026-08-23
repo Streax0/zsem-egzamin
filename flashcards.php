@@ -63,43 +63,63 @@ function flashcardDifficulty(string $front, string $back, string $source): strin
     if ($weight > 260) return 'medium';
     return 'easy';
 }
-foreach ($dictionaryData as $group) {
-    foreach (($group['terms'] ?? []) as $term) {
-        $front = (string)($term['term'] ?? '');
-        if ($front === '') continue;
-        $source = 'Słownik';
-        $back = trim((string)($term['definition'] ?? '') . "\n\n" . (string)($term['example'] ?? ''));
-        $cards[] = [
-            'qualification' => (string)($group['qualification'] ?? ''),
-            'front' => $front,
-            'back' => $back,
-            'source' => $source,
-            'difficulty' => flashcardDifficulty($front, $back, $source),
-            'wiki' => (string)($term['link'] ?? ''),
-            'youtube' => 'https://www.youtube.com/results?search_query=' . rawurlencode($front . ' informatyka')
-        ];
+
+/**
+ * Builds the complete flashcard deck from dictionary terms and question bank.
+ */
+function buildFlashcardsDeck(array $dictionaryData, $pdo): array {
+    $deck = [];
+    foreach ($dictionaryData as $group) {
+        foreach (($group['terms'] ?? []) as $term) {
+            $front = (string)($term['term'] ?? '');
+            if ($front === '') continue;
+            $source = 'Słownik';
+            $back = trim((string)($term['definition'] ?? '') . "\n\n" . (string)($term['example'] ?? ''));
+            $deck[] = [
+                'qualification' => (string)($group['qualification'] ?? ''),
+                'front' => $front,
+                'back' => $back,
+                'source' => $source,
+                'difficulty' => flashcardDifficulty($front, $back, $source),
+                'wiki' => (string)($term['link'] ?? ''),
+                'youtube' => 'https://www.youtube.com/results?search_query=' . rawurlencode($front . ' informatyka')
+            ];
+        }
     }
+
+    if (function_exists('loadQuestions')) {
+        foreach (loadQuestions($pdo) as $question) {
+            $front = trim((string)($question['question_text'] ?? ''));
+            $correct = strtoupper(trim((string)($question['correct_answer'] ?? '')));
+            if ($front === '' || $correct === '') continue;
+            if (trim((string)($question['image_url'] ?? '')) !== '') continue;
+            if (mb_strlen($front, 'UTF-8') > 320) continue;
+            $correctText = answerOptionText($question, $correct);
+            if ($correctText === '') continue;
+            $source = 'Baza pytań';
+            $back = "Poprawna odpowiedź: {$correct}" . ($correctText !== '' ? " - {$correctText}" : '') . "\n\n" . buildQuestionExplanation($question);
+            $deck[] = [
+                'qualification' => (string)($question['category'] ?? 'Testy'),
+                'front' => $front,
+                'back' => $back,
+                'source' => $source,
+                'difficulty' => flashcardDifficulty($front, $back, $source),
+                'wiki' => '',
+                'youtube' => 'https://www.youtube.com/results?search_query=' . rawurlencode($front . ' egzamin zawodowy informatyka')
+            ];
+        }
+    }
+    return $deck;
 }
 
-foreach (loadQuestions($pdo) as $question) {
-    $front = trim((string)($question['question_text'] ?? ''));
-    $correct = strtoupper(trim((string)($question['correct_answer'] ?? '')));
-    if ($front === '' || $correct === '') continue;
-    if (trim((string)($question['image_url'] ?? '')) !== '') continue;
-    if (mb_strlen($front, 'UTF-8') > 320) continue;
-    $correctText = answerOptionText($question, $correct);
-    if ($correctText === '') continue;
-    $source = 'Baza pytań';
-    $back = "Poprawna odpowiedź: {$correct}" . ($correctText !== '' ? " - {$correctText}" : '') . "\n\n" . buildQuestionExplanation($question);
-    $cards[] = [
-        'qualification' => (string)($question['category'] ?? 'Testy'),
-        'front' => $front,
-        'back' => $back,
-        'source' => $source,
-        'difficulty' => flashcardDifficulty($front, $back, $source),
-        'wiki' => '',
-        'youtube' => 'https://www.youtube.com/results?search_query=' . rawurlencode($front . ' egzamin zawodowy informatyka')
-    ];
+$cache = \App\Core\Engine::getInstance()->getCache();
+$cacheKey = 'flashcards_deck_data_v3';
+$cards = $cache ? $cache->remember($cacheKey, 3600, function() use ($dictionaryData, $pdo) {
+    return buildFlashcardsDeck($dictionaryData, $pdo);
+}) : [];
+
+if (empty($cards)) {
+    $cards = buildFlashcardsDeck($dictionaryData, $pdo);
 }
 
 $qualifications = array_values(array_unique(array_filter(array_map(static fn($card) => (string)($card['qualification'] ?? ''), $cards))));
@@ -484,7 +504,8 @@ unset($card);
 window.zsemFlashcards = {
     cards: <?php echo json_encode($cards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>,
     sm2DueCount: <?= (int)$sm2DueCount ?>,
-    isGuest: <?= $isGuest ? 'true' : 'false' ?>
+    isGuest: <?= $isGuest ? 'true' : 'false' ?>,
+    csrfToken: <?= json_encode(generateCsrfToken()) ?>
 };
 </script>
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/flashcards.js')); ?>"></script>
@@ -518,7 +539,15 @@ window.zsemFlashcards = {
             const fd = new FormData();
             fd.append('card_key', cardKey);
             fd.append('rating', rating);
-            const res  = await fetch('actions/flashcard_rate.php', { method: 'POST', body: fd });
+            fd.append('csrf_token', window.zsemFlashcards.csrfToken || '');
+            const res  = await fetch('actions/flashcard_rate.php', {
+                method: 'POST',
+                body: fd,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': window.zsemFlashcards.csrfToken || ''
+                }
+            });
             const data = await res.json();
             if (data.success) {
                 // Update card sm2 metadata in memory

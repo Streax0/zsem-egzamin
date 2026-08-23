@@ -23,6 +23,11 @@ if (!is_array($data)) {
     $data = $_POST;
 }
 
+$csrfToken = (string)($data['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf_token'] ?? '')));
+if (!validateCsrfToken($csrfToken) && !securityValidateRequestCsrf()) {
+    securitySendJson(['success' => false, 'message' => 'Nieprawidłowy token CSRF.'], 403);
+}
+
 $items = is_array($data['sync_items'] ?? null) ? $data['sync_items'] : [];
 $processed = 0;
 

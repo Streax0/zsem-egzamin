@@ -68,7 +68,26 @@ try {
     $stmt5->execute();
     echo "Removed " . $stmt5->rowCount() . " abandoned/expired exam sessions.\n";
 
+    // 5. Cleanup Security & Admin Audit Logs (> 30 days)
+    $stmt6 = $pdo->prepare("DELETE FROM admin_audit_log WHERE created_at < NOW() - INTERVAL 30 DAY");
+    $stmt6->execute();
+    echo "Removed " . $stmt6->rowCount() . " admin audit logs older than 30 days.\n";
+
+    try {
+        $stmt7 = $pdo->prepare("DELETE FROM security_audit_logs WHERE created_at < NOW() - INTERVAL 30 DAY");
+        $stmt7->execute();
+        echo "Removed " . $stmt7->rowCount() . " security audit logs older than 30 days.\n";
+    } catch (Throwable $e) {}
+
     $pdo->commit();
+
+    // 6. Cleanup Expired & Stale Cache Files (data/cache)
+    if (class_exists('\\App\\Core\\CacheManager')) {
+        $cacheManager = new \App\Core\CacheManager();
+        $prunedCache = $cacheManager->pruneExpired();
+        echo "Pruned " . $prunedCache . " expired/stale cache files.\n";
+    }
+
     echo "--- Cleanup Completed Successfully ---\n";
 
 } catch (Exception $e) {

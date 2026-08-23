@@ -61,7 +61,7 @@ switch ($timeframe) {
 }
 
 // Build user filter
-$userWhere = "WHERE u.role IN ('user','wujek_luki') AND u.is_private = 0";
+$userWhere = "WHERE u.role IN ('user','wujek_luki') AND COALESCE(u.ranking_visible, 1) = 1 AND COALESCE(u.profile_public, 1) = 1";
 $params    = [];
 
 if ($class !== '') {
@@ -70,13 +70,14 @@ if ($class !== '') {
 }
 
 // Qualification filter needs to join with test_results to filter by question category
-// We'll use a subquery approach
 $qualJoin = '';
 if ($qualification !== '') {
     $qualJoin = "AND u.id IN (
-        SELECT DISTINCT tr2.user_id FROM test_results tr2
-        JOIN questions q ON q.category LIKE ?
-        WHERE tr2.user_id = u.id
+        SELECT DISTINCT tr2.user_id 
+        FROM test_results tr2
+        JOIN test_answers ta ON ta.result_id = tr2.id
+        JOIN questions q ON q.id = ta.question_id
+        WHERE q.category LIKE ? AND tr2.user_id = u.id
     )";
     $params[] = '%' . $qualification . '%';
 }

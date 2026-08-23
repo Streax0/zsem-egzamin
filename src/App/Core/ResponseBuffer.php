@@ -69,7 +69,10 @@ class ResponseBuffer
 
         // 3. Minification for HTML responses
         if ($this->minificationEnabled && !empty($buffer) && !$isJsonOrAjax) {
-            $buffer = $this->minifyHtml($buffer);
+            $minified = $this->minifyHtml($buffer);
+            if ($minified !== '') {
+                $buffer = $minified;
+            }
         }
 
         // 4. Compression
@@ -107,8 +110,14 @@ class ResponseBuffer
         $placeholders = [];
         $index = 0;
 
+        // Helper for safe regex replacement with fallback
+        $safeReplace = function ($pattern, $callback, $subject) {
+            $result = preg_replace_callback($pattern, $callback, $subject);
+            return $result !== null ? $result : $subject;
+        };
+
         // 1. Extract <textarea> blocks intact
-        $html = preg_replace_callback('/<textarea\b[^>]*>.*?<\/textarea>/is', function ($matches) use (&$placeholders, &$index) {
+        $html = $safeReplace('/<textarea\b[^>]*>.*?<\/textarea>/is', function ($matches) use (&$placeholders, &$index) {
             $key = "___PLACEHOLDER_TEXTAREA_{$index}___";
             $index++;
             $placeholders[$key] = $matches[0];
@@ -116,7 +125,7 @@ class ResponseBuffer
         }, $html);
 
         // 2. Extract <pre> blocks intact
-        $html = preg_replace_callback('/<pre\b[^>]*>.*?<\/pre>/is', function ($matches) use (&$placeholders, &$index) {
+        $html = $safeReplace('/<pre\b[^>]*>.*?<\/pre>/is', function ($matches) use (&$placeholders, &$index) {
             $key = "___PLACEHOLDER_PRE_{$index}___";
             $index++;
             $placeholders[$key] = $matches[0];
@@ -124,43 +133,55 @@ class ResponseBuffer
         }, $html);
 
         // 3. Extract <style> blocks (minifying internal CSS)
-        $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/is', function ($matches) use (&$placeholders, &$index) {
-            $minifiedCss = $this->minifyCss($matches[1]);
+        $html = $safeReplace('/<style\b[^>]*>(.*?)<\/style>/is', function ($matches) use (&$placeholders, &$index) {
+            $minifiedCss = strlen($matches[1]) <= 65536 ? $this->minifyCss($matches[1]) : $matches[1];
             preg_match('/<style\b[^>]*>/i', $matches[0], $tagMatch);
-            $fullStyle = $tagMatch[0] . $minifiedCss . '</style>';
+            $fullStyle = ($tagMatch[0] ?? '<style>') . $minifiedCss . '</style>';
             $key = "___PLACEHOLDER_STYLE_{$index}___";
             $index++;
             $placeholders[$key] = $fullStyle;
             return $key;
         }, $html);
 
-        // 4. Extract <script> blocks (minifying internal JS if no src attribute)
-        $html = preg_replace_callback('/<script\b(?![^>]*\bsrc=)[^>]*>(.*?)<\/script>/is', function ($matches) use (&$placeholders, &$index) {
-            $minifiedJs = $this->minifyJs($matches[1]);
-            preg_match('/<script\b[^>]*>/i', $matches[0], $tagMatch);
-            $fullScript = $tagMatch[0] . $minifiedJs . '</script>';
+        // 4. Extract <script> blocks (minifying internal JS if no src attribute and reasonable size)
+        $html = $safeReplace('/<script\b[^>]*>(.*?)<\/script>/is', function ($matches) use (&$placeholders, &$index) {
+            $fullTag = $matches[0];
+            $content = $matches[1];
+            // If external script or large payload (> 64KB), keep intact
+            if (stripos($fullTag, 'src=') !== false || strlen($content) > 65536) {
+                $key = "___PLACEHOLDER_SCRIPT_{$index}___";
+                $index++;
+                $placeholders[$key] = $fullTag;
+                return $key;
+            }
+
+            $minifiedJs = $this->minifyJs($content);
+            preg_match('/<script\b[^>]*>/i', $fullTag, $tagMatch);
+            $fullScript = ($tagMatch[0] ?? '<script>') . $minifiedJs . '</script>';
             $key = "___PLACEHOLDER_SCRIPT_{$index}___";
             $index++;
             $placeholders[$key] = $fullScript;
             return $key;
         }, $html);
 
-        // 5. Extract <script src="..."> tags
-        $html = preg_replace_callback('/<script\b[^>]*\bsrc=[^>]*>.*?<\/script>/is', function ($matches) use (&$placeholders, &$index) {
-            $key = "___PLACEHOLDER_SCRIPT_SRC_{$index}___";
-            $index++;
-            $placeholders[$key] = $matches[0];
-            return $key;
-        }, $html);
+        // 5. Remove HTML comments except IE conditional comments
+        $resComments = preg_replace('/<!--(?!\[if\s)[^\]].*?-->/s', '', $html);
+        if ($resComments !== null) {
+            $html = $resComments;
+        }
 
-        // 6. Remove HTML comments except IE conditional comments
-        $html = preg_replace('/<!--(?!\[if\s)[^\]].*?-->/s', '', $html);
+        // 6. Collapse multiple white space characters outside pre/textarea/style/script
+        $resWs1 = preg_replace('/>\s+</', '><', $html);
+        if ($resWs1 !== null) {
+            $html = $resWs1;
+        }
 
-        // 7. Collapse multiple white space characters outside pre/textarea/style/script
-        $html = preg_replace('/>\s+</', '><', $html);
-        $html = preg_replace('/\s+/', ' ', $html);
+        $resWs2 = preg_replace('/\s+/', ' ', $html);
+        if ($resWs2 !== null) {
+            $html = $resWs2;
+        }
 
-        // 8. Restore placeholders intact
+        // 7. Restore placeholders intact
         if (!empty($placeholders)) {
             $html = strtr($html, $placeholders);
         }
