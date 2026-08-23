@@ -75,6 +75,10 @@ EXPECTED_62_TABLES = [
     "exam_warnings",
     "course_quiz_questions",
     "user_course_progress",
+    "flashcard_sm2",
+    "subnetting_scores",
+    "question_hints",
+    "cli_lab_completions",
 ]
 
 
@@ -239,12 +243,12 @@ class TestComprehensiveSchema(unittest.TestCase):
     # Tier 1 Feature 1: Complete 62 Table Inventory & Column Verifications (5 tests)
     # -------------------------------------------------------------
     def test_t1_f1_01_exact_62_table_manifest(self):
-        """T1.F1.1: Verify the exact count and presence of all 62 application tables."""
+        """T1.F1.1: Verify the exact count and presence of all 66 application tables."""
         self.assertEqual(
-            len(self.ast.create_order), 62, "Schema must declare exactly 62 tables"
+            len(self.ast.create_order), 66, "Schema must declare exactly 66 tables"
         )
         self.assertEqual(
-            len(self.ast.tables), 62, "Schema must have 62 unique table entries"
+            len(self.ast.tables), 66, "Schema must have 66 unique table entries"
         )
         for expected in EXPECTED_62_TABLES:
             self.assertIn(
@@ -394,14 +398,14 @@ class TestComprehensiveSchema(unittest.TestCase):
         self.assertEqual(len(fks), 1, "luki_spins.user_id must reference users(id)")
 
     def test_t1_f2_04_drop_list_exact_62_tables(self):
-        """T1.F2.4: Verify DROP TABLE IF EXISTS list contains exactly 62 tables."""
+        """T1.F2.4: Verify DROP TABLE IF EXISTS list contains exactly 66 tables."""
         self.assertEqual(
             len(self.ast.drop_list),
-            62,
-            f"DROP list has {len(self.ast.drop_list)} tables instead of 62",
+            66,
+            f"DROP list has {len(self.ast.drop_list)} tables instead of 66",
         )
         self.assertEqual(
-            len(set(self.ast.drop_list)), 62, "DROP list contains duplicates"
+            len(set(self.ast.drop_list)), 66, "DROP list contains duplicates"
         )
 
     def test_t1_f2_05_drop_list_is_exact_reverse_of_create_order(self):

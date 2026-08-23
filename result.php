@@ -36,10 +36,18 @@ if ($guestResultId) {
     $row = $guestResult['row'];
     $answers = $guestResult['answers'];
 } else {
-    // Fetch test result for this user using PDO
-    $user_id = $_SESSION['user_id'];
-    $stmt = $pdo->prepare("SELECT id, user_id, test_date, start_time, total_questions, correct_answers, score_percent, time_spent, mode, exclude_from_ranking FROM test_results WHERE id = :id AND user_id = :user_id");
-    $stmt->execute(['id' => $result_id, 'user_id' => $user_id]);
+    // Fetch test result for this user (or allow admin/teacher to view any result)
+    $user_id = (int)$_SESSION['user_id'];
+    $userRole = (string)($_SESSION['role'] ?? 'user');
+    $canViewAny = in_array($userRole, ['admin', 'dyrektor', 'teacher'], true);
+    
+    if ($canViewAny) {
+        $stmt = $pdo->prepare("SELECT id, user_id, test_date, start_time, total_questions, correct_answers, score_percent, time_spent, mode, exclude_from_ranking FROM test_results WHERE id = :id");
+        $stmt->execute(['id' => $result_id]);
+    } else {
+        $stmt = $pdo->prepare("SELECT id, user_id, test_date, start_time, total_questions, correct_answers, score_percent, time_spent, mode, exclude_from_ranking FROM test_results WHERE id = :id AND user_id = :user_id");
+        $stmt->execute(['id' => $result_id, 'user_id' => $user_id]);
+    }
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
@@ -76,7 +84,7 @@ if (!$guestResultId) {
 $allQuestions = loadQuestions($pdo);
 $questions_map = [];
 foreach ($allQuestions as $q) {
-    $questions_map[$q['id']] = $q;
+    $questions_map[(int)$q['id']] = $q;
 }
 
 $answerQualifications = [];
@@ -185,6 +193,12 @@ $shareCardData = [
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/dashboard-new.css">
     <link rel="stylesheet" href="assets/css/test.css">
+    <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
+        <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
+        <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
+    <?php endif; ?>
+    <script src="assets/js/devtools-guard.js"></script>
+    <script src="assets/js/theme-handler.js"></script>
     <style>
         /* ===== Result Hero ===== */
         .result-hero {
@@ -377,19 +391,13 @@ $shareCardData = [
             border-left: 3px solid transparent;
             transition: background .2s, border-color .2s;
             cursor: pointer;
-            opacity: 0;
-            animation: cardFadeIn .4s ease forwards;
+            opacity: 1 !important;
         }
         .answer-card:last-child { border-bottom: none; }
         .answer-card[data-answer-state="correct"] { border-left-color: #10b981; }
         .answer-card[data-answer-state="wrong"]   { border-left-color: #ef4444; }
         .answer-card:hover { background: rgba(59,130,246,.03); }
         .answer-card.open { background: rgba(59,130,246,.02); }
-
-        @keyframes cardFadeIn {
-            from { opacity: 0; transform: translateX(-8px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
 
         .answer-card-header {
             display: flex;
@@ -934,15 +942,20 @@ $shareCardData = [
                     <div class="dashboard-panel detailed-answers-panel animate-in" style="animation-delay: 0.2s;">
                         <div class="panel-inner-core">
                             <div class="panel-header mb-0">
-                                <div class="d-flex align-items-center justify-content-between w-100">
+                                <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
                                     <div class="d-flex align-items-center gap-2">
                                         <i class="bi bi-list-stars text-primary fs-4"></i>
-                                        <h5 class="panel-title mb-0">Szczegółowa analiza odpowiedzi</h5>
+                                        <h5 class="panel-title mb-0">Szczegółowa analiza odpowiedzi <span class="badge bg-primary bg-opacity-10 text-primary ms-1"><?php echo count($answers); ?></span></h5>
                                     </div>
-                                    <div class="answer-filter-bar">
-                                        <button type="button" class="btn btn-sm active" data-answer-filter="all">Wszystkie</button>
-                                        <button type="button" class="btn btn-sm" data-answer-filter="correct">Poprawne</button>
-                                        <button type="button" class="btn btn-sm" data-answer-filter="wrong">Błędne</button>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnToggleAllAnswers" onclick="toggleAllAnswers()">
+                                            <i class="bi bi-arrows-expand me-1"></i>Rozwiń wszystkie
+                                        </button>
+                                        <div class="answer-filter-bar">
+                                            <button type="button" class="btn btn-sm active" data-answer-filter="all">Wszystkie (<?php echo count($answers); ?>)</button>
+                                            <button type="button" class="btn btn-sm" data-answer-filter="correct">Poprawne (<?php echo $correctAnswers; ?>)</button>
+                                            <button type="button" class="btn btn-sm" data-answer-filter="wrong">Błędne (<?php echo $wrongAnswers; ?>)</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -955,11 +968,18 @@ $shareCardData = [
                                     $correct_answer = strtoupper(trim((string)($answer['correct_answer'] ?? '')));
                                     $is_correct = ((int)($answer['is_correct'] ?? 0) === 1) || ($user_answer !== '-' && $correct_answer !== '' && $user_answer === $correct_answer);
                                     
-                                    $question_text = $answer['question_text'] ?? '';
-                                    if (empty($question_text) && !empty($questions_map[$answer['question_id']])) {
-                                        $question_text = $questions_map[$answer['question_id']]['question_text'] ?? '';
+                                    $question_id = (int)($answer['question_id'] ?? 0);
+                                    $question_source = $questions_map[$question_id] ?? [];
+                                    $question_text = trim((string)($answer['question_text'] ?? ($question_source['question_text'] ?? '')));
+                                    if ($question_text === '' && !empty($question_source['question'])) {
+                                        $question_text = trim((string)$question_source['question']);
                                     }
-                                    $question_source = $questions_map[(int)$answer['question_id']] ?? [];
+                                    if ($question_text === '') {
+                                        $question_text = 'Pytanie nr ' . ($index + 1);
+                                    }
+                                    
+                                    $question_image = $question_source['image_url'] ?? ($question_source['image'] ?? '');
+                                    
                                     $correct_answer_text = '';
                                     if ($correct_answer !== '') {
                                         $correct_answer_text = trim((string)($question_source['option_' . strtolower($correct_answer)] ?? ''));
@@ -988,45 +1008,85 @@ $shareCardData = [
                                         $answer_distractors = trim(mb_substr($answer_explanation, $why_pos, mb_strlen($answer_explanation, 'UTF-8'), 'UTF-8'));
                                     }
                                     ?>
-                                    <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo (int)$answer['question_id']; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>" style="animation-delay: <?php echo min($index * 0.04, 1.2); ?>s">
+                                    <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo $question_id; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>">
                                         <div class="answer-card-header" data-answer-toggle role="button" tabindex="0" aria-expanded="false" onclick="toggleAnswerCard(this)">
                                             <div class="answer-card-num <?php echo $is_correct ? 'correct' : 'wrong'; ?>">
                                                 <?php echo sprintf('%02d', $index + 1); ?>
                                             </div>
                                             <div class="answer-card-text">
-                                                <div class="q-label"><?php echo htmlspecialchars($question_text); ?></div>
+                                                <div class="q-label fw-medium"><?php echo htmlspecialchars($question_text); ?></div>
                                                 <?php if ($showAnswerQualifications && !empty($answer['qualification_label'])): ?>
-                                                    <span class="qual-badge">
+                                                    <span class="qual-badge mt-1">
                                                         <?php echo htmlspecialchars($answer['qualification_label']); ?>
                                                     </span>
                                                 <?php endif; ?>
                                             </div>
                                             <div class="answer-card-badges">
-                                                <span class="answer-badge <?php echo $is_correct ? 'user-correct' : 'user-wrong'; ?>"><?php echo htmlspecialchars($user_answer); ?></span>
+                                                <span class="answer-badge <?php echo $is_correct ? 'user-correct' : 'user-wrong'; ?>" title="<?php echo $user_answer === '-' ? 'Brak odpowiedzi' : 'Twoja odpowiedź: ' . htmlspecialchars($user_answer); ?>">
+                                                    <?php echo htmlspecialchars($user_answer === '-' ? '—' : $user_answer); ?>
+                                                </span>
                                             </div>
                                             <i class="bi bi-chevron-down answer-card-chevron"></i>
                                         </div>
                                         <div class="answer-card-body" data-answer-analysis>
+                                            <?php if (!empty($question_image)): ?>
+                                                <div class="text-center my-3 p-2 bg-light dark-mode-bg rounded border">
+                                                    <img src="<?php echo htmlspecialchars($question_image); ?>" class="img-fluid rounded" style="max-height: 280px;" alt="Ilustracja do pytania" loading="lazy">
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <!-- Opcje odpowiedzi A, B, C, D -->
+                                            <div class="answer-options-list my-3 d-flex flex-column gap-2">
+                                                <?php foreach (['A', 'B', 'C', 'D'] as $optKey): ?>
+                                                    <?php
+                                                    $optText = trim((string)($question_source['option_' . strtolower($optKey)] ?? ($question_source[strtolower($optKey)] ?? '')));
+                                                    if ($optText === '') continue;
+                                                    $isOptCorrect = ($optKey === $correct_answer);
+                                                    $isOptUser = ($optKey === $user_answer);
+                                                    
+                                                    $itemClass = 'border';
+                                                    $badgeStyle = 'background: rgba(148, 163, 184, 0.15); color: inherit;';
+                                                    if ($isOptCorrect) {
+                                                        $itemClass .= ' border-success bg-success bg-opacity-10 text-success';
+                                                        $badgeStyle = 'background: #10b981; color: #fff;';
+                                                    } elseif ($isOptUser) {
+                                                        $itemClass .= ' border-danger bg-danger bg-opacity-10 text-danger';
+                                                        $badgeStyle = 'background: #ef4444; color: #fff;';
+                                                    } else {
+                                                        $itemClass .= ' bg-body-tertiary text-body border-opacity-25';
+                                                    }
+                                                    ?>
+                                                    <div class="d-flex align-items-center gap-3 p-2.5 px-3 rounded-3 <?php echo $itemClass; ?>" style="font-size: .88rem; transition: all .2s ease;">
+                                                        <span class="fw-bold px-2 py-0.5 rounded-pill d-inline-flex align-items-center justify-content-center" style="min-width: 28px; height: 28px; font-size: .8rem; <?php echo $badgeStyle; ?>">
+                                                            <?php echo $optKey; ?>
+                                                        </span>
+                                                        <span class="flex-grow-1"><?php echo htmlspecialchars($optText); ?></span>
+                                                        <?php if ($isOptCorrect): ?>
+                                                            <span class="badge bg-success rounded-pill d-flex align-items-center gap-1"><i class="bi bi-check-lg"></i> Poprawna</span>
+                                                        <?php elseif ($isOptUser): ?>
+                                                            <span class="badge bg-danger rounded-pill d-flex align-items-center gap-1"><i class="bi bi-x-lg"></i> Twój wybór</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+
                                             <div class="answer-detail-row your-answer <?php echo $is_correct ? 'is-correct' : ''; ?>">
                                                 <span><i class="bi bi-person-fill me-2"></i>Twoja odpowiedź</span>
-                                                <span class="fw-bold <?php echo $is_correct ? 'text-success' : 'text-danger'; ?>"><?php echo htmlspecialchars($user_answer); ?></span>
+                                                <span class="fw-bold <?php echo $is_correct ? 'text-success' : 'text-danger'; ?>">
+                                                    <?php echo $user_answer === '-' ? 'Brak odpowiedzi' : htmlspecialchars($user_answer) . (!empty($user_answer_text) ? ' (' . htmlspecialchars($user_answer_text) . ')' : ''); ?>
+                                                </span>
                                             </div>
                                             <div class="answer-detail-row correct-answer">
                                                 <span><i class="bi bi-check-circle-fill me-2 text-success"></i>Poprawna odpowiedź</span>
-                                                <span class="fw-bold text-success"><?php echo htmlspecialchars($correct_answer); ?></span>
-                                            </div>
-                                            <div class="answer-detail-row" style="background:transparent;">
-                                                <span>
-                                                    <span class="answer-status-icon <?php echo $is_correct ? 'correct' : 'wrong'; ?> me-2">
-                                                        <i class="bi <?php echo $is_correct ? 'bi-check-lg' : 'bi-x-lg'; ?>"></i>
-                                                    </span>
-                                                    <?php echo $is_correct ? 'Poprawna' : 'Błędna'; ?>
+                                                <span class="fw-bold text-success">
+                                                    <?php echo htmlspecialchars($correct_answer) . (!empty($correct_answer_text) ? ' (' . htmlspecialchars($correct_answer_text) . ')' : ''); ?>
                                                 </span>
                                             </div>
-                                            <div class="answer-explanation">
+                                            
+                                            <div class="answer-explanation mt-3">
                                                 <div class="answer-explanation-label">
                                                     <i class="bi bi-info-circle-fill"></i>
-                                                    Wyjaśnienie
+                                                    Wyjaśnienie i uzasadnienie
                                                 </div>
                                                 <div><?php echo nl2br(htmlspecialchars($answer_explanation_main)); ?></div>
                                                 <?php if ($answer_distractors !== ''): ?>
@@ -1038,16 +1098,29 @@ $shareCardData = [
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
-                                            <button type="button" class="answer-card-view-btn" onclick="event.stopPropagation(); viewQuestion(<?php echo (int)$answer['question_id']; ?>, '<?php echo addslashes($user_answer); ?>', '<?php echo addslashes($correct_answer); ?>')">
-                                                <i class="bi bi-eye"></i> Zobacz pytanie
+                                            <button type="button" class="answer-card-view-btn mt-2" onclick="event.stopPropagation(); viewQuestion(<?php echo $question_id; ?>, '<?php echo addslashes($user_answer); ?>', '<?php echo addslashes($correct_answer); ?>')">
+                                                <i class="bi bi-arrows-fullscreen me-1"></i> Otwórz w pełnym oknie dialogowym
                                             </button>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                    <?php else: ?>
+                    <div class="dashboard-panel p-4 text-center my-4 rounded-4 shadow-sm border animate-in" style="animation-delay: 0.2s;">
+                        <div class="p-3 d-inline-block rounded-circle bg-primary bg-opacity-10 text-primary mb-3">
+                            <i class="bi bi-journal-text fs-2"></i>
+                        </div>
+                        <h4 class="h5 fw-bold text-body">Brak szczegółowych pytań dla tego wyniku</h4>
+                        <p class="small text-muted mb-3" style="max-width: 480px; margin: 0 auto;">
+                            Dla tego podejścia testowego nie zarejestrowano szczegółowych odpowiedzi (np. test zakończono przedwcześnie lub pochodzi z archiwalnej sesji).
+                        </p>
+                        <a href="test.php?setup=1" class="btn btn-primary btn-sm rounded-pill px-4">
+                            <i class="bi bi-play-circle me-1"></i>Rozpocznij nowy test
+                        </a>
+                    </div>
                     <?php endif; ?>
                 </div>
             </main>
@@ -1111,9 +1184,43 @@ $shareCardData = [
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-        const questionsData = <?php echo json_encode($questions_map); ?>;
+        <?php
+        $resultQuestionsMap = [];
+        if (!empty($answers)) {
+            foreach ($answers as $a) {
+                $qid = (int)($a['question_id'] ?? 0);
+                if ($qid > 0 && isset($questions_map[$qid])) {
+                    $resultQuestionsMap[$qid] = $questions_map[$qid];
+                }
+            }
+        }
+        ?>
+        const questionsData = <?php echo json_encode($resultQuestionsMap, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?: '{}'; ?>;
         const showAnswerQualifications = <?php echo $showAnswerQualifications ? 'true' : 'false'; ?>;
         const questionModal = new bootstrap.Modal(document.getElementById('questionModal'));
+
+        let allAnswersExpanded = false;
+        function toggleAllAnswers() {
+            allAnswersExpanded = !allAnswersExpanded;
+            const cards = document.querySelectorAll('.answer-card');
+            cards.forEach(card => {
+                if (allAnswersExpanded) {
+                    card.classList.add('open');
+                    card.querySelector('[data-answer-toggle]')?.setAttribute('aria-expanded', 'true');
+                } else {
+                    card.classList.remove('open');
+                    card.querySelector('[data-answer-toggle]')?.setAttribute('aria-expanded', 'false');
+                    card.querySelectorAll('[data-distractors-panel]').forEach(panel => panel.classList.add('d-none'));
+                    card.querySelectorAll('[data-distractors-toggle]').forEach(button => button.setAttribute('aria-expanded', 'false'));
+                }
+            });
+            const btn = document.getElementById('btnToggleAllAnswers');
+            if (btn) {
+                btn.innerHTML = allAnswersExpanded 
+                    ? '<i class="bi bi-arrows-collapse me-1"></i>Zwiń wszystkie'
+                    : '<i class="bi bi-arrows-expand me-1"></i>Rozwiń wszystkie';
+            }
+        }
 
         function toggleAnswerCard(headerEl) {
             const card = headerEl.closest('.answer-card');

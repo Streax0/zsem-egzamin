@@ -1,0 +1,45 @@
+name: ZSEM Tech Platform CI Quality Gates
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  test-and-compliance:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Set up PHP 8.2
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_mysql, mbstring, json, gd
+        coverage: none
+
+    - name: Run Schema Syntax & Topological DAG Tests
+      run: python tests/test_schema_syntax.py
+
+    - name: Run Comprehensive Schema Invariants Tests
+      run: python tests/test_schema_comprehensive.py
+
+    - name: Run Adversarial Schema Stress Tests
+      run: python tests/test_challenger_schema_stress.py
+
+    - name: Run End-to-End Database Workflow Tests
+      run: python tests/test_e2e_db_workflow.py
+
+    - name: Run Full Discovered Test Suite
+      run: python -m unittest discover -s tests -p "*.py"
+
+    - name: Run Static Compliance & Security Audit
+      run: python tests/static_compliance_check.py

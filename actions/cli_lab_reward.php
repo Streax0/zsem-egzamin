@@ -78,20 +78,22 @@ $xpReward = (int)$scenarioMeta['xp'];
 $scenarioTitle = (string)$scenarioMeta['title'];
 
 // Ensure completions table exists
-try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS cli_lab_completions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        scenario_id VARCHAR(64) NOT NULL,
-        os VARCHAR(16) NOT NULL,
-        xp_awarded INT NOT NULL,
-        completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_user_scenario (user_id, scenario_id),
-        INDEX idx_user_completions (user_id),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-} catch (PDOException $e) {
-    error_log('cli_lab_completions table check failed: ' . $e->getMessage());
+if (function_exists('appRuntimeSchemaUpdatesEnabled') && appRuntimeSchemaUpdatesEnabled()) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS cli_lab_completions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            scenario_id VARCHAR(64) NOT NULL,
+            os VARCHAR(16) NOT NULL,
+            xp_awarded INT NOT NULL,
+            completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_user_scenario (user_id, scenario_id),
+            INDEX idx_user_completions (user_id),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (PDOException $e) {
+        error_log('cli_lab_completions table check failed: ' . $e->getMessage());
+    }
 }
 
 // Check if user already completed this scenario

@@ -1,6 +1,6 @@
 -- ============================================================
 -- FULL UNIFIED SCHEMA - ZSEM Tech Platform
--- Complete Canonical Database Schema (62 Tables, Topologically Sorted)
+-- Complete Canonical Database Schema (66 Tables, Topologically Sorted)
 -- ============================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -9,6 +9,10 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 -- 0. Usuwanie istniejacych tabel (dokladna odwrotna kolejnosc topologiczna)
 -- --------------------------------------------------------
+DROP TABLE IF EXISTS question_hints;
+DROP TABLE IF EXISTS flashcard_sm2;
+DROP TABLE IF EXISTS subnetting_scores;
+DROP TABLE IF EXISTS cli_lab_completions;
 DROP TABLE IF EXISTS user_course_progress;
 DROP TABLE IF EXISTS course_quiz_questions;
 DROP TABLE IF EXISTS exam_warnings;
@@ -1298,4 +1302,20 @@ CREATE TABLE IF NOT EXISTS question_hints (
     hint_tier3 TEXT DEFAULT NULL COMMENT 'Step-by-step reasoning (overrides explanation)',
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- 66. cli_lab_completions (Completed CLI Lab scenarios & XP)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS cli_lab_completions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    scenario_id VARCHAR(64) NOT NULL,
+    os VARCHAR(16) NOT NULL,
+    xp_awarded INT NOT NULL,
+    completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_scenario (user_id, scenario_id),
+    INDEX idx_user_completions (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 

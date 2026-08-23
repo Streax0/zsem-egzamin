@@ -22,6 +22,11 @@ if (!isset($base_url)) {
             <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl($cssFile, rtrim($base_url, '/'))); ?>">
         <?php endforeach; ?>
     <?php endif; ?>
+    <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
+        <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
+        <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
+    <?php endif; ?>
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/devtools-guard.js', rtrim($base_url, '/'))); ?>"></script>
     <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js', rtrim($base_url, '/'))); ?>"></script>
     <?php if (isset($extraHead)): echo $extraHead; endif; ?>
 </head>

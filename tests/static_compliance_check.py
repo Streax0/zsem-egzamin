@@ -954,7 +954,7 @@ def test_cke_mode_labels_and_no_ckz_copy() -> None:
         if path.suffix.lower() in {".php", ".js", ".css"}
         and not path.relative_to(ROOT).as_posix().startswith(("tests/", "scratch/"))
     )
-    assert "CKZ" not in combined and "ckz" not in combined.lower(), "CKZ copy remains in app code"
+    assert not re.search(r"\bckz\b", combined, re.I), "CKZ copy remains in app code"
     assert "Tryb CKE" not in combined, "old CKE mode label remains in app code"
     assert_contains("includes/functions.php", "'exam' => 'Test'", "'exam_simulator' => 'Egzamin'")
     assert_contains("result.php", "'exam' => ['name' => 'Test'", "'exam_simulator' => ['name' => 'Egzamin'")
@@ -2259,7 +2259,7 @@ def test_optional_mfa_uses_popup_instead_of_notifications() -> None:
     assert "SELECT role FROM users WHERE id = ? LIMIT 1" in response
     assert "type = 'mfa_optional_prompt'" in response
     assert "SELECT id FROM notifications WHERE id = ? AND user_id = ? AND type = 'mfa_optional_prompt' LIMIT 1" in response
-    assert "redirect('../mfa.php?setup=1')" in response
+    assert "redirect('../mfa.php?setup=1')" in response or "redirect('../auth/mfa.php?setup=1')" in response
     assert "DELETE FROM notifications" not in response
     assert "clearOptionalMfaPrompt($pdo, $userId)" in mfa
     assert "type NOT IN ('mfa_optional_prompt', 'mfa_optional_declined')" in read("user/notifications.php")

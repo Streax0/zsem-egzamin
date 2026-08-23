@@ -43,6 +43,11 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
     <link href="assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/style.css')); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/dashboard-new.css')); ?>">
+    <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
+        <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
+        <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
+    <?php endif; ?>
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/devtools-guard.js')); ?>"></script>
     <script src="<?php echo htmlspecialchars(assetUrl('assets/js/theme-handler.js')); ?>"></script>
     <style>
         .ranking-shell { max-width: 1320px; margin: 0 auto; }

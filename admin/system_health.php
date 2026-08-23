@@ -523,7 +523,7 @@ include '../includes/header.php';
                                                             <i class="bi bi-download"></i>
                                                         </button>
                                                     </form>
-                                                    <form method="POST" action="system_health.php" class="d-inline m-0" onsubmit="return confirm('Czy na pewno chcesz usunąć tę kopię zapasową?');">
+                                                    <form method="POST" action="system_health.php" class="d-inline m-0" data-admin-confirm="Czy na pewno chcesz usunąć tę kopię zapasową?">
                                                         <?php echo csrfTokenField('admin_health'); ?>
                                                         <input type="hidden" name="action" value="delete_backup">
                                                         <input type="hidden" name="filename" value="<?php echo htmlspecialchars($bf['filename'], ENT_QUOTES, 'UTF-8'); ?>">

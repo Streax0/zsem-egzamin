@@ -127,9 +127,9 @@ class TestTier1FeatureCoverage(unittest.TestCase):
 
     # Feature 1: Full Schema Table Inclusions (5 tests)
     def test_t1_f1_01_all_62_tables_present(self):
-        """T1.F1.1: Verify full schema contains all 62 application tables."""
-        self.assertEqual(len(self.schema.create_tables), 62)
-        self.assertEqual(len(set(self.schema.create_tables)), 62)
+        """T1.F1.1: Verify full schema contains all 66 application tables."""
+        self.assertEqual(len(self.schema.create_tables), 66)
+        self.assertEqual(len(set(self.schema.create_tables)), 66)
 
     def test_t1_f1_02_missing_status_tables_included(self):
         """T1.F1.2: Verify app_statuses and app_status_deliveries are included."""
@@ -185,9 +185,9 @@ class TestTier1FeatureCoverage(unittest.TestCase):
         self.assertEqual(self.schema.create_tables.count("luki_spins"), 1)
 
     def test_t1_f2_04_drop_header_has_exact_62_tables(self):
-        """T1.F2.4: Verify DROP TABLE IF EXISTS has exactly 62 statements."""
-        self.assertEqual(len(self.schema.drop_tables), 62)
-        self.assertEqual(len(set(self.schema.drop_tables)), 62)
+        """T1.F2.4: Verify DROP TABLE IF EXISTS has exactly 66 statements."""
+        self.assertEqual(len(self.schema.drop_tables), 66)
+        self.assertEqual(len(set(self.schema.drop_tables)), 66)
 
     def test_t1_f2_05_drop_matches_create_table_names(self):
         """T1.F2.5: Verify all created tables are dropped and vice-versa."""
@@ -338,7 +338,7 @@ class TestTier2BoundaryAndCornerCases(unittest.TestCase):
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
 
-        self.assertEqual(visited, 62, "FK graph contains cyclic dependencies!")
+        self.assertEqual(visited, 66, "FK graph contains cyclic dependencies!")
 
     def test_t2_f1_03_courses_created_before_user_certificates(self):
         """T2.F1.3: Verify courses is created before user_certificates."""
@@ -591,7 +591,7 @@ class TestTier4RealWorldScenarios(unittest.TestCase):
                     )
             active_database.add(table)
 
-        self.assertEqual(len(active_database), 62, "Build cycle did not provision all 62 tables")
+        self.assertEqual(len(active_database), 66, "Build cycle did not provision all 66 tables")
 
         # 2. TEARDOWN CYCLE
         for table in self.schema.drop_tables:

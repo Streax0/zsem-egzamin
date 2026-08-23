@@ -176,7 +176,7 @@ include 'includes/header.php';
     </div>
 </header>
 
-<main class="course-player" data-course-player data-csrf-token="<?php echo htmlspecialchars(generateCsrfToken('course_progress'), ENT_QUOTES, 'UTF-8'); ?>" id="main-content">
+<main class="course-player" data-course-player data-course-id="<?php echo $courseId; ?>" data-active-item-id="<?php echo $activeItemId; ?>" data-csrf-token="<?php echo htmlspecialchars(generateCsrfToken('course_progress'), ENT_QUOTES, 'UTF-8'); ?>" id="main-content">
     
     <!-- Sidebar / Lesson Outline -->
     <aside class="course-player-sidebar" aria-label="Spis treści kursu">
@@ -300,6 +300,19 @@ include 'includes/header.php';
                             <div class="alert alert-warning">Autor nie skonfigurował jeszcze narzędzia laboratorium.</div>
                         <?php endif; ?>
                     <?php endif; ?>
+                </div>
+
+                <!-- Student Private Notes Drawer -->
+                <div class="card border-0 bg-body-tertiary rounded-3 p-3 my-4 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold small text-muted text-uppercase"><i class="bi bi-journal-text me-1 text-primary"></i> Twoje prywatne notatki do tej lekcji</span>
+                        <span class="small text-muted" id="noteSaveStatus">Wpisz tekst (zapis automatyczny)</span>
+                    </div>
+                    <textarea class="form-control bg-body border-0 shadow-inner small" id="studentCourseNoteArea" rows="3" placeholder="Zanotuj kluczowe komendy, adresy IP lub własne spostrzeżenia..."></textarea>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="badge bg-secondary-subtle text-secondary small"><i class="bi bi-keyboard me-1"></i> Skróty: [J] Poprzednia | [K] Następna</span>
+                        <span class="small text-muted">Dostępne tylko dla Ciebie</span>
+                    </div>
                 </div>
 
                 <!-- Bottom Completion Controls & Navigation -->

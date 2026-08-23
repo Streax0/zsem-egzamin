@@ -1058,12 +1058,7 @@ include 'includes/header.php';
                         const countInput = document.getElementById('questionCountInput');
                         const syncRankingInfo = () => {
                             if (!countInput || !sw) return;
-                            const count = Number(countInput.value || 0);
-                            if (count < 40) {
-                                info.textContent = 'Mniej niż 40 pytań - automatycznie trening';
-                                sw.checked = true;
-                                sw.disabled = true;
-                            } else if (remaining <= 0) {
+                            if (remaining <= 0) {
                                 info.textContent = 'Wykorzystano limit (2/2 dzisiaj)';
                                 sw.checked = false;
                                 sw.disabled = true;
@@ -1497,6 +1492,9 @@ include 'includes/header.php';
             <div class="panel-header d-flex justify-content-between align-items-center mb-4 question-card-header">
                 <div class="d-flex align-items-center gap-3">
                     <h5 class="mb-0 fw-bold">Pytanie</h5>
+                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 btn-flag-question" id="btnFlagQuestion" title="Oznacz pytanie flagą do weryfikacji (Skrót [F])">
+                        <i class="bi bi-flag me-1" id="flagIcon"></i><span class="flag-text" id="flagText">Oznacz</span>
+                    </button>
                 </div>
             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2"><?= htmlspecialchars($currentQuestion['category'] ?? 'Ogólne') ?></span>
         </div>
@@ -1568,6 +1566,9 @@ include 'includes/header.php';
                             <i class="bi bi-arrow-left me-2"></i>Poprzednie pytanie
                         </button>
                         <?php endif; ?>
+                        <button type="button" class="btn btn-outline-warning btn-lg px-3 btn-ai-tutor" id="btnAiTutor" data-question-id="<?= (int)$currentQuestion['id'] ?>" title="Wskazówka sokratejska (naprowadzenie na właściwy tok myślenia)">
+                            <i class="bi bi-lightbulb me-1"></i>Wskazówka Sokratejska
+                        </button>
                     </div>
                 </div>
             </form>
@@ -1737,6 +1738,29 @@ include 'includes/header.php';
     </div>
 </div>
 
+<!-- Socratic Hint Modal -->
+<div class="modal fade" id="aiTutorModal" tabindex="-1" aria-labelledby="aiTutorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg bg-body">
+            <div class="modal-header border-bottom border-warning-subtle bg-warning bg-opacity-10 py-3">
+                <h5 class="modal-title d-flex align-items-center gap-2 text-dark fw-bold" id="aiTutorModalLabel">
+                    <i class="bi bi-lightbulb-fill text-warning"></i> Sokratejska Wskazówka Myślowa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body p-4" id="aiTutorModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="text-muted mt-2">Generowanie wskazówki naprowadzającej...</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Rozumiem, rozwiązuję dalej</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Test modals and timer -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 <script>
@@ -1882,6 +1906,57 @@ function confirmEndTest() {
     pendingFinishForm = null;
     confirmFinish(null);
 }
+
+// Socratic Hint Handler
+document.querySelectorAll('.btn-ai-tutor').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const qId = btn.dataset.questionId || '0';
+        const modalEl = document.getElementById('aiTutorModal');
+        const modalBody = document.getElementById('aiTutorModalBody');
+        const tutorModal = modalEl && window.bootstrap ? bootstrap.Modal.getOrCreateInstance(modalEl) : null;
+        if (tutorModal) tutorModal.show();
+
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="text-muted mt-2">Generowanie sokratejskiej wskazówki myślowej...</p>
+                </div>
+            `;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('question_id', qId);
+            const res = await fetch('ajax/ai_tutor_explain.php', { method: 'POST', body: formData, credentials: 'same-origin' });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message || 'Nie udało się pobrać wskazówki.');
+
+            if (modalBody) {
+                modalBody.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fs-6"><i class="bi bi-tag-fill me-1"></i>Temat: ${data.topic || data.category}</span>
+                    </div>
+                    <div class="card border-primary-subtle bg-primary bg-opacity-10 p-3 mb-3 rounded-3">
+                        <div class="fw-bold text-primary mb-1"><i class="bi bi-compass me-2"></i>Pytanie naprowadzające:</div>
+                        <p class="mb-0 text-dark">${data.guiding_question}</p>
+                    </div>
+                    <div class="card border-info-subtle bg-body-tertiary p-3 mb-3 rounded-3">
+                        <div class="fw-bold text-info-emphasis mb-1"><i class="bi bi-book-half me-2"></i>Przypomnienie teorii:</div>
+                        <p class="mb-0 small text-muted">${data.concept_refresher}</p>
+                    </div>
+                    <div class="alert alert-warning border-0 small mb-0">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><strong>Pułapka egzaminacyjna:</strong> ${data.trap_to_avoid}
+                    </div>
+                `;
+            }
+        } catch (err) {
+            if (modalBody) {
+                modalBody.innerHTML = `<div class="alert alert-danger mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Błąd: ${err.message}</div>`;
+            }
+        }
+    });
+});
 </script>
 
 </body>

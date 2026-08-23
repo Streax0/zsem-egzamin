@@ -123,6 +123,12 @@ if ($showResultsToStudent) {
     <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+    <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
+        <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
+        <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
+    <?php endif; ?>
+    <script src="../assets/js/devtools-guard.js"></script>
+    <script src="../assets/js/theme-handler.js"></script>
 </head>
 <body>
 

@@ -18,6 +18,9 @@ class DeviceSessionManager
 
     private function ensureTable(): void
     {
+        if (function_exists('appRuntimeSchemaUpdatesEnabled') && !appRuntimeSchemaUpdatesEnabled()) {
+            return;
+        }
         $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if ($driver === 'sqlite') {
             try {

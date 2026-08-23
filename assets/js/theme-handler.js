@@ -9,6 +9,24 @@
     window.__zsemThemeHandlerLoaded = true;
     document.documentElement.classList.add('js-enabled');
 
+    // Ensure DevTools guard is loaded and active across the platform
+    if (!window.__zsemDevToolsGuardLoaded) {
+        const themeScript = document.querySelector('script[src*="theme-handler.js"]');
+        const guardSrc = themeScript ? themeScript.src.replace(/theme-handler\.js(\?.*)?$/, 'devtools-guard.js$1') : 'assets/js/devtools-guard.js';
+        const guardScript = document.createElement('script');
+        guardScript.src = guardSrc;
+        guardScript.async = false;
+        if (document.head) {
+            document.head.appendChild(guardScript);
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (document.head && !window.__zsemDevToolsGuardLoaded) {
+                    document.head.appendChild(guardScript);
+                }
+            });
+        }
+    }
+
     const preferenceCookieNames = [
         'user_theme',
         'user_font_size',

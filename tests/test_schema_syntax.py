@@ -77,6 +77,10 @@ EXPECTED_TABLES = {
     "exam_warnings",
     "course_quiz_questions",
     "user_course_progress",
+    "flashcard_sm2",
+    "subnetting_scores",
+    "question_hints",
+    "cli_lab_completions",
 }
 
 COURSE_TABLES = {
@@ -202,16 +206,16 @@ class TestTier1SchemaFeatures(unittest.TestCase):
 
     # Feature 1: Full Schema Table Inclusions (5 tests)
     def test_f1_01_total_table_count_equals_62(self):
-        """T1.F1.1: Verify exactly 62 unique tables are declared in full_schema.sql."""
+        """T1.F1.1: Verify exactly 66 unique tables are declared in full_schema.sql."""
         self.assertEqual(
             len(self.parser.create_tables),
-            62,
-            f"Expected 62 CREATE TABLE statements, found {len(self.parser.create_tables)}",
+            66,
+            f"Expected 66 CREATE TABLE statements, found {len(self.parser.create_tables)}",
         )
         self.assertEqual(
             len(set(self.parser.create_tables)),
-            62,
-            "Expected 62 unique table names in CREATE TABLE statements",
+            66,
+            "Expected 66 unique table names in CREATE TABLE statements",
         )
 
     def test_f1_02_all_expected_tables_present(self):
@@ -343,15 +347,15 @@ class TestTier1SchemaFeatures(unittest.TestCase):
         self.assertTrue(has_user_fk, "luki_spins missing FK reference to users(id)")
 
     def test_f2_04_drop_table_header_has_exact_62_tables(self):
-        """T1.F2.4: Verify DROP TABLE IF EXISTS header contains exactly 62 tables."""
+        """T1.F2.4: Verify DROP TABLE IF EXISTS header contains exactly 66 tables."""
         self.assertEqual(
             len(self.parser.drop_tables),
-            62,
-            f"Expected 62 DROP TABLE statements, found {len(self.parser.drop_tables)}",
+            66,
+            f"Expected 66 DROP TABLE statements, found {len(self.parser.drop_tables)}",
         )
         self.assertEqual(
             len(set(self.parser.drop_tables)),
-            62,
+            66,
             "DROP TABLE statements contain duplicate table names",
         )
 

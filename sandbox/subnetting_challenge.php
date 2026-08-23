@@ -48,6 +48,11 @@ try {
     <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= htmlspecialchars(assetUrl('assets/css/style.css', '..')) ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(assetUrl('assets/css/dashboard-new.css', '..')) ?>">
+    <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
+        <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
+        <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
+    <?php endif; ?>
+    <script src="<?= htmlspecialchars(assetUrl('assets/js/devtools-guard.js', '..')) ?>"></script>
     <script src="<?= htmlspecialchars(assetUrl('assets/js/theme-handler.js', '..')) ?>"></script>
     <style>
         .challenge-shell { max-width: 900px; margin: 0 auto; }
@@ -280,6 +285,8 @@ try {
                             <button class="diff-tab active" data-diff="medium">Średni <span class="badge bg-primary ms-1">B</span></button>
                             <button class="diff-tab" data-diff="hard">Trudny <span class="badge bg-warning text-dark ms-1">A</span></button>
                             <button class="diff-tab" data-diff="expert">Expert <span class="badge bg-danger ms-1">★</span></button>
+                            <button class="diff-tab" data-diff="vlsm">VLSM CKE <span class="badge bg-info ms-1">INF.02</span></button>
+                            <button class="diff-tab" data-diff="ipv6">IPv6 <span class="badge bg-secondary ms-1">::/64</span></button>
                         </div>
 
                         <!-- Stats row -->
@@ -442,11 +449,31 @@ try {
 
     // ── Subnet Math ────────────────────────────────────────────────────────────
     function generateQuestion() {
+        if (difficulty === 'ipv6') {
+            const prefixes = ['2001:db8:acad:', 'fe80::', '2001:4860:4860::', '2001:0db8:85a3:'];
+            const pfx = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const hextet = Math.floor(Math.random() * 65535).toString(16);
+            const rawIp = `${pfx}${hextet}`;
+            return {
+                ip: rawIp,
+                cidr: 64,
+                networkIp: pfx.endsWith('::') ? pfx : pfx + '::',
+                correct: {
+                    network: pfx.endsWith('::') ? pfx : pfx + '::',
+                    broadcast: 'N/A (Multicast/Anycast)',
+                    first_host: `${pfx}${hextet}:1`,
+                    last_host: `${pfx}ffff:ffff:ffff:ffff`,
+                    host_count: '18446744073709551616',
+                }
+            };
+        }
+
         const cidrRanges = {
             easy:   [24, 25, 26],
             medium: [20, 22, 24, 25, 26, 27, 28],
             hard:   [16, 18, 20, 22, 23, 24, 25, 26, 27, 28, 29],
             expert: [8, 10, 12, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+            vlsm:   [25, 26, 27, 28, 29, 30],
         };
         const cidrs = cidrRanges[difficulty] || cidrRanges.medium;
         const cidr  = cidrs[Math.floor(Math.random() * cidrs.length)];

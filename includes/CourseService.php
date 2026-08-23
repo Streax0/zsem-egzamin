@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 const COURSE_ITEM_TYPES = ['text', 'video', 'quiz', 'lab', 'exam'];
 const COURSE_LAB_TOOLS = ['logic', 'psu', 'subnet', 'router', 'numbers', 'ohm', 'live', 'crypto'];
-const COURSE_BLOCK_TYPES = ['text', 'callout', 'code', 'checklist', 'image', 'divider'];
+const COURSE_BLOCK_TYPES = ['text', 'callout', 'code', 'checklist', 'image', 'divider', 'cli_task', 'interactive_quiz'];
 
 function courseText(string $value, int $maxLength, bool $multiline = true): string {
     $value = trim(str_replace("\0", '', $value));
@@ -165,6 +165,31 @@ function courseNormalizeLessonDocument(array $document): array {
                     'caption' => courseText((string)($rawBlock['caption'] ?? ''), 300),
                 ];
             }
+        } elseif ($type === 'cli_task') {
+            $blocks[] = [
+                'type' => 'cli_task',
+                'task_id' => courseText((string)($rawBlock['task_id'] ?? uniqid('task_')), 64, false),
+                'title' => courseText((string)($rawBlock['title'] ?? 'Zadanie Praktyczne CLI'), 160, false),
+                'instructions' => courseText((string)($rawBlock['instructions'] ?? ''), 3000),
+                'initial_prompt' => courseText((string)($rawBlock['initial_prompt'] ?? 'Router>'), 32, false),
+                'target_command' => courseText((string)($rawBlock['target_command'] ?? ''), 255, false),
+                'expected_output' => courseText((string)($rawBlock['expected_output'] ?? ''), 3000),
+                'hint' => courseText((string)($rawBlock['hint'] ?? ''), 500),
+                'xp_reward' => max(5, min(100, (int)($rawBlock['xp_reward'] ?? 15))),
+            ];
+        } elseif ($type === 'interactive_quiz') {
+            $options = is_array($rawBlock['options'] ?? null) ? $rawBlock['options'] : [];
+            $cleanOpts = [];
+            foreach (array_slice($options, 0, 6) as $opt) {
+                $cleanOpts[] = courseText((string)$opt, 200, false);
+            }
+            $blocks[] = [
+                'type' => 'interactive_quiz',
+                'question' => courseText((string)($rawBlock['question'] ?? ''), 500),
+                'options' => $cleanOpts ?: ['Opcja A', 'Opcja B'],
+                'correct_index' => max(0, min(count($cleanOpts) - 1, (int)($rawBlock['correct_index'] ?? 0))),
+                'explanation' => courseText((string)($rawBlock['explanation'] ?? ''), 2000),
+            ];
         } else {
             $blocks[] = ['type' => 'divider'];
         }
@@ -331,6 +356,58 @@ function courseRenderLessonContent(?string $raw, string $basePrefix = ''): strin
                 }
                 $html .= '</figure>';
             }
+        } elseif ($type === 'cli_task') {
+            $taskId = htmlspecialchars((string)($block['task_id'] ?? uniqid('task_')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $title = htmlspecialchars((string)($block['title'] ?? 'Zadanie CLI'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $prompt = htmlspecialchars((string)($block['initial_prompt'] ?? 'Router>'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $instructions = nl2br(htmlspecialchars((string)($block['instructions'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+            $hint = htmlspecialchars((string)($block['hint'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $xp = (int)($block['xp_reward'] ?? 15);
+
+            $html .= '<section class="course-cli-task-block card border-dark bg-dark text-light p-3 my-3 rounded-3" data-task-id="' . $taskId . '">';
+            $html .= '<div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-3">';
+            $html .= '<h4 class="h6 mb-0 text-info"><i class="bi bi-terminal me-2"></i>' . $title . '</h4>';
+            $html .= '<span class="badge bg-primary">+' . $xp . ' XP</span>';
+            $html .= '</div>';
+            if ($instructions !== '') {
+                $html .= '<div class="small mb-3 text-secondary">' . $instructions . '</div>';
+            }
+            $html .= '<div class="course-cli-terminal p-2 rounded bg-black font-monospace mb-2" style="border: 1px solid #333; min-height: 80px;">';
+            $html .= '<div class="terminal-output small text-light opacity-75 mb-2" id="term_out_' . $taskId . '">Wpisz polecenie i naciśnij Enter...</div>';
+            $html .= '<div class="d-flex align-items-center">';
+            $html .= '<span class="text-success me-2 fw-bold">' . $prompt . '</span>';
+            $html .= '<input type="text" class="form-control form-control-sm bg-dark text-light border-0 font-monospace course-cli-input" id="term_in_' . $taskId . '" placeholder="np. show ip interface brief" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">';
+            $html .= '</div></div>';
+            $html .= '<div class="d-flex justify-content-between align-items-center mt-2">';
+            if ($hint !== '') {
+                $html .= '<button type="button" class="btn btn-sm btn-outline-warning btn-course-hint" data-hint="' . $hint . '"><i class="bi bi-lightbulb me-1"></i>Podpowiedź</button>';
+            } else {
+                $html .= '<span></span>';
+            }
+            $html .= '<button type="button" class="btn btn-sm btn-success px-3 btn-check-cli-task" data-task-id="' . $taskId . '"><i class="bi bi-play-circle me-1"></i>Sprawdź rozwiązanie</button>';
+            $html .= '</div>';
+            if ($hint !== '') {
+                $html .= '<div class="alert alert-warning mt-2 small d-none course-hint-box" id="hint_box_' . $taskId . '"><i class="bi bi-info-circle me-1"></i><span>' . $hint . '</span></div>';
+            }
+            $html .= '</section>';
+        } elseif ($type === 'interactive_quiz') {
+            $question = htmlspecialchars((string)($block['question'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $correctIdx = (int)($block['correct_index'] ?? 0);
+            $explanation = htmlspecialchars((string)($block['explanation'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $qId = uniqid('quiz_');
+
+            $html .= '<section class="course-interactive-quiz card border-primary-subtle bg-body-tertiary p-3 my-3 rounded-3" data-quiz-id="' . $qId . '" data-correct-idx="' . $correctIdx . '">';
+            $html .= '<h4 class="h6 text-primary mb-3"><i class="bi bi-patch-question me-2"></i>' . $question . '</h4>';
+            $html .= '<div class="course-quiz-options d-flex flex-column gap-2">';
+            foreach (($block['options'] ?? []) as $idx => $opt) {
+                $optText = htmlspecialchars((string)$opt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $html .= '<button type="button" class="btn btn-sm btn-outline-secondary text-start course-quiz-opt" data-opt-idx="' . $idx . '">' . chr(65 + $idx) . '. ' . $optText . '</button>';
+            }
+            $html .= '</div>';
+            if ($explanation !== '') {
+                $html .= '<div class="course-quiz-expl mt-3 p-2 bg-body rounded small text-muted d-none" id="expl_' . $qId . '"><strong>Wyjaśnienie:</strong> ' . $explanation . '</div>';
+            }
+            $html .= '</section>';
         } elseif ($type === 'divider') {
             $html .= '<hr class="course-divider">';
         }

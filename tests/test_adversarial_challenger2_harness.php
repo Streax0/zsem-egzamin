@@ -497,8 +497,8 @@ function testZeroDdlWebExecution(): void {
         if (!$file->isFile() || $file->getExtension() !== 'php') continue;
         $relPath = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
         
-        // Skip tests/ and scratch/
-        if (str_starts_with($relPath, 'tests/') || str_starts_with($relPath, 'scratch/') || str_starts_with($relPath, '.agents/')) {
+        // Skip tests/, scratch/, and backup generator (which outputs SQL text)
+        if (str_starts_with($relPath, 'tests/') || str_starts_with($relPath, 'scratch/') || str_starts_with($relPath, '.agents/') || str_contains($relPath, 'DbBackup.php')) {
             continue;
         }
 

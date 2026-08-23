@@ -77,6 +77,11 @@ $csrf = generateCsrfToken('mfa');
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/auth.css">
+    <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
+        <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
+        <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
+    <?php endif; ?>
+    <script src="<?php echo htmlspecialchars(assetUrl('assets/js/devtools-guard.js', '..')); ?>"></script>
     <style>
         .totp-qr-card {
             display: grid;
@@ -162,9 +167,9 @@ $csrf = generateCsrfToken('mfa');
                 <button type="submit" class="btn btn-primary w-100 mb-3"><?= $enabled ? 'Zweryfikuj' : 'Aktywuj 2FA' ?></button>
             </form>
             <?php if (!$mfaRequired && !$enabled): ?>
-                <a href="index.php" class="btn btn-light border w-100 mb-3">Pomiń teraz</a>
+                <a href="../index.php" class="btn btn-light border w-100 mb-3">Pomiń teraz</a>
             <?php endif; ?>
-            <form action="actions/logout.php" method="POST" class="text-center">
+            <form action="../actions/logout.php" method="POST" class="text-center">
                 <?= csrfTokenField('logout') ?>
                 <button class="btn btn-link text-muted text-decoration-none small" type="submit">Wyloguj</button>
             </form>

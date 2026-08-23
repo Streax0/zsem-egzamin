@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/autoloader.php';
+require_once __DIR__ . '/AiTutorEngine.php';
 /**
  * Helper functions library
  * Provides utility functions for the quiz application
@@ -134,6 +135,21 @@ function roleParticipatesInRanking($role): bool {
 
 function roleHasAdminAccess($role): bool {
     return in_array((string)$role, adminRoleValues(), true);
+}
+
+function isDevToolsAllowed(): bool {
+    if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
+        if (function_exists('startSecureSession')) {
+            startSecureSession();
+        }
+    }
+    $role = (string)($_SESSION['role'] ?? 'user');
+    return roleHasAdminAccess($role);
+}
+
+function devtoolsPolicyMetaTag(): string {
+    $allowed = isDevToolsAllowed();
+    return '<meta name="devtools-policy" content="' . ($allowed ? 'allow' : 'deny') . '">' . ($allowed ? '<script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script>' : '');
 }
 
 function roleHasTeacherPanelAccess($role): bool {
@@ -2958,9 +2974,9 @@ function completedFullTestSql(string $alias = 'tr', int $minQuestions = 1, bool 
     return implode(' AND ', $parts);
 }
 
-function getQualifiedTestResults(PDO $pdo, int $userId, int $limit = 100, int $minQuestions = 40): array {
+function getQualifiedTestResults(PDO $pdo, int $userId, int $limit = 100, int $minQuestions = 1): array {
     try {
-        $qualifiedSql = completedFullTestSql('tr', $minQuestions, true);
+        $qualifiedSql = completedFullTestSql('tr', $minQuestions, false);
         $stmt = $pdo->prepare("
             SELECT tr.id, tr.score_percent, tr.correct_answers, tr.correct_answers AS correct_count,
                    tr.total_questions, tr.time_spent, tr.mode, tr.mode AS test_type, tr.mode AS test_mode,
@@ -3428,59 +3444,79 @@ function answerOptionText(array $question, string $letter): string {
 }
 
 function buildDistractorExplanation(array $question, string $letter, string $optionText, string $questionText = ''): string {
-    $text = mb_strtolower(trim($optionText), 'UTF-8');
+    $text = trim($optionText);
     if ($text === '') {
         return '';
     }
-    if (str_contains($text, 'modem analog')) {
+
+    if (function_exists('aiTutorAnalyzeTechnicalOption')) {
+        $qText = $questionText ?: (string)($question['question_text'] ?? ($question['question'] ?? ''));
+        $cat = (string)($question['category'] ?? 'INF.02');
+        $correct = strtoupper(trim((string)($question['correct_answer'] ?? ($question['correct'] ?? ''))));
+        $correctText = answerOptionText($question, $correct);
+        $reason = aiTutorAnalyzeTechnicalOption($text, $qText, $correctText, false, $cat);
+        if ($reason !== '') {
+            return $reason;
+        }
+    }
+
+    $tLower = mb_strtolower($text, 'UTF-8');
+    if (str_contains($tLower, 'modem analog')) {
         return 'modem analogowy służy głównie do transmisji danych przez linię telefoniczną, a nie do zamiany połączenia PSTN na rozmowę VoIP.';
     }
-    if (str_contains($text, 'mostek') || str_contains($text, 'bridge')) {
+    if (str_contains($tLower, 'mostek') || str_contains($tLower, 'bridge')) {
         return 'mostek łączy segmenty sieci komputerowej i nie obsługuje bezpośrednio analogowych aparatów telefonicznych.';
     }
-    if (str_contains($text, 'repet') || str_contains($text, 'wzmacni')) {
+    if (str_contains($tLower, 'repet') || str_contains($tLower, 'wzmacni')) {
         return 'repeater wzmacnia lub regeneruje sygnał w sieci, ale nie konwertuje telefonu analogowego na usługi internetowe.';
     }
-    if (str_contains($text, 'voip') || str_contains($text, 'bramk')) {
+    if (str_contains($tLower, 'voip') || str_contains($tLower, 'bramk')) {
         return 'ta odpowiedź opisuje urządzenie łączące telefonię analogową z transmisją pakietową.';
     }
-    if (str_contains($text, 'dns')) {
+    if (str_contains($tLower, 'dns')) {
         return 'DNS rozwiązuje nazwy domen na adresy IP, więc pasuje tylko wtedy, gdy pytanie dotyczy nazw hostów.';
     }
-    if (str_contains($text, 'dhcp')) {
+    if (str_contains($tLower, 'dhcp')) {
         return 'DHCP przydziela konfigurację IP klientom, więc nie zastępuje usługi ani urządzenia wskazanego w pytaniu.';
     }
-    if (str_contains($text, 'router')) {
+    if (str_contains($tLower, 'router')) {
         return 'router przekazuje ruch między sieciami; jest poprawny tylko wtedy, gdy pytanie dotyczy routingu lub bramy sieciowej.';
     }
-    if (str_contains($text, 'switch') || str_contains($text, 'przełącz')) {
+    if (str_contains($tLower, 'switch') || str_contains($tLower, 'przełącz')) {
         return 'przełącznik działa głównie w sieci lokalnej i nie realizuje funkcji opisanej przez poprawną odpowiedź.';
     }
-    if (str_contains($text, 'mask')) {
+    if (str_contains($tLower, 'mask')) {
         return 'maska podsieci opisuje część sieciową adresu, ale sama nie wykonuje akcji wymaganej w pytaniu.';
     }
 
     // Generic context-aware fallback
-    if (str_contains($text, 'sterownik')) {
+    if (str_contains($tLower, 'sterownik')) {
         return 'problem ze sterownikami zazwyczaj objawia się błędami sprzętowymi (BSoD) po wczytaniu jądra, a nie na etapie samego startu narzędzi naprawczych przed załadowaniem środowiska.';
     }
-    if (str_contains($text, 'dysk') || str_contains($text, 'miejsc')) {
+    if (str_contains($tLower, 'dysk') || str_contains($tLower, 'miejsc')) {
         return 'brak miejsca na dysku nie powoduje błędów rozruchowych o takim charakterze w tej fazie bootowania.';
     }
-    if (str_contains($text, 'klawiatur') || str_contains($text, 'mysz')) {
+    if (str_contains($tLower, 'klawiatur') || str_contains($tLower, 'mysz')) {
         return 'urządzenia peryferyjne są sygnalizowane przez BIOS/UEFI wcześniej i nie generują takiego błędu startowego Windows.';
     }
-    if (str_contains($text, 'pamięć') || str_contains($text, 'ram')) {
+    if (str_contains($tLower, 'pamięć') || str_contains($tLower, 'ram')) {
         return 'błędy pamięci operacyjnej częściej powodują sprzętowe zawieszenia lub losowe restarty całego systemu.';
     }
-    if (str_contains($text, 'zasilacz')) {
+    if (str_contains($tLower, 'zasilacz')) {
         return 'uszkodzenie zasilacza prowadzi do wyłączania się sprzętu lub niemożności jego uruchomienia, a nie do komunikatów systemu operacyjnego.';
     }
 
     return 'ta odpowiedź dotyczy innego aspektu działania systemu i nie jest bezpośrednią przyczyną opisanego problemu.';
 }
 
-function buildCorrectAnswerRationale(string $questionText, string $correctLetter, string $correctText): string {
+function buildCorrectAnswerRationale(string $questionText, string $correctLetter, string $correctText, string $category = 'INF.02'): string {
+    if (function_exists('aiTutorAnalyzeTechnicalOption')) {
+        $reason = aiTutorAnalyzeTechnicalOption($correctText, $questionText, $correctText, true, $category);
+        if ($reason !== '' && !str_starts_with($reason, 'Prawidłowym rozwiązaniem')) {
+            return "Odpowiedź {$correctLetter} ({$correctText}) jest poprawna. {$reason}";
+        }
+    }
+
     $qLower = mb_strtolower($questionText, 'UTF-8');
     $aLower = mb_strtolower($correctText, 'UTF-8');
     
@@ -3521,11 +3557,12 @@ function buildQuestionExplanation(array $question, string $userAnswer = '', ?boo
     $correctText = answerOptionText($question, $correct);
     $userText = answerOptionText($question, $user);
     $questionText = trim((string)($question['question_text'] ?? ($question['question'] ?? '')));
+    $category = (string)($question['category'] ?? 'INF.02');
 
     $correctLabel = $correctText !== '' ? "{$correct}. {$correctText}" : $correct;
     $parts = ["Wyjaśnienie i uzasadnienie:"];
     $parts[] = "• Poprawna odpowiedź: {$correctLabel}.";
-    $parts[] = buildCorrectAnswerRationale($questionText, $correct, $correctText);
+    $parts[] = buildCorrectAnswerRationale($questionText, $correct, $correctText, $category);
 
     if ($user !== '' && $user !== '-' && $user !== $correct) {
         $userLabel = $userText !== '' ? "{$user}. {$userText}" : $user;
@@ -4091,10 +4128,6 @@ function completeEligibleMissionsAfterTest($pdo, $userId, $resultId, $totalQuest
 
         foreach ($missionsData['missions'] as $mission) {
             if ((int)$mission['is_completed'] !== 1 || !empty($mission['completed_at'])) continue;
-
-            $desc = mb_strtolower((string)($mission['mission_description'] ?? ''), 'UTF-8');
-            $allowsAny = mb_strpos($desc, 'dowolny test') !== false || mb_strpos($desc, 'dowolne testy') !== false || $period !== 'daily';
-            if ($totalQuestions < 40 && !$allowsAny) continue;
 
             $reward = (int)($pool[$mission['mission_type']]['reward_xp'] ?? $mission['xp_reward'] ?? 0);
             if ($reward <= 0) continue;
@@ -4835,6 +4868,7 @@ function finishTest($pdo, $userId, $test) {
     try {
         $values = [];
         $params = [];
+        $answeredList = [];
         foreach ($test['questions'] as $index => $q) {
             $qId = (int)$q['id'];
             $userAnswer = '';
@@ -4848,6 +4882,10 @@ function finishTest($pdo, $userId, $test) {
             $isCorrect = ($userAnswer !== '' && $correctAnswer !== '' && $userAnswer === $correctAnswer) ? 1 : 0;
             $values[] = "(?, ?, ?, ?, ?)";
             array_push($params, $resultId, $qId, $userAnswer, $correctAnswer, $isCorrect);
+
+            if ($userAnswer !== '' && $userAnswer !== '-') {
+                $answeredList[] = ['qId' => $qId, 'isCorrect' => $isCorrect];
+            }
         }
 
         if (!empty($values)) {
@@ -4855,6 +4893,11 @@ function finishTest($pdo, $userId, $test) {
             $pdo->prepare($sql)->execute($params);
         }
         $pdo->commit();
+
+        // Update question progress / mastery for every answered question
+        foreach ($answeredList as $ansItem) {
+            updateQuestionProgress($pdo, (int)$userId, $ansItem['qId'], (bool)$ansItem['isCorrect']);
+        }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         error_log("Error saving test answers: " . $e->getMessage());
@@ -5093,7 +5136,7 @@ function hideUserDuelFromHistory(PDO $pdo, int $userId, int $duelId): bool {
  */
 function getTopRankings($pdo, $limit = 10) {
     ensurePlatformEnhancements($pdo);
-    $completedSql = completedFullTestSql('tr_count', 40, true);
+    $completedSql = completedFullTestSql('tr_count', 1, false);
     $sql = "SELECT id, username, role, xp, is_verified, ranking_visible, avatar_path,
         (SELECT COUNT(*) FROM test_results tr_count WHERE tr_count.user_id = users.id AND {$completedSql} AND COALESCE(tr_count.exclude_from_ranking, 0) = 0) as tests_count
         FROM users
@@ -5144,7 +5187,7 @@ function getUsersPerformanceStreaks(PDO $pdo, array $userIds): array {
     }
 
     try {
-        $completedSql = completedFullTestSql('tr', 40, true);
+        $completedSql = completedFullTestSql('tr', 1, false);
         $placeholders = implode(',', array_fill(0, count($userIds), '?'));
         $stmt = $pdo->prepare("
             SELECT ranked.user_id, ranked.score_percent
@@ -5180,7 +5223,7 @@ function getUsersPerformanceStreaks(PDO $pdo, array $userIds): array {
 
 function getUserPerformanceStreak($pdo, $userId) {
     try {
-        $completedSql = completedFullTestSql('tr', 40, true);
+        $completedSql = completedFullTestSql('tr', 1, false);
         $stmt = $pdo->prepare("
             SELECT score_percent
             FROM test_results tr

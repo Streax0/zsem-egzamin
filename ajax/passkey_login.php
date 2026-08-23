@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/autoloader.php';
 require_once __DIR__ . '/../includes/session.php';
@@ -29,7 +31,7 @@ if ($action === 'generate') {
         $_SESSION['webauthn_challenge'] = $WebAuthn->getChallenge();
         
         echo securityJsonEncode(['status' => 'success', 'options' => $getArgs]);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         echo securityJsonEncode(['status' => 'error', 'message' => $e->getMessage()]);
     }
     exit;
@@ -60,11 +62,11 @@ if ($action === 'verify') {
         // Zabezpieczenie: szukamy klucza po credential_id
         $stmt = $pdo->prepare("SELECT user_id FROM user_passkeys WHERE credential_id = ?");
         $stmt->execute([base64_encode($id)]);
-        $userId = $stmt->fetchColumn();
+        $userId = (int)$stmt->fetchColumn();
     }
 
     if (!$userId) {
-        echo securityJsonEncode(['status' => 'error', 'message' => 'Klucz nie jest powiązany z żadnym kontem.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Klucz Passkey nie jest powiązany z żadnym kontem.']);
         exit;
     }
 
@@ -73,7 +75,7 @@ if ($action === 'verify') {
     $passkey = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$passkey) {
-        echo securityJsonEncode(['status' => 'error', 'message' => 'Nieprawidłowy klucz.']);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Nieprawidłowy klucz Passkey.']);
         exit;
     }
 
@@ -97,24 +99,45 @@ if ($action === 'verify') {
         }
 
         if (!in_array($user['role'], ['admin', 'dyrektor', 'teacher'])) {
-             throw new Exception("Twoje konto nie obsluguje passkey, jesli uwazasz ze to blad, skontaktuj sie z administratorem");
+             throw new Exception("Twoje konto nie obsługuje logowania przez Passkey.");
         }
 
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['role'] = $user['role'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['session_version'] = (int)($user['session_version'] ?? 1);
-        $_SESSION['2fa_verified'] = true; 
+        // Check if user is banned
+        if (isset($user['is_banned']) && (int)$user['is_banned'] === 1) {
+            if (function_exists('clearExpiredBanForUser') && clearExpiredBanForUser($pdo, $user)) {
+                $user['is_banned'] = 0;
+            } elseif (function_exists('userBanIsActive') && userBanIsActive($pdo, (int)$user['id'])) {
+                $until = !empty($user['ban_expires_at']) ? ' do ' . date('d.m.Y H:i', strtotime((string)$user['ban_expires_at'])) : '';
+                echo securityJsonEncode(['status' => 'error', 'message' => 'Twoje konto zostało zablokowane' . $until . '. Skontaktuj się z administratorem.']);
+                exit;
+            }
+        }
 
-        regenerateSessionId();
+        // Initialize user session
+        clearGuestSessionState();
+        if (function_exists('regenerateSessionId')) {
+            regenerateSessionId(true);
+        }
+
+        $_SESSION['user_id'] = (int)$user['id'];
+        $_SESSION['role'] = (string)($user['role'] ?? 'user');
+        $_SESSION['username'] = (string)$user['username'];
+        $_SESSION['session_version'] = (int)($user['session_version'] ?? 1);
+        
+        // Passkey / WebAuthn is strong hardware multi-factor authentication; it satisfies MFA
+        $_SESSION['mfa_enabled'] = function_exists('mfaUserHasEnabled') ? mfaUserHasEnabled($pdo, (int)$user['id']) : false;
+        $_SESSION['mfa_verified'] = true;
+        $_SESSION['2fa_verified'] = true;
+        $_SESSION['auth_method'] = 'passkey';
+
         registerCurrentUserSession($pdo, (int)$user['id']);
         if (function_exists('updateLastLogin')) {
-            updateLastLogin($user['id']);
+            updateLastLogin((int)$user['id']);
         }
 
-        echo securityJsonEncode(['status' => 'success', 'message' => 'Zalogowano pomyślnie.', 'redirect' => '../index.php']);
+        echo securityJsonEncode(['status' => 'success', 'message' => 'Zalogowano pomyślnie za pomocą Passkey.', 'redirect' => '../index.php']);
     } catch (WebAuthnException $e) {
-        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd weryfikacji logowania: ' . $e->getMessage()]);
+        echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd weryfikacji Passkey: ' . $e->getMessage()]);
     } catch (PDOException $e) {
         echo securityJsonEncode(['status' => 'error', 'message' => 'Błąd bazy danych podczas logowania.']);
     } catch (Throwable $e) {

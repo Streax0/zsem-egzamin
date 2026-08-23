@@ -94,6 +94,12 @@ switch ($duel['status']) {
     <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+    <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
+        <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
+        <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
+    <?php endif; ?>
+    <script src="../assets/js/devtools-guard.js"></script>
+    <script src="../assets/js/theme-handler.js"></script>
     <style>
         .lobby-hero { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: #fff; border-radius: 26px; padding: 2rem; position: relative; overflow: hidden; }
         .lobby-hero::after { content: ''; position: absolute; right: -60px; top: -60px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.1); }
@@ -118,7 +124,7 @@ switch ($duel['status']) {
                                 <span class="badge bg-white bg-opacity-15 rounded-pill lobby-status-badge mb-3">Lobby</span>
                                 <h1 class="fw-900 mb-2">Pojedynek: <?= htmlspecialchars($duel['challenger_name']) ?> vs <?= htmlspecialchars($duel['opponent_name']) ?></h1>
                                 <p class="lead opacity-85"><?= htmlspecialchars($statusText) ?></p>
-                            </div>
+                            </div>         </div>
                             <div class="status-ring text-center">
                                 <strong><?= htmlspecialchars($statusBadge) ?></strong>
                                 <span><?= htmlspecialchars($duel['question_count']) ?> pytań</span>

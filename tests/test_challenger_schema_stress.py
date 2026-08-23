@@ -149,11 +149,11 @@ class SchemaStressAndIntegrityTests(unittest.TestCase):
     # 1. DEPENDENCY GRAPH, CYCLES, AND TOPOLOGICAL ORDERING
     # =========================================================================
     def test_01_table_counts(self):
-        """Verify exactly 62 CREATE statements and 62 DROP statements."""
-        self.assertEqual(len(self.ast.create_order), 62, f"Found {len(self.ast.create_order)} CREATE TABLE statements")
-        self.assertEqual(len(self.ast.drop_tables), 62, f"Found {len(self.ast.drop_tables)} DROP TABLE statements")
-        self.assertEqual(len(set(self.ast.create_order)), 62, "Duplicate CREATE TABLE statements detected")
-        self.assertEqual(len(set(self.ast.drop_tables)), 62, "Duplicate DROP TABLE statements detected")
+        """Verify exactly 66 CREATE statements and 66 DROP statements."""
+        self.assertEqual(len(self.ast.create_order), 66, f"Found {len(self.ast.create_order)} CREATE TABLE statements")
+        self.assertEqual(len(self.ast.drop_tables), 66, f"Found {len(self.ast.drop_tables)} DROP TABLE statements")
+        self.assertEqual(len(set(self.ast.create_order)), 66, "Duplicate CREATE TABLE statements detected")
+        self.assertEqual(len(set(self.ast.drop_tables)), 66, "Duplicate DROP TABLE statements detected")
         self.assertEqual(set(self.ast.create_order), set(self.ast.drop_tables), "Mismatch between CREATE and DROP table sets")
 
     def test_02_graph_acyclicity_tarjan(self):
@@ -344,6 +344,8 @@ class SchemaStressAndIntegrityTests(unittest.TestCase):
             ddl = raw_ddl
             ddl = re.sub(r"\)\s*ENGINE\s*=\s*[a-zA-Z0-9_]+.*?;", ");", ddl, flags=re.IGNORECASE | re.DOTALL)
             ddl = re.sub(r"\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP", "", ddl, flags=re.I)
+            ddl = re.sub(r"\s+COMMENT\s+'[^']*'", "", ddl, flags=re.I)
+            ddl = re.sub(r"\bDEFAULT\s+\(CURDATE\(\)\)", "DEFAULT CURRENT_DATE", ddl, flags=re.I)
             ddl = re.sub(r"\b(?:TINYINT|SMALLINT|MEDIUMINT|BIGINT|INT)\b(?:\s+UNSIGNED)?\s+AUTO_INCREMENT\s+PRIMARY\s+KEY\b", "INTEGER PRIMARY KEY AUTOINCREMENT", ddl, flags=re.I)
             ddl = re.sub(r"\bAUTO_INCREMENT\b", "", ddl, flags=re.I)
             ddl = re.sub(r"\bENUM\s*\([^)]+\)", "TEXT", ddl, flags=re.I)

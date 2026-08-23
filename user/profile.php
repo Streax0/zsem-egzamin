@@ -4,6 +4,7 @@ require_once '../config/db.php';
 require_once '../includes/session.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
+require_once '../includes/ReadinessPredictor.php';
 
 // Start secure session and require login
 startSecureSession();
@@ -71,8 +72,9 @@ $missionPool = $missionData['pool'];
 $stats = getUserStats($pdo, $userId);
 $testResults = getTestResults($pdo, $userId, 50);
 $profileHistoryResults = getUnifiedUserHistory($pdo, $userId, 50);
-$chartTestResults = getQualifiedTestResults($pdo, $userId, 100, 40);
+$chartTestResults = getQualifiedTestResults($pdo, $userId, 100, 1);
 $totalQuestions = count(loadQuestions($pdo, false));
+$ckeReadiness = calculateCkeReadinessIndex($pdo, $userId);
 
 // Format total time spent
 $totalSeconds = $stats['total_time_spent'];
@@ -1110,6 +1112,38 @@ include '../includes/header.php';
                     <p class="text-muted">Statystyki tego użytkownika są ukryte.</p>
                 </div>
             <?php else: ?>
+                <!-- CKE Exam Readiness Widget -->
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-body mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3 fs-5"><i class="bi bi-graph-up-arrow"></i></span>
+                            <div>
+                                <h5 class="fw-bold mb-0">Wskaźnik Gotowości Egzaminacyjnej CKE</h5>
+                                <small class="text-muted">Estymacja zdawalności arkuszy państwowych (INF.02 / INF.03)</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill fw-bold">
+                            <?php echo htmlspecialchars($ckeReadiness['readiness_label']); ?>
+                        </span>
+                    </div>
+
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-4 text-center border-end">
+                            <div class="display-5 fw-bold text-primary mb-0"><?php echo (int)$ckeReadiness['pass_probability']; ?>%</div>
+                            <small class="text-muted fw-bold text-uppercase">Szansa zdania testu</small>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="progress mb-2" style="height: 12px; border-radius: 999px;">
+                                <div class="progress-bar <?php echo $ckeReadiness['pass_probability'] >= 50 ? 'bg-success' : 'bg-warning'; ?>" role="progressbar" style="width: <?php echo (int)$ckeReadiness['pass_probability']; ?>%" aria-valuenow="<?php echo (int)$ckeReadiness['pass_probability']; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                                <?php echo htmlspecialchars($ckeReadiness['recommendation']); ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Stats Cards -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-3 col-6">

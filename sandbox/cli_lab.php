@@ -1,617 +1,567 @@
 <?php
-/**
- * CLI Terminal Simulator — Linux & Windows (Phase 2 Pro)
- *
- * Interactive terminal emulator for IT exam preparation (INF.02, INF.03, INF.08).
- * Supports stateful VFS, pipes, inline nano editor, sub-shells (MySQL, Diskpart, Python, PowerShell, NSLOOKUP, SSH),
- * server services (Apache2, BIND9, Samba, DHCP, vsftpd, Postfix, NFS, IIS), man-pages, achievements and CKE scenarios.
- */
 declare(strict_types=1);
 
-require_once '../config/db.php';
-require_once '../includes/session.php';
-require_once '../includes/auth.php';
-require_once '../includes/functions.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 startSecureSession();
-requireLogin(true);
 
-$userId = (int)($_SESSION['user_id'] ?? 0);
+$userId = $_SESSION['user_id'] ?? null;
+$userRole = (string)($_SESSION['role'] ?? 'user');
+
+// Fetch user profile and ranking info for stats bar
 $userXp = 0;
-$userRankInfo = ['name' => 'Początkujący', 'icon' => 'bi-shield', 'color' => '#64748b'];
+$userRankInfo = ['name' => 'Początkujący', 'icon' => 'bi-shield'];
 $completedScenarioIds = [];
 
-if ($userId > 0 && isset($pdo)) {
+if ($userId && isset($pdo)) {
     try {
-        $stmtUser = $pdo->prepare("SELECT xp FROM users WHERE id = ?");
-        $stmtUser->execute([$userId]);
-        $userXp = (int)$stmtUser->fetchColumn();
-        $userRankInfo = getRankInfoByXp($userXp);
+        $stmt = $pdo->prepare("SELECT xp, role FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $userRow = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($userRow) {
+            $userXp = (int)($userRow['xp'] ?? 0);
+            $userRankInfo = getRankDetails($userXp);
+        }
 
-        $pdo->exec("CREATE TABLE IF NOT EXISTS cli_lab_completions (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            scenario_id VARCHAR(64) NOT NULL,
-            os VARCHAR(16) NOT NULL,
-            xp_awarded INT NOT NULL,
-            completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY uq_user_scenario (user_id, scenario_id),
-            INDEX idx_user_completions (user_id),
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-        $stmtComp = $pdo->prepare("SELECT scenario_id FROM cli_lab_completions WHERE user_id = ?");
-        $stmtComp->execute([$userId]);
-        $completedScenarioIds = $stmtComp->fetchAll(PDO::FETCH_COLUMN) ?: [];
-    } catch (PDOException $e) {
-        error_log('CLI lab user data init failed: ' . $e->getMessage());
+        // Fetch completed CLI lab scenarios
+        $stmtScen = $pdo->prepare("SELECT scenario_id FROM cli_lab_completions WHERE user_id = ?");
+        $stmtScen->execute([$userId]);
+        $completedScenarioIds = $stmtScen->fetchAll(PDO::FETCH_COLUMN) ?: [];
+    } catch (Throwable $e) {
+        error_log("CLI Lab User Fetch Error: " . $e->getMessage());
     }
 }
-$csrfCliLab = generateCsrfToken('cli_lab');
 
-$pageTitle = 'CLI Lab — Symulator Terminala & Laboratorium CKE | ZSEM Tech';
-$base_url  = '../';
+$csrfCliLab = generateCsrfToken('cli_lab_reward');
+$pageTitle = 'Zaawansowany Symulator Terminala CLI & Zadania CKE';
+$extraCss = ['assets/css/dashboard-new.css'];
+$base_url = '../';
+include '../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
-    <meta name="description" content="Zaawansowany symulator terminala Linux i Windows do nauki poleceń sieciowych, administracji usługami (Apache, BIND, Samba, DHCP, IIS) na egzamin CKE INF.02/INF.03/INF.08">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
-    <link href="../assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?= htmlspecialchars(assetUrl('assets/css/style.css', '..')) ?>">
-    <link rel="stylesheet" href="<?= htmlspecialchars(assetUrl('assets/css/dashboard-new.css', '..')) ?>">
-    <script src="<?= htmlspecialchars(assetUrl('assets/js/theme-handler.js', '..')) ?>"></script>
-    <style>
-        :root {
-            --term-bg: #0b0f19;
-            --term-card-bg: #111827;
-            --term-text: #38bdf8;
-            --term-prompt: #818cf8;
-            --term-error: #f87171;
-            --term-warn: #fbbf24;
-            --term-dim: #94a3b8;
-            --term-white: #f8fafc;
-            --term-success: #34d399;
-            --term-border: rgba(255, 255, 255, 0.08);
-            --term-cyan: #22d3ee;
-            --term-magenta: #e879f9;
-        }
+<style>
+    :root {
+        --term-bg: #0d1117;
+        --term-titlebar: #161b22;
+        --term-border: #30363d;
+        --term-green: #3fb950;
+        --term-cyan: #58a6ff;
+        --term-yellow: #d29922;
+        --term-red: #f85149;
+        --term-white: #f0f6fc;
+        --term-dim: #8b949e;
+        --term-accent: #6366f1;
+        --term-font: 'Fira Code', 'Cascadia Code', Consolas, Menlo, Monaco, monospace;
+    }
 
-        .cli-shell {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+    /* ── Modern Terminal Container ── */
+    .terminal-window {
+        background: var(--term-bg);
+        border: 1px solid var(--term-border);
+        border-radius: 16px;
+        box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        font-family: var(--term-font);
+        position: relative;
+        transition: all .25s ease;
+    }
 
-        /* Terminal Window */
-        .terminal-window {
-            background: var(--term-bg);
-            border-radius: 14px;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, .8), 0 0 0 1px var(--term-border);
-            overflow: hidden;
-            font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-            font-size: .86rem;
-            min-height: 540px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            transition: all .25s ease;
-        }
+    .terminal-window.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        border-radius: 0;
+        box-shadow: none;
+    }
 
-        .terminal-window.is-fullscreen {
-            position: fixed;
-            inset: 10px;
-            z-index: 1060;
-            min-height: calc(100vh - 20px);
-            border-radius: 12px;
-        }
+    /* Title Bar */
+    .terminal-titlebar {
+        background: var(--term-titlebar);
+        border-bottom: 1px solid var(--term-border);
+        padding: .65rem 1rem;
+        display: flex;
+        align-items: center;
+        user-select: none;
+        gap: .75rem;
+    }
 
-        .terminal-titlebar {
-            background: rgba(255, 255, 255, 0.04);
-            padding: .6rem 1rem;
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-            border-bottom: 1px solid var(--term-border);
-            user-select: none;
-            flex-wrap: wrap;
-        }
+    .term-dots {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+    }
 
-        .term-dots {
-            display: flex;
-            align-items: center;
-            gap: .4rem;
-        }
+    .term-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+        transition: transform .15s ease, filter .15s;
+    }
 
-        .term-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            display: inline-block;
-            cursor: pointer;
-            transition: opacity .15s;
-        }
-        .term-dot:hover { opacity: .8; }
+    .term-dot:hover { transform: scale(1.15); filter: brightness(1.2); }
+    .term-dot-red { background: #ff5f56; }
+    .term-dot-yellow { background: #ffbd2e; }
+    .term-dot-green { background: #27c93f; }
 
-        .term-dot-red    { background: #ff5f57; }
-        .term-dot-yellow { background: #ffbd2e; }
-        .term-dot-green  { background: #28c840; }
+    .term-title-text {
+        color: var(--term-dim);
+        font-size: .82rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
 
-        .term-title-text {
-            color: #cbd5e1;
-            font-size: .78rem;
-            font-weight: 600;
-            margin-left: .35rem;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
+    .terminal-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        flex-wrap: wrap;
+    }
 
-        .terminal-actions {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: .4rem;
-            flex-wrap: wrap;
-        }
+    .os-toggle-group {
+        display: flex;
+        background: rgba(15, 23, 42, 0.6);
+        padding: 2px;
+        border-radius: 8px;
+        border: 1px solid var(--term-border);
+    }
 
-        .os-toggle-group {
-            display: flex;
-            background: rgba(15, 23, 42, 0.6);
-            padding: 2px;
-            border-radius: 8px;
-            border: 1px solid var(--term-border);
-        }
+    .os-btn {
+        padding: .25rem .75rem;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: var(--term-dim);
+        font-size: .74rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .2s;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
 
-        .os-btn {
-            padding: .25rem .75rem;
-            border-radius: 6px;
-            border: none;
-            background: transparent;
-            color: var(--term-dim);
-            font-size: .74rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all .2s;
-            display: inline-flex;
-            align-items: center;
-            gap: .35rem;
-        }
+    .os-btn:hover { color: #fff; }
 
-        .os-btn:hover { color: #fff; }
+    .os-btn.active {
+        background: #4f46e5;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+    }
 
-        .os-btn.active {
-            background: #4f46e5;
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
-        }
+    .term-tool-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--term-border);
+        color: var(--term-dim);
+        font-size: .74rem;
+        padding: .25rem .55rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all .2s;
+    }
 
-        .term-tool-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--term-border);
-            color: var(--term-dim);
-            font-size: .74rem;
-            padding: .25rem .55rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all .2s;
-        }
+    .term-tool-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+    }
 
-        .term-tool-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-        }
+    /* Status Header Ribbon */
+    .terminal-status-ribbon {
+        background: rgba(15, 23, 42, 0.5);
+        border-bottom: 1px solid var(--term-border);
+        padding: .4rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        font-size: .72rem;
+        color: #94a3b8;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
 
-        /* Status Header Ribbon */
-        .terminal-status-ribbon {
-            background: rgba(15, 23, 42, 0.5);
-            border-bottom: 1px solid var(--term-border);
-            padding: .4rem 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            font-size: .72rem;
-            color: #94a3b8;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
 
-        .status-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: .35rem;
-        }
+    .status-chip strong { color: #e2e8f0; }
 
-        .status-chip strong { color: #e2e8f0; }
+    .status-chip .badge-pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        display: inline-block;
+        box-shadow: 0 0 6px #10b981;
+    }
 
-        .status-chip .badge-pulse {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #10b981;
-            display: inline-block;
-            box-shadow: 0 0 6px #10b981;
-        }
+    /* Output Area */
+    .terminal-output {
+        flex: 1;
+        padding: 1.1rem 1.3rem;
+        overflow-y: auto;
+        color: var(--term-white);
+        line-height: 1.65;
+        min-height: 380px;
+        max-height: 490px;
+    }
 
-        /* Output Area */
-        .terminal-output {
-            flex: 1;
-            padding: 1.1rem 1.3rem;
-            overflow-y: auto;
-            color: var(--term-white);
-            line-height: 1.65;
-            min-height: 380px;
-            max-height: 490px;
-        }
+    .terminal-window.fullscreen .terminal-output {
+        max-height: calc(100vh - 180px);
+    }
 
-        .terminal-window.is-fullscreen .terminal-output {
-            max-height: calc(100vh - 200px);
-            min-height: calc(100vh - 200px);
-        }
+    .term-line {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: .84rem;
+    }
 
-        .terminal-output::-webkit-scrollbar { width: 6px; }
-        .terminal-output::-webkit-scrollbar-track { background: transparent; }
-        .terminal-output::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .15); border-radius: 3px; }
+    .term-prompt {
+        color: var(--term-cyan);
+        font-weight: 700;
+    }
 
-        .term-line { white-space: pre-wrap; word-break: break-all; margin-bottom: 2px; }
-        .term-line.prompt   { color: var(--term-prompt); font-weight: 700; }
-        .term-line.error    { color: var(--term-error); font-weight: 600; }
-        .term-line.warn     { color: var(--term-warn); }
-        .term-line.dim      { color: var(--term-dim); }
-        .term-line.success  { color: var(--term-success); font-weight: 600; }
-        .term-line.white    { color: var(--term-white); }
-        .term-line.info     { color: #38bdf8; }
-        .term-dir           { color: #60a5fa; font-weight: 700; }
-        .term-exec          { color: #34d399; font-weight: 700; }
-        .term-link          { color: #22d3ee; }
+    .term-cmd {
+        color: #fff;
+        font-weight: 600;
+    }
 
-        /* Input Row */
-        .terminal-input-row {
-            display: flex;
-            align-items: center;
-            padding: .65rem 1.25rem .85rem;
-            border-top: 1px solid var(--term-border);
-            gap: .5rem;
-            background: rgba(15, 23, 42, 0.6);
-        }
+    .term-success { color: var(--term-green); }
+    .term-error { color: var(--term-red); }
+    .term-warn { color: var(--term-yellow); }
+    .term-dim { color: var(--term-dim); }
+    .term-cyan { color: var(--term-cyan); }
+    .term-magenta { color: #d946ef; }
 
-        .terminal-prompt-label {
-            color: var(--term-prompt);
-            white-space: nowrap;
-            font-weight: 700;
-            font-size: .86rem;
-            flex-shrink: 0;
-        }
+    /* Input Row */
+    .terminal-input-row {
+        background: rgba(22, 27, 34, 0.95);
+        border-top: 1px solid var(--term-border);
+        padding: .65rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+    }
 
-        #termInput {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--term-white);
-            font-family: inherit;
-            font-size: .86rem;
-            caret-color: #38bdf8;
-        }
+    .terminal-prompt-label {
+        color: var(--term-green);
+        font-weight: 700;
+        font-size: .84rem;
+        white-space: nowrap;
+    }
 
-        /* Virtual Key Toolbar */
-        .terminal-touch-bar {
-            display: flex;
-            gap: .35rem;
-            padding: .4rem 1rem;
-            background: rgba(11, 15, 25, 0.95);
-            border-top: 1px solid var(--term-border);
-            overflow-x: auto;
-        }
+    #termInput {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-family: var(--term-font);
+        font-size: .85rem;
+        outline: none;
+        caret-color: var(--term-green);
+    }
 
-        .touch-key {
-            padding: .2rem .55rem;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--term-border);
-            color: #cbd5e1;
-            font-size: .72rem;
-            font-weight: 700;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: all .15s;
-        }
+    /* Touch / Virtual Quick Keys Bar */
+    .terminal-touch-bar {
+        background: rgba(13, 17, 23, 0.9);
+        border-top: 1px solid var(--term-border);
+        padding: .35rem .75rem;
+        display: flex;
+        gap: .4rem;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
 
-        .touch-key:active, .touch-key:hover {
-            background: #4f46e5;
-            color: #fff;
-        }
+    .touch-key {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--term-border);
+        color: #cbd5e1;
+        padding: .2rem .55rem;
+        border-radius: 5px;
+        font-size: .72rem;
+        font-family: var(--term-font);
+        cursor: pointer;
+        transition: all .15s;
+    }
 
-        /* Nano Editor Inline Overlay */
-        .nano-overlay {
-            position: absolute;
-            inset: 0;
-            background: #0d1117;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-            font-family: inherit;
-        }
+    .touch-key:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+    }
 
-        .nano-header {
-            background: #cbd5e1;
-            color: #0f172a;
-            padding: .35rem .9rem;
-            display: flex;
-            justify-content: space-between;
-            font-weight: 800;
-            font-size: .78rem;
-        }
+    /* ── Nano Text Editor Overlay ── */
+    .nano-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #0d1117;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        font-family: var(--term-font);
+    }
 
-        .nano-body {
-            flex: 1;
-            display: flex;
-            padding: .6rem;
-            background: #0b0f19;
-            position: relative;
-        }
+    .nano-header {
+        background: #ffffff;
+        color: #000;
+        font-weight: 700;
+        padding: .25rem .75rem;
+        font-size: .8rem;
+        display: flex;
+        justify-content: space-between;
+    }
 
-        .nano-textarea {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #f8fafc;
-            font-family: inherit;
-            font-size: .85rem;
-            resize: none;
-            line-height: 1.55;
-            white-space: pre;
-            tab-size: 4;
-        }
+    .nano-body {
+        flex: 1;
+        padding: .5rem .75rem;
+    }
 
-        .nano-status {
-            padding: .35rem .9rem;
-            background: #1e293b;
-            color: #fbbf24;
-            font-size: .75rem;
-            font-weight: 600;
-            min-height: 28px;
-        }
+    .nano-textarea {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        border: none;
+        color: #f0f6fc;
+        font-family: var(--term-font);
+        font-size: .85rem;
+        resize: none;
+        outline: none;
+        line-height: 1.5;
+    }
 
-        .nano-footer {
-            background: #0f172a;
-            border-top: 1px solid var(--term-border);
-            padding: .45rem .9rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: .35rem;
-            font-size: .72rem;
-            color: #e2e8f0;
-        }
+    .nano-status {
+        background: rgba(255, 255, 255, 0.05);
+        color: #94a3b8;
+        font-size: .75rem;
+        padding: .2rem .75rem;
+        border-top: 1px solid var(--term-border);
+    }
 
-        .nano-key-hint {
-            display: flex;
-            align-items: center;
-            gap: .35rem;
-        }
+    .nano-footer {
+        background: #161b22;
+        border-top: 1px solid var(--term-border);
+        padding: .4rem .75rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: .35rem;
+        font-size: .72rem;
+        color: #cbd5e1;
+    }
 
-        .nano-key-hint kbd {
-            background: #334155;
-            color: #fff;
-            padding: .15rem .35rem;
-            border-radius: 4px;
-            font-size: .68rem;
-        }
+    .nano-key-hint kbd {
+        background: #ffffff;
+        color: #000;
+        font-weight: 700;
+        padding: 1px 4px;
+        border-radius: 3px;
+        margin-right: 4px;
+    }
 
-        /* Scenario Panel & Right Column */
-        .scenario-panel {
-            background: var(--card-bg, #fff);
-            border: 1px solid var(--border-color, #e2e8f0);
-            border-radius: 14px;
-            padding: 1.25rem;
-            height: 100%;
-        }
+    /* ── Scenario Step Card & Mini Bar ── */
+    .scenario-full-card {
+        background: var(--bs-body-bg, #fff);
+        transition: all .25s ease;
+    }
 
-        .category-filter-chips {
-            display: flex;
-            gap: .35rem;
-            overflow-x: auto;
-            padding-bottom: .4rem;
-            margin-bottom: .85rem;
-        }
+    .scenario-mini-bar {
+        background: var(--bs-body-bg, #fff);
+        border-radius: 12px;
+        transition: all .2s ease;
+    }
 
-        .cat-chip {
-            padding: .25rem .65rem;
-            border-radius: 999px;
-            font-size: .72rem;
-            font-weight: 700;
-            border: 1px solid var(--border-color, #e2e8f0);
-            background: transparent;
-            color: var(--text-muted, #64748b);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all .2s;
-        }
+    .scenario-mini-bar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
+    }
 
-        .cat-chip.active {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: #fff;
-        }
+    /* Scenario List Panel */
+    .scenario-panel {
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid var(--bs-border-color, rgba(0,0,0,0.08));
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
 
-        .scenario-card {
-            padding: .85rem 1rem;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all .2s;
-            font-size: .82rem;
-            background: rgba(148, 163, 184, 0.04);
-            border-color: rgba(148, 163, 184, 0.15);
-        }
+    .scenario-card-item {
+        background: rgba(148, 163, 184, 0.06);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 12px;
+        padding: .75rem .95rem;
+        cursor: pointer;
+        transition: all .2s;
+    }
 
-        .scenario-card:hover {
-            border-color: rgba(99, 102, 241, .4);
-            background: rgba(99, 102, 241, .06);
-        }
+    .scenario-card-item:hover {
+        background: rgba(99, 102, 241, 0.08);
+        border-color: rgba(99, 102, 241, 0.35);
+        transform: translateY(-2px);
+    }
 
-        .scenario-card.active {
-            border-color: #6366f1;
-            background: rgba(99, 102, 241, .1);
-        }
+    .scenario-card-item.active {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: #6366f1;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
 
-        .scenario-card.completed {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, .08);
-        }
+    .scenario-card-item.completed {
+        border-color: rgba(16, 185, 129, 0.4);
+        background: rgba(16, 185, 129, 0.05);
+    }
 
-        .scenario-badge {
-            font-size: .65rem;
-            font-weight: 800;
-            padding: .15rem .45rem;
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
+    .stats-strip {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: .5rem;
+        background: rgba(148, 163, 184, 0.08);
+        padding: .6rem;
+        border-radius: 10px;
+        text-align: center;
+    }
 
-        .scenario-stars {
-            color: #f59e0b;
-            font-size: .72rem;
-        }
+    .stat-item-num {
+        font-weight: 800;
+        font-size: .95rem;
+    }
 
-        /* Services Grid Widget */
-        .service-pill-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: .4rem;
-        }
+    .stat-item-lbl {
+        font-size: .65rem;
+        color: #64748b;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
 
-        .service-pill {
-            padding: .35rem .6rem;
-            border-radius: 8px;
-            background: rgba(148, 163, 184, 0.06);
-            border: 1px solid var(--border-color, #e2e8f0);
-            font-size: .72rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    .category-filter-chips {
+        display: flex;
+        gap: .35rem;
+        overflow-x: auto;
+        padding-bottom: .4rem;
+        margin-bottom: .75rem;
+        white-space: nowrap;
+    }
 
-        .service-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+    .cat-chip {
+        padding: .2rem .65rem;
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: transparent;
+        font-size: .72rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s;
+        color: #64748b;
+    }
 
-        .service-dot.active { background: #10b981; box-shadow: 0 0 5px #10b981; }
-        .service-dot.inactive { background: #94a3b8; }
+    .cat-chip.active {
+        background: #6366f1;
+        color: #fff;
+        border-color: #6366f1;
+    }
 
-        /* Stats Strip */
-        .stats-strip {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: .4rem;
-            background: rgba(148, 163, 184, 0.05);
-            padding: .6rem;
-            border-radius: 10px;
-            text-align: center;
-        }
+    .service-pill-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: .4rem;
+        margin-top: .5rem;
+    }
 
-        .stat-item-num { font-weight: 800; font-size: .95rem; color: #4f46e5; }
-        .stat-item-lbl { font-size: .62rem; color: var(--text-muted, #64748b); text-transform: uppercase; }
+    .service-pill {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(148, 163, 184, 0.08);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        padding: .35rem .6rem;
+        border-radius: 8px;
+        font-size: .72rem;
+        font-family: var(--term-font);
+    }
 
-        .cli-hero {
-            background: linear-gradient(135deg, rgba(15, 23, 42, .95) 0%, rgba(30, 41, 59, .85) 100%);
-            border: 1px solid rgba(255, 255, 255, .1);
-            border-radius: 16px;
-            padding: 1.4rem 1.8rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
+    .service-pill .srv-name { font-weight: 600; }
+    .service-pill.active { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); }
+    .service-pill.active .srv-status { color: #10b981; font-weight: 700; }
+    .service-pill.inactive .srv-status { color: #ef4444; }
 
-        .cli-hero-title { color: #f8fafc; font-weight: 800; font-size: 1.35rem; margin: 0; }
-        .cli-hero-sub   { color: #94a3b8; font-size: .84rem; margin: .25rem 0 0; }
+    /* Toast Notifications */
+    #cliToastContainer {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-        /* Achievement Toast Container */
-        #cliToastContainer {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1090;
-            display: flex;
-            flex-direction: column;
-            gap: .5rem;
-        }
+    .cli-toast {
+        background: #1e1b4b;
+        color: #fff;
+        border-left: 4px solid #6366f1;
+        padding: .85rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        font-size: .85rem;
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        animation: slideInToast .3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-        .achievement-toast {
-            background: #1e293b;
-            color: #fff;
-            border-left: 4px solid #f59e0b;
-            padding: .75rem 1.1rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,.5);
-            animation: slideInRight .3s ease;
-            font-size: .82rem;
-        }
+    @keyframes slideInToast {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+</style>
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    </style>
-</head>
-<body>
 <div class="dashboard-layout">
     <?php include '../includes/sidebar.php'; ?>
     <div class="main-container">
         <?php include '../includes/topbar.php'; ?>
-        <main role="main" class="content-body">
-            <div class="container-fluid p-0 cli-shell">
 
-                <!-- Hero Header -->
-                <div class="cli-hero shadow-sm">
+        <main class="content-body" id="main-content">
+            <div class="container-fluid p-3 p-md-4">
+
+                <!-- Header Banner -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
                     <div>
-                        <h1 class="cli-hero-title d-flex align-items-center flex-wrap gap-2">
-                            <span><i class="bi bi-terminal-fill me-2 text-primary"></i>CLI Lab — Symulator Terminala & Laboratorium Serwerowe CKE</span>
-                            <span class="badge bg-warning text-dark fw-bold px-2 py-1 fs-6 rounded-pill" title="Moduł w fazie testów i rozwoju">BETA</span>
+                        <h1 class="h3 fw-bold mb-1 d-flex align-items-center gap-2">
+                            <i class="bi bi-terminal-fill text-primary"></i> Zaawansowany Symulator Terminala CLI & Zadania CKE
                         </h1>
-                        <p class="cli-hero-sub">Pełny stanowy terminal z VFS, potokami, edytorem nano, sub-shellami (MySQL, Diskpart, Python, PowerShell, NSLOOKUP, SSH) oraz usługami sieciowymi (Apache, BIND9, Samba, DHCP, vsftpd, Postfix, NFS, IIS).</p>
+                        <p class="text-muted mb-0">Pełne środowisko Linux (Bash/GNU) oraz Windows (CMD/PowerShell 7) z wirtualnym systemem plików VFS, edytorem Nano i 35+ zadaniami praktycznymi CKE.</p>
                     </div>
-                    <div class="d-flex gap-2 align-items-center flex-wrap">
-                        <span class="badge bg-warning bg-opacity-20 text-warning fw-bold px-3 py-2 border border-warning border-opacity-30 rounded-pill" title="Twój bieżący stan XP i ranga">
-                            <i class="bi bi-trophy-fill me-1"></i><span id="heroXpDisplay"><?= number_format($userXp) ?> XP</span> • <span id="heroRankDisplay"><?= htmlspecialchars($userRankInfo['name']) ?></span>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30 fw-bold px-3 py-2 rounded-pill">
+                            <i class="bi bi-patch-check-fill me-1"></i>Wersja Beta 2.0
                         </span>
-                        <span class="badge bg-success bg-opacity-20 text-success fw-bold px-3 py-2 border border-success border-opacity-30 rounded-pill">
-                            <i class="bi bi-server me-1"></i>Usługi Serwerowe
-                        </span>
-                        <span class="badge bg-primary bg-opacity-20 text-primary fw-bold px-3 py-2 border border-primary border-opacity-30 rounded-pill">
-                            <i class="bi bi-award-fill me-1"></i>20 Zadań CKE
-                        </span>
+                        <a href="../ranking.php" class="btn btn-outline-warning btn-sm rounded-pill px-3">
+                            <i class="bi bi-trophy me-1"></i> Ranking XP
+                        </a>
                     </div>
                 </div>
 
-                <!-- Beta Notice Banner -->
-                <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3" style="background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b !important;">
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="bi bi-info-circle-fill text-warning fs-4 flex-shrink-0"></i>
-                        <div>
-                            <div class="fw-bold text-dark dark:text-light mb-1">
-                                Moduł CLI Lab jest obecnie w fazie testowej (BETA)
-                            </div>
-                            <div class="small text-muted">
-                                Sandbox jest w trakcie aktywnego rozwoju. Baza poleceń, pakiety serwerowe oraz walidacja scenariuszy egzaminacyjnych mogą być na bieżąco aktualizowane.
-                            </div>
-                        </div>
+                <!-- Beta Notice Info Banner -->
+                <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4 d-flex align-items-center gap-3">
+                    <div class="p-2 rounded-3 bg-warning bg-opacity-20 text-warning flex-shrink-0">
+                        <i class="bi bi-info-circle-fill fs-4"></i>
                     </div>
-                    <span class="badge bg-warning bg-opacity-25 text-warning fw-bold px-3 py-2 rounded-pill d-none d-md-inline-block">
-                        <i class="bi bi-shield-check me-1"></i>Wczesny dostęp
-                    </span>
+                    <div class="small">
+                        <strong class="d-block mb-1">Informacja o module CLI Lab (Wersja Beta):</strong>
+                        <span class="text-body-secondary">Moduł symulatora terminala i weryfikacji zadań egzaminacyjnych jest obecnie w fazie <strong>Beta</strong>. Zadania są automatycznie sprawdzane w czasie rzeczywistym, a za ich ukończenie otrzymujesz punkty XP do profilu i rankingu.</span>
+                    </div>
                 </div>
 
                 <div class="row g-4">
@@ -732,20 +682,102 @@ $base_url  = '../';
 
                         </div>
 
-                        <!-- Scenario Progress Indicator -->
-                        <div class="mt-3 card border-0 shadow-sm p-3" id="scenarioProgressWrap" style="display:none; background: var(--panel-bg, #fff);">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-bold fs-6 text-primary" id="scenarioProgressLabel">Postęp zadania</span>
-                                <span class="badge bg-primary bg-opacity-20 text-primary" id="scenarioStepLabel">Krok 1/4</span>
+                        <!-- ═══════════════════════════════════════════════════════════ -->
+                        <!-- SCENARIO STEP CARD & PROGRESS (RICH STEP-BY-STEP WITH HIDE) -->
+                        <!-- ═══════════════════════════════════════════════════════════ -->
+                        <div class="scenario-guide-wrapper mt-3" id="scenarioGuideWrapper" style="display:none;">
+                            
+                            <!-- Collapsed Mini Bar (Shown when collapsed) -->
+                            <div class="scenario-mini-bar card border-0 shadow-sm p-2 px-3 align-items-center justify-content-between flex-row" id="scenarioMiniBar" style="display:none; cursor:pointer;" onclick="if(window.zsemTerminal) window.zsemTerminal.toggleScenarioGuide(true);" title="Kliknij, aby rozwinąć pełną instrukcję zadania">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <span class="badge bg-primary bg-opacity-20 text-primary fw-bold" id="miniStepBadge">Krok 1/4</span>
+                                    <span class="fw-semibold text-truncate small text-body" id="miniTitleLabel">Tytuł zadania</span>
+                                    <span class="text-muted small d-none d-md-inline" id="miniInstructionSnippet">— Wpisz polecenie...</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-0 px-2">
+                                        <i class="bi bi-chevron-down me-1"></i>Pokaż instrukcję
+                                    </button>
+                                </div>
                             </div>
-                            <div class="progress my-2" style="height:8px; border-radius:6px; background: rgba(148, 163, 184, 0.15);">
-                                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="scenarioProgressBar" style="width:0%; transition:width .4s"></div>
+
+                            <!-- Full Step-by-Step Scenario Card -->
+                            <div class="scenario-full-card card border-0 shadow-sm rounded-4 p-3 p-md-4" id="scenarioProgressWrap">
+                                <!-- Top Bar: Title, Badges & Controls -->
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span class="badge bg-primary fs-6 px-3 py-1 rounded-pill" id="scenarioCatBadge">INF.02 Sieci</span>
+                                        <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-30 rounded-pill px-2 py-1" id="scenarioXpBadge">
+                                            <i class="bi bi-trophy-fill me-1"></i>+35 XP
+                                        </span>
+                                        <span class="text-warning small" id="scenarioStars">★★★</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" id="btnToggleScenarioHint" onclick="if(window.zsemTerminal) window.zsemTerminal.toggleScenarioHint();" title="Pokaż / Ukryj podpowiedź merytoryczną">
+                                            <i class="bi bi-lightbulb text-warning me-1"></i><span class="d-none d-sm-inline">Podpowiedź</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-1" id="btnPasteScenarioCmd" onclick="if(window.zsemTerminal) window.zsemTerminal.pasteCurrentStepCmd();" title="Wklej przykładowe polecenie do terminala">
+                                            <i class="bi bi-clipboard-plus me-1"></i><span class="d-none d-sm-inline">Wklej komendę</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-2 py-1" id="btnScenarioSkipStep" onclick="if(window.zsemTerminal) window.zsemTerminal.skipScenarioStep();" title="Pomiń ten krok">
+                                            <i class="bi bi-skip-forward-fill"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-1" id="btnToggleScenarioGuide" onclick="if(window.zsemTerminal) window.zsemTerminal.toggleScenarioGuide(false);" title="Zwiń / Ukryj instrukcję">
+                                            <i class="bi bi-eye-slash me-1"></i><span class="d-none d-sm-inline">Zwiń</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <h3 class="h6 fw-bold mb-0 text-primary d-flex align-items-center gap-2" id="scenarioProgressLabel">
+                                        Tytuł zadania
+                                    </h3>
+                                    <span class="badge bg-primary bg-opacity-20 text-primary fw-bold" id="scenarioStepLabel">Krok 1/4</span>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div class="progress my-2" style="height:8px; border-radius:6px; background: rgba(148, 163, 184, 0.15);">
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="scenarioProgressBar" style="width:0%; transition:width .4s"></div>
+                                </div>
+
+                                <!-- Step Instruction Box -->
+                                <div class="step-instruction-box p-3 rounded-3 mt-2" style="background: rgba(148, 163, 184, 0.08); border-left: 4px solid var(--bs-primary, #3b82f6);">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <i class="bi bi-arrow-right-circle-fill text-primary fs-5 mt-0.5"></i>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold text-body mb-1" id="scenarioStepInstruction">
+                                                Instrukcja kroku
+                                            </div>
+                                            <div class="small text-body-secondary mb-2" id="scenarioStepCkeDesc">
+                                                Kontekst egzaminacyjny: co robimy w tym kroku i jakie umiejętności weryfikuje CKE.
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                <span class="small fw-semibold text-muted">Sugerowane polecenie:</span>
+                                                <code class="px-2 py-1 rounded bg-body-secondary font-monospace text-primary fw-bold cursor-pointer" id="scenarioSuggestedCmd" onclick="if(window.zsemTerminal) window.zsemTerminal.pasteCurrentStepCmd();" title="Kliknij, aby wkleić do terminala">
+                                                    polecenie
+                                                </code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Collapsible Hint Details -->
+                                <div class="step-hint-box p-3 rounded-3 mt-2 alert alert-warning border-0 mb-0" id="scenarioHintBox" style="display:none;">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <i class="bi bi-lightbulb-fill text-warning fs-5"></i>
+                                        <div>
+                                            <strong class="d-block mb-1 text-dark">Wyjaśnienie i teoria egzaminacyjna:</strong>
+                                            <div class="small text-body-secondary" id="scenarioHintText">
+                                                Szczegółowe wyjaśnienie flag i parametrów polecenia.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="small text-muted" id="scenarioStepInstruction">Wykonaj polecenie zgodnie z instrukcją zadania.</div>
                         </div>
 
                         <!-- Server Services Live Monitor Widget -->
-                        <div class="mt-3 card border-0 shadow-sm p-3" style="background: var(--panel-bg, #fff);">
+                        <div class="mt-3 card border-0 shadow-sm p-3" style="background: var(--bs-body-bg, #fff);">
                             <h3 class="fw-bold fs-6 mb-2 text-dark dark:text-light">
                                 <i class="bi bi-hdd-stack me-1 text-primary"></i>Stan Usług Serwerowych (systemctl / sc)
                             </h3>
@@ -779,7 +811,7 @@ $base_url  = '../';
                                     <div class="stat-item-lbl">Komend</div>
                                 </div>
                                 <div>
-                                    <div class="stat-item-num" id="statScenCount">0/20</div>
+                                    <div class="stat-item-num" id="statScenCount">0/35</div>
                                     <div class="stat-item-lbl">Zadań</div>
                                 </div>
                                 <div>
@@ -794,12 +826,13 @@ $base_url  = '../';
 
                             <!-- Category Chips -->
                             <div class="category-filter-chips" id="scenarioCategoryChips">
-                                <button type="button" class="cat-chip active" data-cat="all">Wszystkie (20)</button>
+                                <button type="button" class="cat-chip active" data-cat="all">Wszystkie (35)</button>
                                 <button type="button" class="cat-chip" data-cat="inf02_srv">Serwery CKE</button>
                                 <button type="button" class="cat-chip" data-cat="inf02_net">INF.02 Sieci</button>
                                 <button type="button" class="cat-chip" data-cat="inf02_sys">INF.02 Systemy</button>
                                 <button type="button" class="cat-chip" data-cat="inf03_db">INF.03 Bazy</button>
                                 <button type="button" class="cat-chip" data-cat="inf08_sec">INF.08 Security</button>
+                                <button type="button" class="cat-chip" data-cat="windows">Windows / PS</button>
                             </div>
 
                             <div class="d-flex flex-column gap-2" id="scenarioList" style="max-height: 380px; overflow-y: auto; padding-right: 4px;">
@@ -824,7 +857,7 @@ $base_url  = '../';
                             <hr class="my-3">
                             <h3 class="fw-bold fs-6 mb-2 d-flex align-items-center justify-content-between">
                                 <span><i class="bi bi-keyboard me-1 text-primary"></i>Szybka ściągawka</span>
-                                <span class="badge bg-secondary bg-opacity-20 text-muted" id="commandCountBadge">150+ komend & man</span>
+                                <span class="badge bg-secondary bg-opacity-20 text-muted" id="commandCountBadge">200+ komend & man</span>
                             </h3>
                             <div id="commandList" style="font-size:.72rem; color:var(--text-muted,#64748b); line-height:1.75; max-height:140px; overflow-y:auto;">
                                 <!-- Injected by JS -->
@@ -835,6 +868,18 @@ $base_url  = '../';
 
             </div>
         </main>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+        <script>
+        window.CLI_LAB_USER = {
+            userId: <?= (int)$userId ?>,
+            csrfToken: '<?= htmlspecialchars($csrfCliLab, ENT_QUOTES, 'UTF-8') ?>',
+            xp: <?= (int)$userXp ?>,
+            rankName: <?= json_encode($userRankInfo['name'] ?? 'Początkujący') ?>,
+            rankIcon: <?= json_encode($userRankInfo['icon'] ?? 'bi-shield') ?>,
+            completedScenarios: <?= json_encode($completedScenarioIds) ?>
+        };
+        </script>
+        <script src="<?= htmlspecialchars(assetUrl('assets/js/terminal_commands.js', '..')) ?>"></script>
         <?php include '../includes/footer.php'; ?>
     </div>
 </div>
@@ -842,19 +887,5 @@ $base_url  = '../';
 <!-- Toast Container for Milestones & Achievements -->
 <div id="cliToastContainer"></div>
 
-<script>
-window.CLI_LAB_USER = {
-    userId: <?= (int)$userId ?>,
-    csrfToken: '<?= htmlspecialchars($csrfCliLab, ENT_QUOTES, 'UTF-8') ?>',
-    xp: <?= (int)$userXp ?>,
-    rankName: <?= json_encode($userRankInfo['name'] ?? 'Początkujący') ?>,
-    rankIcon: <?= json_encode($userRankInfo['icon'] ?? 'bi-shield') ?>,
-    completedScenarios: <?= json_encode($completedScenarioIds) ?>
-};
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-<script src="<?= htmlspecialchars(assetUrl('assets/js/theme-handler.js', '..')) ?>"></script>
-<script src="<?= htmlspecialchars(assetUrl('assets/js/terminal_commands.js', '..')) ?>"></script>
 </body>
 </html>

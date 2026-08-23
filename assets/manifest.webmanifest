@@ -1,0 +1,18 @@
+{
+  "name": "ZSEM Tech — Egzaminy Zawodowe i Kursy Techniczne",
+  "short_name": "ZSEM Tech",
+  "description": "Nowoczesna platforma przygotowania do egzaminów CKE (INF.02, INF.03, EE.08, EE.09), kursów technicznych i laboratoriów.",
+  "start_url": "./index.php",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./zsemtech_profile.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["education", "productivity"]
+}
