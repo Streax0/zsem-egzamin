@@ -37,6 +37,13 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
     // -------------------------------------------------------------------------
     $isDiagram = (str_contains($qLower, 'schemat') || str_contains($qLower, 'rysun') || str_contains($qLower, 'ilustracj') || str_contains($qLower, 'przedstawion') || str_contains($qLower, 'oznacz') || str_contains($qLower, 'symbol') || str_contains($qLower, 'zrzut') || str_contains($qLower, 'tabel') || str_contains($qLower, 'zdjęci') || str_contains($qLower, 'obraz') || str_contains($qLower, 'strzałk'));
     
+    // Early DNS record check: single-letter options like "A" in DNS context = Record type, not diagram marker
+    $isDnsContext = (str_contains($qLower, 'dns') || str_contains($qLower, 'rekord') || str_contains($qLower, 'domen') || str_contains($qLower, 'stref'));
+    $dnsRecordsEarly = ['a' => 'Rekord A (Address Record) przypisuje nazwę domenową do 32-bitowego adresu IPv4.', 'aaaa' => 'Rekord AAAA przypisuje nazwę domenową do 128-bitowego adresu IPv6.'];
+    if ($isDnsContext && isset($dnsRecordsEarly[$cleanLower])) {
+        return $dnsRecordsEarly[$cleanLower];
+    }
+
     if (preg_match('/^[A-D]$/i', $clean)) {
         if ($isDiagram) {
             if ($isCorrect) {
@@ -50,8 +57,8 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
             return "Wariant [{$clean}] to prawidłowa odpowiedź na postawione pytanie.";
         }
         return $correctText !== '' 
-            ? "Wariant [{$clean}] jest niepoprawny — prawidłowa odpowiedź to [{$correctText}]."
-            : "Wariant [{$clean}] jest niepoprawny.";
+            ? "Wariant [{$clean}] odnosi się do innego elementu przedstawionego w zadaniu — prawidłowym wyborem jest [{$correctText}]."
+            : "Wariant [{$clean}] wskazuje na inny element niż wymagany w treści pytania.";
     }
 
     if (preg_match('/^[0-9,\s\/\+\.\-]+$/', $clean) && mb_strlen($clean) <= 12) {
@@ -1680,6 +1687,11 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
     // -------------------------------------------------------------------------
     // 52. CONTEXTUAL FACTUAL FALLBACK (NEVER BLIND PARROT)
     // -------------------------------------------------------------------------
+    $mathResult = aiTutorEvaluateMathAndConversions($clean, $questionText, $correctText);
+    if ($mathResult !== '') {
+        return $mathResult;
+    }
+
     if ($isCorrect) {
         return "Wskazana opcja prawidłowo i kompletnie rozwiązuje zagadnienie postawione w pytaniu egzaminacyjnym.";
     }
@@ -1687,36 +1699,104 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
     // Action phrases (verbs like włączenie, zmiana, instalacja, usunięcie, itp.)
     if (preg_match('/^(włączenie|wyłączenie|zmiana|ustawienie|instalacja|odinstalowanie|usunięcie|skonfigurowanie|dodanie|zastosowanie|uruchomienie|sprawdzenie|czyszczenie|podłączenie|wymiana|formatowanie|wykonanie|użycie)/iu', $clean)) {
         return $correctText !== ''
-            ? "Czynność „{$clean}” nie realizuje celu określonego w pytaniu (właściwym działaniem jest: „{$correctText}”)."
-            : "Czynność „{$clean}” nie stanowi odpowiedniego działania w tym przypadku.";
+            ? "Czynność „{$clean}” to inna operacja serwisowa lub systemowa — nie realizuje celu zadanego w pytaniu (wymaganą czynnością jest „{$correctText}”)."
+            : "Czynność „{$clean}” to inna operacja w systemie, która nie rozwiązuje problemu z pytania.";
     }
 
     // Material / tool / cleaning / hardware
     if (preg_match('/(szczotk|powietrz|opask|miernik|zaciskark|ściągacz|wkrętak|lutownic|preparat|alkohol|pasta|klej|taśm|smar|płyn|ściereczk)/iu', $clean)) {
         return $correctText !== ''
-            ? "Zastosowanie „{$clean}” jest w tym przypadku niewłaściwe (do wykonania tego zadania należy użyć: „{$correctText}”)."
-            : "Zastosowanie „{$clean}” jest niewłaściwe w tym przypadku.";
+            ? "Element „{$clean}” ma inne przeznaczenie w pracach technicznych — nie sprawdzi się tutaj (właściwe zastosowanie ma „{$correctText}”)."
+            : "Element „{$clean}” służy do innych prac serwisowych.";
     }
 
     // System commands / switches / files
     if (str_starts_with($clean, '-') || str_starts_with($clean, '/') || preg_match('/^[a-z0-9_\-]+\.[a-z0-9]+$/i', $clean)) {
         return $correctText !== ''
-            ? "Przełącznik lub plik „{$clean}” służy do innych operacji w systemie (właściwym wyborem jest: „{$correctText}”)."
-            : "Przełącznik/plik „{$clean}” służy do innych operacji w systemie.";
+            ? "Parametr lub element „{$clean}” wymusza inną akcję w systemie — właściwe działanie zapewnia „{$correctText}”."
+            : "Parametr lub element „{$clean}” modyfikuje polecenie w sposób niezgodny z celem pytania.";
     }
 
     // Code / syntax
     if (str_contains($clean, '(') || str_contains($clean, '{') || str_contains($clean, '$') || str_contains($clean, ';') || str_contains($clean, '=')) {
         return $correctText !== ''
-            ? "Konstrukcja kodu „{$clean}” nie spełnia wymagań zadania (poprawne rozwiązanie to: „{$correctText}”)."
-            : "Konstrukcja kodu „{$clean}” nie spełnia wymagań zadania.";
+            ? "Składnia „{$clean}” implementuje inną logikę w kodzie — prawidłowe rozwiązanie to „{$correctText}”."
+            : "Składnia „{$clean}” implementuje logikę niezgodną z wymogami zadania.";
     }
 
     if ($correctText !== '') {
-        return "Opcja „{$clean}” dotyczy innego zagadnienia technicznego (właściwym rozwiązaniem dla tego problemu jest „{$correctText}”).";
+        return "Opcja {$clean} pełni inną rolę w informatyce niż {$correctText}, dlatego nie jest prawidłowym rozwiązaniem tego zagadnienia.";
+    }
+    return "Opcja {$clean} nie rozwiązuje problemu opisanego w pytaniu.";
+}
+
+function aiTutorEvaluateMathAndConversions(string $optionText, string $questionText, string $correctText): string {
+    $qLower = mb_strtolower($questionText, 'UTF-8');
+    $optClean = trim($optionText);
+    
+    if (!preg_match('/(binarny|szesnastkow|osemkow|dziesietny|hex|bin|dec|oct|system liczbowy|konwersj|maska|cidr|\/\d{1,2}|bramk|tablica prawdy)/i', $qLower)) {
+        return '';
     }
 
-    return "Opcja „{$clean}” nie stanowi prawidłowego rozwiązania dla tego pytania egzaminacyjnego.";
+    if (preg_match('/^[01]{4,32}$/', $optClean)) {
+        $dec = bindec($optClean);
+        $hex = strtoupper(dechex($dec));
+        $len = strlen($optClean);
+        
+        $tetrads = [];
+        $padded = str_pad($optClean, (int)(ceil($len / 4) * 4), '0', STR_PAD_LEFT);
+        $chunks = str_split($padded, 4);
+        foreach ($chunks as $c) {
+            $h = strtoupper(dechex((int)bindec($c)));
+            $tetrads[] = "{$c}={$h}";
+        }
+        $tetradsStr = implode(', ', $tetrads);
+        
+        $msg = "Ciąg {$optClean} odpowiada wartości {$hex}h (tetrady: {$tetradsStr}), a nie poszukiwanej wartości. ";
+        if ($correctText !== '') {
+            $msg .= "Poprawny zapis to {$correctText}.";
+        }
+        return $msg;
+    }
+    
+    if (preg_match('/^([0-9A-Fa-f]+)h$/i', $optClean, $m) || preg_match('/^0x([0-9A-Fa-f]+)$/i', $optClean, $m)) {
+        $hexVal = strtoupper($m[1]);
+        $dec = hexdec($hexVal);
+        $bin = decbin((int)$dec);
+        $msg = "Wartość szesnastkowa {$optClean} to {$dec} w systemie dziesiętnym oraz {$bin} binarnie.";
+        if ($correctText !== '') {
+            $msg .= " Poprawna odpowiedź to {$correctText}.";
+        }
+        return $msg;
+    }
+    
+    if (preg_match('/^255\.255\.[0-9]{1,3}\.[0-9]{1,3}$/', $optClean) || preg_match('/^\/(\d{1,2})$/', $optClean, $m)) {
+        $prefix = 0;
+        if (isset($m[1])) {
+            $prefix = (int)$m[1];
+        } else {
+            $maskDec = ip2long($optClean);
+            $prefix = 32 - log((~$maskDec & 0xFFFFFFFF) + 1, 2);
+        }
+        if ($prefix > 0 && $prefix <= 32) {
+            $hosts = pow(2, 32 - $prefix) - 2;
+            if ($hosts < 0) $hosts = 0;
+            $msg = "Maska /{$prefix} pozwala na zaadresowanie {$hosts} hostów (2^(32-{$prefix})-2).";
+            if ($correctText !== '') {
+                $msg .= " Nie spełnia to warunków, gdzie odpowiedzią jest {$correctText}.";
+            }
+            return $msg;
+        }
+    }
+    
+    if (preg_match('/(and|or|xor|nand|nor|not)/i', $qLower, $mGate)) {
+        if ($optClean === '0' || $optClean === '1') {
+            $gate = strtoupper($mGate[1]);
+            return "Wynik {$optClean} to stan logiczny bramki {$gate} dla innych wejść. Poprawny wynik to {$correctText}.";
+        }
+    }
+    
+    return '';
 }
 
 /**

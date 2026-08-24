@@ -1274,7 +1274,7 @@ def test_fact_based_question_explanations_and_stats_labels() -> None:
         assert "nie spełnia bezpośrednio warunku z pytania" not in content
         assert "opisuje inną warstwę działania" not in content
         assert "nie spełnia głównego warunku pytania" not in content
-    assert_contains("includes/functions.php", "ta odpowiedź dotyczy innego aspektu działania", "Poprawna odpowiedź:", "Wybrano:")
+    assert_contains("includes/functions.php", "nie rozwiązuje problemu opisanego w pytaniu", "Poprawna odpowiedź:", "Wybrano:")
     assert_contains("result.php", "$showAnswerQualifications = true", "qualification_label", "Poprawna odpowiedź:")
     assert_contains("user/progress.php", "buildQuestionExplanation($questionForExplanation)", "$questionExplanation")
 

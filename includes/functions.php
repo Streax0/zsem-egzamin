@@ -3511,22 +3511,22 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
         return 'repeater wzmacnia lub regeneruje sygnał w sieci, ale nie konwertuje telefonu analogowego na usługi internetowe.';
     }
     if (str_contains($tLower, 'voip') || str_contains($tLower, 'bramk')) {
-        return 'ta odpowiedź opisuje urządzenie łączące telefonię analogową z transmisją pakietową.';
+        return 'Bramka VoIP konwertuje telefonię analogową na pakiety IP, ale to nie jest rozwiązanie wskazane w tym pytaniu.';
     }
     if (str_contains($tLower, 'dns')) {
-        return 'DNS rozwiązuje nazwy domen na adresy IP, więc pasuje tylko wtedy, gdy pytanie dotyczy nazw hostów.';
+        return 'DNS rozwiązuje nazwy domen na adresy IP — ta funkcja nie pasuje do wymagań tego pytania.';
     }
     if (str_contains($tLower, 'dhcp')) {
-        return 'DHCP przydziela konfigurację IP klientom, więc nie zastępuje usługi ani urządzenia wskazanego w pytaniu.';
+        return 'DHCP automatycznie przydziela konfigurację IP klientom sieci — to nie jest funkcja opisana w pytaniu.';
     }
     if (str_contains($tLower, 'router')) {
-        return 'router przekazuje ruch między sieciami; jest poprawny tylko wtedy, gdy pytanie dotyczy routingu lub bramy sieciowej.';
+        return 'Router przekazuje pakiety między różnymi sieciami IP w warstwie 3 OSI — ta funkcja nie odpowiada wymaganiom pytania.';
     }
     if (str_contains($tLower, 'switch') || str_contains($tLower, 'przełącz')) {
-        return 'przełącznik działa głównie w sieci lokalnej i nie realizuje funkcji opisanej przez poprawną odpowiedź.';
+        return 'Przełącznik (switch) przekazuje ramki w sieci LAN na podstawie adresów MAC — ta funkcja nie realizuje zadania opisanego w pytaniu.';
     }
     if (str_contains($tLower, 'mask')) {
-        return 'maska podsieci opisuje część sieciową adresu, ale sama nie wykonuje akcji wymaganej w pytaniu.';
+        return 'Maska podsieci definiuje granicę między częścią sieciową a hostową adresu IP — sama nie wykonuje akcji wymaganej w pytaniu.';
     }
 
     // Generic context-aware fallback
@@ -3546,7 +3546,12 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
         return 'uszkodzenie zasilacza prowadzi do wyłączania się sprzętu lub niemożności jego uruchomienia, a nie do komunikatów systemu operacyjnego.';
     }
 
-    return 'ta odpowiedź dotyczy innego aspektu działania systemu i nie jest bezpośrednią przyczyną opisanego problemu.';
+    $correct = strtoupper(trim((string)($question['correct_answer'] ?? ($question['correct'] ?? ''))));
+    $correctOptionText = answerOptionText($question, $correct);
+    if ($correctOptionText !== '' && $correctOptionText !== $text) {
+        return "Opcja „{$text}” pełni inną rolę techniczną niż „{$correctOptionText}”, więc nie rozwiązuje problemu opisanego w pytaniu.";
+    }
+    return "Opcja „{$text}” nie rozwiązuje problemu opisanego w pytaniu.";
 }
 
 function buildCorrectAnswerRationale(string $questionText, string $correctLetter, string $correctText, string $category = 'INF.02'): string {
