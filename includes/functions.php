@@ -10,14 +10,6 @@ require_once __DIR__ . '/AiTutorEngine.php';
 // General Utility Functions
 // ============================================
 
-/**
- * Sanitize user input data
- * @param string $data Raw input data
- * @return string Sanitized string
- */
-function sanitize($data) {
-    return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
-}
 function validatePasswordPolicy(string $password): array {
     $errors = [];
     if (mb_strlen($password, '8bit') < 6) {
@@ -2224,13 +2216,6 @@ function isUserOnline($lastActivity) {
 }
 
 /**
- * Escape a string for safe HTML output (alias for sanitize)
- * @param string $str Input string
- * @return string Escaped string
- */
-function escapeHtml($str) {
-    return htmlspecialchars(trim((string)$str), ENT_QUOTES, 'UTF-8');
-}
 
 /**
  * Safely redirect to a URL and exit
@@ -3790,31 +3775,6 @@ function syncTeacherAdminFriends($pdo, $userId) {
 // Validation Functions
 // ============================================
 
-/**
- * Validate email format
- * @param string $email Email address to validate
- * @return bool True if valid, false otherwise
- */
-function validateEmail($email) {
-    return validateAllowedEmail($email);
-}
-
-/**
- * Validate username format
- * @param string $username Username to validate
- * @return bool True if valid (alphanumeric, 3-20 chars), false otherwise
- */
-function validateUsername($username) {
-    $username = trim($username);
-    $length = strlen($username);
-
-    if ($length < 3 || $length > 20) {
-        return false;
-    }
-
-    // Alphanumeric only (letters and numbers)
-    return preg_match('/^[a-zA-Z0-9]+$/', $username) === 1;
-}
 
 // ============================================
 // Mission & Ranking Functions
@@ -7107,6 +7067,98 @@ function getUploadedFileExtension(string $filename): string {
     $ext = pathinfo($filename, PATHINFO_EXTENSION);
     return mb_strtolower((string)$ext);
 }
+
+/**
+ * Calculates exam competency heatmap and knowledge gaps for a teacher session.
+ *
+ * @param PDO $pdo
+ * @param int $sessionId
+ * @return array
+ */
+function calculateExamKnowledgeGaps(PDO $pdo, int $sessionId): array {
+    if ($sessionId <= 0) {
+        return ['categories' => [], 'critical_alarms' => [], 'weakest_questions' => [], 'total_evaluated' => 0];
+    }
+
+    try {
+        // Aggregate performance by question category
+        $stmt = $pdo->prepare("
+            SELECT COALESCE(NULLIF(TRIM(q.category), ''), 'Ogólne') AS category,
+                   COUNT(ea.id) AS total_answers,
+                   SUM(CASE WHEN ea.is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers,
+                   ROUND(SUM(CASE WHEN ea.is_correct = 1 THEN 1 ELSE 0 END) / COUNT(ea.id) * 100, 1) AS accuracy_pct,
+                   ROUND(AVG(ea.time_spent), 1) AS avg_time_sec
+            FROM exam_answers ea
+            JOIN questions q ON ea.question_id = q.id
+            WHERE ea.session_id = ?
+            GROUP BY COALESCE(NULLIF(TRIM(q.category), ''), 'Ogólne')
+            ORDER BY accuracy_pct ASC, total_answers DESC
+        ");
+        $stmt->execute([$sessionId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $categories = [];
+        $criticalAlarms = [];
+        $totalEvaluated = 0;
+
+        foreach ($rows as $row) {
+            $acc = (float)$row['accuracy_pct'];
+            $total = (int)$row['total_answers'];
+            $correct = (int)$row['correct_answers'];
+            $totalEvaluated += $total;
+
+            $status = 'good';
+            if ($acc < 50.0) {
+                $status = 'critical';
+                $criticalAlarms[] = [
+                    'category' => $row['category'],
+                    'accuracy' => $acc,
+                    'message' => 'Wykryto krytyczną lukę wiedzy w dziale: ' . $row['category'] . ' (' . $acc . '% poprawności). Zalecana natychmiastowa powtórka z klasą.'
+                ];
+            } elseif ($acc < 75.0) {
+                $status = 'warning';
+            }
+
+            $categories[] = [
+                'category' => $row['category'],
+                'total' => $total,
+                'correct' => $correct,
+                'accuracy' => $acc,
+                'avg_time' => (float)$row['avg_time_sec'],
+                'status' => $status
+            ];
+        }
+
+        // Top 5 hardest questions in this exam session
+        $stmtQ = $pdo->prepare("
+            SELECT ea.question_id, q.question_text,
+                   COUNT(ea.id) AS total_answers,
+                   SUM(CASE WHEN ea.is_correct = 1 THEN 1 ELSE 0 END) AS correct_answers,
+                   ROUND(SUM(CASE WHEN ea.is_correct = 1 THEN 1 ELSE 0 END) / COUNT(ea.id) * 100, 1) AS accuracy_pct,
+                   COALESCE(NULLIF(TRIM(q.category), ''), 'Ogólne') AS category
+            FROM exam_answers ea
+            JOIN questions q ON ea.question_id = q.id
+            WHERE ea.session_id = ?
+            GROUP BY ea.question_id, q.question_text, q.category
+            HAVING total_answers >= 1
+            ORDER BY accuracy_pct ASC, total_answers DESC
+            LIMIT 5
+        ");
+        $stmtQ->execute([$sessionId]);
+        $weakestQuestions = $stmtQ->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'categories' => $categories,
+            'critical_alarms' => $criticalAlarms,
+            'weakest_questions' => $weakestQuestions,
+            'total_evaluated' => $totalEvaluated
+        ];
+    } catch (PDOException $e) {
+        error_log('calculateExamKnowledgeGaps error: ' . $e->getMessage());
+        return ['categories' => [], 'critical_alarms' => [], 'weakest_questions' => [], 'total_evaluated' => 0];
+    }
+}
+
 
 
 

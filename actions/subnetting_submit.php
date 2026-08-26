@@ -10,31 +10,23 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
-
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
+require_once dirname(__DIR__) . '/includes/functions.php';
 
 startSecureSession();
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Unauthorized'], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Method Not Allowed']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Method Not Allowed'], 405);
 }
 
 requireJsonCsrfToken();
 
 $userId = (int)$_SESSION['user_id'];
 if (function_exists('securityConsumeRateLimit') && !securityConsumeRateLimit('subnetting:submit:' . $userId, 30, 60)) {
-    http_response_code(429);
-    echo json_encode(['success' => false, 'error' => 'Zbyt wiele prób. Odczekaj chwilę.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Zbyt wiele prób. Odczekaj chwilę.'], 429);
 }
 $networkIp  = trim((string)($_POST['network_ip'] ?? ''));
 $cidr       = (int)($_POST['cidr'] ?? 0);
@@ -51,9 +43,7 @@ $answers = [
 ];
 
 if (!filter_var($networkIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || $cidr < 1 || $cidr > 32) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Nieprawidłowe parametry sieci']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Nieprawidłowe parametry sieci'], 400);
 }
 
 // Calculate correct answers
@@ -118,7 +108,7 @@ if ($allRight) {
 
     // Update user XP if under cap
     if ($xpEarned > 0) {
-        $pdo->prepare("UPDATE users SET xp = xp + ? WHERE id = ?")->execute([$xpEarned, $userId]);
+        awardXp($pdo, $userId, $xpEarned, 'subnetting', null, "Subnetting: $difficulty");
     }
 
     // Record score
@@ -144,11 +134,11 @@ try {
     $topScores = [];
 }
 
-echo json_encode([
+securitySendJson([
     'success'         => true,
     'correct'         => $allRight,
     'field_results'   => $results,
     'correct_answers' => $correctAnswers,
     'xp_earned'       => $xpEarned,
     'top_scores'      => $topScores,
-], JSON_UNESCAPED_UNICODE);
+]);

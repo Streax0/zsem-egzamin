@@ -141,8 +141,16 @@ $passedExam = $scorePercent >= 50;
 $currentUser = getCurrentUser();
 if ($currentUser && $passedExam) {
     try {
-        awardUserXp((int)$currentUser['id'], 20, "Auto-Grader CKE: " . $selectedRubric['name']);
-    } catch (Throwable $e) {}
+        global $pdo;
+        if (!isset($pdo) || !($pdo instanceof PDO)) {
+            require_once __DIR__ . '/../config/db.php';
+        }
+        if (isset($pdo) && $pdo instanceof PDO) {
+            awardXp($pdo, (int)$currentUser['id'], 20, 'network_lab', null, "Auto-Grader CKE: " . $selectedRubric['name']);
+        }
+    } catch (Throwable $e) {
+        error_log('Failed to award network lab autograde XP: ' . $e->getMessage());
+    }
 }
 
 securitySendJson([

@@ -132,6 +132,10 @@ var PDF_URLS = {
   '2022-sty': 'sandbox_network_pdf.php?session=2022-sty',
   '2021-cze': 'sandbox_network_pdf.php?session=2021-cze'
 };
+window.RS = RS;
+window.SS = SS;
+window.SESSIONS = SESSIONS;
+window.PDF_URLS = PDF_URLS;
 function resolveLabAssetUrl(path) {
   try {
     return new URL(path, window.location.href).href;
@@ -298,12 +302,6 @@ function bindNetworkLabFallbackActions() {
   });
 }
 
-function maskToCidr(m){
-  if(!m||!/^\d+\.\d+\.\d+\.\d+$/.test(m)) return m;
-  var bin=m.split('.').map(function(o){return ('0000000'+parseInt(o,10).toString(2)).slice(-8);}).join('');
-  var cidr=bin.indexOf('0');
-  return cidr===-1?32:cidr;
-}
 /* ── SAVE / LOAD STATE ── */
 function saveState() {
   try {

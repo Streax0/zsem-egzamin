@@ -11,22 +11,15 @@ require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-
 startSecureSession();
 
 // Auth guard
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Nie zalogowany']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Nie zalogowany'], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Metoda niedozwolona']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Metoda niedozwolona'], 405);
 }
 
 requireJsonCsrfToken();
@@ -36,9 +29,7 @@ $cardKey  = trim((string)($_POST['card_key'] ?? ''));
 $rating   = (int)($_POST['rating'] ?? -1);
 
 if ($cardKey === '' || $rating < 0 || $rating > 3) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Nieprawidłowe parametry']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Nieprawidłowe parametry'], 400);
 }
 
 // Ensure tables exist (runtime guard)
@@ -109,7 +100,7 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$userId, $cardKey, $ef, $interval, $repetitions, $nextDate, $rating]);
 
-echo json_encode([
+securitySendJson([
     'success'     => true,
     'next_review' => $nextDate,
     'interval'    => $interval,

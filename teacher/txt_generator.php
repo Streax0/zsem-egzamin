@@ -7,8 +7,9 @@ require_once '../includes/functions.php';
 startSecureSession();
 requireLogin();
 
-if (!in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'])) {
-    die("Unauthorized");
+if (!in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'], true)) {
+    setSessionMessage('error', 'Brak uprawnień.');
+    redirect('index.php');
 }
 ?>
 <?php

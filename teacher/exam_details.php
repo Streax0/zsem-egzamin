@@ -82,6 +82,44 @@ $violations = $stmt->fetchAll();
 
 // Grade thresholds
 $gradeThresholds = $session['grade_thresholds'] ? json_decode($session['grade_thresholds'], true) : null;
+
+// Calculate knowledge gaps & competency heatmap
+$knowledgeGaps = calculateExamKnowledgeGaps($pdo, $sessionId);
+
+// Prepare participant grade export rows
+$exportRows = [];
+foreach ($participants as $idx => $p) {
+    $pGrade = 1;
+    $s = (float)$p['score_percent'];
+    if ($gradeThresholds) {
+        if ($s >= ($gradeThresholds['6'] ?? 95)) $pGrade = 6;
+        elseif ($s >= ($gradeThresholds['5'] ?? 85)) $pGrade = 5;
+        elseif ($s >= ($gradeThresholds['4'] ?? 70)) $pGrade = 4;
+        elseif ($s >= ($gradeThresholds['3'] ?? 50)) $pGrade = 3;
+        elseif ($s >= ($gradeThresholds['2'] ?? 30)) $pGrade = 2;
+        else $pGrade = 1;
+    } else {
+        if ($s >= 90) $pGrade = 6;
+        elseif ($s >= 75) $pGrade = 5;
+        elseif ($s >= 60) $pGrade = 4;
+        elseif ($s >= 50) $pGrade = 3;
+        elseif ($s >= 35) $pGrade = 2;
+        else $pGrade = 1;
+    }
+
+    $exportRows[] = [
+        'nr' => $idx + 1,
+        'first_name' => $p['first_name'],
+        'last_name' => $p['last_name'],
+        'class' => $p['class'] ?: '-',
+        'score_pct' => round($s, 1),
+        'correct' => (int)$p['correct_answers'],
+        'total' => (int)$p['total_answered'],
+        'grade' => $pGrade,
+        'time_spent' => (int)$p['time_spent'],
+        'violations' => (int)$p['violation_count']
+    ];
+}
 ?>
 <?php
 $pageTitle = 'Szczegóły sprawdzianu – ZSEM Tech';
@@ -96,7 +134,7 @@ include '../includes/header.php';
             <main role="main" class="content-body">
                 <div class="container-fluid p-0">
 
-                    <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
                         <div>
                             <h2 class="fw-bold mb-1"><?= htmlspecialchars($session['title']) ?></h2>
                             <p class="text-muted mb-0">
@@ -105,7 +143,12 @@ include '../includes/header.php';
                                 · <?= count($finished) ?> uczestników
                             </p>
                         </div>
-                        <a href="index.php" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Powrót</a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-primary rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#exportGradesModal">
+                                <i class="bi bi-journal-arrow-up me-1"></i>Eksportuj do e-Dziennika
+                            </button>
+                            <a href="index.php" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Powrót</a>
+                        </div>
                     </div>
 
                     <!-- Stats cards -->
@@ -131,6 +174,77 @@ include '../includes/header.php';
                         </div>
                         <?php endforeach; ?>
                     </div>
+
+                    <!-- Knowledge Gaps & Competency Heatmap -->
+                    <?php if (!empty($knowledgeGaps['categories'])): ?>
+                    <div class="dashboard-panel mb-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1"><i class="bi bi-layers-half text-primary me-2"></i>Mapa Kompetencji i Luk Wiedzy Klasy</h5>
+                                <div class="small text-muted">Zestawienie opanowania poszczególnych działów na podstawie udzielonych odpowiedzi</div>
+                            </div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                                Przeanalizowano <?= (int)$knowledgeGaps['total_evaluated'] ?> odpowiedzi
+                            </span>
+                        </div>
+
+                        <?php if (!empty($knowledgeGaps['critical_alarms'])): ?>
+                            <div class="alert alert-danger d-flex align-items-center mb-3 p-3 rounded-3">
+                                <i class="bi bi-exclamation-triangle-fill fs-4 me-3 flex-shrink-0"></i>
+                                <div>
+                                    <div class="fw-bold">Wykryto krytyczne luki wiedzy w klasie!</div>
+                                    <ul class="mb-0 ps-3 small mt-1">
+                                        <?php foreach ($knowledgeGaps['critical_alarms'] as $alarm): ?>
+                                            <li><?= htmlspecialchars($alarm['message']) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="row g-3 mb-3">
+                            <?php foreach ($knowledgeGaps['categories'] as $cat): 
+                                $badgeClass = $cat['status'] === 'good' ? 'bg-success' : ($cat['status'] === 'warning' ? 'bg-warning text-dark' : 'bg-danger');
+                                $barClass = $cat['status'] === 'good' ? 'bg-success' : ($cat['status'] === 'warning' ? 'bg-warning' : 'bg-danger');
+                            ?>
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded-3 bg-body-tertiary">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold small text-truncate pe-2" title="<?= htmlspecialchars($cat['category']) ?>">
+                                            <?= htmlspecialchars($cat['category']) ?>
+                                        </span>
+                                        <span class="badge <?= $badgeClass ?>"><?= $cat['accuracy'] ?>%</span>
+                                    </div>
+                                    <div class="progress mb-2" style="height: 10px;">
+                                        <div class="progress-bar <?= $barClass ?>" role="progressbar" style="width: <?= $cat['accuracy'] ?>%" aria-valuenow="<?= $cat['accuracy'] ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>Poprawne: <strong><?= $cat['correct'] ?></strong> / <?= $cat['total'] ?></span>
+                                        <span>Śr. czas: <strong><?= $cat['avg_time'] ?>s</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <?php if (!empty($knowledgeGaps['weakest_questions'])): ?>
+                            <div class="mt-3 pt-3 border-top">
+                                <h6 class="fw-bold mb-2 small text-uppercase text-muted"><i class="bi bi-flag-fill text-danger me-1"></i>Pytania sprawiające klasie największą trudność (Top 5):</h6>
+                                <div class="list-group list-group-flush rounded-3">
+                                    <?php foreach ($knowledgeGaps['weakest_questions'] as $wq): ?>
+                                    <div class="list-group-item bg-transparent px-0 py-2 d-flex justify-content-between align-items-center gap-3">
+                                        <div class="small">
+                                            <span class="badge bg-secondary me-2"><?= htmlspecialchars($wq['category']) ?></span>
+                                            <?= htmlspecialchars(mb_substr($wq['question_text'], 0, 110)) ?>...
+                                        </div>
+                                        <span class="badge bg-danger flex-shrink-0"><?= $wq['accuracy_pct'] ?>% poprawności</span>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
 
                     <!-- Participants -->
                     <div class="dashboard-panel mb-4">
@@ -234,6 +348,139 @@ include '../includes/header.php';
         </div>
     </div>
 
+    <!-- Export Grades Modal -->
+    <div class="modal fade" id="exportGradesModal" tabindex="-1" aria-labelledby="exportGradesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg bg-body">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" id="exportGradesModalLabel">
+                        <i class="bi bi-journal-arrow-up text-primary me-2"></i>Eksport ocen do e-Dziennika
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <ul class="nav nav-pills mb-3 gap-2" id="exportTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill" id="librus-tab" data-bs-toggle="pill" data-bs-target="#librusTabPane" type="button" role="tab">
+                                <i class="bi bi-clipboard-check me-1"></i>Librus Synergia
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill" id="vulcan-tab" data-bs-toggle="pill" data-bs-target="#vulcanTabPane" type="button" role="tab">
+                                <i class="bi bi-grid-3x3 me-1"></i>Vulcan UONET+
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill" id="csv-tab" data-bs-toggle="pill" data-bs-target="#csvTabPane" type="button" role="tab">
+                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Plik CSV / Excel
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="exportTabContent">
+                        <!-- Librus Pane -->
+                        <div class="tab-pane fade show active" id="librusTabPane" role="tabpanel">
+                            <p class="small text-muted mb-2">
+                                Skopiuj poniższe dane i wklej (<code>Ctrl+V</code>) bezpośrednio w widoku wpisywania ocen Librusa.
+                            </p>
+                            <?php
+                            $librusText = '';
+                            foreach ($exportRows as $row) {
+                                $librusText .= $row['last_name'] . ' ' . $row['first_name'] . "\t" . $row['grade'] . "\n";
+                            }
+                            ?>
+                            <textarea id="librusExportArea" class="form-control font-monospace small bg-body-tertiary mb-3" rows="8" readonly><?= htmlspecialchars($librusText) ?></textarea>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="button" class="btn btn-primary rounded-pill" onclick="copyExportText('librusExportArea', this)">
+                                    <i class="bi bi-clipboard me-1"></i>Kopiuj kolumnę dla Librusa
+                                </button>
+                                <span class="small text-muted">Format: Nazwisko Imię &rarr; Ocena</span>
+                            </div>
+                        </div>
+
+                        <!-- Vulcan Pane -->
+                        <div class="tab-pane fade" id="vulcanTabPane" role="tabpanel">
+                            <p class="small text-muted mb-2">
+                                Format zgodny z siatką ocen Vulcan UONET+ (oddzielany tabulatorami).
+                            </p>
+                            <?php
+                            $vulcanText = '';
+                            foreach ($exportRows as $row) {
+                                $vulcanText .= $row['nr'] . "\t" . $row['last_name'] . "\t" . $row['first_name'] . "\t" . $row['grade'] . "\t" . $row['score_pct'] . "%\n";
+                            }
+                            ?>
+                            <textarea id="vulcanExportArea" class="form-control font-monospace small bg-body-tertiary mb-3" rows="8" readonly><?= htmlspecialchars($vulcanText) ?></textarea>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="button" class="btn btn-primary rounded-pill" onclick="copyExportText('vulcanExportArea', this)">
+                                    <i class="bi bi-clipboard me-1"></i>Kopiuj dane dla Vulcana
+                                </button>
+                                <span class="small text-muted">Format: Nr &rarr; Nazwisko &rarr; Imię &rarr; Ocena</span>
+                            </div>
+                        </div>
+
+                        <!-- CSV Pane -->
+                        <div class="tab-pane fade" id="csvTabPane" role="tabpanel">
+                            <p class="small text-muted mb-3">
+                                Pobierz kompletny raport ocen i wyników jako plik arkusza kalkulacyjnego <code>.csv</code> (kodowanie UTF-8 BOM, separator średnik).
+                            </p>
+                            <div class="p-3 border rounded-3 bg-body-tertiary mb-3">
+                                <div class="fw-bold mb-1"><?= htmlspecialchars($session['title']) ?></div>
+                                <div class="small text-muted">Liczba ocenionych uczniów: <strong><?= count($exportRows) ?></strong> · Średnia: <strong><?= $avgScore ?>%</strong></div>
+                            </div>
+                            <button type="button" class="btn btn-success rounded-pill" onclick="downloadGradesCsv()">
+                                <i class="bi bi-download me-1"></i>Pobierz arkusz ocen CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+    const EXPORT_DATA = <?= json_encode($exportRows, JSON_UNESCAPED_UNICODE) ?>;
+    const EXAM_TITLE = <?= json_encode($session['title'], JSON_UNESCAPED_UNICODE) ?>;
+
+    function copyExportText(elementId, btn) {
+        const area = document.getElementById(elementId);
+        if (!area) return;
+        area.select();
+        navigator.clipboard.writeText(area.value).then(() => {
+            const originalHtml = btn.innerHTML;
+            btn.className = 'btn btn-success rounded-pill';
+            btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Skopiowano do schowka!';
+            setTimeout(() => {
+                btn.className = 'btn btn-primary rounded-pill';
+                btn.innerHTML = originalHtml;
+            }, 2500);
+        }).catch(err => {
+            console.error('Clipboard error:', err);
+            btn.className = 'btn btn-danger rounded-pill';
+            btn.innerHTML = '<i class="bi bi-x-circle me-1"></i>Błąd schowka';
+            setTimeout(() => {
+                btn.className = 'btn btn-primary rounded-pill';
+                btn.innerHTML = originalHtml;
+            }, 2500);
+        });
+    }
+
+    function downloadGradesCsv() {
+        let csv = '\uFEFF'; // UTF-8 BOM
+        csv += 'Lp;Nazwisko;Imię;Klasa;Wynik (%);Poprawne;Wszystkie;Ocena;Czas (s);Naruszenia\r\n';
+        EXPORT_DATA.forEach(r => {
+            csv += `"${r.nr}";"${r.last_name}";"${r.first_name}";"${r.class}";"${r.score_pct}";"${r.correct}";"${r.total}";"${r.grade}";"${r.time_spent}";"${r.violations}"\r\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `oceny_${EXAM_TITLE.replace(/[^a-zA-Z0-9_-]/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    </script>
 </body>
 </html>
+

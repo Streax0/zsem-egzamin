@@ -70,10 +70,6 @@ class Firewall
 
     public function banIp(string $ip, string $reason = 'Manual ban', int $duration = 86400): bool
     {
-        if (in_array(trim($ip), ['127.0.0.1', '::1', 'localhost', '0.0.0.0'], true)) {
-            return false;
-        }
-
         $dir = dirname($this->bannedIpsPath);
         if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);
@@ -189,10 +185,6 @@ class Firewall
 
     public function isBanned(string $ip): bool
     {
-        if (in_array(trim($ip), ['127.0.0.1', '::1', 'localhost', '0.0.0.0'], true)) {
-            return false;
-        }
-
         $bannedList = $this->getBannedIps();
         foreach ($bannedList as $entry) {
             if (isset($entry['ip']) && $entry['ip'] === $ip) {
@@ -246,7 +238,8 @@ class Firewall
             if (array_key_exists($key, $data)) {
                 $value = is_string($data[$key]) ? trim($data[$key]) : $data[$key];
                 if ($value !== '' && $value !== null && $value !== false) {
-                    // Reject honeypot spam bot submission without auto-banning IP
+                    $ip = function_exists('securityClientIp') ? securityClientIp() : ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+                    $this->banIp($ip, 'Honeypot trap triggered', 86400);
                     return true;
                 }
             }
@@ -287,7 +280,10 @@ class Firewall
                 'last_violation' => time(),
             ];
 
-            // Record violation log count without auto-banning IP
+            if ($count >= $threshold) {
+                $this->banIp($ip, 'Excessive security violations (' . $count . ')', $duration);
+            }
+
             $json = json_encode($violations, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             if ($json !== false) {
                 ftruncate($handle, 0);

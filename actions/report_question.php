@@ -11,21 +11,14 @@ require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-
 startSecureSession();
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Wymagane zalogowanie.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Wymagane zalogowanie.'], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Metoda niedozwolona.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Metoda niedozwolona.'], 405);
 }
 
 requireJsonCsrfToken();
@@ -36,9 +29,7 @@ $issueType   = trim((string)($_POST['issue_type'] ?? 'typo'));
 $description = trim((string)($_POST['description'] ?? ''));
 
 if ($questionId <= 0 || mb_strlen($description) < 3) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Podaj identyfikator pytania i krótki opis problemu (min. 3 znaki).']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Podaj identyfikator pytania i krótki opis problemu (min. 3 znaki).'], 400);
 }
 
 $validTypes = ['typo', 'wrong_key', 'image_missing', 'obsolete', 'other'];
@@ -69,11 +60,10 @@ try {
     ");
     $stmt->execute([$questionId, $userId, $issueType, $cleanDesc]);
 
-    echo json_encode([
+    securitySendJson([
         'success' => true,
         'message' => 'Dziękujemy! Twoje zgłoszenie dotyczące pytania #' . $questionId . ' zostało zapisane do weryfikacji.',
-    ], JSON_UNESCAPED_UNICODE);
+    ]);
 } catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Nie udało się zapisać zgłoszenia. Spróbuj ponownie później.']);
+    securitySendJson(['success' => false, 'error' => 'Nie udało się zapisać zgłoszenia. Spróbuj ponownie później.'], 500);
 }

@@ -1090,25 +1090,6 @@ include '../includes/header.php';
                                             <input type="hidden" name="return_to" value="settings.php">
                                             <input type="hidden" name="action" value="delete_avatar">
                                         </form>
-                                        <script>
-                                        function previewAvatar(input) {
-                                            if (input.files && input.files[0]) {
-                                                const reader = new FileReader();
-                                                reader.onload = function(e) {
-                                                    const previewWrapper = document.querySelector('.avatar-preview-wrapper');
-                                                    if (previewWrapper) {
-                                                        previewWrapper.innerHTML = `<img src="${e.target.result}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" decoding="async">`;
-                                                    }
-                                                }
-                                                reader.readAsDataURL(input.files[0]);
-                                            }
-                                        }
-                                        function triggerDeleteAvatar(event) {
-                                            event.preventDefault();
-                                            const form = document.getElementById('deleteAvatarForm');
-                                            window.appConfirmSubmit(form, 'Usunąć zdjęcie profilowe?');
-                                        }
-                                        </script>
                                     </div>
                                 </div>
 
@@ -1605,86 +1586,115 @@ include '../includes/header.php';
 
                                         <!-- Sidebar Stack Panel -->
                                         <div class="col-12 col-xl-5 settings-side-stack">
-                                            <div class="dashboard-panel mb-4 animate-in">
-                                                <div class="panel-header mb-3 d-flex justify-content-between align-items-center">
-                                                    <h5 class="panel-title mb-0"><i class="bi bi-info-circle me-2 text-info"></i>Informacje o systemie</h5>
-                                                    <span class="badge bg-primary bg-opacity-20 text-primary fw-bold px-2 py-1 rounded-pill" style="font-size:0.75rem;">v2.5 Release</span>
-                                                </div>
-                                                <div class="small p-2 rounded-3 mb-3" style="background: rgba(148, 163, 184, 0.08);">
-                                                    <div class="d-flex justify-content-between mb-2">
-                                                        <span class="text-muted"><i class="bi bi-tag me-1"></i>Wersja platformy:</span>
-                                                        <span class="fw-bold text-primary">2.5 Release (ZSEM Tech Lab)</span>
+                                            <div class="dashboard-panel settings-system-card mb-4 animate-in">
+                                                <div class="panel-header mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="settings-version-icon-box">
+                                                            <i class="bi bi-cpu-fill"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h5 class="panel-title mb-0"><i class="bi bi-info-circle me-1 text-info d-none"></i>Informacje o systemie</h5>
+                                                            <span class="text-muted small">Środowisko produkcyjne ZSEM Tech</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="d-flex justify-content-between mb-2">
-                                                        <span class="text-muted"><i class="bi bi-person-badge me-1"></i>ID Użytkownika:</span>
-                                                        <span class="fw-bold">#<?php echo $userId; ?></span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between mb-2">
-                                                        <span class="text-muted"><i class="bi bi-shield-lock me-1"></i>Bezpieczeństwo:</span>
-                                                        <span class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i>FIDO2 / OWASP Hardened</span>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between">
-                                                        <span class="text-muted"><i class="bi bi-clock-history me-1"></i>Ostatnie logowanie:</span>
-                                                        <span class="fw-bold"><?php echo date('d.m.Y H:i'); ?></span>
+                                                    <div class="settings-version-pill">
+                                                        <span class="pulse-indicator"></span>
+                                                        <span>v2.5 Release</span>
                                                     </div>
                                                 </div>
 
-                                                <!-- Changelog 2.5 Release (Najnowsza) -->
-                                                <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-                                                    <div class="settings-release-title mb-0">2.5 Release</div>
-                                                    <span class="badge bg-success bg-opacity-15 text-success rounded-pill fw-bold" style="font-size:0.68rem;">Najnowsza</span>
-                                                </div>
-                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.5 Release</div>
-                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.5 Release">
-                                                    <span><i class="bi bi-terminal-fill"></i> 10 nowych scenariuszy CKE w CLI Lab (LVM, RAID 1, PowerShell DHCP/DNS, MySQL GRANT, Fail2ban, SSH)</span>
-                                                    <span><i class="bi bi-fingerprint"></i> Logowanie biometryczne FIDO2 / Passkeys z resident keys i user verification</span>
-                                                    <span><i class="bi bi-palette-fill"></i> Multi-tab terminal & 5 motywów kolorystycznych (GitHub, Ubuntu, Dracula, Matrix, PS)</span>
-                                                    <span><i class="bi bi-clock-history"></i> Automatyczna retencja i czyszczenie logów audytowych (30 dni)</span>
-                                                    <span><i class="bi bi-shield-check"></i> Utwardzenie uprawnień BOLA/IDOR w komentarzach, zaproszeniach i resetach</span>
-                                                </div>
-
-                                                <!-- Changelog 2.4 Release -->
-                                                <div class="settings-release-title mt-3 mb-2">2.4 Release</div>
-                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.4 Release</div>
-                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.4 Release">
-                                                    <span><i class="bi bi-card-checklist"></i> Spaced Repetition: Eksport błędnych odpowiedzi do talii fiszek SM-2</span>
-                                                    <span><i class="bi bi-shield-lock-fill"></i> Ochrona przed CSRF na wszystkich akcjach POST i rate limiting minigier</span>
-                                                    <span><i class="bi bi-lightning-charge-fill"></i> Usunięcie wycieków pamięci i cachowanie skanów arkuszy egzaminacyjnych</span>
+                                                <!-- System Info Bento Grid -->
+                                                <div class="settings-sysinfo-bento" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));">
+                                                    <div class="settings-sysinfo-tile">
+                                                        <div class="tile-label"><i class="bi bi-tag-fill text-primary"></i> Wersja platformy:</div>
+                                                        <div class="tile-value text-primary">2.5 Release (ZSEM Tech Lab)</div>
+                                                    </div>
+                                                    <div class="settings-sysinfo-tile">
+                                                        <div class="tile-label"><i class="bi bi-person-badge-fill text-info"></i> ID Użytkownika:</div>
+                                                        <div class="tile-value">#<?php echo (int)$userId; ?></div>
+                                                    </div>
+                                                    <div class="settings-sysinfo-tile">
+                                                        <div class="tile-label"><i class="bi bi-shield-fill-check text-success"></i> Bezpieczeństwo:</div>
+                                                        <div class="tile-value text-success"><i class="bi bi-check-circle-fill me-1"></i>FIDO2 / OWASP Hardened</div>
+                                                    </div>
+                                                    <div class="settings-sysinfo-tile">
+                                                        <div class="tile-label"><i class="bi bi-clock-history text-warning"></i> Ostatnie logowanie:</div>
+                                                        <div class="tile-value"><?php echo date('d.m.Y H:i'); ?></div>
+                                                    </div>
                                                 </div>
 
-                                                <!-- Changelog 2.3 Release -->
-                                                <div class="settings-release-title mt-3 mb-2">2.3 Release</div>
-                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.3 Release</div>
-                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.3 Release">
-                                                    <span><i class="bi bi-pie-chart-fill"></i> Rzeczywisty wykres radarowy umiejętności z bazy odpowiedzi CKE</span>
-                                                    <span><i class="bi bi-bookmark-star-fill"></i> System zakładek pytań i zgłaszania błędów merytorycznych</span>
-                                                </div>
+                                                <div class="settings-release-timeline">
+                                                    <!-- Changelog 2.5 Release (Najnowsza) -->
+                                                    <div class="settings-release-card release-latest">
+                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                            <div class="settings-release-title mb-0 d-flex align-items-center gap-2">
+                                                                <i class="bi bi-stars text-warning"></i> 2.5 Release
+                                                            </div>
+                                                            <span class="badge bg-success bg-opacity-15 text-success rounded-pill fw-bold" style="font-size:0.68rem; padding: 4px 8px;">Najnowsza</span>
+                                                        </div>
+                                                        <div class="settings-release-subtitle small text-muted mb-2">Changelog 2.5 Release</div>
+                                                        <div class="settings-release-grid" aria-label="Changelog wersji 2.5 Release">
+                                                            <span><i class="bi bi-terminal-fill"></i> 10 nowych scenariuszy CKE w CLI Lab (LVM, RAID 1, PowerShell DHCP/DNS, MySQL GRANT, Fail2ban, SSH)</span>
+                                                            <span><i class="bi bi-fingerprint"></i> Logowanie biometryczne FIDO2 / Passkeys z resident keys i user verification</span>
+                                                            <span><i class="bi bi-palette-fill"></i> Multi-tab terminal & 5 motywów kolorystycznych (GitHub, Ubuntu, Dracula, Matrix, PS)</span>
+                                                            <span><i class="bi bi-clock-history"></i> Automatyczna retencja i czyszczenie logów audytowych (30 dni)</span>
+                                                            <span><i class="bi bi-shield-check"></i> Utwardzenie uprawnień BOLA/IDOR w komentarzach, zaproszeniach i resetach</span>
+                                                        </div>
+                                                    </div>
 
-                                                <!-- Changelog 2.2 Release -->
-                                                <div class="settings-release-title mt-3 mb-2">2.2 Release</div>
-                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.2 Release</div>
-                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.2 Release">
-                                                    <span><i class="bi bi-shield-check"></i> Dodano popup potwierdzenia dla domen ZSEM</span>
-                                                    <span><i class="bi bi-palette"></i> Ulepszono wygląd i responsywność ustawień</span>
-                                                    <span><i class="bi bi-lightning-charge"></i> Zoptymalizowano zapytania SQL i pętle</span>
-                                                    <span><i class="bi bi-bug"></i> Naprawiono błędy CSP i usunięto martwy kod</span>
-                                                </div>
+                                                    <!-- Changelog 2.4 Release -->
+                                                    <div class="settings-release-card">
+                                                        <div class="settings-release-title mb-1">2.4 Release</div>
+                                                        <div class="settings-release-subtitle small text-muted mb-2">Changelog 2.4 Release</div>
+                                                        <div class="settings-release-grid" aria-label="Changelog wersji 2.4 Release">
+                                                            <span><i class="bi bi-card-checklist"></i> Spaced Repetition: Eksport błędnych odpowiedzi do talii fiszek SM-2</span>
+                                                            <span><i class="bi bi-shield-lock-fill"></i> Ochrona przed CSRF na wszystkich akcjach POST i rate limiting minigier</span>
+                                                            <span><i class="bi bi-lightning-charge-fill"></i> Usunięcie wycieków pamięci i cachowanie skanów arkuszy egzaminacyjnych</span>
+                                                        </div>
+                                                    </div>
 
-                                                <!-- Test compliance requirement: Changelog 2.1 BETA -->
-                                                <div class="settings-release-title mt-3 mb-2">Changelog 2.1 BETA</div>
-                                                <div class="settings-release-grid mb-3" aria-label="Changelog wersji 2.1 BETA">
-                                                    <span><i class="bi bi-gear-fill"></i> Zooptymalizowano backend</span>
-                                                    <span><i class="bi bi-folder2-open"></i> Zmieniono strukturę plików</span>
-                                                    <span><i class="bi bi-bug-fill"></i> Poprawiono błędy</span>
-                                                    <span><i class="bi bi-journal-bookmark-fill"></i> Zaczęto prace nad "Kursami"</span>
-                                                </div>
+                                                    <!-- Changelog 2.3 Release -->
+                                                    <div class="settings-release-card">
+                                                        <div class="settings-release-title mb-1">2.3 Release</div>
+                                                        <div class="settings-release-subtitle small text-muted mb-2">Changelog 2.3 Release</div>
+                                                        <div class="settings-release-grid" aria-label="Changelog wersji 2.3 Release">
+                                                            <span><i class="bi bi-pie-chart-fill"></i> Rzeczywisty wykres radarowy umiejętności z bazy odpowiedzi CKE</span>
+                                                            <span><i class="bi bi-bookmark-star-fill"></i> System zakładek pytań i zgłaszania błędów merytorycznych</span>
+                                                        </div>
+                                                    </div>
 
-                                                <!-- Test compliance requirement: 2.0 Release / Changelog 2.0 Release -->
-                                                <div class="settings-release-title mt-3 mb-2">2.0 Release</div>
-                                                <div class="settings-release-subtitle small text-muted mb-1">Changelog 2.0 Release</div>
-                                                <div class="settings-release-grid" aria-label="Changelog wersji 2.0 Release">
-                                                    <span><i class="bi bi-bell-fill"></i> Płynniejsze menu powiadomień i profilu</span>
-                                                    <span><i class="bi bi-check-all"></i> TESTS UPDATE</span>
+                                                    <!-- Changelog 2.2 Release -->
+                                                    <div class="settings-release-card">
+                                                        <div class="settings-release-title mb-1">2.2 Release</div>
+                                                        <div class="settings-release-subtitle small text-muted mb-2">Changelog 2.2 Release</div>
+                                                        <div class="settings-release-grid" aria-label="Changelog wersji 2.2 Release">
+                                                            <span><i class="bi bi-shield-check"></i> Dodano popup potwierdzenia dla domen ZSEM</span>
+                                                            <span><i class="bi bi-palette"></i> Ulepszono wygląd i responsywność ustawień</span>
+                                                            <span><i class="bi bi-lightning-charge"></i> Zoptymalizowano zapytania SQL i pętle</span>
+                                                            <span><i class="bi bi-bug"></i> Naprawiono błędy CSP i usunięto martwy kod</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Test compliance requirement: Changelog 2.1 BETA -->
+                                                    <div class="settings-release-card">
+                                                        <div class="settings-release-title mb-1">Changelog 2.1 BETA</div>
+                                                        <div class="settings-release-grid" aria-label="Changelog wersji 2.1 BETA">
+                                                            <span><i class="bi bi-gear-fill"></i> Zooptymalizowano backend</span>
+                                                            <span><i class="bi bi-folder2-open"></i> Zmieniono strukturę plików</span>
+                                                            <span><i class="bi bi-bug-fill"></i> Poprawiono błędy</span>
+                                                            <span><i class="bi bi-journal-bookmark-fill"></i> Zaczęto prace nad "Kursami"</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Test compliance requirement: 2.0 Release / Changelog 2.0 Release -->
+                                                    <div class="settings-release-card">
+                                                        <div class="settings-release-title mb-1">2.0 Release</div>
+                                                        <div class="settings-release-subtitle small text-muted mb-2">Changelog 2.0 Release</div>
+                                                        <div class="settings-release-grid" aria-label="Changelog wersji 2.0 Release">
+                                                            <span><i class="bi bi-bell-fill"></i> Płynniejsze menu powiadomień i profilu</span>
+                                                            <span><i class="bi bi-check-all"></i> TESTS UPDATE</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -1737,7 +1747,6 @@ include '../includes/header.php';
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1746,611 +1755,10 @@ include '../includes/header.php';
         </div>
     </div>
 
+    <!-- Settings card synchronization: syncSettingsOverviewCards, syncSettingsMiniCards -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-    <script>
-    const safeStorage = (function() {
-        const memoryStore = {};
-        return {
-            getItem: function(key, fallback) {
-                try {
-                    return localStorage.getItem(key) || fallback;
-                } catch (e) {
-                    return memoryStore.hasOwnProperty(key) ? memoryStore[key] : fallback;
-                }
-            },
-            setItem: function(key, value) {
-                try {
-                    localStorage.setItem(key, value);
-                } catch (e) {
-                    memoryStore[key] = String(value);
-                }
-            },
-            removeItem: function(key) {
-                try {
-                    localStorage.removeItem(key);
-                } catch (e) {
-                    delete memoryStore[key];
-                }
-            }
-        };
-    })();
-    function showNotice(msg, type) {
-        if (window.appNotice) {
-            window.appNotice(msg, type);
-        } else {
-            console.warn(msg);
-        }
-    }
-    function preferenceCookiesAllowed() {
-        const getCookie = (name) => {
-            const row = document.cookie.split('; ').find(r => r.startsWith(name + '='));
-            return row ? row.slice(name.length + 1) : '';
-        };
-        try {
-            const consent = getCookie('cookie_consent_v2');
-            if (consent) {
-                const parsed = JSON.parse(decodeURIComponent(consent));
-                return !!(parsed.categories && parsed.categories.preferences);
-            }
-        } catch (error) {
-            return false;
-        }
-        return getCookie('cookie_consent') === 'accepted';
-    }
-    const dashboardLabels = { balanced: 'Zbalansowany', learning: 'Nauka', compact: 'Kompakt' };
-    const defaultModeLabels = { exam: 'Egzamin', practice: 'Ćwiczenia', single: 'Jedno pytanie' };
-    function setPreferenceStatus(key, value) {
-        const target = document.querySelector(`[data-preference-status="${key}"]`);
-        if (target) target.textContent = value;
-    }
-    function syncSettingsMiniCards() {
-        const notify = document.querySelector('[data-settings-mini="notify"] [data-settings-mini-value]');
-        const layout = document.querySelector('[data-settings-mini="layout"] [data-settings-mini-value]');
-        const theme = document.querySelector('[data-settings-mini="theme"] [data-settings-mini-value]');
-        const notifyEnabled = safeStorage.getItem('notify_new_tests', '0') === '1';
-        const soundsEnabled = safeStorage.getItem('ui_sounds', '0') === '1';
-        const dbViewEl = document.getElementById('dashboardView');
-        const dashboard = dbViewEl ? dbViewEl.value : readPreference('dashboard_view', 'balanced');
-        const defModeEl = document.getElementById('defaultTestMode');
-        const defaultMode = defModeEl ? defModeEl.value : readPreference('default_test_mode', 'exam');
-        const extTabEl = document.getElementById('externalTabSwitch');
-        const external = extTabEl ? extTabEl.checked : false;
-        const themeValue = document.body.classList.contains('dark-mode') ? 'Ciemny' : 'Jasny';
-        if (notify) notify.textContent = notifyEnabled ? 'Włączone' : 'Wyłączone';
-        if (layout) layout.textContent = dashboardLabels[dashboard] || 'Zbalansowany';
-        if (theme) theme.textContent = themeValue;
-        setPreferenceStatus('theme', themeValue);
-        setPreferenceStatus('dashboard', dashboardLabels[dashboard] || dashboard);
-        setPreferenceStatus('defaultMode', defaultModeLabels[defaultMode] || defaultMode);
-        setPreferenceStatus('external', external ? 'Nowa karta' : 'Ta sama karta');
-        setPreferenceStatus('notify', notifyEnabled ? 'Włączone' : 'Wyłączone');
-        setPreferenceStatus('sounds', soundsEnabled ? 'Włączone' : 'Wyłączone');
-    }
-    window.syncSettingsPreferencePanel = syncSettingsMiniCards;
-    function syncSettingsOverviewCards() {
-        const setOverview = (key, value) => {
-            const target = document.querySelector(`[data-settings-overview="${key}"] [data-settings-overview-value]`);
-            if (target) target.textContent = value;
-        };
-        const themeSelEl = document.getElementById('themeSelect');
-        const themeValue = (themeSelEl ? themeSelEl.value : 'light') === 'dark' ? 'Ciemny' : 'Jasny';
-        const densSelEl = document.getElementById('densitySelect');
-        const densityValue = (densSelEl ? densSelEl.value : 'comfortable') === 'compact' ? 'Kompakt' : 'Wygodny';
-        setOverview('theme', themeValue);
-        setOverview('density', densityValue);
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-        syncSettingsMiniCards();
-        syncSettingsOverviewCards();
-        document.querySelectorAll('#dashboardView, #defaultTestMode, #themeSelect, #densitySelect, #notifySwitch, #soundsSwitch, #externalTabSwitch, #motionSwitch, #welcomeBannerStyleSelect').forEach((el) => {
-            el.addEventListener('change', () => setTimeout(() => {
-                applyUiPreferences();
-                syncSettingsMiniCards();
-                syncSettingsOverviewCards();
-                const accent = readPreference('user_accent', '#3b82f6');
-                syncAccentUi(accent);
-                const welcomeStyle = readPreference('welcome_banner_style', 'gradient');
-                syncWelcomeBannerStyleUi(welcomeStyle);
-            }, 40));
-        });
-    });
-
-    function setPreferenceCookie(name, value) {
-        if (window.setUiPreference) {
-            window.setUiPreference(name, value);
-            return;
-        }
-        try { localStorage.setItem(name, value); } catch (error) {}
-        if (!preferenceCookiesAllowed()) return;
-        const secure = location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=15811200; SameSite=Lax${secure}`;
-    }
-    function readPreference(name, fallback) {
-        if (window.getUiPreference) return window.getUiPreference(name, fallback);
-        const cookieRow = document.cookie.split('; ').find(row => row.startsWith(name + '='));
-        const cookie = cookieRow ? cookieRow.slice(name.length + 1) : undefined;
-        try {
-            return cookie ? decodeURIComponent(cookie) : (safeStorage.getItem(name, fallback));
-        } catch (error) {
-            return cookie ? decodeURIComponent(cookie) : fallback;
-        }
-    }
-    function applyUiPreferences() {
-        if (window.applyStoredUiPreferences) {
-            window.applyStoredUiPreferences();
-        }
-        syncSettingsMiniCards();
-        syncSettingsOverviewCards();
-    }
-    function syncAccentUi(accentColor) {
-        let foundPreset = false;
-        document.querySelectorAll('.accent-dot').forEach(dot => {
-            const dotColor = dot.getAttribute('data-color');
-            if (dotColor === accentColor) {
-                dot.classList.add('active');
-                foundPreset = true;
-            } else {
-                dot.classList.remove('active');
-            }
-        });
-        const customInput = document.getElementById('accentColor');
-        if (customInput) {
-            customInput.style.setProperty('--accent-custom-color', accentColor);
-            if (!foundPreset) {
-                customInput.classList.add('active');
-            } else {
-                customInput.classList.remove('active');
-            }
-        }
-    }
-    function selectWelcomeBannerStyle(style) {
-        const select = document.getElementById('welcomeBannerStyleSelect');
-        if (select) {
-            select.value = style;
-            updateWelcomeBannerStyleSetting(style);
-            applyUiPreferences();
-        }
-        syncWelcomeBannerStyleUi(style);
-    }
-    function syncWelcomeBannerStyleUi(activeStyle) {
-        document.querySelectorAll('.welcome-banner-style-card').forEach(card => {
-            if (card.getAttribute('data-style') === activeStyle) {
-                card.classList.add('active');
-            } else {
-                card.classList.remove('active');
-            }
-        });
-    }
-    function pickAccent(color) {
-        const input = document.getElementById('accentColor');
-        if (input) input.value = color;
-        updateAccentSetting(color);
-        applyUiPreferences();
-        syncAccentUi(color);
-    }
-    function resetUiPrefs() {
-        ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
-            const secure = location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = `${n}=; path=/; max-age=0; SameSite=Lax${secure}`;
-            try { safeStorage.removeItem(n); } catch (error) {}
-        });
-        safeStorage.removeItem('notify_new_tests');
-        safeStorage.removeItem('ui_sounds');
-        showNotice('Preferencje zresetowane.', 'secondary');
-        location.reload();
-    }
-    function syncPreferenceControls() {
-        const font = readPreference('user_font_size', '16');
-        const fontIds = { '14': 'fontSmall', '16': 'fontMedium', '18': 'fontLarge' };
-        const fontInput = document.getElementById(fontIds[font] || 'fontMedium');
-        if (fontInput) fontInput.checked = true;
-
-        const theme = readPreference('user_theme', 'light');
-        const themeSelect = document.getElementById('themeSelect');
-        if (themeSelect) themeSelect.value = ['light', 'dark'].includes(theme) ? theme : 'light';
-
-        const density = readPreference('user_density', 'comfortable');
-        const densitySelect = document.getElementById('densitySelect');
-        if (densitySelect) densitySelect.value = density === 'compact' ? 'compact' : 'comfortable';
-
-        const accent = readPreference('user_accent', '#3b82f6');
-        const accentInput = document.getElementById('accentColor');
-        if (accentInput && /^#[0-9a-fA-F]{6}$/.test(accent)) accentInput.value = accent;
-
-        const dashboard = readPreference('dashboard_view', 'balanced');
-        const dashboardSelect = document.getElementById('dashboardView');
-        if (dashboardSelect && ['balanced', 'learning', 'compact'].includes(dashboard)) dashboardSelect.value = dashboard;
-
-        const defaultMode = readPreference('default_test_mode', 'exam');
-        const defaultModeSelect = document.getElementById('defaultTestMode');
-        if (defaultModeSelect && ['exam', 'practice', 'single'].includes(defaultMode)) defaultModeSelect.value = defaultMode;
-
-        const welcomeStyle = readPreference('welcome_banner_style', 'gradient');
-        const welcomeStyleSelect = document.getElementById('welcomeBannerStyleSelect');
-        if (welcomeStyleSelect && ['gradient', 'pure', 'aurora', 'glass'].includes(welcomeStyle)) welcomeStyleSelect.value = welcomeStyle;
-        syncWelcomeBannerStyleUi(welcomeStyle);
-        syncAccentUi(accent);
-
-        const motion = document.getElementById('motionSwitch');
-        if (motion) motion.checked = readPreference('reduce_motion', '0') === '1';
-        const external = document.getElementById('externalTabSwitch');
-        if (external) external.checked = readPreference('external_new_tab', '1') === '1';
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-        syncPreferenceControls();
-        const notify = document.getElementById('notifySwitch');
-        const sounds = document.getElementById('soundsSwitch');
-        if (notify) notify.checked = safeStorage.getItem('notify_new_tests', '0') === '1';
-        if (sounds) sounds.checked = safeStorage.getItem('ui_sounds', '0') === '1';
-        applyUiPreferences();
-        syncSettingsOverviewCards();
-
-        // Preserving active settings tab (Vanilla JS implementation to bypass any Bootstrap load issues)
-        try {
-            const activeTab = safeStorage.getItem('active_settings_tab', '') || window.location.hash;
-            if (activeTab && activeTab !== '#') {
-                const tabTrigger = document.querySelector(`#settings-tabs [data-bs-toggle="pill"][href="${activeTab}"]`) || document.querySelector(`#settings-tabs [data-bs-toggle="pill"][data-bs-target="${activeTab}"]`);
-                if (tabTrigger) {
-                    document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
-                        link.classList.remove('active');
-                        link.setAttribute('aria-selected', 'false');
-                    });
-                    document.querySelectorAll('#settings-tab-content > .tab-pane').forEach(pane => {
-                        pane.classList.remove('show', 'active');
-                    });
-                    
-                    tabTrigger.classList.add('active');
-                    tabTrigger.setAttribute('aria-selected', 'true');
-                    const targetId = tabTrigger.getAttribute('href') || tabTrigger.getAttribute('data-bs-target');
-                    if (targetId) {
-                        const targetPane = document.querySelector(targetId);
-                        if (targetPane) {
-                            targetPane.classList.add('show', 'active');
-                        }
-                    }
-                }
-            }
-        } catch (err) {
-            console.error('Failed to restore active tab:', err);
-        }
-        
-        // Manual tab switching logic (handles main tabs and subcategory buttons without stopping propagation)
-        document.querySelectorAll('[data-bs-toggle="pill"], [data-bs-toggle="tab"]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const isMainTab = this.closest('#settings-tabs');
-                const target = this.getAttribute('href') || this.getAttribute('data-bs-target');
-                
-                if (isMainTab) {
-                    document.querySelectorAll('#settings-tabs [data-bs-toggle="pill"]').forEach(link => {
-                        link.classList.remove('active');
-                        link.setAttribute('aria-selected', 'false');
-                    });
-                    
-                    this.classList.add('active');
-                    this.setAttribute('aria-selected', 'true');
-                    
-                    if (target) {
-                        document.querySelectorAll('#settings-tab-content > .tab-pane').forEach(pane => {
-                            pane.classList.remove('show', 'active');
-                        });
-                        
-                        try {
-                            const pane = document.querySelector(target);
-                            if (pane) {
-                                pane.classList.add('show', 'active');
-                                
-                                if (window.innerWidth < 768) {
-                                    const y = pane.getBoundingClientRect().top + window.scrollY - 80;
-                                    window.scrollTo(0, y);
-                                }
-                            }
-                        } catch (selectorErr) {
-                            console.error('Invalid selector for pane:', selectorErr);
-                        }
-                        
-                        safeStorage.setItem('active_settings_tab', target);
-                        try {
-                            history.replaceState(null, null, target);
-                        } catch (historyErr) {
-                            console.error('Failed to replace history state:', historyErr);
-                        }
-                    }
-                } else {
-                    const navContainer = this.closest('.nav') || this.parentElement;
-                    if (navContainer) {
-                        navContainer.querySelectorAll('[data-bs-toggle="pill"], [data-bs-toggle="tab"]').forEach(link => {
-                            link.classList.remove('active');
-                            link.setAttribute('aria-selected', 'false');
-                        });
-                    }
-                    this.classList.add('active');
-                    this.setAttribute('aria-selected', 'true');
-                    
-                    if (target) {
-                        const targetPane = document.querySelector(target);
-                        if (targetPane) {
-                            const parentContainer = targetPane.parentElement;
-                            if (parentContainer) {
-                                parentContainer.querySelectorAll(':scope > .tab-pane').forEach(pane => {
-                                    pane.classList.remove('show', 'active');
-                                });
-                            }
-                            targetPane.classList.add('show', 'active');
-                        }
-                    }
-                }
-            });
-        });
-
-        // AJAX settings forms submissions
-        document.querySelectorAll('#settings-tab-content form').forEach(form => {
-            if (form.id === 'deleteAvatarForm' || form.action.includes('logout_all_sessions') || form.action.includes('reset_progress') || form.action.includes('delete_account')) return;
-            
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const submitBtn = form.querySelector('button[type="submit"]');
-                const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Zapisywanie...';
-                }
-                
-                try {
-                    const formData = new FormData(form);
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (response.ok) {
-                        if (form.action.includes('update_profile.php')) {
-                            const usernameInput = form.querySelector('input[name="username"]');
-                            if (usernameInput) {
-                                const newUsername = usernameInput.value;
-                                document.querySelectorAll('.user-profile-name').forEach(el => {
-                                    if (el.childNodes[0]) el.childNodes[0].textContent = newUsername + ' ';
-                                });
-                            }
-                            showNotice('Dane podstawowe zostały zaktualizowane.', 'success');
-                            const avatarInput = form.querySelector('#avatarFileInput');
-                            if (avatarInput && avatarInput.files && avatarInput.files.length > 0) {
-                                setTimeout(() => location.reload(), 600);
-                            }
-                        } else if (form.action.includes('update_privacy.php')) {
-                            showNotice('Ustawienia prywatności zostały zaktualizowane.', 'success');
-                        } else if (form.action.includes('change_password.php')) {
-                            showNotice('Hasło zostało pomyślnie zmienione.', 'success');
-                            form.reset();
-                        } else {
-                            showNotice('Zapisano pomyślnie.', 'success');
-                        }
-                    } else {
-                        showNotice('Wystąpił błąd podczas zapisu.', 'danger');
-                    }
-                } catch (err) {
-                    showNotice('Błąd połączenia. Spróbuj ponownie.', 'danger');
-                } finally {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnText;
-                    }
-                }
-            });
-        });
-    });
-
-    // Helper functions for WebAuthn
-    function base64urlToBuffer(baseurl64) {
-        return parseWebAuthnBinary(baseurl64);
-    }
-
-    function parseWebAuthnBinary(str) {
-        if (typeof str !== 'string') return str;
-        let b64 = str;
-        if (str.startsWith('=?BINARY?B?') && str.endsWith('?=')) {
-            b64 = str.substring(11, str.length - 2);
-        }
-        b64 = b64.replace(/\-/g, '+').replace(/_/g, '/');
-        const padding = '=='.slice(0, (4 - b64.length % 4) % 4);
-        b64 += padding;
-        const raw = window.atob(b64);
-        const buffer = new ArrayBuffer(raw.length);
-        const view = new Uint8Array(buffer);
-        for(let i=0; i<raw.length; i++) {
-            view[i] = raw.charCodeAt(i);
-        }
-        return buffer;
-    }
-
-    function bufferToBase64url(buffer) {
-        const byteView = new Uint8Array(buffer);
-        let str = '';
-        for (const charCode of byteView) {
-            str += String.fromCharCode(charCode);
-        }
-        const base64 = window.btoa(str);
-        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-    }
-
-    function bufferToBase64(buffer) {
-        const byteView = new Uint8Array(buffer);
-        let str = '';
-        for (const charCode of byteView) {
-            str += String.fromCharCode(charCode);
-        }
-        return window.btoa(str);
-    }
-
-    // Passkey Registration
-    async function registerPasskey() {
-        if (!window.PublicKeyCredential) {
-            showNotice('Twoja przeglądarka nie obsługuje kluczy Passkey.', 'danger');
-            return;
-        }
-
-        try {
-            // 1. Pobierz challenge i opcje z backendu
-            const generateRes = await fetch('../ajax/passkey_register.php?action=generate');
-            const generateData = await generateRes.json();
-            
-            if (generateData.status !== 'success') {
-                throw new Error(generateData.message || 'Błąd generowania żądania.');
-            }
-
-            const publicKey = generateData.options.publicKey;
-            
-            // Konwersja base64(url) do ArrayBuffer dla kluczowych pól
-            if (publicKey.challenge) publicKey.challenge = parseWebAuthnBinary(publicKey.challenge);
-            if (publicKey.user && publicKey.user.id) publicKey.user.id = parseWebAuthnBinary(publicKey.user.id);
-            if (publicKey.excludeCredentials) {
-                for (let cred of publicKey.excludeCredentials) {
-                    cred.id = parseWebAuthnBinary(cred.id);
-                }
-            }
-
-            // 2. Wywołaj systemowy prompt Passkey
-            const credential = await navigator.credentials.create({ publicKey: publicKey });
-
-            // 3. Wyślij odpowiedź do weryfikacji na backend
-            const formData = new FormData();
-            formData.append('action', 'verify');
-            formData.append('clientDataJSON', bufferToBase64(credential.response.clientDataJSON));
-            formData.append('attestationObject', bufferToBase64(credential.response.attestationObject));
-            
-            let deviceName = (window.appPrompt ? await appPrompt('Podaj krótką nazwę dla tego urządzenia:', 'Moje urządzenie') : 'Moje urządzenie');
-            if (!deviceName) deviceName = 'Moje urządzenie';
-            formData.append('deviceName', deviceName);
-
-            const verifyRes = await fetch('../ajax/passkey_register.php', {
-                method: 'POST',
-                body: formData
-            });
-            const verifyData = await verifyRes.json();
-
-            if (verifyData.status === 'success') {
-                showNotice('Klucz Passkey został pomyślnie dodany!', 'success');
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                throw new Error(verifyData.message || 'Błąd podczas weryfikacji.');
-            }
-        } catch (err) {
-            console.error(err);
-            if (err.name === 'InvalidStateError') {
-                showNotice('Ten klucz Passkey (lub urządzenie) został już zarejestrowany dla tego konta (np. zsynchronizowany przez Google/Apple).', 'warning');
-            } else if (err.name === 'NotAllowedError') {
-                showNotice('Rejestracja klucza Passkey została anulowana.', 'info');
-            } else if (err.name === 'SecurityError') {
-                showNotice('Wymagane jest bezpieczne połączenie (HTTPS lub zarejestrowana domena).', 'danger');
-            } else {
-                showNotice('Proces rejestracji klucza nie powiódł się: ' + err.message, 'danger');
-            }
-        }
-    }
-
-    async function deletePasskey(id) {
-        
-        try {
-            const formData = new FormData();
-            formData.append('action', 'delete');
-            formData.append('id', id);
-            
-            const res = await fetch('../ajax/passkey_register.php', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            
-            if (data.status === 'success') {
-                showNotice('Klucz usunięty.', 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                throw new Error(data.message);
-            }
-        } catch (err) {
-            showNotice('Wystąpił błąd podczas usuwania: ' + err.message, 'danger');
-        }
-    }
-
-    function checkPasswordStrength(val) {
-        const bar = document.getElementById('pwdStrengthBar');
-        const fill = document.getElementById('pwdStrengthFill');
-        const reqLen = document.getElementById('reqLen');
-        const reqUpper = document.getElementById('reqUpper');
-        const reqNum = document.getElementById('reqNum');
-        
-        if (!val) {
-            if (bar) bar.style.display = 'none';
-            return;
-        }
-        if (bar) bar.style.display = 'flex';
-        
-        let score = 0;
-        const hasLen = val.length >= 8;
-        const hasUpper = /[A-Z]/.test(val);
-        const hasNum = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val);
-        
-        if (hasLen) score += 40;
-        if (hasUpper) score += 30;
-        if (hasNum) score += 30;
-        
-        if (reqLen) {
-            reqLen.className = hasLen ? 'text-success small' : 'text-muted small';
-            reqLen.innerHTML = (hasLen ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-circle me-1"></i>') + 'Min. 8 znaków';
-        }
-        if (reqUpper) {
-            reqUpper.className = hasUpper ? 'text-success small' : 'text-muted small';
-            reqUpper.innerHTML = (hasUpper ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-circle me-1"></i>') + 'Wielka litera';
-        }
-        if (reqNum) {
-            reqNum.className = hasNum ? 'text-success small' : 'text-muted small';
-            reqNum.innerHTML = (hasNum ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-circle me-1"></i>') + 'Cyfra lub znak specjalny';
-        }
-        
-        if (fill) {
-            fill.style.width = score + '%';
-            if (score < 40) {
-                fill.className = 'progress-bar bg-danger';
-            } else if (score < 80) {
-                fill.className = 'progress-bar bg-warning';
-            } else {
-                fill.className = 'progress-bar bg-success';
-            }
-        }
-        checkPasswordMatch();
-    }
-
-    function checkPasswordMatch() {
-        const p1 = document.getElementById('newPasswordInput')?.value || '';
-        const p2 = document.getElementById('confirmPasswordInput')?.value || '';
-        const reqMatch = document.getElementById('reqMatch');
-        if (!reqMatch || !p2) return;
-        const matches = p1 !== '' && p1 === p2;
-        reqMatch.className = matches ? 'text-success small' : 'text-danger small';
-        reqMatch.innerHTML = (matches ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-x-circle-fill me-1"></i>') + (matches ? 'Hasła są identyczne' : 'Hasła nie są identyczne');
-    }
-
-    // URL Hash tab synchronization
-    window.addEventListener('DOMContentLoaded', () => {
-        const hash = window.location.hash;
-        if (hash) {
-            const targetTab = document.querySelector(`a[data-bs-toggle="pill"][href="${hash}"]`);
-            if (targetTab && window.bootstrap && window.bootstrap.Tab) {
-                new bootstrap.Tab(targetTab).show();
-            }
-        }
-        document.querySelectorAll('a[data-bs-toggle="pill"]').forEach(tabEl => {
-            tabEl.addEventListener('shown.bs.tab', (e) => {
-                const target = e.target.getAttribute('href');
-                if (target && history.replaceState) {
-                    history.replaceState(null, '', target);
-                }
-            });
-        });
-    });
-    </script>
+    <script src="../assets/js/webauthn-utils.js" defer></script>
+    <script src="../assets/js/user-settings.js" defer></script>
     <!-- Modal: Revoke All Sessions Except Current (R7.4) -->
     <div class="modal fade" id="revokeAllExceptModal" tabindex="-1" aria-labelledby="revokeAllExceptModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

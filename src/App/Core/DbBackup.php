@@ -201,6 +201,7 @@ class DbBackup
             'duration_seconds' => $duration,
             'compressed'       => true,
             'encrypted'        => false,
+            'sha256_checksum'  => hash_file('sha256', $filePath),
         ];
 
         // Perform AES-256-GCM AEAD Encryption
@@ -443,7 +444,7 @@ class DbBackup
         return $count;
     }
 
-    public function cleanupOldBackups(int $retentionDays = 7, ?string $dir = null): int
+    public function cleanupOldBackups(int $retentionDays = 7, ?string $dir = null, bool $tieredWeekly = false): int
     {
         $targetDir = $dir !== null ? rtrim($dir, '/\\') : $this->backupDir;
         $cutoff = time() - ($retentionDays * 86400);
@@ -451,10 +452,29 @@ class DbBackup
         $deleted = 0;
 
         if (is_array($files)) {
+            $fourWeeksAgo = time() - (28 * 86400);
+            $weeklyKept = [];
+
+            // Sort files newest first
+            usort($files, fn($a, $b) => filemtime($b) <=> filemtime($a));
+
             foreach ($files as $file) {
                 if (is_file($file)) {
                     $mtime = filemtime($file);
-                    if ($mtime !== false && $mtime < $cutoff) {
+                    if ($mtime === false) continue;
+
+                    // If older than daily retention (e.g. 7 days)
+                    if ($mtime < $cutoff) {
+                        if ($tieredWeekly) {
+                            $weekKey = date('Y-W', $mtime);
+                            // If between 7 and 28 days old, keep 1 per week
+                            if ($mtime >= $fourWeeksAgo && !isset($weeklyKept[$weekKey])) {
+                                $weeklyKept[$weekKey] = true;
+                                continue; // Retain weekly snapshot
+                            }
+                        }
+
+                        // Otherwise prune
                         if (@unlink($file)) {
                             $deleted++;
                         }
@@ -464,6 +484,7 @@ class DbBackup
         }
         return $deleted;
     }
+
 
     private function formatBytes(int $bytes): string
     {

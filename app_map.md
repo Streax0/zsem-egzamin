@@ -73,7 +73,15 @@ API endpoints called by frontend JavaScript to perform background operations and
 *   [check_registration_availability.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/ajax/check_registration_availability.php) – Live validation of username/email availability.
 *   [notifications_feed.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/ajax/notifications_feed.php) – Powers real-time notification updates.
 *   [extend_session.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/ajax/extend_session.php), [get_session_status.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/ajax/get_session_status.php) – Handles session health.
+*   [sync_offline_progress.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/ajax/sync_offline_progress.php) – Transactional batch processor for PWA offline test submissions and XP rewards.
 *   [teacher_status.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/ajax/teacher_status.php) – Feeds real-time monitoring graphs for active tests to the teacher's dashboard.
+
+---
+
+### 📁 `/api/`
+Public and internal streaming API endpoints:
+*   [events_sse.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/api/events_sse.php) – **Real-Time SSE Stream**: Server-Sent Events engine delivering live participant and violation updates for teacher proctoring and 1v1 duel progress without session lock contention.
+*   [health.php](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/api/health.php) – System health and service probe endpoint.
 
 ---
 
@@ -155,6 +163,8 @@ Static frontend design resources:
     *   [network-lab.js](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/assets/js/network-lab.js) – Visual router laboratory script enabling port-to-port links, console interactions, and command line mockups.
     *   [quiz-engine.js](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/assets/js/quiz-engine.js) – Dynamic questions player, clock tracker, and review manager.
     *   [exam-engine.js](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/assets/js/exam-engine.js) – Monitored testing client. Hooked into Fullscreen APIs, blur tracking, and anti-cheat actions.
+    *   [offline-engine.js](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/assets/js/offline-engine.js) – IndexedDB database manager for PWA offline test solving and auto-sync.
+    *   [sw.js](file:///c:/Users/damia/OneDrive/Pulpit/stronammmmmmmm/public_html/assets/js/sw.js) – Service worker providing asset caching, background sync and offline fallback.
 
 ---
 

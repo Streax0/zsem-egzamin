@@ -34,14 +34,12 @@ if (!$duel) {
 }
 
 if (isset($_GET['poll'])) {
-    header('Content-Type: application/json');
-    echo json_encode([
+    securitySendJson([
         'status' => $duel['status'] ?? '',
         'finished' => ($duel['status'] ?? '') === 'finished',
         'challenger_finished' => !empty($duel['challenger_finished_at']),
         'opponent_finished' => !empty($duel['opponent_finished_at']),
     ]);
-    exit;
 }
 
 $isChallenger = ($duel['challenger_id'] == $myId);

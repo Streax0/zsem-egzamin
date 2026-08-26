@@ -220,39 +220,23 @@ $captcha = $captchaRequired ? generateLoginCaptcha() : null;
     <script src="../assets/js/api-client.js"></script>
     <script src="../assets/js/app-dialogs.js"></script>
     <script src="../assets/js/kappicrypt.js?v=2"></script>
-    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/webauthn-utils.js"></script>
     <script>
-    // Helper functions for WebAuthn
-    function base64urlToBuffer(baseurl64) {
-        return parseWebAuthnBinary(baseurl64);
-    }
-
-    function parseWebAuthnBinary(str) {
-        if (typeof str !== 'string') return str;
-        let b64 = str;
-        if (str.startsWith('=?BINARY?B?') && str.endsWith('?=')) {
-            b64 = str.substring(11, str.length - 2);
-        }
-        b64 = b64.replace(/\-/g, '+').replace(/_/g, '/');
-        const padding = '=='.slice(0, (4 - b64.length % 4) % 4);
-        b64 += padding;
-        const raw = window.atob(b64);
-        const buffer = new ArrayBuffer(raw.length);
-        const view = new Uint8Array(buffer);
-        for(let i=0; i<raw.length; i++) {
-            view[i] = raw.charCodeAt(i);
-        }
-        return buffer;
-    }
-
-    function bufferToBase64(buffer) {
-        const byteView = new Uint8Array(buffer);
-        let str = '';
-        for (const charCode of byteView) {
-            str += String.fromCharCode(charCode);
-        }
-        return window.btoa(str);
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+            const input = document.getElementById(button.dataset.passwordToggle || '');
+            const icon = button.querySelector('i');
+            if (!input) return;
+            button.addEventListener('click', () => {
+                const show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                button.setAttribute('aria-pressed', show ? 'true' : 'false');
+                button.setAttribute('aria-label', show ? 'Ukryj hasło' : 'Pokaż hasło');
+                if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+                input.focus();
+            });
+        });
+    });
 
     async function loginPasskey() {
         if (!window.PublicKeyCredential) {

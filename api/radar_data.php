@@ -11,16 +11,10 @@ require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-header('Cache-Control: private, max-age=120');
-
 startSecureSession();
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Unauthorized'], 401);
 }
 
 $userId = (int)$_SESSION['user_id'];
@@ -117,7 +111,7 @@ foreach ($displayCategories as $cat) {
     if ($pct >= 80) $strongAreas[] = $cat;
 }
 
-echo json_encode([
+securitySendJson([
     'success'      => true,
     'categories'   => $displayCategories,
     'values'       => $values,
@@ -125,4 +119,4 @@ echo json_encode([
     'strong_areas' => $strongAreas,
     'total_tests'  => $totalTests,
     'generated_at' => date('Y-m-d H:i:s'),
-], JSON_UNESCAPED_UNICODE);
+]);

@@ -11,21 +11,14 @@ require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-
 startSecureSession();
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Wymagane zalogowanie.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Wymagane zalogowanie.'], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Metoda niedozwolona.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Metoda niedozwolona.'], 405);
 }
 
 requireJsonCsrfToken();
@@ -34,9 +27,7 @@ $userId   = (int)$_SESSION['user_id'];
 $resultId = (int)($_POST['result_id'] ?? 0);
 
 if ($resultId <= 0) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Nieprawidłowe ID wyniku testu.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Nieprawidłowe ID wyniku testu.'], 400);
 }
 
 try {
@@ -44,9 +35,7 @@ try {
     $chkStmt = $pdo->prepare("SELECT id FROM test_results WHERE id = ? AND user_id = ?");
     $chkStmt->execute([$resultId, $userId]);
     if (!$chkStmt->fetch()) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'Brak uprawnień do tego wyniku testu.']);
-        exit;
+        securitySendJson(['success' => false, 'error' => 'Brak uprawnień do tego wyniku testu.'], 403);
     }
 
     // Fetch all wrong question IDs from this test result
@@ -59,12 +48,11 @@ try {
     $wrongQids = $ansStmt->fetchAll(PDO::FETCH_COLUMN);
 
     if (empty($wrongQids)) {
-        echo json_encode([
+        securitySendJson([
             'success' => true,
             'added_count' => 0,
             'message' => 'Gratulacje! W tym teście nie ma błędnych odpowiedzi.',
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
+        ]);
     }
 
     // Insert or reset SM-2 card state for each wrong question
@@ -87,12 +75,11 @@ try {
         $added++;
     }
 
-    echo json_encode([
+    securitySendJson([
         'success'     => true,
         'added_count' => $added,
         'message'     => "Dodano {$added} błędnych pytań do powtórek fiszkowych (SM-2). Możesz je powtórzyć w module Fiszek!",
-    ], JSON_UNESCAPED_UNICODE);
+    ]);
 } catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Nie udało się dodać pytań do bazy fiszek.']);
+    securitySendJson(['success' => false, 'error' => 'Nie udało się dodać pytań do bazy fiszek.'], 500);
 }

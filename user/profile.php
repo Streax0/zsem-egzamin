@@ -20,7 +20,9 @@ $stmt->execute([$viewId]);
 $userData = $stmt->fetch();
 
 if (!$userData) {
-    die("Użytkownik nie istnieje.");
+    setSessionMessage('Użytkownik nie istnieje.', 'warning');
+    header('Location: ../pages/ranking.php');
+    exit;
 }
 
 header('Cache-Control: no-cache, no-store, must-revalidate');

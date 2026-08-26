@@ -3,7 +3,7 @@
  * Provides offline caching, network-first strategy for dynamic queries,
  * and background offline sync capabilities.
  */
-const CACHE_NAME = 'zsem-tech-v2.0.1';
+const CACHE_NAME = 'zsem-tech-v2.1.0';
 const STATIC_ASSETS = [
     './assets/css/style.css',
     './assets/css/dashboard-new.css',
@@ -12,10 +12,16 @@ const STATIC_ASSETS = [
     './assets/js/devtools-guard.js',
     './assets/js/performance-metrics.js',
     './assets/js/app-dialogs.js',
+    './assets/js/offline-engine.js',
+    './data_question/inf02.json',
+    './data_question/inf03.json',
+    './data_question/inf04.json',
+    './data_question/inf07.json',
+    './data_question/inf08.json',
     './zsemtech_profile.ico',
 ];
 
-// Install Event: Pre-cache core application shell
+// Install Event: Pre-cache core application shell and question datasets
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -24,6 +30,19 @@ self.addEventListener('install', (event) => {
             });
         }).then(() => self.skipWaiting())
     );
+});
+
+// Background Sync Event: Trigger offline sync when connection is restored
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-offline-progress') {
+        event.waitUntil(
+            self.clients.matchAll().then((clients) => {
+                clients.forEach((client) => {
+                    client.postMessage({ type: 'TRIGGER_OFFLINE_SYNC' });
+                });
+            })
+        );
+    }
 });
 
 // Activate Event: Clean up stale legacy caches

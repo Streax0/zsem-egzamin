@@ -83,8 +83,10 @@ try {
     }
 
     try {
-        awardUserXp((int)$currentUser['id'], $xpReward, "CLI Lab: " . ($targetBlock['title'] ?? 'Zadanie CLI'));
-    } catch (Throwable $e) {}
+        awardXp($pdo, (int)$currentUser['id'], $xpReward, 'course_cli', null, "CLI Lab: " . ($targetBlock['title'] ?? 'Zadanie CLI'));
+    } catch (Throwable $e) {
+        error_log('Failed to award CLI course XP: ' . $e->getMessage());
+    }
 
     securitySendJson([
         'success' => true,

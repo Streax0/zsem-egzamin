@@ -36,12 +36,10 @@ if (!$duel) {
 }
 
 if (isset($_GET['ajax_status'])) {
-    header('Content-Type: application/json');
-    echo json_encode([
+    securitySendJson([
         'status' => $duel['status'],
         'expires_at' => $duel['expires_at'],
     ]);
-    exit;
 }
 
 $isChallenger = ($duel['challenger_id'] == $myId);

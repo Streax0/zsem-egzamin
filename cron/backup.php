@@ -44,14 +44,34 @@ try {
     echo "  Exported Rows   : " . $result['rows_count'] . "\n";
     echo "  Execution Time  : " . $result['duration_seconds'] . "s\n";
 
-    // Prune backups older than 7 days
-    $pruned = $backupService->cleanupOldBackups(7);
+    // Prune backups older than 7 days (with smart weekly retention)
+    $pruned = $backupService->cleanupOldBackups(7, null, true);
     echo "Retention Cleanup: Removed " . $pruned . " backup(s) older than 7 days.\n";
     echo "--- Backup Job Completed Successfully ---\n";
 
+    // Write to audit backup log
+    $logDir = __DIR__ . '/../data/logs';
+    if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
+    $logEntry = sprintf(
+        "[%s] SUCCESS: file=%s, size=%s, tables=%d, rows=%d, duration=%.2fs, sha256=%s, pruned=%d\n",
+        date('Y-m-d H:i:s'),
+        $result['encrypted_filename'] ?? $result['filename'],
+        $result['encrypted_size_formatted'] ?? $result['size_formatted'],
+        $result['tables_count'],
+        $result['rows_count'],
+        $result['duration_seconds'],
+        $result['sha256_checksum'] ?? 'N/A',
+        $pruned
+    );
+    @file_put_contents($logDir . '/backup.log', $logEntry, FILE_APPEND | LOCK_EX);
+
 } catch (Throwable $e) {
     echo "ERROR during backup: " . $e->getMessage() . "\n";
+    $logDir = __DIR__ . '/../data/logs';
+    if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
+    @file_put_contents($logDir . '/backup.log', sprintf("[%s] ERROR: %s\n", date('Y-m-d H:i:s'), $e->getMessage()), FILE_APPEND | LOCK_EX);
     if ($isCli) {
         exit(1);
     }
 }
+

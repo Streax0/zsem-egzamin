@@ -4,7 +4,6 @@ require_once '../includes/session.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
-header('Content-Type: application/json');
 startSecureSession();
 requireJsonLogin(false, [], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 ensureDuelModeColumns($pdo);
@@ -12,9 +11,7 @@ ensureDuelModeColumns($pdo);
 $userId = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-    exit;
+    securitySendJson(['success' => false, 'message' => 'Method not allowed'], 405);
 }
 
 requireJsonCsrfToken();
@@ -33,16 +30,13 @@ try {
     $duel = $stmt->fetch();
 
     if (!$duel) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'Duel not found or not accepted']);
-        exit;
+        securitySendJson(['success' => false, 'message' => 'Duel not found or not accepted'], 404);
     }
 
     $isChallenger = (int)$duel['challenger_id'] === (int)$userId;
     $alreadyFinished = $isChallenger ? !empty($duel['challenger_finished_at']) : !empty($duel['opponent_finished_at']);
     if ($alreadyFinished) {
-        echo json_encode(['success' => true]);
-        exit;
+        securitySendJson(['success' => true]);
     }
 
     $requiredAnswers = max(1, (int)($duel['question_count'] ?? 1));
@@ -53,9 +47,7 @@ try {
     $earlyFinish = ($_POST['early_finish'] ?? '') === '1';
     $allowsEarlyFinish = !empty($duel['allow_early_finish']);
     if ((int)$stats['total'] < $requiredAnswers && !($earlyFinish && $allowsEarlyFinish)) {
-        http_response_code(422);
-        echo json_encode(['success' => false, 'message' => 'Odpowiedz na wszystkie pytania przed zakończeniem pojedynku.']);
-        exit;
+        securitySendJson(['success' => false, 'message' => 'Odpowiedz na wszystkie pytania przed zakończeniem pojedynku.'], 422);
     }
 
     $scorePercent = ((int)$stats['correct'] / $requiredAnswers) * 100;
@@ -122,12 +114,11 @@ try {
     }
 
     $pdo->commit();
-    echo json_encode(['success' => true]);
+    securitySendJson(['success' => true]);
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
     error_log('Duel finish error: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Database error']);
+    securitySendJson(['success' => false, 'message' => 'Database error'], 500);
 }

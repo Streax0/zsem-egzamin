@@ -12,8 +12,8 @@ ZSEM Tech to zaawansowana, nowoczesna platforma edukacyjna stworzona z myślą o
 ## 👥 Autorzy i Twórcy
 
 Aplikacja jest rozwijana i utrzymywana przez zespół ZSEM Tech:
-* **Michał Michalik** – Przewodniczący ZSEM Tech, Główny Koordynator ZSEM OC CUP, współtwórca. [Profil autora](https://zsem-egzamin.online/author_michal.php)
-* **Damian Podgórski** – Wiceprzewodniczący ZSEM Tech, główny programista, współtwórca. [Profil autora](https://zsem-egzamin.online/author_damian.php)
+* **Michał Michalik** – Przewodniczący ZSEM Tech, Główny Koordynator ZSEM OC CUP, współtwórca. [Profil autora](https://zsem-egzamin.online/pages/author_michal.php)
+* **Damian Podgórski** – Wiceprzewodniczący ZSEM Tech, główny programista, współtwórca. [Profil autora](https://zsem-egzamin.online/pages/author_damian.php)
 
 ---
 
@@ -53,11 +53,17 @@ Platforma wykorzystuje własne jądro `App\Core\Engine` działające w trybie Si
 * **Konwerter Liczbowy i Bitowy**: Przeliczanie systemów DEC, BIN, OCT, HEX, U2 oraz operacje logiczne AND/OR/XOR/Shift.
 * **Prawo Ohma i Rezystor LED**: Obliczenia elektryczne dla obwodów prądu stałego.
 
-### 4. Bezpieczeństwo i Anti-Cheat Egzaminów
-* **Wymuszanie pełnego ekranu**: Fullscreen API z detekcją wyjścia.
-* **Detekcja zmiany karty**: Zgłaszanie zdarzeń opuszczenia karty egzaminu.
-* **Blokada kopiowania i wklejania**: Uniemożliwianie wyszukiwania odpowiedzi z zewnątrz.
-* **Podgląd nauczyciela na żywo**: Dostęp do aktualnego pytania ubiegającego się ucznia i logów naruszeń.
+### 4. Monitorowanie, Analityka i Eksport (Nauczyciel)
+* **Real-Time Proctoring (SSE)**: Strumieniowanie zdarzeń Server-Sent Events (`api/events_sse.php`) bez opóźnień pollingu i blokady sesji.
+* **Mapa Kompetencji i Luk Wiedzy**: Agregacja działów kwalifikacji CKE z wykrywaniem krytycznych luk (< 50% poprawności) i poradami metodycznymi.
+* **1-Klik Eksport do e-Dzienników**: Bezpośrednie generowanie schowka TSV do wklejenia w **Librus Synergia**, **Vulcan UONET+** oraz pobieranie arkusza CSV/Excel (UTF-8 BOM).
+* **Anti-Cheat & Monitoring**: Wymuszanie pełnego ekranu, detekcja zmiany karty/rozmycia okna i natychmiastowe alerty naruszeń.
+
+### 5. PWA & Tryb Offline (IndexedDB + Background Sync)
+* **Pre-caching Bazy Pytań**: Pełna dostępność zestawów pytań INF.02, INF.03, INF.04, INF.07, INF.08 bez połączenia z siecią.
+* **Lokalny Silnik Offline**: Zapisywanie rozwiązywanych sprawdzianów w IndexedDB (`offline-engine.js`).
+* **Automatyczna Synchronizacja**: Dyskretna wysyłka wyników po powrocie internetu z przyznaniem XP i aktualizacją postępów.
+
 
 ---
 

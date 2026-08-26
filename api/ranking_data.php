@@ -11,16 +11,10 @@ require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-header('Cache-Control: private, max-age=60');
-
 startSecureSession();
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Unauthorized'], 401);
 }
 
 $class         = trim((string)($_GET['class']         ?? ''));
@@ -117,9 +111,7 @@ try {
     $_rStmt->execute($params);
     $rows = $_rStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Query failed']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Query failed'], 500);
 }
 
 // Find class champions (top user per class)
@@ -147,9 +139,9 @@ foreach ($rows as $idx => $row) {
     ];
 }
 
-echo json_encode([
+securitySendJson([
     'success'     => true,
     'leaderboard' => $leaderboard,
     'filters'     => compact('class', 'qualification', 'timeframe'),
     'total'       => count($leaderboard),
-], JSON_UNESCAPED_UNICODE);
+]);

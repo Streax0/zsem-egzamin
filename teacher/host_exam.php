@@ -705,13 +705,6 @@ include '../includes/header.php';
                         }
                     }
 
-                    function escapeHtml(text) {
-                        if (!text) return '';
-                        const div = document.createElement('div');
-                        div.textContent = text;
-                        return div.innerHTML;
-                    }
-
                     async function copyHostText(text, message) {
                         try {
                             if (navigator.clipboard && window.isSecureContext) {
@@ -736,8 +729,54 @@ include '../includes/header.php';
                     renderParticipants(INITIAL_PARTICIPANTS);
                     updateParticipantMeta(INITIAL_PARTICIPANTS, 'start');
                     if (SESSION_IS_LIVE) {
-                        setInterval(refreshParticipantsOnly, 3000);
-                        refreshParticipantsOnly();
+                        let eventSource = null;
+                        let sseActive = false;
+
+                        function initSseLiveUpdates() {
+                            if (!window.EventSource) {
+                                setInterval(refreshParticipantsOnly, 3000);
+                                return;
+                            }
+                            try {
+                                eventSource = new EventSource(`../api/events_sse.php?channel=exam&session_id=${SESSION_ID}`);
+                                
+                                eventSource.addEventListener('connected', () => {
+                                    sseActive = true;
+                                    const updated = document.getElementById('participantsUpdatedAt');
+                                    if (updated) updated.innerHTML = '<span class="text-success"><i class="bi bi-broadcast me-1"></i>Połączenie na żywo (SSE) aktywne</span>';
+                                });
+
+                                eventSource.addEventListener('participant_update', (e) => {
+                                    try {
+                                        const data = JSON.parse(e.data);
+                                        if (data && Array.isArray(data.participants)) {
+                                            renderParticipants(data.participants);
+                                            updateParticipantMeta(data.participants, data.server_time || '');
+                                        }
+                                    } catch (err) {
+                                        console.warn('[SSE] Parse warning:', err);
+                                    }
+                                });
+
+                                eventSource.onerror = () => {
+                                    if (sseActive) {
+                                        console.warn('[SSE] Connection interrupted, falling back to polling...');
+                                        sseActive = false;
+                                    }
+                                    const updated = document.getElementById('participantsUpdatedAt');
+                                    if (updated) updated.innerHTML = '<span class="text-muted"><i class="bi bi-arrow-repeat me-1"></i>Tryb odpytywania awaryjnego...</span>';
+                                    refreshParticipantsOnly();
+                                };
+                            } catch (err) {
+                                setInterval(refreshParticipantsOnly, 3000);
+                            }
+                        }
+
+                        initSseLiveUpdates();
+                        // Periodic background check as secondary safety net
+                        setInterval(() => {
+                            if (!sseActive) refreshParticipantsOnly();
+                        }, 5000);
                     }
                     </script>
 

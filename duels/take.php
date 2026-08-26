@@ -147,6 +147,10 @@ $initialProgressPct = count($questions) > 0 ? round((($initialStep + 1) / count(
                                         <div class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2 mt-1">
                                             Pytanie <span id="currentIdx"><?= $initialStep + 1 ?></span> z <?= count($questions) ?>
                                         </div>
+                                        <div id="opponentLiveProgress" class="small text-muted mt-1">
+                                            <i class="bi bi-person-badge me-1"></i>Rywal: <span id="oppAnsweredCount" class="fw-bold">0</span>/<?= count($questions) ?>
+                                            <span id="oppStatusPill" class="badge bg-secondary bg-opacity-10 text-secondary ms-1">W grze</span>
+                                        </div>
                                     </div>
                                     <div class="duel-timer-stack text-end">
                                         <div class="duel-timer-label">Czas gry</div>
@@ -382,6 +386,33 @@ $initialProgressPct = count($questions) > 0 ? round((($initialStep + 1) / count(
                 }
             } catch (e) {
                 showDuelConfirm('Błąd połączenia', 'Spróbuj ponownie za chwilę.', 'OK', () => {});
+            }
+        }
+
+        // Live Opponent Progress via SSE
+        if (window.EventSource && duelId > 0) {
+            try {
+                const duelEventSource = new EventSource(`../api/events_sse.php?channel=duel&duel_id=${duelId}`);
+                duelEventSource.addEventListener('duel_update', (e) => {
+                    try {
+                        const payload = JSON.parse(e.data);
+                        if (payload) {
+                            const countEl = document.getElementById('oppAnsweredCount');
+                            const pillEl = document.getElementById('oppStatusPill');
+                            if (countEl && typeof payload.opponent_answered !== 'undefined') {
+                                countEl.textContent = payload.opponent_answered;
+                            }
+                            if (pillEl && payload.opponent_finished) {
+                                pillEl.className = 'badge bg-success bg-opacity-10 text-success ms-1';
+                                pillEl.textContent = 'Ukończył!';
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('[Duel SSE] Parse error:', err);
+                    }
+                });
+            } catch (err) {
+                console.warn('[Duel SSE] Initialization failed:', err);
             }
         }
     </script>

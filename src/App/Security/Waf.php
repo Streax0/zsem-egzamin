@@ -175,7 +175,7 @@ class Waf
                 '/\bAND\s+[\'"]?1[\'"]?\s*=\s*[\'"]?2\b/i',
                 '/\bINFORMATION_SCHEMA\.(?:TABLES|COLUMNS)\b/i',
                 '/--(?:[\s;]|$)/',
-                '/\/\*!\d+.*?\*\//',
+                '/\/\*.*?\*\//',
                 '/\bSLEEP\s*\(\s*\d+\s*\)/i',
                 '/\bBENCHMARK\s*\(\s*\d+/i',
                 '/\bDROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?[a-z0-9_]+/i',
@@ -185,6 +185,8 @@ class Waf
 
             if ($strict) {
                 $patterns[] = '/;\s*(?:DROP|DELETE|UPDATE|INSERT)\s+/i';
+                $patterns[] = '/\bSELECT\s+[\w\s,]+?\s+FROM\b/i';
+                $patterns[] = '/\bSELECT\s+\x2a\s+FROM\b/i';
             }
 
             foreach ($patterns as $pattern) {
@@ -209,6 +211,7 @@ class Waf
                 '/\bonmouseover\s*=\s*[\'"]?[^\'"]+/i',
                 '/<\s*iframe\b[^>]*>/i',
                 '/document\s*\.\s*cookie/i',
+                '/\beval\s*\(/i',
             ];
 
             if ($strict) {
@@ -231,14 +234,13 @@ class Waf
             $decoded = rawurldecode($str);
 
             $patterns = [
-                '/\.\.[\/\\\\]\.\.[\/\\\\]/',
+                '/\.\.[\/\\\\]/',
                 '/\/etc\/passwd\b/i',
                 '/c:[\/\\\\]boot\.ini\b/i',
-                '/%2e%2e%2f%2e%2e%2f/i',
+                '/%2e%2e/i',
             ];
 
             if ($strict) {
-                $patterns[] = '/\.\.[\/\\\\]/';
                 $patterns[] = '/\/etc\/shadow\b/i';
                 $patterns[] = '/\/proc\/self\/environ/i';
             }
@@ -258,10 +260,10 @@ class Waf
             $decoded = rawurldecode($str);
 
             $patterns = [
-                '/(?:;\s*|\|\s*|&&\s*)(?:bash|sh|powershell|cmd|nc|netcat|wget|curl)\b/i',
-                '/`[^`]*(?:whoami|id|cat|ls|pwd|netcat|powershell)[^`]*`/',
-                '/\$\((?:whoami|id|cat|ls|pwd|netcat|powershell)\)/',
-                '/\bnet\s+user\s+\/add\b/i',
+                '/(?:;\s*|\|\s*|&&\s*)(?:ls|dir|id|whoami|cat|bash|sh|powershell|cmd|nc|netcat|wget|curl)\b/i',
+                '/`[^`]*`/',
+                '/\$\([^)]+\)/',
+                '/\bnet\s+user\b/i',
             ];
 
             if ($strict) {

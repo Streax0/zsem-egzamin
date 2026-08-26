@@ -840,5 +840,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/app-dialogs.js', rtrim($base_url, '/'))); ?>" defer></script>
 <script src="<?php echo htmlspecialchars(assetUrl('assets/js/performance-metrics.js', rtrim($base_url, '/'))); ?>" defer></script>
+<script src="<?php echo htmlspecialchars(assetUrl('assets/js/offline-engine.js', rtrim($base_url, '/'))); ?>" defer></script>
 <?php include __DIR__ . '/cookie_consent.php'; ?>
 <?php include __DIR__ . '/help_center.php'; ?>
+

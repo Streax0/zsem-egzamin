@@ -26,12 +26,14 @@ $stmt->execute([$participantId]);
 $participant = $stmt->fetch();
 
 if (!$participant) {
-    die("Uczestnik nie istnieje.");
+    setSessionMessage('error', 'Uczestnik nie istnieje.');
+    redirect('my_exams.php');
 }
 
 // Security: Check if teacher owns this exam
 if (!roleHasAdminAccess($_SESSION['role'] ?? '') && $participant['teacher_id'] != $userId) {
-    die("Brak uprawnień do podglądu tego wyniku.");
+    setSessionMessage('error', 'Brak uprawnień do podglądu tego wyniku.');
+    redirect('my_exams.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

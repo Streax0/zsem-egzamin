@@ -12,22 +12,15 @@ require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/functions.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-
 startSecureSession();
 
 // Auth guard
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'unauthorized', 'message' => 'Musisz być zalogowany, aby zdobywać punkty XP.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'unauthorized', 'message' => 'Musisz być zalogowany, aby zdobywać punkty XP.'], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'method_not_allowed']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'method_not_allowed'], 405);
 }
 
 $userId = (int)$_SESSION['user_id'];
@@ -35,9 +28,7 @@ $csrfToken = trim((string)($_POST['csrf_token'] ?? ''));
 
 // CSRF validation
 if (!validateCsrfToken($csrfToken, 'cli_lab')) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'invalid_csrf', 'message' => 'Nieprawidłowy token bezpieczeństwa CSRF. Odśwież stronę.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'invalid_csrf', 'message' => 'Nieprawidłowy token bezpieczeństwa CSRF. Odśwież stronę.'], 403);
 }
 
 $scenarioId = trim((string)($_POST['scenario_id'] ?? ''));
@@ -78,9 +69,7 @@ $scenarioRegistry = [
 ];
 
 if (!isset($scenarioRegistry[$scenarioId])) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'invalid_scenario', 'message' => 'Nieznany identyfikator zadania.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'invalid_scenario', 'message' => 'Nieznany identyfikator zadania.'], 400);
 }
 
 $scenarioMeta = $scenarioRegistry[$scenarioId];
@@ -142,7 +131,7 @@ if ($isFirstTime) {
     $newXp = (int)$userStmt->fetchColumn();
     $rankInfo = getRankInfoByXp($newXp);
 
-    echo json_encode([
+    securitySendJson([
         'success' => true,
         'is_first_time' => true,
         'xp_earned' => $xpReward,
@@ -153,7 +142,7 @@ if ($isFirstTime) {
     ]);
 } else {
     $rankInfo = getRankInfoByXp($currentXp);
-    echo json_encode([
+    securitySendJson([
         'success' => true,
         'is_first_time' => false,
         'xp_earned' => 0,

@@ -11,21 +11,14 @@ require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-
 startSecureSession();
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Wymagane zalogowanie.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Wymagane zalogowanie.'], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Metoda niedozwolona.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Metoda niedozwolona.'], 405);
 }
 
 requireJsonCsrfToken();
@@ -35,9 +28,7 @@ $questionId = (int)($_POST['question_id'] ?? 0);
 $action     = trim((string)($_POST['action'] ?? 'toggle'));
 
 if ($questionId <= 0) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Nieprawidłowy identyfikator pytania.']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Nieprawidłowy identyfikator pytania.'], 400);
 }
 
 try {
@@ -77,13 +68,12 @@ try {
         $isBookmarked = $exists;
     }
 
-    echo json_encode([
+    securitySendJson([
         'success'       => true,
         'question_id'   => $questionId,
         'is_bookmarked' => $isBookmarked,
         'message'       => $isBookmarked ? 'Pytanie dodano do zapisanych.' : 'Pytanie usunięto z zapisanych.',
-    ], JSON_UNESCAPED_UNICODE);
+    ]);
 } catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Błąd zapisu zakładki.']);
+    securitySendJson(['success' => false, 'error' => 'Błąd zapisu zakładki.'], 500);
 }

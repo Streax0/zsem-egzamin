@@ -5,7 +5,6 @@ require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
 startSecureSession();
-header('Content-Type: application/json');
 requireJsonLogin(false, [], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -18,8 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_SESSION['user_id'];
 
     if (!in_array($answer, ['A', 'B', 'C', 'D'], true)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid answer']);
-        exit;
+        securitySendJson(['success' => false, 'message' => 'Invalid answer'], 400);
     }
 
     // Verify duel membership
@@ -31,17 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$duelId, $userId, $userId]);
     $duel = $stmt->fetch();
     if (!$duel) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Forbidden']);
-        exit;
+        securitySendJson(['success' => false, 'message' => 'Forbidden'], 403);
     }
 
     $isChallenger = (int)$duel['challenger_id'] === (int)$userId;
     $alreadyFinished = $isChallenger ? !empty($duel['challenger_finished_at']) : !empty($duel['opponent_finished_at']);
     if ($alreadyFinished) {
-        http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'Duel already finished']);
-        exit;
+        securitySendJson(['success' => false, 'message' => 'Duel already finished'], 409);
     }
 
     $sessionQuestionIds = $_SESSION['duel_questions_' . $duelId] ?? [];
@@ -50,15 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!in_array($questionId, array_map('intval', $sessionQuestionIds), true)) {
-        echo json_encode(['success' => false, 'message' => 'Question is not assigned to this duel']);
-        exit;
+        securitySendJson(['success' => false, 'message' => 'Question is not assigned to this duel'], 400);
     }
 
     $question = getQuestionsByIds($pdo, [$questionId])[0] ?? null;
     $correct = strtoupper((string)($question['correct_answer'] ?? ''));
     if ($correct === '') {
-        echo json_encode(['success' => false, 'message' => 'Question not found']);
-        exit;
+        securitySendJson(['success' => false, 'message' => 'Question not found'], 404);
     }
 
     $isCorrect = ($answer === $correct) ? 1 : 0;
@@ -75,17 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$duelId, $userId, $questionId]);
         $existingAnswer = $stmt->fetchColumn();
         if ($existingAnswer === false || $existingAnswer !== $answer) {
-            http_response_code(409);
-            echo json_encode(['success' => false, 'message' => 'Answer already saved']);
-            exit;
+            securitySendJson(['success' => false, 'message' => 'Answer already saved'], 409);
         }
 
-        echo json_encode(['success' => true]);
+        securitySendJson(['success' => true]);
     } catch (PDOException $e) {
         error_log('Duel answer save error: ' . $e->getMessage());
-        echo json_encode(['success' => false, 'message' => 'Database error']);
+        securitySendJson(['success' => false, 'message' => 'Database error'], 500);
     }
 } else {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    securitySendJson(['success' => false, 'message' => 'Method not allowed'], 405);
 }

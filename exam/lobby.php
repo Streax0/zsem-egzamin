@@ -94,6 +94,7 @@ $bodyClassStr = implode(' ', $bodyClasses);
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/style.css')); ?>">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/dashboard-new.css')); ?>">
     <script src="<?php echo htmlspecialchars(assetUrl('../assets/js/theme-handler.js')); ?>"></script>
+    <script src="<?php echo htmlspecialchars(assetUrl('../assets/js/utils.js')); ?>"></script>
     <style>
         .lobby-shell {
             display: grid;
@@ -268,12 +269,6 @@ $bodyClassStr = implode(' ', $bodyClasses);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-    function escapeHtml(value) {
-        const div = document.createElement('div');
-        div.textContent = value ?? '';
-        return div.innerHTML;
-    }
-
     // Poll for exam start
      function checkStatus() {
          fetch('../ajax/exam_status.php?session=<?= $sessionId ?>')

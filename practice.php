@@ -378,6 +378,7 @@ unset($qualExams);
     <?php endif; ?>
     <script src="assets/js/devtools-guard.js"></script>
     <script src="assets/js/theme-handler.js"></script>
+    <script src="assets/js/utils.js"></script>
     <style>
         .practice-hero { border-radius: 30px; padding: clamp(1.5rem, 4vw, 3rem); background: linear-gradient(135deg,#0f172a,var(--primary-color-dark)); color:#fff; overflow:hidden; position:relative; }
         .practice-hero::after { content:""; position:absolute; right:-80px; top:-80px; width:260px; height:260px; border-radius:50%; background:rgba(255,255,255,.12); }
@@ -771,14 +772,6 @@ function renderBadgeList(container, items, textClass) {
     });
 }
 
-function escapeHtml(text) {
-    return String(text || '')
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
 document.addEventListener('DOMContentLoaded', () => {
     const activeGroup = document.querySelector('.qual-sheets-group[style*="block"]') || document.querySelector('.qual-sheets-group');
     buildGuideFilters(activeGroup);

@@ -15,21 +15,14 @@ require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
-
 startSecureSession();
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Nie zalogowany']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Nie zalogowany'], 401);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Metoda niedozwolona']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Metoda niedozwolona'], 405);
 }
 
 requireJsonCsrfToken();
@@ -39,9 +32,7 @@ $questionId = (int)($_POST['question_id'] ?? 0);
 $tier       = (int)($_POST['tier'] ?? 0);
 
 if ($questionId <= 0 || $tier < 1 || $tier > 3) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Nieprawidłowe parametry']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Nieprawidłowe parametry'], 400);
 }
 
 // Block Tier 3 hints during active exam sessions to prevent exam answer leaks
@@ -50,12 +41,10 @@ if ($tier === 3) {
         || (isset($_SESSION['test_active']) && $_SESSION['test_active'] === true)
         || (isset($_SESSION['exam_id']) && (int)$_SESSION['exam_id'] > 0);
     if ($hasActiveExam) {
-        http_response_code(403);
-        echo json_encode([
+        securitySendJson([
             'success' => false,
             'error'   => 'Podpowiedzi 3. stopnia (pełna odpowiedź) są zablokowane podczas trwającego egzaminu.',
-        ]);
-        exit;
+        ], 403);
     }
 }
 
@@ -76,9 +65,7 @@ $_stmt->execute([$questionId]);
 $question = $_stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
 if (!$question) {
-    http_response_code(404);
-    echo json_encode(['success' => false, 'error' => 'Pytanie nie znalezione']);
-    exit;
+    securitySendJson(['success' => false, 'error' => 'Pytanie nie znalezione'], 404);
 }
 
 // Atomically deduct XP
@@ -89,12 +76,11 @@ if ($deductStmt->rowCount() !== 1) {
     $_uStmt = $pdo->prepare("SELECT xp FROM users WHERE id = ?");
     $_uStmt->execute([$userId]);
     $currentXp = (int)$_uStmt->fetchColumn();
-    echo json_encode([
+    securitySendJson([
         'success' => false,
         'error'   => "Za mało XP. Potrzebujesz {$xpCost} XP, masz {$currentXp} XP.",
         'current_xp' => $currentXp,
     ]);
-    exit;
 }
 
 // Fetch updated balance
@@ -153,4 +139,4 @@ if ($tier === 1) {
     $response['hint'] = $explanation;
 }
 
-echo json_encode($response, JSON_UNESCAPED_UNICODE);
+securitySendJson($response);

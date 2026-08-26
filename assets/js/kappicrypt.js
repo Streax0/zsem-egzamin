@@ -14,13 +14,6 @@ class KappiCrypt {
                 this.publicKey = await this.importPublicKey(data.publicKey);
                 this.isReady = true;
                 
-                // Styled Console Badge
-                console.log(
-                    '%c KappiCrypt %c RSA-2048 + AES-256-GCM + Anti-Replay Active ',
-                    'background: #4f46e5; color: #ffffff; font-weight: 800; padding: 4px 8px; border-radius: 6px 0 0 6px;',
-                    'background: #0f172a; color: #34d399; font-weight: 800; padding: 4px 8px; border-radius: 0 6px 6px 0; border: 1px solid rgba(52, 211, 153, 0.3);'
-                );
-
                 this.updateFormSecurityBadges();
             }
         } catch (e) {

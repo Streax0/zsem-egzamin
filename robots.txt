@@ -1,6 +1,6 @@
 User-agent: GPTBot
-Allow: /author_damian.php
-Allow: /author_michal.php
+Allow: /pages/author_damian.php
+Allow: /pages/author_michal.php
 Allow: /landing.php
 Allow: /courses.php
 Allow: /categories.php
@@ -14,8 +14,8 @@ Allow: /sitemap.xml
 Disallow: /
 
 User-agent: ClaudeBot
-Allow: /author_damian.php
-Allow: /author_michal.php
+Allow: /pages/author_damian.php
+Allow: /pages/author_michal.php
 Allow: /landing.php
 Allow: /courses.php
 Allow: /categories.php
@@ -29,8 +29,8 @@ Allow: /sitemap.xml
 Disallow: /
 
 User-agent: Google-Extended
-Allow: /author_damian.php
-Allow: /author_michal.php
+Allow: /pages/author_damian.php
+Allow: /pages/author_michal.php
 Allow: /landing.php
 Allow: /courses.php
 Allow: /categories.php
@@ -44,8 +44,8 @@ Allow: /sitemap.xml
 Disallow: /
 
 User-agent: PerplexityBot
-Allow: /author_damian.php
-Allow: /author_michal.php
+Allow: /pages/author_damian.php
+Allow: /pages/author_michal.php
 Allow: /landing.php
 Allow: /courses.php
 Allow: /categories.php

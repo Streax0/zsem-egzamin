@@ -8,8 +8,8 @@ startSecureSession();
 requireLogin();
 
 if (!in_array($_SESSION['role'] ?? '', ['teacher', 'admin', 'dyrektor'], true)) {
-    http_response_code(403);
-    die('Unauthorized');
+    setSessionMessage('error', 'Brak uprawnień do tego zasobu.');
+    redirect('index.php');
 }
 
 $examId = (int)(($_POST['id'] ?? null) ?: ($_GET['id'] ?? 0));
