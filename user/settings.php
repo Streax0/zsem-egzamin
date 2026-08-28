@@ -33,6 +33,8 @@ $stmt->execute([$userId]);
 $userSettings = $stmt->fetch(PDO::FETCH_ASSOC);
 $username = $userSettings['username'] ?? ($_SESSION['username'] ?? '');
 $email = $userSettings['email'] ?? '';
+$firstName = $userSettings['first_name'] ?? '';
+$lastName = $userSettings['last_name'] ?? '';
 $classYear = $userSettings['class_year'] ?? '';
 $classSuffix = $userSettings['class_suffix'] ?? '';
 $settingsAvatarSrc = userAvatarSrc($userSettings['avatar_path'] ?? '');
@@ -1034,23 +1036,33 @@ include '../includes/header.php';
                                                 <div class="col-md-6">
                                                     <label class="form-label">Nazwa użytkownika</label>
                                                     <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($username); ?>" minlength="3" maxlength="16" pattern="[A-Za-z0-9_\.-]{3,16}" required>
+                                                    <div class="form-text">3–16 znaków (litery, cyfry, kropka, myślnik, podkreślenie).</div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Adres E-mail</label>
                                                     <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($email); ?>" required>
+                                                    <div class="form-text">Adres używany do logowania i powiadomień.</div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Imię</label>
+                                                    <input type="text" name="first_name" class="form-control" maxlength="50" value="<?php echo htmlspecialchars($firstName); ?>" placeholder="np. Jan">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Nazwisko</label>
+                                                    <input type="text" name="last_name" class="form-control" maxlength="50" value="<?php echo htmlspecialchars($lastName); ?>" placeholder="np. Kowalski">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Klasa</label>
                                                     <select name="class_year" class="form-select">
-                                                        <option value="" <?php echo $classYear === null || $classYear === '' ? 'selected' : ''; ?>>Nie dotyczy</option>
+                                                        <option value="" <?php echo $classYear === null || $classYear === '' ? 'selected' : ''; ?>>Nie dotyczy / Absolwent</option>
                                                         <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                            <option value="<?php echo $i; ?>" <?php echo (string)$classYear === (string)$i ? 'selected' : ''; ?>><?php echo $i; ?></option>
+                                                            <option value="<?php echo $i; ?>" <?php echo (string)$classYear === (string)$i ? 'selected' : ''; ?>>Klasa <?php echo $i; ?></option>
                                                         <?php endfor; ?>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Oznaczenie klasy</label>
-                                                    <input type="text" name="class_suffix" class="form-control" maxlength="2" pattern="[A-Za-z]{0,2}" value="<?php echo htmlspecialchars($classSuffix); ?>">
+                                                    <label class="form-label">Oznaczenie oddziału (litera)</label>
+                                                    <input type="text" name="class_suffix" class="form-control" maxlength="2" pattern="[A-Za-z]{0,2}" value="<?php echo htmlspecialchars($classSuffix); ?>" placeholder="np. A, B, C">
                                                 </div>
                                                 <div class="col-12">
                                                     <label class="form-label d-block mb-3">Zdjęcie profilowe</label>
@@ -1101,52 +1113,62 @@ include '../includes/header.php';
                                         </div>
                                         <form action="../actions/update_privacy.php" method="POST">
                                             <?php echo csrfTokenField(); ?>
-                                            <div class="row g-3">
+                                            
+                                            <h6 class="fw-bold mb-3 small text-uppercase text-muted"><i class="bi bi-globe me-1"></i>Widoczność profilu &amp; statystyk</h6>
+                                            <div class="row g-3 mb-4">
                                                 <div class="col-md-6">
                                                     <div class="form-check form-switch mb-3">
                                                         <input class="form-check-input" type="checkbox" id="profilePublic" name="profile_public" value="1" <?php echo $profilePublic ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="profilePublic">Profil publiczny (widoczny dla innych)</label>
+                                                        <label class="form-check-label fw-semibold" for="profilePublic">Profil publiczny (widoczny dla innych)</label>
                                                     </div>
                                                     <div class="form-check form-switch mb-3">
                                                         <input class="form-check-input" type="checkbox" id="statsPublic" name="stats_public" value="1" <?php echo $statsPublic ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="statsPublic">Statystyki publiczne</label>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-3">
-                                                        <input class="form-check-input" type="checkbox" id="allowProfileComments" name="allow_profile_comments" value="1" <?php echo $allowProfileComments ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="allowProfileComments">Komentarze pod profilem</label>
+                                                        <label class="form-check-label fw-semibold" for="statsPublic">Statystyki publiczne</label>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-check form-switch mb-3">
-                                                        <input class="form-check-input" type="checkbox" id="allowFriendRequests" name="allow_friend_requests" value="1" <?php echo $allowFriendRequests ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="allowFriendRequests">Akceptuj zaproszenia do znajomych</label>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-3">
                                                         <input class="form-check-input" type="checkbox" id="searchable" name="searchable" value="1" <?php echo $searchable ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="searchable">Profil widoczny w wyszukiwarce</label>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-3">
-                                                        <input class="form-check-input" type="checkbox" id="showMissions" name="show_missions" value="1" <?php echo $showMissions ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="showMissions">Pokazuj misje na moim profilu</label>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-3">
-                                                        <input class="form-check-input" type="checkbox" id="showOnlineStatus" name="show_online_status" value="1" <?php echo $showOnlineStatus ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="showOnlineStatus">Pokazuj status aktywności (Online)</label>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-3">
-                                                        <input class="form-check-input" type="checkbox" id="showRecentActivity" name="show_recent_activity" value="1" <?php echo $showRecentActivity ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="showRecentActivity">Pokazuj ostatnią aktywność na profilu</label>
+                                                        <label class="form-check-label fw-semibold" for="searchable">Profil widoczny w wyszukiwarce</label>
                                                     </div>
                                                     <?php if ($role === 'teacher'): ?>
                                                     <div class="form-check form-switch mb-3">
                                                         <input class="form-check-input" type="checkbox" id="rankingVisible" name="ranking_visible" value="1" <?php echo $rankingVisible ? 'checked' : ''; ?>>
-                                                        <label class="form-check-label" for="rankingVisible">Biorę udział w rankingu XP</label>
+                                                        <label class="form-check-label fw-semibold" for="rankingVisible">Biorę udział w rankingu XP</label>
                                                     </div>
                                                     <?php endif; ?>
                                                 </div>
+                                            </div>
+
+                                            <h6 class="fw-bold mb-3 small text-uppercase text-muted"><i class="bi bi-people me-1"></i>Interakcje i społeczność</h6>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="allowProfileComments" name="allow_profile_comments" value="1" <?php echo $allowProfileComments ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label fw-semibold" for="allowProfileComments">Komentarze pod profilem</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="allowFriendRequests" name="allow_friend_requests" value="1" <?php echo $allowFriendRequests ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label fw-semibold" for="allowFriendRequests">Akceptuj zaproszenia do znajomych</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showMissions" name="show_missions" value="1" <?php echo $showMissions ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label fw-semibold" for="showMissions">Pokazuj misje na moim profilu</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showOnlineStatus" name="show_online_status" value="1" <?php echo $showOnlineStatus ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label fw-semibold" for="showOnlineStatus">Pokazuj status aktywności (Online)</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" id="showRecentActivity" name="show_recent_activity" value="1" <?php echo $showRecentActivity ? 'checked' : ''; ?>>
+                                                        <label class="form-check-label fw-semibold" for="showRecentActivity">Pokazuj ostatnią aktywność na profilu</label>
+                                                    </div>
+                                                </div>
                                                 <div class="col-12 mt-3">
                                                     <button type="submit" class="btn btn-primary px-4">
-                                                        Zapisz ustawienia prywatności
+                                                        <i class="bi bi-shield-check me-1"></i>Zapisz ustawienia prywatności
                                                     </button>
                                                 </div>
                                             </div>

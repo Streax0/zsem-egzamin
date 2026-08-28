@@ -51,7 +51,7 @@ try {
 
     // 1. Record the violation detail
     $stmt = $pdo->prepare("
-        INSERT INTO exam_violations (participant_id, session_id, violation_type, question_id, timestamp)
+        INSERT INTO exam_violations (participant_id, session_id, violation_type, question_id, created_at)
         VALUES (?, ?, ?, ?, NOW())
     ");
     $stmt->execute([$participantId, $sessionId, $type, $questionId]);

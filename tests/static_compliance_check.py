@@ -695,12 +695,11 @@ def test_pdf_remaining_profile_email_and_filters() -> None:
         "normalizeProfanityText",
         "profanityVariants",
         "levenshtein",
-        "'icloud.com'",
-        "'proton.me'",
-        "'mail.com'",
+        "validateAllowedEmail",
+        "FILTER_VALIDATE_EMAIL",
     )
     assert_contains("user/profile.php", "u.avatar_path", "comment-avatar-img", "userAvatarSrc($comment['avatar_path']")
-    assert_contains("assets/js/register.js", "acceptedDomains", "icloud.com", "proton.me", "mail.com")
+    assert_contains("assets/js/register.js", "checkAvailability", "emailFeedback")
     assert "Dozwolone domeny:" not in read("assets/js/register.js")
 
 

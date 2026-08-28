@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (containsProfanity($username) || containsProfanity($email) || containsProfanity($first_name) || containsProfanity($last_name) || containsProfanity($class_suffix)) {
         $errors[] = 'Dane rejestracyjne zawierają niedozwolone słowa.';
     }
-    if (!validateAllowedEmail($email)) $errors[] = 'Niepoprawny adres e-mail lub niedozwolona domena pocztowa.';
+    if (!validateAllowedEmail($email)) $errors[] = 'Niepoprawny format adresu e-mail.';
     $passwordErrors = validatePasswordPolicy($password);
     foreach ($passwordErrors as $passwordError) $errors[] = $passwordError;
     if ($password !== $confirm_password) $errors[] = 'Hasła nie są identyczne.';

@@ -2001,12 +2001,7 @@ function validateAllowedEmail($email) {
     $email = trim((string)$email);
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
     $domain = strtolower(substr(strrchr($email, '@') ?: '', 1));
-    $allowed = [
-        'gmail.com','interia.pl','outlook.com','hotmail.com','live.com','msn.com',
-        'wp.pl','o2.pl','op.pl','onet.pl','int.pl','yahoo.com','icloud.com',
-        'me.com','mac.com','proton.me','protonmail.com','mail.com','zsem.edu.pl'
-    ];
-    return in_array($domain, $allowed, true);
+    return $domain !== '' && strpos($domain, '.') !== false;
 }
 
 function normalizeClassParts($year, $suffix) {

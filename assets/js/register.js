@@ -151,16 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (emailInput && emailFeedback) {
-    const acceptedDomains = ['gmail.com', 'interia.pl', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com', 'wp.pl', 'o2.pl', 'op.pl', 'onet.pl', 'int.pl', 'yahoo.com', 'icloud.com', 'me.com', 'mac.com', 'proton.me', 'protonmail.com', 'mail.com', 'zsem.edu.pl'];
     emailInput.addEventListener('input', () => {
-      const parts = emailInput.value.trim().toLowerCase().split('@');
-      if (parts.length !== 2 || !parts[1]) {
+      const email = emailInput.value.trim();
+      if (!email) {
         emailFeedback.textContent = '';
         emailFeedback.className = 'small mt-1';
         return;
       }
-      const ok = acceptedDomains.includes(parts[1]);
-      checkAvailability('email', emailInput.value.trim(), emailFeedback, ok, 'Ta domena e-mail nie jest obsługiwana. Użyj innego adresu.');
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      checkAvailability('email', email, emailFeedback, ok, 'Podaj poprawny adres e-mail.');
     });
     emailInput.dispatchEvent(new Event('input'));
   }

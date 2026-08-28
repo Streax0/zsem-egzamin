@@ -51,7 +51,7 @@ try {
     } elseif ($type === 'email') {
         $email = mb_strtolower($value, 'UTF-8');
         if (!validateAllowedEmail($email) || mb_strlen($email, 'UTF-8') > 100) {
-            $response['message'] = 'Podaj poprawny adres e-mail z obsługiwanej domeny.';
+            $response['message'] = 'Podaj poprawny adres e-mail.';
         } elseif (isEmailBanned($email)) {
             $response['message'] = 'Ten adres e-mail jest zablokowany.';
         } else {

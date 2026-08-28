@@ -916,7 +916,7 @@ include '../includes/header.php';
 
                             <!-- Category Chips -->
                             <div class="category-filter-chips" id="scenarioCategoryChips">
-                                <button type="button" class="cat-chip active" data-cat="all">Wszystkie (35)</button>
+                                <button type="button" class="cat-chip active" data-cat="all">Wszystkie (36)</button>
                                 <button type="button" class="cat-chip" data-cat="inf02_srv">Serwery CKE</button>
                                 <button type="button" class="cat-chip" data-cat="inf02_net">INF.02 Sieci</button>
                                 <button type="button" class="cat-chip" data-cat="inf02_sys">INF.02 Systemy</button>

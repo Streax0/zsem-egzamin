@@ -108,7 +108,7 @@ if (containsProfanity($username) || containsProfanity($email) || containsProfani
 }
 
 if (!validateAllowedEmail($email) || strlen($email) > 100) {
-    $errors[] = 'Podaj poprawny adres e-mail z obsługiwanej domeny.';
+    $errors[] = 'Podaj poprawny adres e-mail.';
 }
 
 if (!$classParts) {

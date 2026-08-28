@@ -651,7 +651,7 @@
     }
 
     // ════════════════════════════════════════════════════════════════════════════
-    // 3. INLINE SUB-SHELLS (POWERSHELL, DISKPART, MYSQL, NSLOOKUP, PYTHON)
+    // 3. INLINE SUB-SHELLS (POWERSHELL, DISKPART, MYSQL, NSLOOKUP, PYTHON, SSH)
     // ════════════════════════════════════════════════════════════════════════════
 
     class PowerShellEngine {
@@ -669,8 +669,9 @@
             if (lower === 'cls' || lower === 'clear-host') return { action: 'clear', output: '' };
 
             if (cmdlet === 'get-childitem' || cmdlet === 'dir' || cmdlet === 'gci' || cmdlet === 'ls') {
-                const items = this.term.vfs.listDirectory(this.term.vfs.currentDirWin, true) || [];
-                let out = `\r\n    Directory: ${this.term.vfs.currentDirWin}\r\n\r\nMode                 LastWriteTime         Length Name\r\n----                 -------------         ------ ----\r\n`;
+                const target = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || this.term.vfs.currentDirWin;
+                const items = this.term.vfs.listDirectory(target, true) || [];
+                let out = `\r\n    Directory: ${this.term.vfs.normalizePath(target, true)}\r\n\r\nMode                 LastWriteTime         Length Name\r\n----                 -------------         ------ ----\r\n`;
                 out += items.map(i => {
                     const mode = i.type === 'dir' ? 'd-----' : '-a----';
                     return `${mode}        17.08.2026     08:30       ${String(i.size || 0).padStart(8)} ${i.name}`;
@@ -679,7 +680,7 @@
             }
 
             if (cmdlet === 'get-service' || cmdlet === 'gsv') {
-                const nameFilter = args[1]?.toLowerCase();
+                const nameFilter = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet)?.toLowerCase();
                 const svcs = this.term.net.state.services;
                 let out = `\r\nStatus   Name               DisplayName\r\n------   ----               -----------\r\n`;
                 out += Object.entries(svcs)
@@ -692,7 +693,7 @@
             }
 
             if (cmdlet === 'start-service' || cmdlet === 'sasv') {
-                const name = (args[1] || 'w3svc').toLowerCase();
+                const name = (args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'w3svc').toLowerCase();
                 if (this.term.net.state.services[name]) {
                     this.term.net.state.services[name].status = 'RUNNING';
                     this.term.net.save();
@@ -701,7 +702,7 @@
             }
 
             if (cmdlet === 'stop-service' || cmdlet === 'spsv') {
-                const name = (args[1] || 'w3svc').toLowerCase();
+                const name = (args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'w3svc').toLowerCase();
                 if (this.term.net.state.services[name]) {
                     this.term.net.state.services[name].status = 'STOPPED';
                     this.term.net.save();
@@ -710,7 +711,7 @@
             }
 
             if (cmdlet === 'restart-service') {
-                const name = (args[1] || 'w3svc').toLowerCase();
+                const name = (args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'w3svc').toLowerCase();
                 if (this.term.net.state.services[name]) {
                     this.term.net.state.services[name].status = 'RUNNING';
                     this.term.net.save();
@@ -728,19 +729,69 @@
             if (cmdlet === 'new-netipaddress') {
                 const ipIdx = args.indexOf('-IPAddress');
                 const ip = ipIdx !== -1 ? args[ipIdx + 1] : args[1];
+                const prefixIdx = args.indexOf('-PrefixLength');
+                const prefix = prefixIdx !== -1 ? args[prefixIdx + 1] : (args.indexOf('-DefaultGateway') !== -1 ? '24' : '24');
+                const gwIdx = args.indexOf('-DefaultGateway');
+                if (gwIdx !== -1 && args[gwIdx + 1]) this.term.net.state.gateway = args[gwIdx + 1];
                 if (ip) {
                     this.term.net.state.ip = ip;
+                    this.term.net.state.cidr = prefix;
                     this.term.net.state.dhcp = false;
                     this.term.net.save();
                     return { output: `\r\nIPAddress         : ${ip}\r\nInterfaceAlias    : Ethernet\r\nAddressState      : Preferred\r\n` };
                 }
-                return { output: 'New-NetIPAddress: Missing -IPAddress parameter.' };
+                return { output: 'New-NetIPAddress: Missing -IPAddress parameter.\r\n' };
+            }
+
+            if (cmdlet === 'get-netipconfiguration' || cmdlet === 'gip') {
+                const net = this.term.net.state;
+                return {
+                    output: `\r\nInterfaceAlias       : Ethernet\r\nInterfaceIndex       : 4\r\nIPv4Address          : ${net.ip}\r\nIPv4DefaultGateway   : ${net.gateway}\r\nDNSServer            : ${net.dns.join(', ')}\r\n`
+                };
+            }
+
+            if (cmdlet === 'get-netroute') {
+                const net = this.term.net.state;
+                return {
+                    output: `\r\nifIndex DestinationPrefix       NextHop          RouteMetric ifMetric PolicyStore\r\n------- -----------------       -------          ----------- -------- -----------\r\n4       0.0.0.0/0               ${net.gateway.padEnd(16)} 25          0        ActiveStore\r\n4       192.168.1.0/24          0.0.0.0          281         0        ActiveStore\r\n`
+                };
+            }
+
+            if (cmdlet === 'new-netroute') {
+                const destIdx = args.indexOf('-DestinationPrefix');
+                const nextIdx = args.indexOf('-NextHop');
+                const dest = destIdx !== -1 ? args[destIdx + 1] : '10.0.0.0/24';
+                const next = nextIdx !== -1 ? args[nextIdx + 1] : '192.168.1.1';
+                return { output: `\r\nifIndex DestinationPrefix       NextHop          RouteMetric\r\n------- -----------------       -------          -----------\r\n4       ${dest.padEnd(23)} ${next.padEnd(16)} 25\r\n` };
+            }
+
+            if (cmdlet === 'get-dnsclientserveraddress') {
+                const net = this.term.net.state;
+                return {
+                    output: `\r\nInterfaceAlias               Interface Address ServerAddresses\r\n                             Index     Family\r\n--------------               --------- ------- ---------------\r\nEthernet                             4 IPv4    {${net.dns.join(', ')}}\r\n`
+                };
+            }
+
+            if (cmdlet === 'set-dnsclientserveraddress') {
+                const srvIdx = args.indexOf('-ServerAddresses');
+                if (srvIdx !== -1 && args[srvIdx + 1]) {
+                    this.term.net.state.dns = args[srvIdx + 1].replace(/[()@'"]/g, '').split(',');
+                    this.term.net.save();
+                }
+                return { output: '' };
+            }
+
+            if (cmdlet === 'get-netadapter') {
+                const net = this.term.net.state;
+                return {
+                    output: `\r\nName                      InterfaceDescription                    ifIndex Status       MacAddress             LinkSpeed\r\n----                      --------------------                    ------- ------       ----------             ---------\r\nEthernet                  Intel(R) PRO/1000 MT Network Connection       4 Up           ${net.mac.replace(/:/g, '-')}            1 Gbps\r\n`
+                };
             }
 
             if (cmdlet === 'test-netconnection' || cmdlet === 'tnc') {
                 const hostIdx = args.indexOf('-ComputerName');
                 const portIdx = args.indexOf('-Port');
-                const host = hostIdx !== -1 ? args[hostIdx + 1] : args.find(a => !a.startsWith('-') && a.toLowerCase() !== 'test-netconnection' && a.toLowerCase() !== 'tnc') || '8.8.8.8';
+                const host = hostIdx !== -1 ? args[hostIdx + 1] : args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || '8.8.8.8';
                 const port = portIdx !== -1 ? args[portIdx + 1] : '80';
                 return {
                     output: `\r\nComputerName           : ${host}\r\nRemoteAddress          : ${host}\r\nRemotePort             : ${port}\r\nInterfaceAlias         : Ethernet\r\nSourceAddress          : ${this.term.net.state.ip}\r\nTcpTestSucceeded       : True\r\nPingSucceeded          : True\r\nPingReplyDetails (RTT) : 12 ms\r\n`
@@ -750,8 +801,69 @@
             if (cmdlet === 'resolve-dnsname') {
                 const nameIdx = args.indexOf('-Name');
                 const name = nameIdx !== -1 ? args[nameIdx + 1] : args[1] || 'google.pl';
+                let ip = '142.250.187.195';
+                if (name.includes('zsem.local')) ip = '192.168.1.100';
                 return {
-                    output: `\r\nName                               Type   TTL   Section    IPAddress\r\n----                               ----   ---   -------    ---------\r\n${name.padEnd(34)} A      300   Answer     142.250.187.195\r\n`
+                    output: `\r\nName                               Type   TTL   Section    IPAddress\r\n----                               ----   ---   -------    ---------\r\n${name.padEnd(34)} A      300   Answer     ${ip}\r\n`
+                };
+            }
+
+            if (cmdlet === 'get-netfirewallrule') {
+                return {
+                    output: `\r\nName                  : AllowHTTP\r\nDisplayName           : Allow HTTP Inbound Port 80\r\nDescription           : Inbound rule for HTTP\r\nDisplayGroup          : Web Server (IIS)\r\nGroup                 : @{Microsoft.Windows.Server.Web}\r\nEnabled               : True\r\nProfile               : Any\r\nPlatform              : {}\r\nDirection             : Inbound\r\nAction                : Allow\r\n`
+                };
+            }
+
+            if (cmdlet === 'new-netfirewallrule') {
+                const nameIdx = args.indexOf('-DisplayName') !== -1 ? args.indexOf('-DisplayName') : args.indexOf('-Name');
+                const ruleName = nameIdx !== -1 ? args[nameIdx + 1] : 'NewRule';
+                return { output: `\r\nName                  : ${ruleName}\r\nDisplayName           : ${ruleName}\r\nEnabled               : True\r\nDirection             : Inbound\r\nAction                : Allow\r\n` };
+            }
+
+            if (cmdlet === 'get-disk') {
+                return {
+                    output: `\r\nNumber Friendly Name Serial Number                    HealthStatus         OperationalStatus      Total Size Partition\r\n                                                                                                                     Style\r\n------ ------------- -------------                    ------------         -----------------      ---------- ---------\r\n0      VBOX HARDDISK VB892-001                        Healthy              Online                     238 GB GPT\r\n1      VBOX HARDDISK VB892-002                        Healthy              Online                      64 GB MBR\r\n`
+                };
+            }
+
+            if (cmdlet === 'initialize-disk') {
+                return { output: '' };
+            }
+
+            if (cmdlet === 'new-partition') {
+                return {
+                    output: `\r\n   DiskPath: \\\\?\\scsi#disk&ven_vbox&prod_harddisk#4&12ac34&0&000000#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}\r\n\r\nPartitionNumber  DriveLetter Offset                                                    Size Type\r\n---------------  ----------- ------                                                    ---- ----\r\n1                E           1048576                                                  64 GB Basic\r\n`
+                };
+            }
+
+            if (cmdlet === 'format-volume') {
+                return {
+                    output: `\r\nDriveLetter FriendlyName FileSystemType DriveType HealthStatus OperationalStatus SizeRemaining     Size\r\n----------- ------------ -------------- --------- ------------ ----------------- -------------     ----\r\nE           Dane         NTFS           Fixed     Healthy      OK                     63.89 GB    64 GB\r\n`
+                };
+            }
+
+            if (cmdlet === 'get-partition') {
+                return {
+                    output: `\r\n   DiskPath: \\\\?\\scsi#disk&ven_vbox&prod_harddisk#4&12ac34&0&000000#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}\r\n\r\nPartitionNumber  DriveLetter Offset                                                    Size Type\r\n---------------  ----------- ------                                                    ---- ----\r\n1                C           1048576                                                 237 GB Basic\r\n`
+                };
+            }
+
+            if (cmdlet === 'get-volume') {
+                return {
+                    output: `\r\nDriveLetter FriendlyName FileSystemType DriveType HealthStatus OperationalStatus SizeRemaining     Size\r\n----------- ------------ -------------- --------- ------------ ----------------- -------------     ----\r\nC           Windows      NTFS           Fixed     Healthy      OK                    180.45 GB   237 GB\r\nE           Dane         NTFS           Fixed     Healthy      OK                     63.89 GB    64 GB\r\n`
+                };
+            }
+
+            if (cmdlet === 'get-windowsfeature') {
+                return {
+                    output: `\r\nDisplay Name                                            Name                       Install State\r\n------------                                            ----                       -------------\r\n[X] Web Server (IIS)                                    Web-Server                     Installed\r\n[ ] DNS Server                                          DNS                            Available\r\n[ ] DHCP Server                                         DHCP                           Available\r\n[X] Active Directory Domain Services                    AD-Domain-Services             Installed\r\n`
+                };
+            }
+
+            if (cmdlet === 'install-windowsfeature') {
+                const name = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'Web-Server';
+                return {
+                    output: `\r\nSuccess Restart Needed Exit Code      Feature Result\r\n------- -------------- ---------      --------------\r\nTrue    No             Success        {${name}}\r\n`
                 };
             }
 
@@ -763,7 +875,7 @@
 
             if (cmdlet === 'new-localuser') {
                 const nameIdx = args.indexOf('-Name');
-                const name = nameIdx !== -1 ? args[nameIdx + 1] : args[1] || 'JanKowalski';
+                const name = nameIdx !== -1 ? args[nameIdx + 1] : (args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'JanKowalski');
                 return { output: `\r\nName               Enabled Description\r\n----               ------- -----------\r\n${name.padEnd(18)} True    \r\n` };
             }
 
@@ -774,6 +886,7 @@
             }
 
             if (cmdlet === 'get-localgroupmember') {
+                const grp = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'Administrators';
                 return {
                     output: `\r\nObjectClass Name                          PrincipalSource\r\n----------- ----                          ---------------\r\nUser        ZSEM-STUDENT\\Administrator    Local\r\nUser        ZSEM-STUDENT\\Student          Local\r\n`
                 };
@@ -789,23 +902,36 @@
                 };
             }
 
+            if (cmdlet === 'stop-process' || cmdlet === 'spps' || cmdlet === 'kill') {
+                return { output: '' };
+            }
+
             if (cmdlet === 'get-content' || cmdlet === 'gc' || cmdlet === 'cat' || cmdlet === 'type') {
-                const file = args[1] || 'script.bat';
+                const file = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'script.bat';
                 const node = this.term.vfs.getNode(file, true);
-                if (!node || node.type !== 'file') return { output: `Get-Content : Cannot find path '${file}' because it does not exist.` };
-                return { output: node.content + '\r\n' };
+                if (!node || node.type !== 'file') return { output: `Get-Content : Cannot find path '${file}' because it does not exist.\r\n` };
+                return { output: (node.content || '') + '\r\n' };
             }
 
             if (cmdlet === 'set-content' || cmdlet === 'sc') {
-                const file = args[1] || 'test.txt';
+                const file = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'test.txt';
                 const valIdx = args.indexOf('-Value');
-                const val = valIdx !== -1 ? args[valIdx + 1] : args[2] || '';
+                const val = valIdx !== -1 ? args[valIdx + 1] : (args.filter(a => !a.startsWith('-'))[1] || '');
                 this.term.vfs.createFile(file, val, true);
                 return { output: '' };
             }
 
+            if (cmdlet === 'add-content' || cmdlet === 'ac') {
+                const file = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'test.txt';
+                const valIdx = args.indexOf('-Value');
+                const val = valIdx !== -1 ? args[valIdx + 1] : (args.filter(a => !a.startsWith('-'))[1] || '');
+                const existing = this.term.vfs.getNode(file, true)?.content || '';
+                this.term.vfs.createFile(file, existing + '\r\n' + val, true);
+                return { output: '' };
+            }
+
             if (cmdlet === 'new-item' || cmdlet === 'ni') {
-                const name = args.find(a => !a.startsWith('-') && a.toLowerCase() !== 'new-item' && a.toLowerCase() !== 'ni') || 'NowyPlik.txt';
+                const name = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'NowyPlik.txt';
                 const isDir = args.includes('-ItemType') && args[args.indexOf('-ItemType') + 1]?.toLowerCase() === 'directory';
                 if (isDir) this.term.vfs.createDirectory(name, true, true);
                 else this.term.vfs.createFile(name, '', true);
@@ -813,8 +939,20 @@
             }
 
             if (cmdlet === 'remove-item' || cmdlet === 'ri' || cmdlet === 'rm') {
-                const name = args[1];
+                const name = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet);
                 if (name) this.term.vfs.removeNode(name, true, true);
+                return { output: '' };
+            }
+
+            if (cmdlet === 'copy-item' || cmdlet === 'cpi' || cmdlet === 'cp') {
+                const clean = args.filter(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet);
+                if (clean.length >= 2) this.term.vfs.copyNode(clean[0], clean[1], true, true);
+                return { output: '' };
+            }
+
+            if (cmdlet === 'move-item' || cmdlet === 'mi' || cmdlet === 'mv') {
+                const clean = args.filter(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet);
+                if (clean.length >= 2) this.term.vfs.moveNode(clean[0], clean[1], true);
                 return { output: '' };
             }
 
@@ -823,70 +961,139 @@
                 return { output: text + '\r\n' };
             }
 
-            if (cmdlet === 'get-help' || cmdlet === 'help' || cmdlet === 'man') {
-                const subject = args[1] || 'Get-Service';
+            if (cmdlet === 'get-acl') {
+                const path = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'C:\\Dane';
                 return {
-                    output: `\r\nNAME\r\n    ${subject}\r\n\r\nSYNOPSIS\r\n    Gets the services on a local or remote computer.\r\n\r\nSYNTAX\r\n    ${subject} [[-Name] <String[]>] [-ComputerName <String[]>] [<CommonParameters>]\r\n`
+                    output: `\r\nPath   : Microsoft.PowerShell.Core\\FileSystem::${path}\r\nOwner  : BUILTIN\\Administrators\r\nGroup  : NT AUTHORITY\\SYSTEM\r\nAccess : BUILTIN\\Administrators Allow  FullControl\r\n         BUILTIN\\Users Allow  ReadAndExecute, Synchronize\r\n`
+                };
+            }
+
+            if (cmdlet === 'select-object' || cmdlet === 'select' || cmdlet === 'where-object' || cmdlet === 'where' || cmdlet === 'sort-object' || cmdlet === 'sort') {
+                return { output: 'PowerShell: Pipeline filter executed successfully.\r\n' };
+            }
+
+            if (cmdlet === 'get-help' || cmdlet === 'help' || cmdlet === 'man') {
+                const subject = args.find(a => !a.startsWith('-') && a.toLowerCase() !== cmdlet) || 'Get-Service';
+                return {
+                    output: `\r\nNAME\r\n    ${subject}\r\n\r\nSYNOPSIS\r\n    Pobiera dane lub konfiguruje podsystem w środowisku Windows PowerShell 7.\r\n\r\nSYNTAX\r\n    ${subject} [[-Name] <String[]>] [-ComputerName <String[]>] [<CommonParameters>]\r\n`
                 };
             }
 
             if (cmdlet === 'get-command' || cmdlet === 'gcm') {
                 return {
-                    output: `\r\nCommandType     Name                                               Version    Source\r\n-----------     ----                                               -------    ------\r\nCmdlet          Get-Service                                        3.1.0.0    Microsoft.PowerShell.Management\r\nCmdlet          Get-Process                                        3.1.0.0    Microsoft.PowerShell.Management\r\nCmdlet          Get-NetIPAddress                                   1.0.0.0    NetTCPIP\r\nCmdlet          Test-NetConnection                                 1.0.0.0    NetTCPIP\r\n`
+                    output: `\r\nCommandType     Name                                               Version    Source\r\n-----------     ----                                               -------    ------\r\nCmdlet          Get-Service                                        3.1.0.0    Microsoft.PowerShell.Management\r\nCmdlet          Get-Process                                        3.1.0.0    Microsoft.PowerShell.Management\r\nCmdlet          Get-NetIPAddress                                   1.0.0.0    NetTCPIP\r\nCmdlet          Test-NetConnection                                 1.0.0.0    NetTCPIP\r\nCmdlet          Get-Disk                                           1.0.0.0    Storage\r\nCmdlet          Format-Volume                                      1.0.0.0    Storage\r\n`
                 };
             }
 
-            return { output: `PowerShell: '${cmd}' executed.\r\n` };
+            return { output: `PowerShell: '${cmd}' wykonano pomyślnie.\r\n` };
         }
     }
 
     class DiskpartShell {
         constructor() {
-            this.selectedDisk = null;
+            this.selectedDisk = '0';
             this.selectedPart = null;
-            this.selectedVol = null;
+            this.selectedVol = '0';
         }
 
         execute(cmd) {
             const raw = cmd.trim();
             const lower = raw.toLowerCase();
             if (lower === 'exit' || lower === 'quit') return { action: 'exit', output: 'Leaving DiskPart...\r\n' };
+            if (lower === 'cls' || lower === 'clear') return { action: 'clear', output: '' };
 
-            if (lower.startsWith('list disk')) {
+            if (lower.startsWith('list disk') || lower === 'lis dis') {
                 return {
-                    output: `\r\n  Disk ###  Status         Size     Free     Dyn  Gpt\r\n  --------  -------------  -------  -------  ---  ---\r\n  Disk 0    Online          238 GB  1024 KB        *\r\n  Disk 1    Online           64 GB    64 GB\r\n`
+                    output: `\r\n  Disk ###  Status         Size     Free     Dyn  Gpt\r\n  --------  -------------  -------  -------  ---  ---\r\n* Disk 0    Online          238 GB  1024 KB        *\r\n  Disk 1    Online           64 GB    64 GB\r\n`
                 };
             }
-            if (lower.startsWith('select disk')) {
-                this.selectedDisk = lower.split(' ')[2] || '0';
+            if (lower.startsWith('select disk') || lower.startsWith('sel dis')) {
+                this.selectedDisk = lower.split(' ').pop() || '0';
                 return { output: `\r\nDisk ${this.selectedDisk} is now the selected disk.\r\n` };
             }
-            if (lower.startsWith('list partition') || lower.startsWith('list part')) {
+            if (lower.startsWith('detail disk')) {
                 return {
-                    output: `\r\n  Partition ###  Type              Size     Offset\r\n  -------------  ----------------  -------  -------\r\n  Partition 1    System             100 MB  1024 KB\r\n  Partition 2    Primary            237 GB   101 MB\r\n`
+                    output: `\r\nVBOX HARDDISK\r\nDisk ID: {892F-43B1-99A0}\r\nType   : SATA\r\nStatus : Online\r\nPath   : 0\r\nTarget : 0\r\nLUN ID : 0\r\nLocation Path : PCIROOT(0)#PCI(0D00)#ATA(C00T00L00)\r\nCurrent Read-only State : No\r\nRead-only  : No\r\nBoot Disk  : Yes\r\nPagefile Disk : Yes\r\n`
                 };
             }
-            if (lower.startsWith('select partition') || lower.startsWith('select part')) {
-                this.selectedPart = lower.split(' ')[2] || '1';
+            if (lower.startsWith('list partition') || lower.startsWith('list part') || lower === 'lis par') {
+                return {
+                    output: `\r\n  Partition ###  Type              Size     Offset\r\n  -------------  ----------------  -------  -------\r\n  Partition 1    System             100 MB  1024 KB\r\n* Partition 2    Primary            237 GB   101 MB\r\n`
+                };
+            }
+            if (lower.startsWith('select partition') || lower.startsWith('select part') || lower.startsWith('sel par')) {
+                this.selectedPart = lower.split(' ').pop() || '1';
                 return { output: `\r\nPartition ${this.selectedPart} is now the selected partition.\r\n` };
             }
-            if (lower.startsWith('create partition primary') || lower.startsWith('create part prim')) {
+            if (lower.startsWith('detail partition')) {
+                return {
+                    output: `\r\nPartition 2\r\nType    : ebd0a0a2-b9e5-4433-87c0-68b6b72699c7\r\nHidden  : No\r\nRequired: No\r\nAttrib  : 0000000000000000\r\nOffset in Bytes: 105906176\r\n\r\n  Volume ###  Ltr  Label        Fs     Type        Size     Status     Info\r\n  ----------  ---  -----------  -----  ----------  -------  ---------  --------\r\n* Volume 0     C   Windows      NTFS   Partition    237 GB  Healthy    Boot\r\n`
+                };
+            }
+            if (lower.startsWith('create partition') || lower.startsWith('create part') || lower.startsWith('cre par')) {
                 return { output: `\r\nDiskPart succeeded in creating the specified partition.\r\n` };
             }
-            if (lower.startsWith('format')) {
+            if (lower.startsWith('delete partition') || lower.startsWith('del par')) {
+                return { output: `\r\nDiskPart successfully deleted the selected partition.\r\n` };
+            }
+            if (lower.startsWith('format') || lower.startsWith('for ')) {
                 return { output: `\r\n  100 percent completed\r\n\r\nDiskPart successfully formatted the volume.\r\n` };
             }
-            if (lower.startsWith('assign')) {
-                const letter = lower.includes('letter=') ? lower.split('letter=')[1].trim().toUpperCase() : 'E';
+            if (lower.startsWith('assign') || lower.startsWith('ass ')) {
+                const letter = lower.includes('letter=') ? lower.split('letter=')[1].trim().split(' ')[0].toUpperCase() : 'E';
                 return { output: `\r\nDiskPart successfully assigned the drive letter or mount point (${letter}:).\r\n` };
             }
-            if (lower.startsWith('list volume') || lower.startsWith('list vol')) {
+            if (lower.startsWith('remove') || lower.startsWith('rem ')) {
+                return { output: `\r\nDiskPart successfully removed the drive letter or mount point.\r\n` };
+            }
+            if (lower.startsWith('list volume') || lower.startsWith('list vol') || lower === 'lis vol') {
                 return {
-                    output: `\r\n  Volume ###  Ltr  Label        Fs     Type        Size     Status     Info\r\n  ----------  ---  -----------  -----  ----------  -------  ---------  --------\r\n  Volume 0     C   Windows      NTFS   Partition    237 GB  Healthy    System\r\n  Volume 1     E   Dane         NTFS   Partition     64 GB  Healthy\r\n`
+                    output: `\r\n  Volume ###  Ltr  Label        Fs     Type        Size     Status     Info\r\n  ----------  ---  -----------  -----  ----------  -------  ---------  --------\r\n* Volume 0     C   Windows      NTFS   Partition    237 GB  Healthy    System\r\n  Volume 1     E   Dane         NTFS   Partition     64 GB  Healthy\r\n`
+                };
+            }
+            if (lower.startsWith('select volume') || lower.startsWith('select vol') || lower.startsWith('sel vol')) {
+                this.selectedVol = lower.split(' ').pop() || '0';
+                return { output: `\r\nVolume ${this.selectedVol} is now the selected volume.\r\n` };
+            }
+            if (lower.startsWith('detail volume')) {
+                return {
+                    output: `\r\n  Read-only              : No\r\n  Hidden                 : No\r\n  No Default Drive Letter: No\r\n  Shadow Copy            : No\r\n`
                 };
             }
             if (lower.startsWith('clean')) {
                 return { output: `\r\nDiskPart succeeded in cleaning the disk.\r\n` };
+            }
+            if (lower.startsWith('convert gpt')) {
+                return { output: `\r\nDiskPart successfully converted the selected disk to GPT format.\r\n` };
+            }
+            if (lower.startsWith('convert mbr')) {
+                return { output: `\r\nDiskPart successfully converted the selected disk to MBR format.\r\n` };
+            }
+            if (lower.startsWith('active')) {
+                return { output: `\r\nDiskPart marked the current partition as active.\r\n` };
+            }
+            if (lower.startsWith('shrink')) {
+                return { output: `\r\nDiskPart successfully shrunk the volume by specified amount.\r\n` };
+            }
+            if (lower.startsWith('extend')) {
+                return { output: `\r\nDiskPart successfully extended the volume.\r\n` };
+            }
+            if (lower.startsWith('rescan')) {
+                return { output: `\r\nPlease wait while DiskPart scans your configuration...\r\nDiskPart has finished scanning your configuration.\r\n` };
+            }
+            if (lower.startsWith('attributes disk clear readonly')) {
+                return { output: `\r\nDisk attributes cleared successfully.\r\n` };
+            }
+            if (lower.startsWith('online disk')) {
+                return { output: `\r\nDiskPart successfully onlined the selected disk.\r\n` };
+            }
+            if (lower.startsWith('offline disk')) {
+                return { output: `\r\nDiskPart successfully offlined the selected disk.\r\n` };
+            }
+            if (lower === 'help' || lower === '?') {
+                return {
+                    output: `\r\nMicrosoft DiskPart commands:\r\n  ACTIVE      - Mark the selected partition as active.\r\n  ASSIGN      - Assign a drive letter or mount point to the selected volume.\r\n  CLEAN       - Clear the configuration information, or all information, off the disk.\r\n  CONVERT     - Convert between different disk formats (MBR, GPT).\r\n  CREATE      - Create a volume, partition, or virtual disk.\r\n  DELETE      - Delete an object.\r\n  DETAIL      - Provide details about an object.\r\n  EXTEND      - Extend a volume.\r\n  FORMAT      - Format the volume or partition.\r\n  LIST        - Display a list of objects.\r\n  RESCAN      - Rescan the computer looking for disks and volumes.\r\n  SELECT      - Shift the focus to an object.\r\n  SHRINK      - Reduce the size of the selected volume.\r\n  EXIT        - Exit DiskPart.\r\n`
+                };
             }
             return { output: `\r\nMicrosoft DiskPart version 10.0.19041.3636\r\nType 'HELP' to see available commands.\r\n` };
         }
@@ -894,22 +1101,26 @@
 
     class MysqlShell {
         constructor() {
-            this.currentDb = null;
+            this.currentDb = 'zsem_db';
         }
 
         execute(cmd) {
             const raw = cmd.trim();
             const lower = raw.toLowerCase().replace(/;$/, '');
             if (lower === 'exit' || lower === 'quit' || lower === '\\q') return { action: 'exit', output: 'Bye\n' };
+            if (lower === 'clear' || lower === '\\c') return { action: 'clear', output: '' };
 
             if (lower === 'show databases' || lower === 'show schemas') {
                 return {
-                    output: `+--------------------+\n| Database           |\n+--------------------+\n| information_schema |\n| mysql              |\n| performance_schema |\n| sys                |\n| zsem_db            |\n+--------------------+\n5 rows in set (0.01 sec)\n`
+                    output: `+--------------------+\n| Database           |\n+--------------------+\n| information_schema |\n| mysql              |\n| performance_schema |\n| sys                |\n| szkola             |\n| zsem_db            |\n+--------------------+\n6 rows in set (0.01 sec)\n`
                 };
             }
             if (lower.startsWith('create database') || lower.startsWith('create schema')) {
                 const dbName = lower.split(' ')[2] || 'nowa_baza';
                 return { output: `Query OK, 1 row affected (0.02 sec)\n` };
+            }
+            if (lower.startsWith('drop database') || lower.startsWith('drop schema')) {
+                return { output: `Query OK, 0 rows affected (0.03 sec)\n` };
             }
             if (lower.startsWith('use ')) {
                 this.currentDb = lower.split(' ')[1] || 'zsem_db';
@@ -917,46 +1128,155 @@
             }
             if (lower === 'show tables') {
                 return {
-                    output: `+-------------------+\n| Tables_in_szkola  |\n+-------------------+\n| oceny             |\n| przedmioty        |\n| uczniowie         |\n+-------------------+\n3 rows in set (0.00 sec)\n`
+                    output: `+-------------------+\n| Tables_in_${this.currentDb.padEnd(7)} |\n+-------------------+\n| klienci           |\n| oceny             |\n| przedmioty        |\n| uczniowie         |\n+-------------------+\n4 rows in set (0.00 sec)\n`
+                };
+            }
+            if (lower.startsWith('describe ') || lower.startsWith('desc ') || lower.startsWith('show columns from ')) {
+                const tbl = lower.split(' ')[1] || 'uczniowie';
+                return {
+                    output: `+----------+-------------+------+-----+---------+----------------+\n| Field    | Type        | Null | Key | Default | Extra          |\n+----------+-------------+------+-----+---------+----------------+\n| id       | int         | NO   | PRI | NULL    | auto_increment |\n| imie     | varchar(50) | NO   |     | NULL    |                |\n| nazwisko | varchar(50) | NO   |     | NULL    |                |\n| klasa    | varchar(10) | YES  |     | NULL    |                |\n+----------+-------------+------+-----+---------+----------------+\n4 rows in set (0.01 sec)\n`
                 };
             }
             if (lower.startsWith('create table')) {
                 return { output: `Query OK, 0 rows affected (0.03 sec)\n` };
             }
+            if (lower.startsWith('alter table')) {
+                return { output: `Query OK, 0 rows affected (0.02 sec)\n` };
+            }
+            if (lower.startsWith('drop table')) {
+                return { output: `Query OK, 0 rows affected (0.02 sec)\n` };
+            }
             if (lower.startsWith('create user')) {
+                return { output: `Query OK, 0 rows affected (0.01 sec)\n` };
+            }
+            if (lower.startsWith('drop user')) {
                 return { output: `Query OK, 0 rows affected (0.01 sec)\n` };
             }
             if (lower.startsWith('grant ')) {
                 return { output: `Query OK, 0 rows affected (0.01 sec)\n` };
             }
+            if (lower.startsWith('revoke ')) {
+                return { output: `Query OK, 0 rows affected (0.01 sec)\n` };
+            }
+            if (lower.startsWith('show grants')) {
+                return {
+                    output: `+------------------------------------------------------------------+\n| Grants for user@localhost                                        |\n+------------------------------------------------------------------+\n| GRANT USAGE ON *.* TO \`user\`@\`localhost\`                         |\n| GRANT SELECT, INSERT ON \`szkola\`.* TO \`user\`@\`localhost\`          |\n+------------------------------------------------------------------+\n2 rows in set (0.00 sec)\n`
+                };
+            }
             if (lower.startsWith('flush privileges')) {
                 return { output: `Query OK, 0 rows affected (0.00 sec)\n` };
+            }
+            if (lower.startsWith('set password')) {
+                return { output: `Query OK, 0 rows affected (0.01 sec)\n` };
+            }
+            if (lower.startsWith('insert into')) {
+                return { output: `Query OK, 1 row affected (0.02 sec)\n` };
+            }
+            if (lower.startsWith('update ')) {
+                return { output: `Query OK, 1 row affected, 1 row changed (0.02 sec)\nRows matched: 1  Changed: 1  Warnings: 0\n` };
+            }
+            if (lower.startsWith('delete from')) {
+                return { output: `Query OK, 1 row affected (0.02 sec)\n` };
+            }
+            if (lower.startsWith('select count')) {
+                return {
+                    output: `+----------+\n| count(*) |\n+----------+\n|        3 |\n+----------+\n1 row in set (0.00 sec)\n`
+                };
             }
             if (lower.startsWith('select')) {
                 return {
                     output: `+----+-----------+------------+-------+\n| id | imie      | nazwisko   | klasa |\n+----+-----------+------------+-------+\n|  1 | Jan       | Kowalski   | 4P    |\n|  2 | Anna      | Nowak      | 4P    |\n|  3 | Piotr     | Wisniewski | 3I    |\n+----+-----------+------------+-------+\n3 rows in set (0.00 sec)\n`
                 };
             }
+            if (lower.startsWith('status') || lower === '\\s') {
+                return {
+                    output: `--------------\nmysql  Ver 8.0.34-0ubuntu0.22.04.1 for Linux on x86_64 ((Ubuntu))\n\nConnection id:          42\nCurrent database:       ${this.currentDb}\nCurrent user:           root@localhost\nSSL:                    Not in use\nCurrent pager:          stdout\nUsing outfile:          ''\nUsing delimiter:        ;\nServer version:         8.0.34-0ubuntu0.22.04.1 (Ubuntu)\nProtocol version:       10\nConnection:             Localhost via UNIX socket\nUNIX socket:            /var/run/mysqld/mysqld.sock\nUptime:                 2 hours 15 min 22 sec\n--------------\n`
+                };
+            }
+            if (lower.startsWith('source ') || lower.startsWith('\\.')) {
+                return { output: `Query OK, 0 rows affected (0.01 sec)\nQuery OK, 1 row affected (0.02 sec)\n` };
+            }
+            if (lower === 'help' || lower === '\\h' || lower === '?') {
+                return {
+                    output: `List of all MySQL commands:\n?         (\\?) Synonym for 'help'.\nclear     (\\c) Clear the current input statement.\nexit      (\\q) Exit mysql. Same as quit.\nhelp      (\\h) Display this help.\nquit      (\\q) Quit mysql.\nstatus    (\\s) Get status information from the server.\n`
+                };
+            }
             return { output: `Query OK, 1 row affected (0.01 sec)\n` };
+        }
+    }
+
+    class SshShell {
+        constructor(term, user, host) {
+            this.term = term;
+            this.user = user || 'student';
+            this.host = host || '192.168.1.100';
+            this.prevUser = term.net.state.currentUserLinux;
+            term.net.state.currentUserLinux = this.user;
+        }
+
+        execute(cmd) {
+            const raw = cmd.trim();
+            const lower = raw.toLowerCase();
+            if (lower === 'exit' || lower === 'logout' || lower === 'quit') {
+                this.term.net.state.currentUserLinux = this.prevUser;
+                return { action: 'exit', output: `Connection to ${this.host} closed.\n` };
+            }
+            if (lower === 'clear') return { action: 'clear', output: '' };
+
+            const parsed = this.term.parseArgs(raw);
+            const cmdName = parsed[0]?.toLowerCase();
+            const cmdArgs = parsed.slice(1);
+            const handler = LINUX_COMMANDS[cmdName];
+            if (handler) {
+                const res = handler(cmdArgs, this.term);
+                return { output: res === '__CLEAR__' ? '' : (res || '') + '\n' };
+            }
+            return { output: `bash: ${cmdName}: command not found\n` };
         }
     }
 
     class NslookupShell {
         constructor(term) {
             this.term = term;
+            this.queryType = 'A';
+            this.server = term.net.state.dns[0] || '8.8.8.8';
         }
 
         execute(cmd) {
             const raw = cmd.trim();
             const lower = raw.toLowerCase();
             if (lower === 'exit' || lower === 'quit') return { action: 'exit', output: '' };
+            if (lower.startsWith('server ')) {
+                this.server = lower.split(' ')[1] || '8.8.8.8';
+                return { output: `Default Server:  [${this.server}]\r\nAddress:  ${this.server}\r\n\r\n` };
+            }
+            if (lower.startsWith('set type=') || lower.startsWith('set q=')) {
+                this.queryType = lower.split('=')[1].toUpperCase();
+                return { output: `Query type set to: ${this.queryType}\r\n` };
+            }
 
             let ip = '142.250.187.195';
             if (lower.includes('zsem.local')) ip = '192.168.1.100';
             else if (lower.includes('localhost')) ip = '127.0.0.1';
 
+            if (this.queryType === 'MX') {
+                return {
+                    output: `Server:  [${this.server}]\r\nAddress:  ${this.server}\r\n\r\n${raw}   MX preference = 10, mail exchanger = mail.${raw}\r\n`
+                };
+            }
+            if (this.queryType === 'NS') {
+                return {
+                    output: `Server:  [${this.server}]\r\nAddress:  ${this.server}\r\n\r\n${raw}   nameserver = ns1.${raw}\r\n`
+                };
+            }
+            if (this.queryType === 'SOA') {
+                return {
+                    output: `Server:  [${this.server}]\r\nAddress:  ${this.server}\r\n\r\n${raw}\r\n        primary name server = ns1.${raw}\r\n        responsible mail addr = hostmaster.${raw}\r\n        serial  = 2026081701\r\n        refresh = 3600 (1 hour)\r\n        retry   = 600 (10 mins)\r\n        expire  = 1209600 (14 days)\r\n        default TTL = 3600 (1 hour)\r\n`
+                };
+            }
+
             return {
-                output: `Server:  UnKnown\r\nAddress:  ${this.term.net.state.dns[0] || '8.8.8.8'}\r\n\r\nNon-authoritative answer:\r\nName:    ${raw}\r\nAddress:  ${ip}\r\n`
+                output: `Server:  [${this.server}]\r\nAddress:  ${this.server}\r\n\r\nNon-authoritative answer:\r\nName:    ${raw}\r\nAddress:  ${ip}\r\n`
             };
         }
     }
@@ -964,20 +1284,31 @@
     class PythonShell {
         execute(cmd) {
             const raw = cmd.trim();
-            if (raw === 'exit()' || raw === 'quit()') return { action: 'exit', output: '' };
+            if (raw === 'exit()' || raw === 'quit()' || raw === 'exit' || raw === 'quit') return { action: 'exit', output: '' };
             if (raw.startsWith('print(')) {
                 const match = raw.match(/print\((.*)\)/);
                 if (match) {
-                    const val = match[1].replace(/['"]/g, '');
-                    return { output: val + '\n' };
+                    try {
+                        /* eslint-disable no-eval */
+                        const evaluated = eval(match[1]);
+                        return { output: String(evaluated) + '\n' };
+                    } catch (e) {
+                        return { output: match[1].replace(/['"]/g, '') + '\n' };
+                    }
                 }
+            }
+            if (raw.startsWith('import ')) {
+                return { output: '' };
+            }
+            if (raw === 'help()' || raw === 'help') {
+                return { output: 'Welcome to Python 3.10 interactive help utility!\nType any expression (e.g. 2 + 2, len([1,2,3])) to evaluate.\n' };
             }
             try {
                 /* eslint-disable no-eval */
                 const res = eval(raw);
                 return { output: (res !== undefined ? String(res) : '') + '\n' };
             } catch (e) {
-                return { output: '' };
+                return { output: `SyntaxError: ${e.message}\n` };
             }
         }
     }
@@ -1000,14 +1331,14 @@
         },
 
         'ls': (a, term) => {
-            const showAll = a.includes('-a') || a.includes('-la') || a.includes('-al') || a.includes('-A');
-            const showLong = a.includes('-l') || a.includes('-la') || a.includes('-al') || a.includes('-lh');
+            const showAll = a.some(arg => arg.startsWith('-') && (arg.includes('a') || arg.includes('A')));
+            const showLong = a.some(arg => arg.startsWith('-') && arg.includes('l'));
             const targetPath = a.find(arg => !arg.startsWith('-')) || '.';
             const node = term.vfs.getNode(targetPath, false);
 
             if (!node) return `ls: cannot access '${targetPath}': No such file or directory`;
             if (node.type === 'file') {
-                return showLong ? `-rw-r--r-- 1 ${node.owner} ${node.group} ${node.size} ${node.name}` : node.name;
+                return showLong ? `-rw-r--r-- 1 ${node.owner || 'student'} ${node.group || 'student'} ${node.size || 0} ${node.name}` : node.name;
             }
 
             const items = Object.values(node.children || {});
@@ -1017,7 +1348,7 @@
                 let out = `total ${filtered.length * 4}\n`;
                 out += filtered.map(i => {
                     const isDir = i.type === 'dir' ? 'd' : (i.type === 'symlink' ? 'l' : '-');
-                    const perm = i.permissions ? (i.permissions === '0777' ? 'rwxrwxrwx' : (i.permissions.includes('750') ? 'rwxr-x---' : 'rwxr-xr-x')) : 'rw-r--r--';
+                    const perm = i.permissions ? (i.permissions === '0777' ? 'rwxrwxrwx' : (i.permissions.includes('750') ? 'rwxr-x---' : (i.permissions.includes('700') ? 'rwx------' : 'rwxr-xr-x'))) : 'rw-r--r--';
                     const linkTarget = i.type === 'symlink' ? ` -> ${i.target}` : '';
                     return `${isDir}${perm} 1 ${i.owner || 'student'} ${i.group || 'student'} ${String(i.size || 4096).padStart(6)} ${i.name}${linkTarget}`;
                 }).join('\n');
@@ -1027,119 +1358,302 @@
         },
 
         'mkdir': (a, term) => {
-            if (!a[0]) return 'mkdir: missing operand';
+            if (!a.length) return 'mkdir: missing operand';
             const recursive = a.includes('-p');
-            const path = a.find(arg => !arg.startsWith('-'));
-            const ok = term.vfs.createDirectory(path, recursive, false);
-            return ok ? '' : `mkdir: cannot create directory '${path}': No such file or directory`;
+            const paths = a.filter(arg => !arg.startsWith('-'));
+            if (!paths.length) return 'mkdir: missing operand';
+            paths.forEach(p => term.vfs.createDirectory(p, recursive, false));
+            return '';
         },
 
         'rmdir': (a, term) => {
-            if (!a[0]) return 'rmdir: missing operand';
-            const ok = term.vfs.removeNode(a[0], false, false);
-            return ok ? '' : `rmdir: failed to remove '${a[0]}': Directory not empty or not found`;
+            if (!a.length) return 'rmdir: missing operand';
+            const paths = a.filter(arg => !arg.startsWith('-'));
+            for (const p of paths) {
+                const ok = term.vfs.removeNode(p, false, false);
+                if (!ok) return `rmdir: failed to remove '${p}': Directory not empty or not found`;
+            }
+            return '';
         },
 
         'touch': (a, term) => {
-            if (!a[0]) return 'touch: missing file operand';
-            term.vfs.createFile(a[0], '', false);
+            if (!a.length) return 'touch: missing file operand';
+            const files = a.filter(arg => !arg.startsWith('-'));
+            files.forEach(f => term.vfs.createFile(f, '', false));
             return '';
         },
 
         'rm': (a, term) => {
-            if (!a[0]) return 'rm: missing operand';
-            const recursive = a.includes('-r') || a.includes('-rf') || a.includes('-R');
-            const path = a.find(arg => !arg.startsWith('-'));
-            const ok = term.vfs.removeNode(path, recursive, false);
-            return ok ? '' : `rm: cannot remove '${path}': No such file or directory`;
+            if (!a.length) return 'rm: missing operand';
+            const recursive = a.some(arg => arg.startsWith('-') && (arg.includes('r') || arg.includes('R')));
+            const paths = a.filter(arg => !arg.startsWith('-'));
+            if (!paths.length) return 'rm: missing operand';
+            for (const p of paths) {
+                const ok = term.vfs.removeNode(p, recursive, false);
+                if (!ok && !a.includes('-f') && !a.includes('-rf')) return `rm: cannot remove '${p}': No such file or directory`;
+            }
+            return '';
         },
 
         'cp': (a, term) => {
-            if (a.length < 2) return 'cp: missing destination file operand';
-            const recursive = a.includes('-r') || a.includes('-R');
             const clean = a.filter(arg => !arg.startsWith('-'));
+            if (clean.length < 2) return 'cp: missing destination file operand';
+            const recursive = a.some(arg => arg.startsWith('-') && (arg.includes('r') || arg.includes('R')));
             const ok = term.vfs.copyNode(clean[0], clean[1], recursive, false);
             return ok ? '' : `cp: cannot copy '${clean[0]}' to '${clean[1]}'`;
         },
 
         'mv': (a, term) => {
-            if (a.length < 2) return 'mv: missing destination file operand';
             const clean = a.filter(arg => !arg.startsWith('-'));
+            if (clean.length < 2) return 'mv: missing destination file operand';
             const ok = term.vfs.moveNode(clean[0], clean[1], false);
             return ok ? '' : `mv: cannot move '${clean[0]}' to '${clean[1]}'`;
         },
 
-        'cat': (a, term) => {
-            if (!a[0]) return '';
+        'cat': (a, term, pipeInput = '') => {
             const showLineNums = a.includes('-n');
-            const file = a.find(arg => !arg.startsWith('-'));
-            if (!file) return '';
-            const node = term.vfs.getNode(file, false);
-            if (!node) return `cat: ${file}: No such file or directory`;
-            if (node.type === 'dir') return `cat: ${file}: Is a directory`;
-            const content = node.content || '';
+            const files = a.filter(arg => !arg.startsWith('-') && arg !== '-');
+            let content = '';
+
+            if (!files.length && pipeInput) {
+                content = pipeInput;
+            } else if (files.length) {
+                for (const file of files) {
+                    const node = term.vfs.getNode(file, false);
+                    if (!node) return `cat: ${file}: No such file or directory`;
+                    if (node.type === 'dir') return `cat: ${file}: Is a directory`;
+                    content += (content ? '\n' : '') + (node.content || '');
+                }
+            }
             if (showLineNums) {
                 return content.split('\n').map((l, i) => `     ${i + 1}  ${l}`).join('\n');
             }
             return content;
         },
 
-        'head': (a, term) => {
+        'head': (a, term, pipeInput = '') => {
             const numIdx = a.indexOf('-n');
             const count = numIdx !== -1 ? parseInt(a[numIdx + 1], 10) || 10 : 10;
             const file = a.find(arg => !arg.startsWith('-') && arg !== String(count));
-            if (!file) return '';
-            const node = term.vfs.getNode(file, false);
-            if (!node) return `head: cannot open '${file}' for reading: No such file or directory`;
-            return (node.content || '').split('\n').slice(0, count).join('\n');
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (!node) return `head: cannot open '${file}' for reading: No such file or directory`;
+                text = node.content || '';
+            }
+            return (text || '').split('\n').slice(0, count).join('\n');
         },
 
-        'tail': (a, term) => {
+        'tail': (a, term, pipeInput = '') => {
             const numIdx = a.indexOf('-n');
             const count = numIdx !== -1 ? parseInt(a[numIdx + 1], 10) || 10 : 10;
             const file = a.find(arg => !arg.startsWith('-') && arg !== String(count));
-            if (!file) return '';
-            const node = term.vfs.getNode(file, false);
-            if (!node) return `tail: cannot open '${file}' for reading: No such file or directory`;
-            const lines = (node.content || '').split('\n');
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (!node) return `tail: cannot open '${file}' for reading: No such file or directory`;
+                text = node.content || '';
+            }
+            const lines = (text || '').split('\n');
             return lines.slice(-count).join('\n');
         },
 
-        'grep': (a, term) => {
+        'grep': (a, term, pipeInput = '') => {
             const ignoreCase = a.includes('-i');
             const invert = a.includes('-v');
             const showLine = a.includes('-n');
+            const countOnly = a.includes('-c');
             const cleanArgs = a.filter(arg => !arg.startsWith('-'));
             const pattern = cleanArgs[0];
             const file = cleanArgs[1];
 
             if (!pattern) return 'Usage: grep [OPTION]... PATTERNS [FILE]...';
-            const node = file ? term.vfs.getNode(file, false) : null;
-            const text = node ? (node.content || '') : '';
-            const lines = text.split('\n');
-            const regex = new RegExp(pattern, ignoreCase ? 'i' : '');
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (!node) return `grep: ${file}: No such file or directory`;
+                text = node.content || '';
+            }
 
-            return lines
+            const lines = (text || '').split('\n');
+            let regex;
+            try {
+                regex = new RegExp(pattern, ignoreCase ? 'i' : '');
+            } catch (e) {
+                regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), ignoreCase ? 'i' : '');
+            }
+
+            const matched = lines
                 .map((l, i) => ({ l, num: i + 1, match: regex.test(l) }))
-                .filter(item => invert ? !item.match : item.match)
-                .map(item => showLine ? `${item.num}:${item.l}` : item.l)
-                .join('\n');
+                .filter(item => invert ? !item.match : item.match);
+
+            if (countOnly) return String(matched.length);
+            return matched.map(item => showLine ? `${item.num}:${item.l}` : item.l).join('\n');
         },
 
-        'wc': (a, term) => {
+        'wc': (a, term, pipeInput = '') => {
             const file = a.find(arg => !arg.startsWith('-'));
-            if (!file) return '0 0 0';
-            const node = term.vfs.getNode(file, false);
-            if (!node) return `wc: ${file}: No such file or directory`;
-            const content = node.content || '';
-            const lines = content.split('\n').length;
-            const words = content.split(/\s+/).filter(Boolean).length;
-            const bytes = content.length;
-            if (a.includes('-l')) return `${lines} ${file}`;
-            if (a.includes('-w')) return `${words} ${file}`;
-            if (a.includes('-c')) return `${bytes} ${file}`;
-            return `${lines} ${words} ${bytes} ${file}`;
+            let content = pipeInput;
+            let label = '';
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (!node) return `wc: ${file}: No such file or directory`;
+                content = node.content || '';
+                label = ' ' + file;
+            }
+            const lines = content ? content.split('\n').length : 0;
+            const words = content ? content.split(/\s+/).filter(Boolean).length : 0;
+            const bytes = content ? content.length : 0;
+            if (a.includes('-l')) return `${lines}${label}`;
+            if (a.includes('-w')) return `${words}${label}`;
+            if (a.includes('-c')) return `${bytes}${label}`;
+            return `${lines} ${words} ${bytes}${label}`;
         },
+
+        'sort': (a, term, pipeInput = '') => {
+            const reverse = a.includes('-r');
+            const numeric = a.includes('-n');
+            const unique = a.includes('-u');
+            const file = a.find(arg => !arg.startsWith('-'));
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (node) text = node.content || '';
+            }
+            let lines = (text || '').split('\n');
+            if (unique) lines = Array.from(new Set(lines));
+            lines.sort((x, y) => {
+                if (numeric) {
+                    const nx = parseFloat(x) || 0;
+                    const ny = parseFloat(y) || 0;
+                    return nx - ny;
+                }
+                return x.localeCompare(y);
+            });
+            if (reverse) lines.reverse();
+            return lines.join('\n');
+        },
+
+        'uniq': (a, term, pipeInput = '') => {
+            const count = a.includes('-c');
+            const file = a.find(arg => !arg.startsWith('-'));
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (node) text = node.content || '';
+            }
+            const lines = (text || '').split('\n');
+            const out = [];
+            let last = null;
+            let lastCount = 0;
+            for (const l of lines) {
+                if (l === last) {
+                    lastCount++;
+                } else {
+                    if (last !== null) {
+                        out.push(count ? `   ${lastCount} ${last}` : last);
+                    }
+                    last = l;
+                    lastCount = 1;
+                }
+            }
+            if (last !== null) out.push(count ? `   ${lastCount} ${last}` : last);
+            return out.join('\n');
+        },
+
+        'cut': (a, term, pipeInput = '') => {
+            let delim = '\t';
+            const dIdx = a.findIndex(arg => arg.startsWith('-d'));
+            if (dIdx !== -1) {
+                delim = a[dIdx].length > 2 ? a[dIdx].slice(2).replace(/['"]/g, '') : (a[dIdx + 1]?.replace(/['"]/g, '') || '\t');
+            }
+            let field = 1;
+            const fIdx = a.findIndex(arg => arg.startsWith('-f'));
+            if (fIdx !== -1) {
+                field = parseInt(a[fIdx].length > 2 ? a[fIdx].slice(2) : a[fIdx + 1], 10) || 1;
+            }
+            const file = a.find(arg => !arg.startsWith('-') && arg !== a[dIdx + 1] && arg !== a[fIdx + 1]);
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (node) text = node.content || '';
+            }
+            return (text || '').split('\n').map(line => {
+                const parts = line.split(delim);
+                return parts[field - 1] || '';
+            }).join('\n');
+        },
+
+        'tr': (a, term, pipeInput = '') => {
+            if (a.includes('-d')) {
+                const target = a[a.indexOf('-d') + 1]?.replace(/['"]/g, '') || '';
+                return (pipeInput || '').split(target).join('');
+            }
+            if (a.length >= 2) {
+                const src = a[0].replace(/['"]/g, '');
+                const dst = a[1].replace(/['"]/g, '');
+                if (src === 'a-z' && dst === 'A-Z') return (pipeInput || '').toUpperCase();
+                if (src === 'A-Z' && dst === 'a-z') return (pipeInput || '').toLowerCase();
+                return (pipeInput || '').split(src).join(dst);
+            }
+            return pipeInput || '';
+        },
+
+        'sed': (a, term, pipeInput = '') => {
+            const expr = a.find(arg => arg.startsWith('s/')) || a.find(arg => arg.startsWith('s:')) || a[0];
+            const file = a.find(arg => !arg.startsWith('-') && arg !== expr);
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (node) text = node.content || '';
+            }
+            if (expr && expr.startsWith('s/')) {
+                const parts = expr.split('/');
+                const from = parts[1];
+                const to = parts[2];
+                const flags = parts[3] || 'g';
+                const regex = new RegExp(from, flags);
+                return (text || '').replace(regex, to);
+            }
+            return text || '';
+        },
+
+        'awk': (a, term, pipeInput = '') => {
+            let delim = /\s+/;
+            const fIdx = a.indexOf('-F');
+            if (fIdx !== -1 && a[fIdx + 1]) delim = a[fIdx + 1].replace(/['"]/g, '');
+            const script = a.find(arg => arg.includes('{') && arg.includes('}')) || '{print $0}';
+            const file = a.find(arg => !arg.startsWith('-') && arg !== a[fIdx + 1] && !arg.includes('{'));
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, false);
+                if (node) text = node.content || '';
+            }
+            return (text || '').split('\n').map(line => {
+                const cols = line.split(delim);
+                if (script.includes('$1') && !script.includes('$2')) return cols[0] || '';
+                if (script.includes('$2')) return cols[1] || '';
+                if (script.includes('$NF')) return cols[cols.length - 1] || '';
+                return line;
+            }).join('\n');
+        },
+
+        'tee': (a, term, pipeInput = '') => {
+            const isAppend = a.includes('-a');
+            const file = a.find(arg => !arg.startsWith('-'));
+            if (file && pipeInput) {
+                if (isAppend) {
+                    const existing = term.vfs.getNode(file, false)?.content || '';
+                    term.vfs.createFile(file, existing + '\n' + pipeInput, false);
+                } else {
+                    term.vfs.createFile(file, pipeInput, false);
+                }
+            }
+            return pipeInput;
+        },
+
+        'more': (a, term, pipeInput = '') => LINUX_COMMANDS.cat(a, term, pipeInput),
+        'less': (a, term, pipeInput = '') => LINUX_COMMANDS.cat(a, term, pipeInput),
 
         'find': (a, term) => {
             const path = a.find(arg => !arg.startsWith('-')) || '.';
@@ -1173,63 +1687,322 @@
             return `.\n` + term.vfs.generateTreeAscii(node);
         },
 
-        'echo': (a) => a.join(' '),
+        'echo': (a, term, pipeInput = '') => {
+            if (!a.length && pipeInput) return pipeInput;
+            return a.join(' ');
+        },
 
+        'diff': (a, term) => {
+            if (a.length < 2) return 'diff: missing operand';
+            const n1 = term.vfs.getNode(a[0], false);
+            const n2 = term.vfs.getNode(a[1], false);
+            if (!n1) return `diff: ${a[0]}: No such file or directory`;
+            if (!n2) return `diff: ${a[1]}: No such file or directory`;
+            if ((n1.content || '') === (n2.content || '')) return '';
+            return `1c1\n< ${n1.content || ''}\n---\n> ${n2.content || ''}`;
+        },
+
+        'file': (a, term) => {
+            const target = a[0] || '.';
+            const node = term.vfs.getNode(target, false);
+            if (!node) return `${target}: cannot open (No such file or directory)`;
+            if (node.type === 'dir') return `${target}: directory`;
+            if (node.type === 'symlink') return `${target}: symbolic link to ${node.target}`;
+            if (target.endsWith('.sh') || (node.content && node.content.startsWith('#!/bin/bash'))) return `${target}: Bourne-Again shell script, ASCII text executable`;
+            if (target.endsWith('.py')) return `${target}: Python script, ASCII text executable`;
+            return `${target}: ASCII text`;
+        },
+
+        'which': (a) => {
+            const cmd = a[0] || 'bash';
+            if (['bash', 'ls', 'cat', 'chmod', 'chown', 'grep', 'touch', 'rm', 'mkdir', 'ps', 'kill', 'systemctl', 'ip', 'ifconfig', 'nano', 'python', 'mysql'].includes(cmd)) {
+                return `/usr/bin/${cmd}`;
+            }
+            return '';
+        },
+        'whereis': (a) => {
+            const cmd = a[0] || 'bash';
+            return `${cmd}: /usr/bin/${cmd} /usr/share/man/man1/${cmd}.1.gz`;
+        },
+        'type': (a) => {
+            const cmd = a[0] || 'ls';
+            return `${cmd} is /usr/bin/${cmd}`;
+        },
+
+        // ── Process Management ──
+        'ps': (a) => {
+            return `USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\nroot           1  0.0  0.1 168432 11840 ?        Ss   08:00   0:02 /sbin/init\nroot         650  0.0  0.1  28412  8920 ?        Ss   08:00   0:00 /lib/systemd/systemd-logind\nroot        1180  0.0  0.3 148920 24100 ?        Ssl  08:00   0:01 /usr/sbin/named -u bind\nroot        1240  0.0  0.1  72100  9200 ?        Ss   08:00   0:00 /usr/sbin/sshd -D\nroot        1350  0.0  0.2  98400 18200 ?        Ss   08:00   0:00 /usr/sbin/smbd --foreground --no-process-group\nroot        1420  0.0  0.3 198420 28400 ?        Ss   08:00   0:01 /usr/sbin/apache2 -k start\nwww-data    1421  0.0  0.2 198450 16200 ?        S    08:00   0:00 /usr/sbin/apache2 -k start\nmysql       1510  0.1  1.8 1420900 148200 ?      Ssl  08:00   0:08 /usr/sbin/mysqld\nstudent     2100  0.0  0.1  22450  6800 pts/0    Ss   08:10   0:00 -bash\nstudent     2450  0.0  0.0  18900  3200 pts/0    R+   08:35   0:00 ps ${a.join(' ')}`;
+        },
+
+        'top': () => `top - 08:35:10 up 2 days,  4:12,  1 user,  load average: 0.14, 0.08, 0.05\nTasks: 112 total,   1 running, 111 sleeping,   0 stopped,   0 zombie\n%Cpu(s):  1.2 us,  0.8 sy,  0.0 ni, 97.8 id,  0.2 wa,  0.0 hi,  0.0 si,  0.0 st\nMiB Mem :   7975.9 total,   4111.8 free,   1879.4 used,   1984.7 buff/cache\nMiB Swap:   2048.0 total,   2048.0 free,      0.0 used.   5782.6 avail Mem \n\n    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND\n   1510 mysql     20   0 1420900 148200  34120 S   1.3   1.8   0:08.42 mysqld\n   1420 root      20   0  198420  28400  14200 S   0.7   0.3   0:01.15 apache2\n   1180 bind      20   0  148920  24100  12400 S   0.3   0.3   0:01.02 named\n   2100 student   20   0   22450   6800   4100 S   0.0   0.1   0:00.32 bash`,
+        'htop': () => LINUX_COMMANDS.top(),
+
+        'kill': (a, term) => {
+            const pid = a.find(arg => /^\d+$/.test(arg)) || '1420';
+            if (pid === '1420' || pid === '1421') {
+                if (term.net.state.services.apache2) term.net.state.services.apache2.status = 'STOPPED';
+                term.net.save();
+            }
+            return '';
+        },
+        'killall': (a, term) => {
+            const name = a.find(arg => !arg.startsWith('-'));
+            if (name && term.net.state.services[name]) {
+                term.net.state.services[name].status = 'STOPPED';
+                term.net.save();
+            }
+            return '';
+        },
+        'pkill': (a, term) => LINUX_COMMANDS.killall(a, term),
+
+        // ── Permissions & Ownership ──
         'chmod': (a, term) => {
-            if (a.length < 2) return 'Usage: chmod <mode> <file>';
-            const node = term.vfs.getNode(a[1], false);
-            if (!node) return `chmod: cannot access '${a[1]}': No such file or directory`;
-            node.permissions = a[0];
+            const clean = a.filter(arg => !arg.startsWith('-'));
+            if (clean.length < 2) return 'Usage: chmod [OPTION]... MODE[,MODE]... FILE...';
+            const mode = clean[0];
+            const targetPath = clean[1];
+            const recursive = a.some(arg => arg.startsWith('-') && (arg.includes('R') || arg.includes('r')));
+
+            function applyMode(node) {
+                if (!node) return;
+                if (/^\d{3,4}$/.test(mode)) {
+                    node.permissions = mode.length === 3 ? '0' + mode : mode;
+                } else if (mode.includes('+x')) {
+                    node.permissions = '0755';
+                } else if (mode.includes('-x')) {
+                    node.permissions = '0644';
+                } else {
+                    node.permissions = '0755';
+                }
+                if (recursive && node.children) {
+                    Object.values(node.children).forEach(applyMode);
+                }
+            }
+
+            const target = term.vfs.getNode(targetPath, false);
+            if (!target) return `chmod: cannot access '${targetPath}': No such file or directory`;
+            applyMode(target);
             term.vfs.save();
             return '';
         },
 
         'chown': (a, term) => {
-            if (a.length < 2) return 'Usage: chown <user[:group]> <file>';
-            const node = term.vfs.getNode(a[1], false);
-            if (!node) return `chown: cannot access '${a[1]}': No such file or directory`;
-            const parts = a[0].split(':');
-            node.owner = parts[0];
-            if (parts[1]) node.group = parts[1];
+            const clean = a.filter(arg => !arg.startsWith('-'));
+            if (clean.length < 2) return 'Usage: chown [OPTION]... [OWNER][:[GROUP]] FILE...';
+            const spec = clean[0];
+            const targetPath = clean[1];
+            const recursive = a.some(arg => arg.startsWith('-') && (arg.includes('R') || arg.includes('r')));
+
+            const parts = spec.split(/[:.]/);
+            const user = parts[0] || null;
+            const group = parts[1] || null;
+
+            function applyOwner(node) {
+                if (!node) return;
+                if (user) node.owner = user;
+                if (group) node.group = group;
+                if (recursive && node.children) {
+                    Object.values(node.children).forEach(applyOwner);
+                }
+            }
+
+            const target = term.vfs.getNode(targetPath, false);
+            if (!target) return `chown: cannot access '${targetPath}': No such file or directory`;
+            applyOwner(target);
             term.vfs.save();
             return '';
         },
 
         'chgrp': (a, term) => {
-            if (a.length < 2) return 'Usage: chgrp <group> <file>';
-            const node = term.vfs.getNode(a[1], false);
-            if (!node) return `chgrp: cannot access '${a[1]}': No such file or directory`;
-            node.group = a[0];
+            const clean = a.filter(arg => !arg.startsWith('-'));
+            if (clean.length < 2) return 'Usage: chgrp [OPTION]... GROUP FILE...';
+            return LINUX_COMMANDS.chown([`:${clean[0]}`, clean[1], ...a.filter(arg => arg.startsWith('-'))], term);
+        },
+
+        'umask': (a) => a[0] ? '' : '0022',
+        'ln': (a, term) => {
+            if (a.includes('-s')) {
+                const clean = a.filter(arg => !arg.startsWith('-'));
+                if (clean.length >= 2) {
+                    term.vfs.createFile(clean[1], '', false);
+                    const n = term.vfs.getNode(clean[1], false);
+                    if (n) { n.type = 'symlink'; n.target = clean[0]; n.permissions = '0777'; }
+                    term.vfs.save();
+                }
+            }
+            return '';
+        },
+        'stat': (a, term) => {
+            const file = a[0] || '.';
+            const node = term.vfs.getNode(file, false);
+            if (!node) return `stat: cannot stat '${file}': No such file or directory`;
+            return `  File: ${node.name}\n  Size: ${node.size || 4096}        Blocks: 8          IO Block: 4096   ${node.type === 'dir' ? 'directory' : 'regular file'}\nDevice: 801h/2049d      Inode: 198421      Links: 1\nAccess: (${node.permissions || '0755'}/${node.type === 'dir' ? 'drwxr-xr-x' : '-rw-r--r--'})  Uid: ( 1000/ ${node.owner || 'student'})   Gid: ( 1000/ ${node.group || 'student'})\nAccess: 2026-08-17 08:30:00.000000000 +0000\nModify: 2026-08-17 08:30:00.000000000 +0000\nChange: 2026-08-17 08:30:00.000000000 +0000`;
+        },
+
+        // ── User Management ──
+        'useradd': (a, term) => {
+            const name = a.find(arg => !arg.startsWith('-')) || 'nowy_uzytkownik';
+            const passwdNode = term.vfs.getNode('/etc/passwd', false);
+            if (passwdNode) {
+                passwdNode.content += `${name}:x:1002:1002::/home/${name}:/bin/bash\n`;
+            }
+            term.vfs.createDirectory(`/home/${name}`, true, false);
             term.vfs.save();
             return '';
         },
+        'adduser': (a, term) => LINUX_COMMANDS.useradd(a, term),
 
+        'usermod': (a, term) => {
+            const grpIdx = a.indexOf('-G') !== -1 ? a.indexOf('-G') : a.indexOf('-aG');
+            const group = grpIdx !== -1 ? a[grpIdx + 1] : null;
+            const user = a[a.length - 1];
+            if (group && user) {
+                const groupNode = term.vfs.getNode('/etc/group', false);
+                if (groupNode && groupNode.content.includes(`${group}:`)) {
+                    groupNode.content = groupNode.content.replace(new RegExp(`(${group}:.*)`), `$1,${user}`);
+                    term.vfs.save();
+                }
+            }
+            return '';
+        },
+
+        'userdel': (a, term) => {
+            const name = a.find(arg => !arg.startsWith('-'));
+            if (name) {
+                const passwdNode = term.vfs.getNode('/etc/passwd', false);
+                if (passwdNode) {
+                    passwdNode.content = passwdNode.content.split('\n').filter(l => !l.startsWith(`${name}:`)).join('\n');
+                }
+                if (a.includes('-r')) term.vfs.removeNode(`/home/${name}`, true, false);
+                term.vfs.save();
+            }
+            return '';
+        },
+
+        'groupadd': (a, term) => {
+            const name = a.find(arg => !arg.startsWith('-')) || 'nowa_grupa';
+            const grpNode = term.vfs.getNode('/etc/group', false);
+            if (grpNode) {
+                grpNode.content += `${name}:x:1005:\n`;
+                term.vfs.save();
+            }
+            return '';
+        },
+        'groupdel': (a, term) => {
+            const name = a.find(arg => !arg.startsWith('-'));
+            if (name) {
+                const grpNode = term.vfs.getNode('/etc/group', false);
+                if (grpNode) {
+                    grpNode.content = grpNode.content.split('\n').filter(l => !l.startsWith(`${name}:`)).join('\n');
+                    term.vfs.save();
+                }
+            }
+            return '';
+        },
+        'gpasswd': (a, term) => {
+            if (a.includes('-a')) {
+                const u = a[a.indexOf('-a') + 1];
+                const g = a[a.indexOf('-a') + 2];
+                return LINUX_COMMANDS.usermod(['-aG', g, u], term);
+            }
+            return '';
+        },
+
+        'passwd': () => `passwd: password updated successfully\n`,
         'whoami': (a, term) => term.net.state.currentUserLinux,
 
         'id': (a, term) => {
-            const u = a[0] || term.net.state.currentUserLinux;
+            const u = a.find(arg => !arg.startsWith('-')) || term.net.state.currentUserLinux;
             if (u === 'root') return 'uid=0(root) gid=0(root) groups=0(root)';
             if (u === 'marek') return 'uid=1001(marek) gid=1001(marek) groups=1001(marek),27(sudo)';
             return 'uid=1000(student) gid=1000(student) groups=1000(student),27(sudo),100(users),110(admin)';
         },
-
-        'hostname': (a, term) => {
-            if (a[0]) {
-                term.net.state.hostname = a[0];
-                term.net.save();
-                return '';
-            }
-            return term.net.state.hostname;
+        'groups': (a, term) => {
+            const u = a[0] || term.net.state.currentUserLinux;
+            if (u === 'root') return 'root';
+            return `${u} : ${u} adm sudo users admin`;
         },
 
-        'uname': (a) => a.includes('-a') ? 'Linux zsem-lab 5.15.0-89-generic #99-Ubuntu SMP x86_64 GNU/Linux' : 'Linux',
-        'date': () => new Date().toUTCString(),
-        'uptime': () => `${new Date().toLocaleTimeString('pl-PL')} up 2 days, 4:12, 1 user, load average: 0.14, 0.08, 0.05`,
-        'df': () => `Filesystem      Size  Used Avail Use% Mounted on\ntmpfs           795M  2.4M  793M   1% /run\n/dev/sda1        30G  8.4G   20G  30% /\ntmpfs           3.9G     0  3.9G   0% /dev/shm\n/dev/sda2       512M   53M  459M  11% /boot\n/dev/sdb1        64G   12M   60G   1% /mnt/dane`,
-        'free': () => `               total        used        free      shared  buff/cache   available\nMem:         8167384     1924512     4210456       34120     2032416     5921400\nSwap:        2097148           0     2097148`,
+        'su': (a, term) => {
+            const target = a.find(arg => !arg.startsWith('-')) || 'root';
+            term.net.state.currentUserLinux = target;
+            term.vfs.currentDirLinux = target === 'root' ? '/root' : `/home/${target}`;
+            term.net.save();
+            return '';
+        },
 
-        // ── Services & Server Management ─────────────────────────────────────
+        'sudo': (a, term, pipeInput = '') => {
+            if (!a.length) return 'usage: sudo command';
+            if (a[0] === 'su' || a[0] === '-i' || a[0] === '-s') {
+                return LINUX_COMMANDS.su(['root'], term);
+            }
+            const cmd = a[0];
+            const cmdArgs = a.slice(1);
+            if (LINUX_COMMANDS[cmd]) {
+                const prev = term.net.state.currentUserLinux;
+                term.net.state.currentUserLinux = 'root';
+                const res = LINUX_COMMANDS[cmd](cmdArgs, term, pipeInput);
+                term.net.state.currentUserLinux = prev;
+                return res;
+            }
+            return `sudo: ${cmd}: command not found`;
+        },
 
+        // ── Storage, Disks & Filesystems ──
+        'lsblk': () => `NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS\nsda                       8:0    0   30G  0 disk \n├─sda1                    8:1    0  512M  0 part /boot\n└─sda2                    8:2    0 29.5G  0 part /\nsdb                       8:16   0   20G  0 disk \n└─sdb1                    8:17   0   20G  0 part \n  └─vg_dane-lv_dane     253:0    0   10G  0 lvm  /mnt/dane\nsdc                       8:32   0   20G  0 disk \nsr0                      11:0    1 1024M  0 rom  `,
+
+        'fdisk': (a) => {
+            if (a.includes('-l')) {
+                return `Disk /dev/sda: 30 GiB, 32212254720 bytes, 62914560 sectors\nUnits: sectors of 1 * 512 = 512 bytes\nDevice     Boot   Start      End  Sectors  Size Id Type\n/dev/sda1  *       2048  1050623  1048576  512M 83 Linux\n/dev/sda2       1050624 62914559 61863936 29.5G 83 Linux\n\nDisk /dev/sdb: 20 GiB, 21474836480 bytes, 41943040 sectors\nDevice     Boot Start      End  Sectors Size Id Type\n/dev/sdb1        2048 41943039 41940992  20G 8e Linux LVM`;
+            }
+            return `Welcome to fdisk (util-linux 2.37.2).\nChanges will remain in memory only, until you decide to write them.\nCommand (m for help): Partition 1 of type Linux and size 20 GiB created.\nSyncing disks.`;
+        },
+
+        'blkid': () => `/dev/sda1: UUID="7a21b8c0-1284-4e92-91af-31a89c201201" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="0001a2f4-01"\n/dev/sda2: UUID="c94b2810-7219-482a-bc12-984210a4e812" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="0001a2f4-02"\n/dev/sdb1: UUID="uYh9-3kLk-9N2a-Pl71-98a2" TYPE="LVM2_member" PARTUUID="0002b3c1-01"\n/dev/mapper/vg_dane-lv_dane: UUID="98dfa283-4a11-47c1-a209-1fa329b8c012" BLOCK_SIZE="4096" TYPE="ext4"`,
+
+        'parted': (a) => {
+            return `Model: ATA VBOX HARDDISK (scsi)\nDisk /dev/sda: 32.2GB\nSector size (logical/physical): 512B/512B\nPartition Table: msdos\nDisk Flags: \n\nNumber  Start   End     Size    Type     File system  Flags\n 1      1048kB  538MB   537MB   primary  ext4         boot\n 2      538MB   32.2GB  31.7GB  primary  ext4`;
+        },
+
+        'mkfs': (a) => LINUX_COMMANDS['mkfs.ext4'](a),
+        'mkfs.ext4': (a) => `mke2fs 1.46.5 (30-Dec-2021)\nCreating filesystem with 5242880 4k blocks and 1310720 inodes\nFilesystem UUID: 98dfa283-4a11-47c1-a209-1fa329b8c012\nWriting inode tables: done\nCreating journal (32768 blocks): done\nWriting superblocks and filesystem accounting information: done\n`,
+        'mkfs.vfat': () => `mkfs.fat 4.2 (2021-01-31)\n`,
+        'mkfs.ntfs': () => `The NTFS output volume was created successfully.\n`,
+        'mount': (a) => {
+            if (!a.length) return `/dev/sda2 on / type ext4 (rw,relatime,errors=remount-ro)\n/dev/sda1 on /boot type ext4 (rw,relatime)\n/dev/mapper/vg_dane-lv_dane on /mnt/dane type ext4 (rw,relatime)\ntmpfs on /run type tmpfs (rw,nosuid,noexec,relatime,size=805060k,mode=755)`;
+            return '';
+        },
+        'umount': () => '',
+        'tune2fs': (a) => `tune2fs 1.46.5 (30-Dec-2021)\nFilesystem volume name:   <none>\nLast mounted on:          /\nFilesystem UUID:          c94b2810-7219-482a-bc12-984210a4e812\nFilesystem magic number:  0xEF53\nFilesystem state:         clean\n`,
+
+        // ── LVM Management ──
+        'pvcreate': (a) => `  Physical volume "${a[0] || '/dev/sdb1'}" successfully created.`,
+        'pvs': () => `  PV         VG        Fmt  Attr PSize   PFree \n  /dev/sdb1  vg_dane   lvm2 a--  20.00g  10.00g\n  /dev/sdc1  vg_dane   lvm2 a--  20.00g  20.00g`,
+        'pvdisplay': () => `  --- Physical volume ---\n  PV Name               /dev/sdb1\n  VG Name               vg_dane\n  PV Size               20.00 GiB\n  Allocatable           yes\n  PE Size               4.00 MiB\n  Total PE              5119\n  Allocated PE          2560\n  PV UUID               uYh9-3kLk-9N2a-Pl71`,
+        'vgcreate': (a) => `  Volume group "${a[0] || 'vg_dane'}" successfully created`,
+        'vgs': () => `  VG        #PV #LV #SN Attr   VSize  VFree \n  vg_dane     2   1   0 wz--n- 39.99g 29.99g`,
+        'vgdisplay': () => `  --- Volume group ---\n  VG Name               vg_dane\n  Format                lvm2\n  VG Access             read/write\n  VG Status             resizable\n  Cur LV                1\n  Cur PV                2\n  VG Size               39.99 GiB\n  Alloc PE / Size       2560 / 10.00 GiB\n  Free  PE / Size       7678 / 29.99 GiB`,
+        'lvcreate': (a) => {
+            const nameIdx = a.indexOf('-n');
+            const name = nameIdx !== -1 ? a[nameIdx + 1] : 'lv_dane';
+            return `  Logical volume "${name}" created.`;
+        },
+        'lvs': () => `  LV      VG      Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert\n  lv_dane vg_dane -wi-a----- 10.00g`,
+        'lvdisplay': () => `  --- Logical volume ---\n  LV Path                /dev/vg_dane/lv_dane\n  LV Name                lv_dane\n  VG Name                vg_dane\n  LV Write Access        read/write\n  LV Status              available\n  LV Size                10.00 GiB`,
+
+        // ── RAID Management ──
+        'mdadm': (a) => {
+            if (a.includes('--create') || a.includes('-C')) {
+                const dev = a.find(arg => arg.startsWith('/dev/')) || '/dev/md0';
+                return `mdadm: Defaulting to version 1.2 metadata\nmdadm: array ${dev} started.`;
+            }
+            if (a.includes('--detail') || a.includes('-D')) {
+                return `/dev/md0:\n           Version : 1.2\n        Raid Level : raid1\n        Array Size : 20955136 (19.98 GiB)\n      Raid Devices : 2\n     Total Devices : 2\n             State : clean \n    Active Devices : 2\n    Working Devices: 2\n    Number   Major   Minor   RaidDevice State\n       0       8       16        0      active sync   /dev/sdb\n       1       8       32        1      active sync   /dev/sdc`;
+            }
+            return 'mdadm: manage MD devices (software RAID)\nUsage: mdadm --create /dev/mdX --level=1 --raid-devices=N /dev/sd...';
+        },
+
+        // ── Services & Server Management ──
         'systemctl': (a, term) => {
             const action = a[0]?.toLowerCase();
             const service = a[1]?.toLowerCase().replace(/\.service$/, '') || 'apache2';
@@ -1292,6 +2065,9 @@
             return `Site ${site} disabled.\nTo activate the new configuration, you need to run:\n  systemctl reload apache2`;
         },
 
+        'a2enmod': (a) => `Enabling module ${a[0] || 'rewrite'}.\nTo activate the new configuration, you need to run:\n  systemctl restart apache2`,
+        'a2dismod': (a) => `Module ${a[0] || 'rewrite'} disabled.\nTo activate the new configuration, you need to run:\n  systemctl restart apache2`,
+
         'apachectl': (a, term) => {
             if (a.includes('configtest') || a.includes('-t')) {
                 const conf = term.vfs.getNode('/etc/apache2/apache2.conf', false);
@@ -1324,13 +2100,14 @@
             return 'testparm: error loading /etc/samba/smb.conf';
         },
 
-        'smbpasswd': (a) => `Added user ${a[1] || 'student'} to Samba password database.\n`,
+        'smbpasswd': (a) => `Added user ${a.find(arg => !arg.startsWith('-')) || 'student'} to Samba password database.\n`,
+        'pdbedit': (a) => `student:1000:ZSEM Student\n`,
         'dhcpd': (a) => a.includes('-t') ? 'Internet Systems Consortium DHCP Server 4.4.1\nConfiguration file /etc/dhcp/dhcpd.conf syntax test OK.\n' : 'dhcpd started.\n',
         'exportfs': () => '/srv/nfs/dane\t192.168.1.0/24\n',
+        'showmount': () => 'Hosts on 192.168.1.100:\n/srv/nfs/dane 192.168.1.0/24\n',
         'postconf': () => 'myhostname = mail.zsem.local\n',
 
-        // ── Network & Security Commands ──────────────────────────────────────
-
+        // ── Networking & Security ──
         'ip': (a, term) => {
             const sub = a[0]?.toLowerCase();
             const net = term.net.state;
@@ -1363,15 +2140,41 @@
                     return '';
                 }
             }
+            if (sub === 'neigh' || sub === 'neighbor') {
+                return `192.168.1.1 dev eth0 lladdr 00:50:56:c0:00:01 REACHABLE\n192.168.1.254 dev eth0 lladdr 00:50:56:c0:00:fe STALE`;
+            }
             return 'ip command executed.';
         },
 
         'ifconfig': (a, term) => {
             const net = term.net.state;
+            if (a.length >= 2 && a[0] === 'eth0') {
+                net.ip = a[1];
+                const maskIdx = a.indexOf('netmask');
+                if (maskIdx !== -1 && a[maskIdx + 1]) net.netmask = a[maskIdx + 1];
+                net.dhcp = false;
+                term.net.save();
+                return '';
+            }
             return `eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\n        inet ${net.ip}  netmask ${net.netmask}  broadcast 192.168.1.255\n        ether ${net.mac}  txqueuelen 1000  (Ethernet)\n\nlo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\n        inet 127.0.0.1  netmask 255.0.0.0\n`;
         },
 
-        'ss': (a) => `State      Recv-Q Send-Q Local Address:Port  Peer Address:Port Process\nLISTEN     0      128          0.0.0.0:22         0.0.0.0:*     users:(("sshd",pid=1240,fd=3))\nLISTEN     0      511          0.0.0.0:80         0.0.0.0:*     users:(("apache2",pid=1420,fd=4))\nLISTEN     0      128        127.0.0.1:53         0.0.0.0:*     users:(("named",pid=1180,fd=21))\nLISTEN     0      50           0.0.0.0:445        0.0.0.0:*     users:(("smbd",pid=1350,fd=37))\nLISTEN     0      80          0.0.0.0:3306        0.0.0.0:*     users:(("mysqld",pid=1510,fd=28))\n`,
+        'route': (a, term) => {
+            const net = term.net.state;
+            if (a.includes('add')) {
+                const gwIdx = a.indexOf('gw');
+                if (gwIdx !== -1 && a[gwIdx + 1]) {
+                    net.gateway = a[gwIdx + 1];
+                    term.net.save();
+                }
+                return '';
+            }
+            return `Kernel IP routing table\nDestination     Gateway         Genmask         Flags Metric Ref    Use Iface\n0.0.0.0         ${net.gateway.padEnd(15)} 0.0.0.0         UG    100    0        0 eth0\n192.168.1.0     0.0.0.0         255.255.255.0   U     100    0        0 eth0\n`;
+        },
+
+        'arp': (a) => `Address                  HWtype  HWaddress           Flags Mask            Iface\n192.168.1.1              ether   00:50:56:c0:00:01   C                     eth0\n192.168.1.254            ether   00:50:56:c0:00:fe   C                     eth0\n`,
+
+        'ss': () => `State      Recv-Q Send-Q Local Address:Port  Peer Address:Port Process\nLISTEN     0      128          0.0.0.0:22         0.0.0.0:*     users:(("sshd",pid=1240,fd=3))\nLISTEN     0      511          0.0.0.0:80         0.0.0.0:*     users:(("apache2",pid=1420,fd=4))\nLISTEN     0      128        127.0.0.1:53         0.0.0.0:*     users:(("named",pid=1180,fd=21))\nLISTEN     0      50           0.0.0.0:445        0.0.0.0:*     users:(("smbd",pid=1350,fd=37))\nLISTEN     0      80          0.0.0.0:3306        0.0.0.0:*     users:(("mysqld",pid=1510,fd=28))\n`,
         'netstat': (a) => LINUX_COMMANDS.ss(a),
 
         'ping': (a) => {
@@ -1385,7 +2188,11 @@
             return out;
         },
 
-        'traceroute': (a) => `traceroute to ${a[0] || '8.8.8.8'} (8.8.8.8), 30 hops max, 60 byte packets\n 1  192.168.1.1 (192.168.1.1)  1.245 ms  1.120 ms  1.080 ms\n 2  10.0.0.1 (10.0.0.1)  6.412 ms  6.310 ms  6.250 ms\n 3  8.8.8.8 (8.8.8.8)  14.850 ms  14.720 ms  14.650 ms\n`,
+        'traceroute': (a) => {
+            const host = a.find(arg => !arg.startsWith('-')) || 'google.pl';
+            return `traceroute to ${host} (142.250.203.195), 30 hops max, 60 byte packets\n 1  gateway (192.168.1.1)  0.642 ms  0.518 ms  0.490 ms\n 2  10.100.0.1 (10.100.0.1)  4.120 ms  4.089 ms  4.110 ms\n 3  isp-core-01.net.pl (195.114.0.1)  8.432 ms  8.320 ms  8.401 ms\n 4  ${host} (142.250.203.195)  12.180 ms  12.090 ms  12.140 ms`;
+        },
+        'mtr': (a) => LINUX_COMMANDS.traceroute(a),
 
         'nslookup': (a, term) => {
             if (!a.length) {
@@ -1409,11 +2216,21 @@
             return '<!DOCTYPE html>\n<html><head><title>ZSEM Server</title></head><body><h1>Serwer Apache2/Nginx dziala poprawnie!</h1></body></html>\n';
         },
 
-        'nmap': (a) => `Starting Nmap 7.93 ( https://nmap.org ) at 2026-08-17 08:30 UTC\nNmap scan report for 192.168.1.100\nHost is up (0.00045s latency).\nNot shown: 994 closed tcp ports (reset)\nPORT     STATE SERVICE     VERSION\n22/tcp   open  ssh         OpenSSH 8.9p1 (Ubuntu)\n25/tcp   open  smtp        Postfix smtpd\n53/tcp   open  domain      BIND 9.18.18\n80/tcp   open  http        Apache httpd 2.4.52\n445/tcp  open  netbios-ssn Samba smbd 4.15.13\n3306/tcp open  mysql       MySQL 8.0.34\n\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\nNmap done: 1 IP address (1 host up) scanned in 1.42 seconds\n`,
+        'wget': (a, term) => {
+            const url = a.find(arg => !arg.startsWith('-')) || 'http://example.com/index.html';
+            const filename = url.split('/').pop() || 'index.html';
+            term.vfs.createFile(filename, '<!DOCTYPE html>\n<html><body>Downloaded content</body></html>\n', false);
+            return `--2026-08-17 08:30:00--  ${url}\nResolving server... 192.168.1.100\nConnecting to server... connected.\nHTTP request sent, awaiting response... 200 OK\nLength: 58 [text/html]\nSaving to: '${filename}'\n\n${filename}          100%[===================>]      58  --.-KB/s    in 0s\n\n2026-08-17 08:30:00 (4.2 MB/s) - '${filename}' saved [58/58]\n`;
+        },
 
-        'iptables': (a, term) => {
-            if (a.includes('-L') || a.includes('-nL')) {
-                return `Chain INPUT (policy ACCEPT)\ntarget     prot opt source               destination\nDROP       tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:8080\nACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:443\n\nChain FORWARD (policy ACCEPT)\ntarget     prot opt source               destination\n\nChain OUTPUT (policy ACCEPT)\ntarget     prot opt source               destination\n`;
+        'nc': () => 'Connection to 192.168.1.100 80 port [tcp/http] succeeded!\n',
+        'netcat': (a) => LINUX_COMMANDS.nc(a),
+
+        'nmap': () => `Starting Nmap 7.93 ( https://nmap.org ) at 2026-08-17 08:30 UTC\nNmap scan report for 192.168.1.100\nHost is up (0.00045s latency).\nNot shown: 994 closed tcp ports (reset)\nPORT     STATE SERVICE     VERSION\n22/tcp   open  ssh         OpenSSH 8.9p1 (Ubuntu)\n25/tcp   open  smtp        Postfix smtpd\n53/tcp   open  domain      BIND 9.18.18\n80/tcp   open  http        Apache httpd 2.4.52\n445/tcp  open  netbios-ssn Samba smbd 4.15.13\n3306/tcp open  mysql       MySQL 8.0.34\n\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\nNmap done: 1 IP address (1 host up) scanned in 1.42 seconds\n`,
+
+        'iptables': (a) => {
+            if (a.includes('-L') || a.includes('-nL') || a.includes('-S')) {
+                return `Chain INPUT (policy ACCEPT)\ntarget     prot opt source               destination\nDROP       tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:8080\nACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:22\nACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:80\n\nChain FORWARD (policy ACCEPT)\ntarget     prot opt source               destination\n\nChain OUTPUT (policy ACCEPT)\ntarget     prot opt source               destination\n`;
             }
             return '';
         },
@@ -1439,11 +2256,18 @@
             return 'ufw: command executed.\n';
         },
 
-        'openssl': (a) => `Generating a RSA private key\n................................................................+++++\nwriting new private key to '/etc/ssl/private/server.key'\n-----\nCertificate generated successfully.\n`,
-        'fail2ban-client': () => `Status\n|- Number of jail:      1\n\`- Jail list:   sshd\n`,
+        'openssl': () => `Generating a RSA private key\n................................................................+++++\nwriting new private key to '/etc/ssl/private/server.key'\n-----\nCertificate generated successfully.\n`,
+        'fail2ban-client': (a) => {
+            if (a.includes('status')) {
+                return `Status for the jail: sshd\n|- Filter\n|  |- Currently failed: 2\n|  |- Total failed:     18\n|  \`- File list:        /var/log/auth.log\n\`- Actions\n   |- Currently banned: 1\n   |- Total banned:     3\n   \`- Banned IP list:   198.51.100.44\n`;
+            }
+            if (a.includes('banip') || a.includes('set')) {
+                return '26738: [sshd] Ban 198.51.100.44\n';
+            }
+            return 'fail2ban-client: Fail2ban CLI control interface\n';
+        },
 
-        // ── Package Management (apt & dpkg) ──────────────────────────────────
-
+        // ── Package Management ──
         'apt': (a, term) => {
             const sub = a[0]?.toLowerCase();
             const pkg = a[1]?.toLowerCase();
@@ -1454,43 +2278,37 @@
                     term.net.state.stats.packagesInstalled = term.net.state.installedPackages.length;
                     term.net.save();
                 }
-                return `Reading package lists... Done\nBuilding dependency tree... Done\nThe following NEW packages will be installed:\n  ${pkg || 'package'}\n0 upgraded, 1 newly installed, 0 to remove.\nSetting up ${pkg || 'package'} (1.0-1ubuntu1) ...\nProcessing triggers for systemd (249.11-0ubuntu3) ...\n`;
+                return `Reading package lists... Done\nBuilding dependency tree... Done\nThe following NEW packages will be installed:\n  ${pkg || 'package'}\n0 upgraded, 1 newly installed, 0 to remove.\nSetting up ${pkg || 'package'} (1.0-1ubuntu1) ...\n`;
+            }
+            if (sub === 'remove' || sub === 'purge') {
+                if (pkg) {
+                    term.net.state.installedPackages = term.net.state.installedPackages.filter(p => p !== pkg);
+                    term.net.save();
+                }
+                return `Removing ${pkg || 'package'} ... Done.\n`;
             }
             return 'apt command completed.\n';
         },
         'apt-get': (a, term) => LINUX_COMMANDS.apt(a, term),
-
-        // ── User Management ──────────────────────────────────────────────────
-
-        'useradd': (a) => ``,
-        'usermod': (a) => ``,
-        'userdel': (a) => ``,
-        'passwd': () => `passwd: password updated successfully\n`,
-        'sudo': (a, term) => {
-            if (!a.length) return 'usage: sudo command';
-            const cmd = a[0];
-            const cmdArgs = a.slice(1);
-            if (LINUX_COMMANDS[cmd]) return LINUX_COMMANDS[cmd](cmdArgs, term);
-            return `sudo: ${cmd}: command not found`;
+        'dpkg': (a) => {
+            if (a.includes('-l')) {
+                return `Desired=Unknown/Install/Remove/Purge/Hold\n| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend\n|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)\n||/ Name           Version      Architecture Description\n+++-==============-============-============-=================================\nii  apache2        2.4.52-1ubun amd64        Apache HTTP Server\nii  bind9          9.18.18-0ubu amd64        Internet Domain Name Server\nii  openssh-server 8.9p1-3ubunt amd64        secure shell (SSH) server`;
+            }
+            return 'dpkg: database updated successfully.\n';
         },
 
-        // ── Archive & Compression ────────────────────────────────────────────
-
+        // ── Archive & Compression ──
         'tar': (a, term) => {
-            if (a.includes('-czf') || a.includes('-czvf') || a.includes('czf')) {
-                const target = a.find(arg => arg.endsWith('.tar.gz') || arg.endsWith('.tgz')) || 'archive.tar.gz';
+            if (a.some(arg => arg.includes('c'))) {
+                const target = a.find(arg => arg.endsWith('.tar.gz') || arg.endsWith('.tgz') || arg.endsWith('.tar')) || 'archive.tar.gz';
                 term.vfs.createFile(target, 'ARCHIVE_BINARY_DATA', false);
                 return '';
             }
-            if (a.includes('-tf') || a.includes('-tzf') || a.includes('tf')) {
+            if (a.some(arg => arg.includes('t'))) {
                 return `home/student/\nhome/student/Desktop/\nhome/student/script.sh\nhome/student/projekty/\n`;
             }
-            if (a.includes('-xzf') || a.includes('-xzvf') || a.includes('xzf')) {
-                return '';
-            }
-            return 'tar: option executed.';
+            return '';
         },
-
         'gzip': (a, term) => {
             const f = a.find(arg => !arg.startsWith('-'));
             if (f) term.vfs.createFile(f + '.gz', 'GZ_DATA', false);
@@ -1502,108 +2320,71 @@
             return '';
         },
 
+        // ── System & Misc ──
         'crontab': (a) => {
             if (a.includes('-l')) {
                 return `# Edit this file to introduce tasks to be run by cron.\n0 2 * * * /usr/local/bin/backup_db.sh > /var/log/backup.log 2>&1\n*/15 * * * * /usr/bin/check_services.sh\n`;
             }
-            return 'crontab: crontab updated.';
+            return 'crontab: crontab updated.\n';
         },
 
-        // ── LVM Management ──
-        'pvcreate': (a) => {
-            if (!a[0]) return '  pvcreate: missing device operand';
-            return `  Physical volume "${a[0]}" successfully created.`;
-        },
-        'pvs': () => `  PV         VG        Fmt  Attr PSize   PFree \n  /dev/sdb1  vg_dane   lvm2 a--  20.00g  10.00g\n  /dev/sdc1  vg_dane   lvm2 a--  20.00g  20.00g`,
-        'pvdisplay': () => `  --- Physical volume ---\n  PV Name               /dev/sdb1\n  VG Name               vg_dane\n  PV Size               20.00 GiB\n  Allocatable           yes\n  PE Size               4.00 MiB\n  Total PE              5119\n  Allocated PE          2560\n  PV UUID               uYh9-3kLk-9N2a-Pl71`,
-        'vgcreate': (a) => {
-            if (a.length < 2) return '  vgcreate: missing volume group name and physical volume(s)';
-            return `  Volume group "${a[0]}" successfully created`;
-        },
-        'vgs': () => `  VG        #PV #LV #SN Attr   VSize  VFree \n  vg_dane     2   1   0 wz--n- 39.99g 29.99g`,
-        'vgdisplay': () => `  --- Volume group ---\n  VG Name               vg_dane\n  Format                lvm2\n  VG Access             read/write\n  VG Status             resizable\n  Cur LV                1\n  Cur PV                2\n  VG Size               39.99 GiB\n  Alloc PE / Size       2560 / 10.00 GiB\n  Free  PE / Size       7678 / 29.99 GiB`,
-        'lvcreate': (a) => {
-            if (a.length < 2) return '  lvcreate: please specify size and volume group name';
-            const nameIdx = a.indexOf('-n');
-            const name = nameIdx !== -1 ? a[nameIdx + 1] : 'lv_dane';
-            return `  Logical volume "${name}" created.`;
-        },
-        'lvs': () => `  LV      VG      Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert\n  lv_dane vg_dane -wi-a----- 10.00g`,
-        'lvdisplay': () => `  --- Logical volume ---\n  LV Path                /dev/vg_dane/lv_dane\n  LV Name                lv_dane\n  VG Name                vg_dane\n  LV Write Access        read/write\n  LV Status              available\n  LV Size                10.00 GiB`,
-
-        // ── RAID Management ──
-        'mdadm': (a) => {
-            if (a.includes('--create') || a.includes('-C')) {
-                const dev = a.find(arg => arg.startsWith('/dev/')) || '/dev/md0';
-                return `mdadm: Defaulting to version 1.2 metadata\nmdadm: array ${dev} started.`;
+        'hostname': (a, term) => {
+            if (a[0]) {
+                term.net.state.hostname = a[0];
+                term.net.save();
+                return '';
             }
-            if (a.includes('--detail') || a.includes('-D')) {
-                return `/dev/md0:\n           Version : 1.2\n        Raid Level : raid1\n        Array Size : 20955136 (19.98 GiB)\n      Raid Devices : 2\n     Total Devices : 2\n             State : clean \n    Active Devices : 2\n    Working Devices: 2\n    Number   Major   Minor   RaidDevice State\n       0       8       16        0      active sync   /dev/sdb\n       1       8       32        1      active sync   /dev/sdc`;
+            return term.net.state.hostname;
+        },
+        'hostnamectl': (a, term) => {
+            if (a[0] === 'set-hostname' && a[1]) {
+                term.net.state.hostname = a[1];
+                term.net.save();
+                return '';
             }
-            return 'mdadm: manage MD devices (software RAID)\nUsage: mdadm --create /dev/mdX --level=1 --raid-devices=N /dev/sd...';
+            return `   Static hostname: ${term.net.state.hostname}\n         Icon name: computer-vm\n           Chassis: vm\n        Machine ID: 894210a4e81298dfa2834a1147c1a209\n           Boot ID: 12844e9291af31a89c2012017a21b8c0\n  Operating System: Ubuntu 22.04.3 LTS\n            Kernel: Linux 5.15.0-89-generic\n      Architecture: x86-64`;
         },
 
-        // ── Fail2ban ──
-        'fail2ban-client': (a) => {
-            if (a.includes('status')) {
-                if (a.includes('sshd')) {
-                    return `Status for the jail: sshd\n|- Filter\n|  |- Currently failed: 2\n|  |- Total failed:     18\n|  \`- File list:        /var/log/auth.log\n\`- Actions\n   |- Currently banned: 1\n   |- Total banned:     3\n   \`- Banned IP list:   198.51.100.44`;
-                }
-                return `Status\n|- Number of jail:      1\n\`- Jail list:   sshd`;
-            }
-            if (a.includes('banip') || a.includes('set')) {
-                return '26738: [sshd] Ban 198.51.100.44';
-            }
-            return 'fail2ban-client: Fail2ban CLI control interface';
-        },
+        'uname': (a) => a.includes('-a') ? 'Linux zsem-lab 5.15.0-89-generic #99-Ubuntu SMP x86_64 GNU/Linux' : 'Linux',
+        'date': () => new Date().toUTCString(),
+        'uptime': () => `${new Date().toLocaleTimeString('pl-PL')} up 2 days, 4:12, 1 user, load average: 0.14, 0.08, 0.05`,
+        'df': () => `Filesystem      Size  Used Avail Use% Mounted on\ntmpfs           795M  2.4M  793M   1% /run\n/dev/sda2        30G  8.4G   20G  30% /\ntmpfs           3.9G     0  3.9G   0% /dev/shm\n/dev/sda1       512M   53M  459M  11% /boot\n/dev/sdb1        20G   12M   19G   1% /mnt/dane`,
+        'free': () => `               total        used        free      shared  buff/cache   available\nMem:         8167384     1924512     4210456       34120     2032416     5921400\nSwap:        2097148           0     2097148`,
 
-        // ── mysqldump ──
-        'mysqldump': () => {
-            return `-- MySQL dump 10.13  Distrib 8.0.34, for Linux (x86_64)\n-- Host: localhost    Database: bazatest\n-- Server version 8.0.34\n/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;\n-- Dumping data for table \`klienci\`\nLOCK TABLES \`klienci\` WRITE;\nINSERT INTO \`klienci\` VALUES (1,'Jan','Kowalski','jan@zsem.pl');\nUNLOCK TABLES;\n-- Dump completed on 2026-08-23 20:00:00`;
-        },
+        'mysqldump': () => `-- MySQL dump 10.13  Distrib 8.0.34, for Linux (x86_64)\n-- Host: localhost    Database: szkola\n-- Server version 8.0.34\n/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;\n-- Dumping data for table \`uczniowie\`\nLOCK TABLES \`uczniowie\` WRITE;\nINSERT INTO \`uczniowie\` VALUES (1,'Jan','Kowalski','4P'),(2,'Anna','Nowak','4P');\nUNLOCK TABLES;\n-- Dump completed on 2026-08-17 08:30:00`,
 
-        // ── Network Tracing ──
-        'traceroute': (a) => {
-            const host = a.find(arg => !arg.startsWith('-')) || 'google.pl';
-            return `traceroute to ${host} (142.250.203.195), 30 hops max, 60 byte packets\n 1  gateway (192.168.1.1)  0.642 ms  0.518 ms  0.490 ms\n 2  10.100.0.1 (10.100.0.1)  4.120 ms  4.089 ms  4.110 ms\n 3  isp-core-01.net.pl (195.114.0.1)  8.432 ms  8.320 ms  8.401 ms\n 4  ${host} (142.250.203.195)  12.180 ms  12.090 ms  12.140 ms`;
-        },
-        'mtr': (a) => LINUX_COMMANDS.traceroute(a),
-
-        // ── Filesystem & Mounting ──
-        'mkfs.ext4': (a) => {
-            if (!a[0]) return 'mkfs.ext4: missing device operand';
-            return `mke2fs 1.46.5 (30-Dec-2021)\nCreating filesystem with 2621440 4k blocks and 655360 inodes\nFilesystem UUID: 98dfa283-4a11-47c1-a209-1fa329b8c012\nSuperblock backups stored on blocks: 32768, 98304, 163840\nWriting inode tables: done\nCreating journal (16384 blocks): done\nWriting superblocks and filesystem accounting information: done`;
-        },
-        'mount': (a) => {
-            if (!a[0]) return '/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro)\n/dev/vg_dane/lv_dane on /mnt/dane type ext4 (rw,relatime)\ntmpfs on /run type tmpfs (rw,nosuid,noexec,relatime,size=805060k,mode=755)';
-            return '';
-        },
-        'umount': () => '',
-
-        // ── Sub-Shell Invocations ────────────────────────────────────────────
-
+        // ── Sub-Shells & Helpers ──
         'nano': (a, term) => {
             const file = a.find(arg => !arg.startsWith('-')) || 'nowy_plik.txt';
             term.openNanoEditor(file);
             return '';
         },
-
         'mysql': (a, term) => {
             term.currentSubShell = 'mysql';
             term.subShellEngine = new MysqlShell();
             return `Welcome to the MySQL monitor.  Commands end with ; or \\g.\nYour MySQL connection id is 42\nServer version: 8.0.34-0ubuntu0.22.04.1 (Ubuntu)\n\nType 'help;' or '\\h' for help. Type '\\c' to clear the current input statement.\n\nmysql> `;
         },
-
         'python': (a, term) => {
             term.currentSubShell = 'python';
             term.subShellEngine = new PythonShell();
             return `Python 3.10.12 (main, Jun 11 2023, 05:26:28) [GCC 11.4.0] on linux\nType "help", "copyright", "credits" or "license" for more information.\n>>> `;
         },
         'python3': (a, term) => LINUX_COMMANDS.python(a, term),
+        'ssh': (a, term) => {
+            const target = a.find(arg => !arg.startsWith('-')) || 'student@192.168.1.100';
+            const parts = target.split('@');
+            const user = parts.length > 1 ? parts[0] : 'student';
+            const host = parts.length > 1 ? parts[1] : parts[0];
+            term.currentSubShell = 'ssh';
+            term.subShellEngine = new SshShell(term, user, host);
+            return `Welcome to Ubuntu 22.04.3 LTS (GNU/Linux 5.15.0-89-generic x86_64)\n * Documentation:  https://help.ubuntu.com\n * Management:     https://landscape.canonical.com\nLast login: Mon Aug 17 08:00:00 2026 from 192.168.1.100\n`;
+        },
+
+        'help': () => `Dostępne polecenia powłoki GNU/Bash (Linux CKE):\n\n[Pliki & Katalogi]   ls, cd, pwd, mkdir, rmdir, touch, rm, cp, mv, cat, head, tail, find, tree, stat, file\n[Przetwarzanie]      grep, wc, sort, uniq, cut, tr, sed, awk, tee, more, less, diff\n[Uprawnienia & Konta] chmod, chown, chgrp, umask, useradd, adduser, usermod, userdel, groupadd, groupdel, gpasswd, passwd, su, sudo, id, whoami, groups\n[Dyski & Woluminy]   lsblk, fdisk, blkid, parted, mkfs, mkfs.ext4, mount, umount, pvcreate, pvs, vgcreate, vgs, lvcreate, lvs, mdadm\n[Usługi & Serwery]   systemctl, service, journalctl, a2ensite, a2dissite, a2enmod, apachectl, named-checkconf, named-checkzone, testparm, smbpasswd, dhcpd, exportfs, crontab, mysqldump\n[Sieć & Bezpieczeństwo] ip, ifconfig, route, arp, ss, netstat, ping, traceroute, mtr, nslookup, dig, curl, wget, nc, nmap, iptables, ufw, fail2ban-client, openssl\n[Pakiety & Narzędzia] apt, apt-get, dpkg, tar, gzip, gunzip, which, whereis, type, hostname, hostnamectl, uname, date, uptime, df, free, nano, mysql, python3, ssh, man, clear, history\n`,
 
         'man': (a) => {
             const cmd = a[0];
-            return MAN_PAGES[cmd] || `No manual entry for ${cmd || 'command'}`;
+            return MAN_PAGES[cmd] || `No manual entry for ${cmd || 'command'}. Type 'help' to see all commands.`;
         },
 
         'clear': () => '__CLEAR__',
@@ -1644,7 +2425,8 @@
             return out;
         },
 
-        'type': (a, term) => {
+        'type': (a, term, pipeInput = '') => {
+            if (!a.length && pipeInput) return pipeInput + '\r\n';
             if (!a[0]) return 'The syntax of the command is incorrect.\r\n';
             const node = term.vfs.getNode(a[0], true);
             if (!node || node.type !== 'file') return `The system cannot find the file specified.\r\n`;
@@ -1679,9 +2461,60 @@
             return `\r\n-------------------------------------------------------------------------------\r\n   ROBOCOPY     ::     Robust File Copy for Windows                              \r\n-------------------------------------------------------------------------------\r\n  Total    Copied   Skipped  Mismatch    FAILED    Extras\r\n    Dirs :         2         2         0         0         0         0\r\n   Files :         4         4         0         0         0         0\r\n`;
         },
 
-        'echo': (a) => a.join(' ') + '\r\n',
+        'move': (a, term) => {
+            if (a.length < 2) return 'The syntax of the command is incorrect.\r\n';
+            term.vfs.copyNode(a[0], a[1], true, true);
+            term.vfs.removeNode(a[0], true, true);
+            return '        1 file(s) moved.\r\n';
+        },
+
+        'ren': (a, term) => {
+            if (a.length < 2) return 'The syntax of the command is incorrect.\r\n';
+            const node = term.vfs.getNode(a[0], true);
+            if (node) node.name = a[1];
+            return '';
+        },
+        'rename': (a, term) => WINDOWS_COMMANDS.ren(a, term),
+
+        'echo': (a, term, pipeInput = '') => {
+            if (!a.length && pipeInput) return pipeInput + '\r\n';
+            return a.join(' ') + '\r\n';
+        },
+
+        'findstr': (a, term, pipeInput = '') => {
+            const ignoreCase = a.includes('/i') || a.includes('/I');
+            const invert = a.includes('/v') || a.includes('/V');
+            const showLine = a.includes('/n') || a.includes('/N');
+            const pattern = a.find(arg => !arg.startsWith('/'))?.replace(/['"]/g, '');
+            const file = a.filter(arg => !arg.startsWith('/'))[1];
+
+            if (!pattern) return '';
+            let text = pipeInput;
+            if (file) {
+                const node = term.vfs.getNode(file, true);
+                if (node) text = node.content || '';
+            }
+
+            const regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), ignoreCase ? 'i' : '');
+            return (text || '').split('\n')
+                .map((l, i) => ({ l: l.replace(/\r$/, ''), num: i + 1, match: regex.test(l) }))
+                .filter(item => invert ? !item.match : item.match)
+                .map(item => showLine ? `${item.num}:${item.l}` : item.l)
+                .join('\r\n') + '\r\n';
+        },
+
+        'find': (a, term, pipeInput = '') => WINDOWS_COMMANDS.findstr(a, term, pipeInput),
+        'more': (a, term, pipeInput = '') => WINDOWS_COMMANDS.type(a, term, pipeInput),
+        'sort': (a, term, pipeInput = '') => LINUX_COMMANDS.sort(a, term, pipeInput),
+
         'whoami': (a, term) => `zsem-student\\${term.net.state.currentUserWin}\r\n`,
         'hostname': (a, term) => `${term.net.state.winHostname}\r\n`,
+        'ver': () => `\r\nMicrosoft Windows [Version 10.0.19045.3636]\r\n`,
+
+        'set': (a) => {
+            if (a[0]) return `\r\n${a.join(' ')}\r\n`;
+            return `\r\nALLUSERSPROFILE=C:\\ProgramData\r\nAPPDATA=C:\\Users\\Student\\AppData\\Roaming\r\nCOMPUTERNAME=ZSEM-STUDENT\r\nOS=Windows_NT\r\nPATH=C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Program Files\\PowerShell\\7\r\nPROCESSOR_ARCHITECTURE=AMD64\r\nPROMPT=$P$G\r\nSYSTEMDRIVE=C:\r\nSYSTEMROOT=C:\\Windows\r\nTEMP=C:\\Users\\Student\\AppData\\Local\\Temp\r\nUSERDOMAIN=ZSEM-STUDENT\r\nUSERNAME=Student\r\nUSERPROFILE=C:\\Users\\Student\r\nWINDIR=C:\\Windows\r\n`;
+        },
 
         'systeminfo': (a, term) => `\r\nHost Name:                 ${term.net.state.winHostname}\r\nOS Name:                   Microsoft Windows 10 Pro\r\nOS Version:                10.0.19045 N/A Build 19045\r\nDomain:                    WORKGROUP\r\nNetwork Card(s):           1 NIC(s) Installed.\r\n                           [01]: Intel(R) PRO/1000 MT Connection Name: Ethernet\r\n                                 IP address(es): ${term.net.state.ip}\r\n`,
 
@@ -1706,8 +2539,24 @@
             return out;
         },
 
-        'tracert': (a) => `\r\nTracing route to ${a[0] || '8.8.8.8'} over a maximum of 30 hops\r\n  1     2 ms     1 ms     2 ms  192.168.1.1\r\n  2     8 ms     7 ms     8 ms  10.0.0.1\r\n  3    16 ms    16 ms    16 ms  ${a[0] || '8.8.8.8'}\r\nTrace complete.\r\n`,
-        'pathping': (a) => `\r\nTracing route to ${a[0] || '8.8.8.8'} over a maximum of 30 hops\r\n  0  ZSEM-STUDENT [192.168.1.100]\r\n  1  192.168.1.1\r\n  2  ${a[0] || '8.8.8.8'}\r\n\r\nComputing statistics for 50 seconds...\r\n            Source to Here   This Node/Link\r\nHop  RTT    Lost/Sent = Pct  Lost/Sent = Pct  Address\r\n  0                                           ZSEM-STUDENT [192.168.1.100]\r\n                                0/ 100 =  0%   |\r\n  1    2ms     0/ 100 =  0%     0/ 100 =  0%  192.168.1.1\r\n                                0/ 100 =  0%   |\r\n  2   14ms     0/ 100 =  0%     0/ 100 =  0%  ${a[0] || '8.8.8.8'}\r\n\r\nTrace complete.\r\n`,
+        'tracert': (a) => {
+            const host = a.find(arg => !arg.startsWith('-')) || '8.8.8.8';
+            return `\r\nTracing route to ${host} [${host}]\r\nover a maximum of 30 hops:\r\n\r\n  1    <1 ms    <1 ms    <1 ms  192.168.1.1\r\n  2     4 ms     4 ms     3 ms  10.100.0.1\r\n  3     9 ms     8 ms     9 ms  ${host}\r\n\r\nTrace complete.\r\n`;
+        },
+        'pathping': (a) => WINDOWS_COMMANDS.tracert(a),
+
+        'getmac': (a, term) => `\r\nPhysical Address    Transport Name\r\n=================== ==========================================================\r\n${term.net.state.mac.replace(/:/g, '-')}   \\Device\\Tcpip_{8F64B79A-12E4-42D9-8F7C-902315AB56CD}\r\n`,
+
+        'netstat': () => `\r\nActive Connections\r\n  Proto  Local Address          Foreign Address        State           PID\r\n  TCP    0.0.0.0:80             0.0.0.0:0              LISTENING       1450\r\n  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       840\r\n  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING       4\r\n  TCP    0.0.0.0:3389           0.0.0.0:0              LISTENING       940\r\n  TCP    192.168.1.100:49712    142.250.187.195:443    ESTABLISHED     2140\r\n`,
+        'arp': () => `\r\nInterface: 192.168.1.100 --- 0x4\r\n  Internet Address      Physical Address      Type\r\n  192.168.1.1           00-50-56-c0-00-01     dynamic\r\n  192.168.1.255         ff-ff-ff-ff-ff-ff     static\r\n`,
+
+        'route': (a) => {
+            const sub = a[0]?.toLowerCase();
+            if (sub === 'print' || !a.length) {
+                return `\r\n===========================================================================\r\nIPv4 Route Table\r\n===========================================================================\r\nActive Routes:\r\nNetwork Destination        Netmask          Gateway       Interface  Metric\r\n          0.0.0.0          0.0.0.0      192.168.1.1    192.168.1.100     25\r\n        127.0.0.0        255.0.0.0         On-link         127.0.0.1    331\r\n      192.168.1.0    255.255.255.0         On-link     192.168.1.100    281\r\n===========================================================================\r\n`;
+            }
+            return `\r\n OK!\r\n`;
+        },
 
         'nslookup': (a, term) => {
             if (!a.length) {
@@ -1723,49 +2572,90 @@
             return `\r\nServer:  UnKnown\r\nAddress:  ${server}\r\n\r\nNon-authoritative answer:\r\nName:    ${host}\r\nAddress:  ${ip}\r\n`;
         },
 
-        'getmac': (a, term) => `\r\nPhysical Address    Transport Name\r\n=================== ==========================================================\r\n${term.net.state.mac.replace(/:/g, '-')}   \\Device\\Tcpip_{8F64B79A-12E4-42D9-8F7C-902315AB56CD}\r\n`,
-
-        'netstat': (a) => `\r\nActive Connections\r\n  Proto  Local Address          Foreign Address        State           PID\r\n  TCP    0.0.0.0:80             0.0.0.0:0              LISTENING       1450\r\n  TCP    0.0.0.0:135            0.0.0.0:0              LISTENING       840\r\n  TCP    0.0.0.0:445            0.0.0.0:0              LISTENING       4\r\n  TCP    0.0.0.0:3389           0.0.0.0:0              LISTENING       940\r\n  TCP    192.168.1.100:49712    142.250.187.195:443    ESTABLISHED     2140\r\n`,
-        'arp': (a) => `\r\nInterface: 192.168.1.100 --- 0x4\r\n  Internet Address      Physical Address      Type\r\n  192.168.1.1           00-50-56-c0-00-01     dynamic\r\n  192.168.1.255         ff-ff-ff-ff-ff-ff     static\r\n`,
-
-        'route': (a) => {
-            const sub = a[0]?.toLowerCase();
-            if (sub === 'print' || !a.length) {
-                return `\r\n===========================================================================\r\nIPv4 Route Table\r\n===========================================================================\r\nActive Routes:\r\nNetwork Destination        Netmask          Gateway       Interface  Metric\r\n          0.0.0.0          0.0.0.0      192.168.1.1    192.168.1.100     25\r\n        127.0.0.0        255.0.0.0         On-link         127.0.0.1    331\r\n      192.168.1.0    255.255.255.0         On-link     192.168.1.100    281\r\n===========================================================================\r\n`;
-            }
-            return `\r\n OK!\r\n`;
-        },
-
         'attrib': (a) => a.length ? '' : `A            C:\\Users\\Student\\desktop.ini\r\nA            C:\\Users\\Student\\notes.txt\r\n`,
         'tree': () => `Folder PATH listing for volume Windows\r\nVolume serial number is A894-32FC\r\nC:.\r\n├───Documents\r\n├───Downloads\r\n└───Desktop\r\n`,
         'icacls': (a) => `\r\n${a[0] || 'C:\\Dane'} NT AUTHORITY\\SYSTEM:(I)(OI)(CI)(F)\r\n               BUILTIN\\Administrators:(I)(OI)(CI)(F)\r\n               BUILTIN\\Users:(I)(OI)(CI)(RX)\r\nSuccessfully processed 1 files; Failed processing 0 files\r\n`,
+        'cipher': (a) => `\r\n Listing C:\\Dane\\\r\n New files added to this directory will not be encrypted.\r\n\r\nU dane.txt\r\nU raport.docx\r\n`,
+        'assoc': (a) => a[0] ? `${a[0]}=txtfile\r\n` : `.bat=batfile\r\n.cmd=cmdfile\r\n.docx=Word.Document.12\r\n.exe=exefile\r\n.ps1=Microsoft.PowerShellScript.1\r\n.txt=txtfile\r\n`,
+        'ftype': (a) => a[0] ? `${a[0]}=%SystemRoot%\\system32\\NOTEPAD.EXE %1\r\n` : `txtfile=%SystemRoot%\\system32\\NOTEPAD.EXE %1\r\n`,
 
-        'move': (a, term) => {
-            if (a.length < 2) return 'The syntax of the command is incorrect.\r\n';
-            term.vfs.copyNode(a[0], a[1], true, true);
-            term.vfs.removeNode(a[0], true, true);
-            return '        1 file(s) moved.\r\n';
+        // ── Windows Service & Net Control ──
+        'sc': (a, term) => {
+            const action = a[0]?.toLowerCase();
+            const service = (a[1] || 'w3svc').toLowerCase();
+            const svcs = term.net.state.services;
+
+            if (action === 'query') {
+                const s = svcs[service];
+                const running = s && s.status === 'RUNNING';
+                return `\r\nSERVICE_NAME: ${service}\r\n        TYPE               : 10  WIN32_OWN_PROCESS\r\n        STATE              : ${running ? '4  RUNNING' : '1  STOPPED'}\r\n        WIN32_EXIT_CODE    : 0  (0x0)\r\n        SERVICE_EXIT_CODE  : 0  (0x0)\r\n        CHECKPOINT         : 0x0\r\n        WAIT_HINT          : 0x0\r\n`;
+            }
+            if (action === 'qc') {
+                return `\r\n[SC] QueryServiceConfig SUCCESS\r\n\r\nSERVICE_NAME: ${service}\r\n        TYPE               : 10  WIN32_OWN_PROCESS\r\n        START_TYPE         : 2   AUTO_START\r\n        ERROR_CONTROL      : 1   NORMAL\r\n        BINARY_PATH_NAME   : C:\\Windows\\System32\\svchost.exe -k iissvc\r\n        LOAD_ORDER_GROUP   :\r\n        TAG                : 0\r\n        DISPLAY_NAME       : World Wide Web Publishing Service\r\n        DEPENDENCIES       : WAS\r\n        SERVICE_START_NAME : LocalSystem\r\n`;
+            }
+            if (action === 'start') {
+                if (svcs[service]) svcs[service].status = 'RUNNING';
+                term.net.save();
+                return `\r\nSERVICE_NAME: ${service}\r\n        STATE              : 4  RUNNING\r\n`;
+            }
+            if (action === 'stop') {
+                if (svcs[service]) svcs[service].status = 'STOPPED';
+                term.net.save();
+                return `\r\nSERVICE_NAME: ${service}\r\n        STATE              : 1  STOPPED\r\n`;
+            }
+            if (action === 'config') {
+                return `\r\n[SC] ChangeServiceConfig SUCCESS\r\n`;
+            }
+            return `\r\nDESCRIPTION:\r\n        SC is a command line program used for communicating with the NT Service Controller.\r\nUSAGE:\r\n        sc <server> [command] [service name] <option1> <option2>...\r\n`;
         },
 
-        'ren': (a, term) => {
-            if (a.length < 2) return 'The syntax of the command is incorrect.\r\n';
-            const node = term.vfs.getNode(a[0], true);
-            if (node) node.name = a[1];
-            return '';
+        'net': (a, term) => {
+            const sub = a[0]?.toLowerCase();
+            const svcs = term.net.state.services;
+
+            if (sub === 'start') {
+                const srv = (a[1] || 'w3svc').toLowerCase();
+                if (svcs[srv]) svcs[srv].status = 'RUNNING';
+                term.net.save();
+                return `\r\nThe ${a[1] || 'service'} service was started successfully.\r\n`;
+            }
+            if (sub === 'stop') {
+                const srv = (a[1] || 'w3svc').toLowerCase();
+                if (svcs[srv]) svcs[srv].status = 'STOPPED';
+                term.net.save();
+                return `\r\nThe ${a[1] || 'service'} service was stopped successfully.\r\n`;
+            }
+            if (sub === 'user') {
+                if (a[1] && a.includes('/add')) return `\r\nThe command completed successfully.\r\n`;
+                if (a[1] && a.includes('/delete')) return `\r\nThe command completed successfully.\r\n`;
+                return `\r\nUser accounts for \\\\ZSEM-STUDENT\r\n-------------------------------------------------------------------------------\r\nAdministrator            DefaultAccount           Guest            student\r\nThe command completed successfully.\r\n`;
+            }
+            if (sub === 'localgroup') return `\r\nAliases for \\\\ZSEM-STUDENT\r\n-------------------------------------------------------------------------------\r\n*Administrators          *Users                   *Remote Desktop Users\r\nThe command completed successfully.\r\n`;
+            if (sub === 'share') return `\r\nShare name   Resource                        Remark\r\n-------------------------------------------------------------------------------\r\nC$           C:\\                             Default share\r\nADMIN$       C:\\Windows                      Remote Admin\r\nDane         C:\\Dane\r\nThe command completed successfully.\r\n`;
+            if (sub === 'use') return `\r\nStatus       Local     Remote                    Network\r\n-------------------------------------------------------------------------------\r\nOK           Z:        \\\\192.168.1.100\\Dane      Microsoft Windows Network\r\nThe command completed successfully.\r\n`;
+            if (sub === 'accounts') return `\r\nForce user logoff how long after time expires?:       Never\r\nMinimum password age (days):                          0\r\nMaximum password age (days):                          42\r\nMinimum password length:                              7\r\nLength of password history maintained:                24\r\nLockout threshold:                                    5\r\nThe command completed successfully.\r\n`;
+            return `\r\nNET command executed successfully.\r\n`;
         },
-        'rename': (a, term) => WINDOWS_COMMANDS.ren(a, term),
 
         'netsh': (a, term) => {
             const str = a.join(' ').toLowerCase();
             const net = term.net.state;
 
-            if (str.includes('interface ip set address')) {
+            if (str.includes('interface ip set address') || str.includes('int ip set addr')) {
                 const staticIdx = a.findIndex(p => p.toLowerCase() === 'static');
                 if (staticIdx !== -1 && a[staticIdx + 1]) {
                     net.ip = a[staticIdx + 1];
                     if (a[staticIdx + 2]) net.netmask = a[staticIdx + 2];
                     if (a[staticIdx + 3]) net.gateway = a[staticIdx + 3];
                     net.dhcp = false;
+                    term.net.save();
+                    return '\r\nOk.\r\n';
+                }
+            }
+            if (str.includes('interface ip set dns') || str.includes('int ip set dns')) {
+                const staticIdx = a.findIndex(p => p.toLowerCase() === 'static');
+                if (staticIdx !== -1 && a[staticIdx + 1]) {
+                    net.dns = [a[staticIdx + 1]];
                     term.net.save();
                     return '\r\nOk.\r\n';
                 }
@@ -1786,34 +2676,39 @@
             return '\r\nOk.\r\n';
         },
 
-        'net': (a) => {
-            const sub = a[0]?.toLowerCase();
-            if (sub === 'user') {
-                if (a[1] && a.includes('/add')) return `\r\nThe command completed successfully.\r\n`;
-                return `\r\nUser accounts for \\\\ZSEM-STUDENT\r\n-------------------------------------------------------------------------------\r\nAdministrator            DefaultAccount           Guest            student\r\nThe command completed successfully.\r\n`;
-            }
-            if (sub === 'localgroup') return `\r\nAliases for \\\\ZSEM-STUDENT\r\n-------------------------------------------------------------------------------\r\n*Administrators          *Users\r\nThe command completed successfully.\r\n`;
-            if (sub === 'share') return `\r\nShare name   Resource                        Remark\r\n-------------------------------------------------------------------------------\r\nC$           C:\\                             Default share\r\nDane         C:\\Dane\r\nThe command completed successfully.\r\n`;
-            return `\r\nNET command executed successfully.\r\n`;
-        },
+        'tasklist': () => `\r\nImage Name                     PID Session Name        Session#    Mem Usage\r\n========================= ======== ================ =========== ============\r\nSystem Idle Process              0 Services                   0          8 K\r\nSystem                           4 Services                   0        140 K\r\nsvchost.exe                    840 Services                   0     18,400 K\r\nexplorer.exe                  2140 Console                    1     84,200 K\r\ncmd.exe                       3410 Console                    1      4,820 K\r\nw3wp.exe                      1450 Services                   0     45,000 K\r\n`,
+        'taskkill': (a) => `\r\nSUCCESS: Sent termination signal to process with PID ${a.find(arg => /^\d+$/.test(arg)) || '1450'}.\r\n`,
+        'driverquery': () => `\r\nModule Name  Display Name           Driver Type   Link Date\r\n============ ====================== ============= ======================\r\ne1i65x64     Intel(R) PRO/1000      Kernel        17.08.2026 08:00:00\r\npartmgr      Partition Driver       Kernel        17.08.2026 08:00:00\r\nvolmgr       Volume Manager Driver  Kernel        17.08.2026 08:00:00\r\n`,
+        'shutdown': () => `\r\nThe system is scheduled to shut down.\r\n`,
 
-        'tasklist': () => `\r\nImage Name                     PID Session Name        Session#    Mem Usage\r\n========================= ======== ================ =========== ============\r\nexplorer.exe                  2140 Console                    1     84,200 K\r\ncmd.exe                       3410 Console                    1      4,820 K\r\nsvchost.exe                    840 Services                   0     18,400 K\r\n`,
-        'taskkill': (a) => `\r\nSUCCESS: Sent termination signal to process with PID ${a[1] || '1234'}.\r\n`,
-        'sfc': () => `\r\nVerification 100% complete.\r\nWindows Resource Protection did not find any integrity violations.\r\n`,
-        'chkdsk': () => `\r\nWindows has scanned the file system and found no problems.\r\nNo further action is required.\r\n`,
-        'dism': () => `\r\n[==========================100.0%==========================]\r\nThe restore operation completed successfully.\r\nThe operation completed successfully.\r\n`,
+        'sfc': () => `\r\nBeginning system scan. This process will take some time.\r\nBeginning verification phase of system scan.\r\nVerification 100% complete.\r\nWindows Resource Protection did not find any integrity violations.\r\n`,
+        'chkdsk': () => `\r\nThe type of the file system is NTFS.\r\nVolume label is Windows.\r\nWindows has scanned the file system and found no problems.\r\nNo further action is required.\r\n`,
+        'dism': () => `\r\nDeployment Image Servicing and Management tool\r\nVersion: 10.0.19041.3636\r\nImage Version: 10.0.19045.3636\r\n[==========================100.0%==========================]\r\nThe restore operation completed successfully.\r\nThe operation completed successfully.\r\n`,
         'gpupdate': () => `\r\nUpdating policy...\r\n\r\nComputer Policy update has completed successfully.\r\nUser Policy update has completed successfully.\r\n`,
         'gpresult': () => `\r\nMicrosoft (R) Windows (R) Operating System Group Policy Result Tool v2.0\r\nUSER SETTINGS\r\n--------------\r\n    Applied Group Policy Objects\r\n    ----------------------------\r\n        Default Domain Policy\r\n        ZSEM School Policy\r\n`,
 
-        'iisreset': () => `\r\nAttempting stop...\r\nInternet services successfully stopped\r\nAttempting start...\r\nInternet services successfully restarted\r\n`,
-        'appcmd': () => `\r\nSITE "Default Web Site" (id:1,bindings:http/*:80:,state:Started)\r\n`,
-        'dnscmd': () => `\r\nEnumerated zone list:\r\n  Zone name                      Type       Storage         Status\r\n  zsem.local                     Primary    File            Running\r\nCommand completed successfully.\r\n`,
+        'reg': (a) => {
+            if (a.includes('query')) return `\r\nHKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\r\n    ProgramFilesDir    REG_SZ    C:\\Program Files\r\n    CommonFilesDir     REG_SZ    C:\\Program Files\\Common Files\r\n`;
+            return `\r\nThe operation completed successfully.\r\n`;
+        },
+        'certutil': (a) => {
+            const f = a.find(arg => !arg.startsWith('-') && !['md5', 'sha1', 'sha256'].includes(arg.toLowerCase())) || 'plik.txt';
+            return `\r\nSHA256 hash of ${f}:\r\n9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08\r\nCertUtil: -hashfile command completed successfully.\r\n`;
+        },
 
+        'iisreset': () => `\r\nAttempting stop...\r\nInternet services successfully stopped\r\nAttempting start...\r\nInternet services successfully restarted\r\n`,
+        'appcmd': () => `\r\nSITE "Default Web Site" (id:1,bindings:http/*:80:,state:Started)\r\nAPP "Default Web Site/" (applicationPool:DefaultAppPool)\r\n`,
+        'dnscmd': () => `\r\nEnumerated zone list:\r\n  Zone name                      Type       Storage         Status\r\n  zsem.local                     Primary    File            Running\r\nCommand completed successfully.\r\n`,
+        'dsadd': (a) => `\r\ndsadd succeeded: ${a.join(' ')}\r\n`,
+        'chcp': (a) => a[0] ? `Active code page: ${a[0]}\r\n` : `Active code page: 852\r\n`,
+        'where': (a) => `C:\\Windows\\System32\\${a[0] || 'cmd'}.exe\r\n`,
+
+        // ── Sub-Shells ──
         'powershell': (a, term) => {
             if (!a.length) {
                 term.currentSubShell = 'powershell';
                 term.subShellEngine = new PowerShellEngine(term);
-                return 'PowerShell 7.3.0\r\nLoading personal and system profiles took 240ms.\r\n';
+                return 'PowerShell 7.3.0\r\nLoading personal and system profiles took 240ms.\r\nPS C:\\Users\\Student> ';
             }
             const engine = new PowerShellEngine(term);
             return engine.execute(a.join(' ')).output;
@@ -1823,19 +2718,10 @@
         'diskpart': (a, term) => {
             term.currentSubShell = 'diskpart';
             term.subShellEngine = new DiskpartShell();
-            return '\r\nMicrosoft DiskPart version 10.0.19041.3636\r\nCopyright (C) Microsoft Corporation.\r\nOn computer: ZSEM-STUDENT\r\n';
+            return '\r\nMicrosoft DiskPart version 10.0.19041.3636\r\nCopyright (C) Microsoft Corporation.\r\nOn computer: ZSEM-STUDENT\r\n\r\nDISKPART> ';
         },
 
-        'tracert': (a) => {
-            const host = a.find(arg => !arg.startsWith('-')) || '8.8.8.8';
-            return `\r\nTracing route to ${host} [${host}]\r\nover a maximum of 30 hops:\r\n\r\n  1    <1 ms    <1 ms    <1 ms  192.168.1.1\r\n  2     4 ms     4 ms     3 ms  10.100.0.1\r\n  3     9 ms     8 ms     9 ms  ${host}\r\n\r\nTrace complete.\r\n`;
-        },
-        'dsadd': (a) => {
-            if (a.length < 2) return 'dsadd failed: insufficient parameters.\r\n';
-            return `dsadd succeeded: ${a.join(' ')}\r\n`;
-        },
-        'chcp': (a) => a[0] ? `Active code page: ${a[0]}\r\n` : `Active code page: 852\r\n`,
-        'where': (a) => `C:\\Windows\\System32\\${a[0] || 'cmd'}.exe\r\n`
+        'help': () => `\r\nDostepne polecenia powloki Windows CMD & PowerShell (CKE):\r\n\r\n[Pliki & Katalogi]   dir, cd, chdir, md, mkdir, rd, del, erase, copy, xcopy, robocopy, move, ren, rename, type, more, tree, attrib, icacls, cipher, assoc, ftype\r\n[Wyszukiwanie]       findstr, find, sort, where\r\n[Siec & Diagnostyka] ipconfig, ping, tracert, pathping, getmac, netstat, arp, route, nslookup, netsh\r\n[Uslugi & System]    sc, net (start, stop, user, localgroup, share, use, accounts), tasklist, taskkill, driverquery, shutdown, sfc, chkdsk, dism, gpupdate, gpresult, reg, certutil, systeminfo, ver, hostname, whoami, set, chcp\r\n[Serwery & AD]       iisreset, appcmd, dnscmd, dsadd\r\n[Powloki & Narzedzia] powershell, pwsh, diskpart, cls, clear, exit\r\n`
     };
 
     // ════════════════════════════════════════════════════════════════════════════
@@ -1847,6 +2733,9 @@
         'cd': 'CD(1) - Zmiana bieżącego katalogu roboczego\n\nSKŁADNIA:\n  cd [KATALOG]\n\nPRZYKŁADY:\n  cd ~          przejście do katalogu domowego (/home/student)\n  cd ..         przejście katalog wyżej\n  cd /var/www   ścieżka bezwzględna',
         'chmod': 'CHMOD(1) - Zmiana uprawnień dostępu do plików/katalogów\n\nSKŁADNIA:\n  chmod [OPCJE]... TRYB[,TRYB]... PLIK...\n\nFORMAT NUMERYCZNY:\n  4 = Odczyt (r), 2 = Zapis (w), 1 = Wykonanie (x)\n\nPRZYKŁADY CKE:\n  chmod 750 skrypt.sh   (rwxr-x--- : właściciel pełne, grupa r+x, inni brak)\n  chmod 644 plik.conf   (rw-r--r-- : standardowe dla plików konfiguracyjnych)\n  chmod -R 775 /var/www (rekurencyjnie)',
         'chown': 'CHOWN(1) - Zmiana właściciela i grupy pliku\n\nSKŁADNIA:\n  chown [OPCJE]... WŁAŚCICIEL[:GRUPA] PLIK...\n\nPRZYKŁADY CKE:\n  chown student:www-data /var/www/html -R\n  chown root:shadow /etc/shadow',
+        'ps': 'PS(1) - Raportowanie bieżących procesów systemowych\n\nSKŁADNIA:\n  ps aux | ps -ef\n\nPRZYKŁADY:\n  ps aux | grep apache2\n  ps -u student',
+        'kill': 'KILL(1) - Wysyłanie sygnałów do procesów (zakańczanie)\n\nSKŁADNIA:\n  kill [-SYGNAŁ] PID...\n\nPRZYKŁADY:\n  kill 1420       (SIGTERM - łagodne zatrzymanie)\n  kill -9 1420    (SIGKILL - natychmiastowe wymuszenie)',
+        'grep': 'GREP(1) - Wyszukiwanie wzorców tekstowych\n\nSKŁADNIA:\n  grep [OPCJE]... WZORZEC [PLIK]...\n\nOPCJE:\n  -i    ignorowanie wielkości liter\n  -v    odwrócenie dopasowania (wiersze niezawierające wzorca)\n  -n    wyświetlanie numerów wierszy\n  -c    zliczanie wystąpień',
         'systemctl': 'SYSTEMCTL(1) - Zarządzanie usługami systemd\n\nKOMENDY:\n  start USŁUGA     uruchamia usługę\n  stop USŁUGA      zatrzymuje usługę\n  restart USŁUGA   restartuje usługę po zmianie konfiguracji\n  status USŁUGA    sprawdza stan aktywności i ostatnie błędy\n  enable USŁUGA    włącza autostart przy starcie systemu\n  disable USŁUGA   wyłącza autostart',
         'apache2ctl': 'APACHE2CTL(8) - Narzędzie diagnostyczne serwera Apache2\n\nKOMENDY:\n  configtest, -t   weryfikuje poprawność składniową plików w /etc/apache2\n  graceful         przeładowuje konfigurację bez zrywania sesji',
         'iptables': 'IPTABLES(8) - Zapora sieciowa i translacja adresów (NAT)\n\nPRZYKŁADY CKE:\n  iptables -A INPUT -p tcp --dport 80 -j ACCEPT\n  iptables -A INPUT -p tcp --dport 22 -s 192.168.1.0/24 -j ACCEPT\n  iptables -A INPUT -j DROP\n  iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE',
@@ -1860,7 +2749,10 @@
         'fail2ban-client': 'FAIL2BAN-CLIENT(1) - Zarządzanie demonem blokowania brute-force\n\nKOMENDY:\n  fail2ban-client status sshd\n  fail2ban-client set sshd banip 198.51.100.44\n  fail2ban-client set sshd unbanip 198.51.100.44',
         'mysqldump': 'MYSQLDUMP(1) - Eksport bazy danych do pliku SQL\n\nSKŁADNIA:\n  mysqldump -u root -p nazwa_bazy > kopia.sql\n\nODTWORZENIE:\n  mysql -u root -p nowa_baza < kopia.sql',
         'traceroute': 'TRACEROUTE(8) - Śledzenie trasy pakietów IP do hosta docelowego\n\nSKŁADNIA:\n  traceroute google.pl   (Windows: tracert google.pl)',
-        'tar': 'TAR(1) - Archiwizacja i kompresja plików\n\nPRZYKŁADY:\n  tar -czvf backup.tar.gz /var/www\n  tar -xzvf backup.tar.gz -C /opt'
+        'tar': 'TAR(1) - Archiwizacja i kompresja plików\n\nPRZYKŁADY:\n  tar -czvf backup.tar.gz /var/www\n  tar -xzvf backup.tar.gz -C /opt',
+        'sc': 'SC(1) - Service Control - Zarządzanie usługami Windows\n\nPRZYKŁADY:\n  sc query w3svc\n  sc start w3svc\n  sc stop w3svc\n  sc config w3svc start= auto',
+        'diskpart': 'DISKPART(8) - Zarządzanie dyskami, partycjami i woluminami Windows\n\nPRZYKŁADY:\n  list disk -> select disk 1 -> clean -> create partition primary -> format fs=ntfs quick -> assign letter=E',
+        'help': 'HELP - Wyświetla zwięzłe podsumowanie dostępnych poleceń'
     };
 
     // ════════════════════════════════════════════════════════════════════════════
@@ -3048,6 +3940,210 @@
                     validate: (cmd) => /(ip\s+route\s+add|route\s+add).*10\.50\.0\.0/i.test(cmd)
                 }
             ]
+        },
+        {
+            id: 'inf02_process_mgmt',
+            title: 'Monitorowanie i zakańczanie procesów systemowych',
+            cat: 'inf02_admin',
+            catLabel: 'INF.02 Systemy',
+            badgeColor: 'info',
+            stars: '★★☆',
+            xp: 30,
+            os: 'linux',
+            desc: 'Przeanalizuj listę działających procesów, zlokalizuj proces serwera Apache2 i wyślij sygnał zakończenia działania.',
+            steps: [
+                {
+                    task: 'Wyświetl listę procesów i odfiltruj procesy serwera apache2 (ps aux | grep apache2)',
+                    ckeDesc: 'Wyszukiwanie identyfikatora PID i zużycia zasobów konkretnego procesu w systemie Linux.',
+                    syntaxHint: 'ps aux | grep apache2',
+                    hint: 'Wpisz `ps aux | grep apache2` lub `ps -ef | grep apache2`.',
+                    validate: (cmd) => /ps.*grep.*apache/i.test(cmd) || /ps\s+(aux|-ef)/i.test(cmd)
+                },
+                {
+                    task: 'Zakończ proces serwera Apache2 za pomocą polecenia kill, pkill lub killall',
+                    ckeDesc: 'Zatrzymanie procesu poprzez wysłanie sygnału do procesu na podstawie PID lub nazwy.',
+                    syntaxHint: 'kill 1420   LUB   pkill apache2   LUB   killall apache2',
+                    hint: 'Wpisz `kill 1420`, `pkill apache2` lub `killall apache2`.',
+                    validate: (cmd) => /^(kill|pkill|killall)/i.test(cmd)
+                },
+                {
+                    task: 'Zweryfikuj stan usługi serwera www (systemctl status apache2)',
+                    ckeDesc: 'Weryfikacja czy usługa przeszła w stan inactive (dead).',
+                    syntaxHint: 'systemctl status apache2',
+                    hint: 'Wpisz `systemctl status apache2`.',
+                    validate: (cmd) => /systemctl\s+status\s+apache2|service\s+apache2\s+status/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_archive_backup',
+            title: 'Tworzenie i weryfikacja skompresowanego archiwum tar.gz',
+            cat: 'inf02_admin',
+            catLabel: 'INF.02 Systemy',
+            badgeColor: 'info',
+            stars: '★★☆',
+            xp: 35,
+            os: 'linux',
+            desc: 'Utwórz archiwum kopii zapasowej katalogu /var/www skompresowane algorytmem gzip, a następnie wyświetl jego zawartość.',
+            steps: [
+                {
+                    task: 'Utwórz skompresowane archiwum: tar -czvf backup_www.tar.gz /var/www',
+                    ckeDesc: 'Tworzenie archiwum tar z kompresją gzip na potrzeby kopii bezpieczeństwa.',
+                    syntaxHint: 'tar -czvf backup_www.tar.gz /var/www',
+                    hint: 'Wpisz `tar -czvf backup_www.tar.gz /var/www`.',
+                    validate: (cmd) => /tar\s+.*c.*z.*f.*backup_www/i.test(cmd) || /tar\s+-(czvf|czf)\s+backup_www/i.test(cmd)
+                },
+                {
+                    task: 'Wyświetl spis plików zawartych w archiwum bez jego rozpakowywania (tar -tvf backup_www.tar.gz)',
+                    ckeDesc: 'Testowanie integralności i podgląd nagłówków plików w archiwum tar.',
+                    syntaxHint: 'tar -tvf backup_www.tar.gz',
+                    hint: 'Wpisz `tar -tvf backup_www.tar.gz` lub `tar -ztvf backup_www.tar.gz`.',
+                    validate: (cmd) => /tar\s+.*t.*f/i.test(cmd)
+                },
+                {
+                    task: 'Sprawdź szczegóły i rozmiar utworzonego pliku archiwum (ls -lh backup_www.tar.gz)',
+                    ckeDesc: 'Odczyt atrybutów pliku w czytelnym formacie jednostek (human-readable).',
+                    syntaxHint: 'ls -lh backup_www.tar.gz',
+                    hint: 'Wpisz `ls -lh backup_www.tar.gz`.',
+                    validate: (cmd) => /ls\s+.*backup_www/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_win_firewall_netsh',
+            title: 'Konfiguracja zapory sieciowej Windows przez netsh',
+            cat: 'inf02_net',
+            catLabel: 'INF.02 Sieci',
+            badgeColor: 'primary',
+            stars: '★★☆',
+            xp: 30,
+            os: 'windows',
+            desc: 'Sprawdź stan profili Windows Defender Firewall, włącz ochronę dla wszystkich profili i dodaj regułę blokującą port 8080.',
+            steps: [
+                {
+                    task: 'Wyświetl stan profili zapory sieciowej (netsh advfirewall show allprofiles)',
+                    ckeDesc: 'Odczyt stanu profili Domain, Private i Public w zaporze Windows.',
+                    syntaxHint: 'netsh advfirewall show allprofiles',
+                    hint: 'Wpisz `netsh advfirewall show allprofiles`.',
+                    validate: (cmd) => /netsh\s+advfirewall\s+show\s+allprofiles/i.test(cmd)
+                },
+                {
+                    task: 'Włącz zaporę dla wszystkich profili (netsh advfirewall set allprofiles state on)',
+                    ckeDesc: 'Globalne uruchomienie filtrowania pakietów we wszystkich profilach sieciowych.',
+                    syntaxHint: 'netsh advfirewall set allprofiles state on',
+                    hint: 'Wpisz `netsh advfirewall set allprofiles state on`.',
+                    validate: (cmd) => /netsh\s+advfirewall\s+set\s+allprofiles\s+state\s+on/i.test(cmd)
+                },
+                {
+                    task: 'Dodaj regułę blokującą ruch przychodzący na porcie TCP 8080: netsh advfirewall firewall add rule name="Blokada_8080" dir=in action=block protocol=TCP localport=8080',
+                    ckeDesc: 'Definiowanie reguły blokującej niestandardowy port w systemie Windows.',
+                    syntaxHint: 'netsh advfirewall firewall add rule name="Blokada_8080" dir=in action=block protocol=TCP localport=8080',
+                    hint: 'Wklej lub wpisz regułę dodającą wpis blokujący.',
+                    validate: (cmd) => /netsh\s+advfirewall\s+firewall\s+add\s+rule.*8080/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_pipeline_cut_sort',
+            title: 'Zaawansowane przetwarzanie tekstu w potokach (cut, sort, uniq)',
+            cat: 'inf02_admin',
+            catLabel: 'INF.02 Systemy',
+            badgeColor: 'info',
+            stars: '★★★',
+            xp: 35,
+            os: 'linux',
+            desc: 'Wyodrębnij nazwy kont z pliku /etc/passwd, posortuj je alfabetycznie i zlicz liczbę nieudanych logowań w pliku auth.log.',
+            steps: [
+                {
+                    task: 'Wyodrębnij tylko nazwy użytkowników (pierwszą kolumnę) z /etc/passwd: cat /etc/passwd | cut -d: -f1',
+                    ckeDesc: 'Dzielenie tekstu separatorem dwukropka i selekcja kolumny 1 w systemie Linux.',
+                    syntaxHint: 'cat /etc/passwd | cut -d: -f1   LUB   cut -d: -f1 /etc/passwd',
+                    hint: 'Wpisz `cat /etc/passwd | cut -d: -f1` lub `cut -d: -f1 /etc/passwd`.',
+                    validate: (cmd) => /(cat.*passwd.*\|.*cut|cut\s+-d:.*passwd)/i.test(cmd)
+                },
+                {
+                    task: 'Posortuj nazwy użytkowników alfabetycznie: cat /etc/passwd | cut -d: -f1 | sort',
+                    ckeDesc: 'Łączenie narzędzi potokiem (pipe) w celu sortowania strumienia tekstowego.',
+                    syntaxHint: 'cat /etc/passwd | cut -d: -f1 | sort',
+                    hint: 'Wpisz `cat /etc/passwd | cut -d: -f1 | sort`.',
+                    validate: (cmd) => /cut.*\|.*sort/i.test(cmd)
+                },
+                {
+                    task: 'Zlicz liczbę wierszy z błędnymi logowaniami w logu: grep "Failed" /var/log/auth.log | wc -l',
+                    ckeDesc: 'Filtrowanie zdarzeń bezpieczeństwa i zliczanie wystąpień poleceniem wc.',
+                    syntaxHint: 'grep "Failed" /var/log/auth.log | wc -l   LUB   grep -c "Failed" /var/log/auth.log',
+                    hint: 'Wpisz `grep "Failed" /var/log/auth.log | wc -l` lub `grep -c "Failed" /var/log/auth.log`.',
+                    validate: (cmd) => /(grep.*Failed.*wc|grep\s+-c.*Failed|grep.*auth\.log.*wc)/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf02_win_service_sc',
+            title: 'Zarządzanie usługami Windows CMD (sc & net)',
+            cat: 'inf02_admin',
+            catLabel: 'INF.02 Systemy',
+            badgeColor: 'info',
+            stars: '★☆☆',
+            xp: 25,
+            os: 'windows',
+            desc: 'Sprawdź stan usługi World Wide Web (w3svc), zatrzymaj ją poleceniem net stop i ustaw tryb uruchamiania na automatyczny.',
+            steps: [
+                {
+                    task: 'Wyświetl stan usługi serwera WWW: sc query w3svc',
+                    ckeDesc: 'Odpytanie menedżera usług Service Control o stan usługi w3svc.',
+                    syntaxHint: 'sc query w3svc',
+                    hint: 'Wpisz `sc query w3svc`.',
+                    validate: (cmd) => /sc\s+query\s+w3svc/i.test(cmd)
+                },
+                {
+                    task: 'Zatrzymaj usługę serwera WWW: net stop w3svc (lub sc stop w3svc)',
+                    ckeDesc: 'Wstrzymanie działania usługi sieciowej w Windows.',
+                    syntaxHint: 'net stop w3svc   LUB   sc stop w3svc',
+                    hint: 'Wpisz `net stop w3svc` lub `sc stop w3svc`.',
+                    validate: (cmd) => /(net|sc)\s+stop\s+w3svc/i.test(cmd)
+                },
+                {
+                    task: 'Skonfiguruj automatyczny start usługi przy rozruchu: sc config w3svc start= auto',
+                    ckeDesc: 'Modyfikacja typu uruchomienia usługi w rejestrze systemu Windows.',
+                    syntaxHint: 'sc config w3svc start= auto',
+                    hint: 'Wpisz `sc config w3svc start= auto` (zwróć uwagę na spację po znaku równości).',
+                    validate: (cmd) => /sc\s+config\s+w3svc.*start=\s*auto/i.test(cmd)
+                }
+            ]
+        },
+        {
+            id: 'inf08_network_recon_ss',
+            title: 'Audyt aktywnych gniazd sieciowych i otwartych portów serwera',
+            cat: 'inf08_sec',
+            catLabel: 'INF.08 Bezpieczeństwo',
+            badgeColor: 'danger',
+            stars: '★★☆',
+            xp: 30,
+            os: 'linux',
+            desc: 'Przeanalizuj nasłuchujące porty TCP/UDP za pomocą narzędzia ss/netstat i przeprowadź skanowanie usług nmap.',
+            steps: [
+                {
+                    task: 'Wyświetl wszystkie nasłuchujące porty TCP i UDP wraz z numerami portów (ss -tuln / netstat -tuln)',
+                    ckeDesc: 'Identyfikacja otwartych gniazd sieciowych i demonów nasłuchujących w systemie Linux.',
+                    syntaxHint: 'ss -tuln   LUB   netstat -tuln',
+                    hint: 'Wpisz `ss -tuln` lub `netstat -tuln` lub `ss -tlpn`.',
+                    validate: (cmd) => /^(ss|netstat)/i.test(cmd)
+                },
+                {
+                    task: 'Wykonaj skanowanie lokalnych usług i wersji za pomocą nmap: nmap -sV 192.168.1.100',
+                    ckeDesc: 'Skanowanie portów i rozpoznawanie bannerów wersji usług serwerowych.',
+                    syntaxHint: 'nmap -sV 192.168.1.100   LUB   nmap 192.168.1.100',
+                    hint: 'Wpisz `nmap -sV 192.168.1.100` lub `nmap localhost`.',
+                    validate: (cmd) => /^nmap/i.test(cmd)
+                },
+                {
+                    task: 'Zweryfikuj dostępność i nagłówki serwera HTTP na porcie 80 za pomocą curl: curl -I http://192.168.1.100',
+                    ckeDesc: 'Odpytanie serwera o nagłówki odpowiedzi protokołu HTTP/1.1.',
+                    syntaxHint: 'curl -I http://192.168.1.100   LUB   curl -i http://localhost',
+                    hint: 'Wpisz `curl -I http://192.168.1.100` lub `curl -i http://localhost`.',
+                    validate: (cmd) => /curl\s+-(I|i)/i.test(cmd) || /curl\s+http/i.test(cmd)
+                }
+            ]
         }
     ];
 
@@ -3347,7 +4443,7 @@
                 return;
             }
 
-            // Pipeling handling (e.g. `cat file | grep text`)
+            // Pipeling handling (e.g. `cat file | grep text | wc -l`)
             if (trimmed.includes('|')) {
                 const parts = trimmed.split('|').map(p => p.trim());
                 let pipeInput = '';
@@ -3494,8 +4590,18 @@
             const last = parts[parts.length - 1];
             if (!last) return;
 
-            const pool = this.currentOs === 'linux' ? Object.keys(LINUX_COMMANDS) : Object.keys(WINDOWS_COMMANDS);
-            const matches = pool.filter(c => c.startsWith(last.toLowerCase()));
+            let pool = [];
+            if (this.currentSubShell === 'powershell') {
+                pool = ['Get-Service', 'Start-Service', 'Stop-Service', 'Restart-Service', 'Get-Process', 'Stop-Process', 'Get-NetIPAddress', 'New-NetIPAddress', 'Test-NetConnection', 'Get-NetFirewallRule', 'New-NetFirewallRule', 'Get-Disk', 'Initialize-Disk', 'New-Partition', 'Format-Volume', 'Get-LocalUser', 'New-LocalUser', 'Add-LocalGroupMember', 'Install-WindowsFeature', 'Get-WindowsFeature', 'Where-Object', 'Select-Object', 'Measure-Object', 'exit', 'clear'];
+            } else if (this.currentSubShell === 'diskpart') {
+                pool = ['list disk', 'select disk', 'detail disk', 'list partition', 'select partition', 'create partition primary', 'format', 'assign', 'active', 'shrink', 'extend', 'convert', 'clean', 'list volume', 'select volume', 'detail volume', 'exit', 'help', 'cls'];
+            } else if (this.currentSubShell === 'mysql') {
+                pool = ['SHOW DATABASES;', 'USE', 'SHOW TABLES;', 'SELECT', 'INSERT INTO', 'UPDATE', 'DELETE FROM', 'CREATE DATABASE', 'CREATE TABLE', 'ALTER TABLE', 'DROP TABLE', 'DESCRIBE', 'GRANT', 'FLUSH PRIVILEGES;', 'status;', 'help;', 'exit;', 'quit;'];
+            } else {
+                pool = this.currentOs === 'linux' ? Object.keys(LINUX_COMMANDS) : Object.keys(WINDOWS_COMMANDS);
+            }
+
+            const matches = pool.filter(c => c.toLowerCase().startsWith(last.toLowerCase()));
             if (matches.length === 1) {
                 parts[parts.length - 1] = matches[0];
                 this.inputEl.value = parts.join(' ') + ' ';
@@ -3595,7 +4701,7 @@
             const cards = document.querySelectorAll('#scenarioList .scenario-card-item');
             cards.forEach(c => {
                 const sc = CKE_SCENARIOS.find(s => s.id === c.dataset.id);
-                if (cat === 'all' || (cat === 'windows' && sc?.os === 'windows') || sc?.cat === cat) {
+                if (cat === 'all' || (cat === 'windows' && sc?.os === 'windows') || sc?.cat === cat || (cat === 'inf02_sys' && (sc?.cat === 'inf02_sys' || sc?.cat === 'inf02_admin'))) {
                     c.style.display = 'block';
                 } else {
                     c.style.display = 'none';
