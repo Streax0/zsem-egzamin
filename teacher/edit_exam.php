@@ -78,6 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $lateJoinCutoff = (isset($_POST['late_join_cutoff_minutes']) && $_POST['late_join_cutoff_minutes'] !== '') ? max(1, min(120, (int)$_POST['late_join_cutoff_minutes'])) : ($exam['late_join_cutoff_minutes'] ?? null);
     $resultsAvailableAt = trim((string)($_POST['results_available_at'] ?? ''));
     $resultsAvailableAt = $resultsAvailableAt !== '' ? date('Y-m-d H:i:s', strtotime($resultsAvailableAt)) : ($exam['results_available_at'] ?? null);
+    $availableFrom = trim((string)($_POST['available_from'] ?? ''));
+    $availableFrom = $availableFrom !== '' ? date('Y-m-d H:i:s', strtotime($availableFrom)) : ($exam['available_from'] ?? null);
+    $availableUntil = trim((string)($_POST['available_until'] ?? ''));
+    $availableUntil = $availableUntil !== '' ? date('Y-m-d H:i:s', strtotime($availableUntil)) : ($exam['available_until'] ?? null);
     $printIncludeAnswerKey = isset($_POST['print_include_answer_key']) ? 1 : (int)($exam['print_include_answer_key'] ?? 0);
     
     $newGradeThresholds = null;
@@ -106,7 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 show_predicted_grade = ?, show_correct_answers = ?, randomize_per_student = ?,
                 lock_after_finish = ?, pass_threshold = ?, max_attempts = ?, navigation_mode = ?,
                 allow_answer_changes = ?, warning_limit = ?, warning_action = ?, late_join_cutoff_minutes = ?,
-                results_available_at = ?, print_include_answer_key = ?, grade_thresholds = ?
+                results_available_at = ?, print_include_answer_key = ?, grade_thresholds = ?,
+                available_from = ?, available_until = ?, updated_at = NOW()
             WHERE id = ? AND teacher_id = ?
         ");
         $stmt->execute([
@@ -118,7 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $showGrade, $showCorrectAnswers, $randomizePerStudent,
             $lockAfterFinish, $passThreshold, $maxAttempts, $navigationMode,
             $allowAnswerChanges, $warningLimit, $warningAction, $lateJoinCutoff,
-            $resultsAvailableAt, $printIncludeAnswerKey, $newGradeThresholds, $examId, $userId
+            $resultsAvailableAt, $printIncludeAnswerKey, $newGradeThresholds,
+            $availableFrom, $availableUntil, $examId, $userId
         ]);
         
         if (!setExamAiCopyGuard($pdo, $examId, $aiCopyGuard)) {

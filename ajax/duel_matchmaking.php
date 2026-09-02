@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 startSecureSession();
@@ -12,12 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     securitySendJson(['success' => false, 'message' => 'Wymagane zapytanie POST.'], 405);
 }
 
-$currentUser = getCurrentUser();
+$myId = (int)($_SESSION['user_id'] ?? 0);
+if ($myId <= 0) {
+    securitySendJson(['success' => false, 'message' => 'Musisz być zalogowany, aby szukać pojedynku.'], 401);
+}
+$currentUser = getUserById($myId);
 if (!$currentUser) {
     securitySendJson(['success' => false, 'message' => 'Musisz być zalogowany, aby szukać pojedynku.'], 401);
 }
-
-$myId = (int)$currentUser['id'];
 $raw = file_get_contents('php://input');
 $data = json_decode($raw, true);
 if (!is_array($data)) {
@@ -32,6 +35,35 @@ if (!validateCsrfToken($csrfToken) && !securityValidateRequestCsrf()) {
 $action = (string)($data['action'] ?? 'search');
 $category = trim((string)($data['category'] ?? 'INF.02'));
 $mode = in_array($data['mode'] ?? '', ['classic', 'underdog', 'all_in'], true) ? $data['mode'] : 'classic';
+
+if ($action !== 'cancel') {
+    $recentDuelStmt = $pdo->prepare("
+        SELECT d.id, d.challenger_id, d.opponent_id, u1.username AS challenger_name, u2.username AS opponent_name
+        FROM duels d
+        JOIN users u1 ON d.challenger_id = u1.id
+        JOIN users u2 ON d.opponent_id = u2.id
+        WHERE (d.challenger_id = ? OR d.opponent_id = ?)
+          AND d.status = 'accepted'
+          AND d.created_at >= DATE_SUB(NOW(), INTERVAL 60 SECOND)
+          AND ((d.challenger_id = ? AND d.challenger_finished_at IS NULL) OR (d.opponent_id = ? AND d.opponent_finished_at IS NULL))
+        ORDER BY d.id DESC LIMIT 1
+    ");
+    $recentDuelStmt->execute([$myId, $myId, $myId, $myId]);
+    $recentDuel = $recentDuelStmt->fetch(PDO::FETCH_ASSOC);
+    if ($recentDuel) {
+        $isChallenger = ((int)$recentDuel['challenger_id'] === $myId);
+        $oppId = $isChallenger ? (int)$recentDuel['opponent_id'] : (int)$recentDuel['challenger_id'];
+        $oppName = $isChallenger ? (string)$recentDuel['opponent_name'] : (string)$recentDuel['challenger_name'];
+        securitySendJson([
+            'success' => true,
+            'status' => 'matched',
+            'duel_id' => (int)$recentDuel['id'],
+            'opponent_id' => $oppId,
+            'opponent_name' => $oppName,
+            'redirect_url' => 'duels/take.php?id=' . (int)$recentDuel['id'],
+        ], 200);
+    }
+}
 
 $queueFile = __DIR__ . '/../data/duel_matchmaking_queue.json';
 $queueDir = dirname($queueFile);
@@ -96,7 +128,7 @@ if ($matchedOpponent !== null) {
         $qIds = $qStmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    $qIdsStr = implode(',', $qIds);
+    $qIdsJson = json_encode(array_values(array_map('intval', $qIds)));
     $expiresAt = date('Y-m-d H:i:s', time() + 3600);
 
     $insStmt = $pdo->prepare("
@@ -107,7 +139,7 @@ if ($matchedOpponent !== null) {
         'cid' => $oppId,
         'oid' => $myId,
         'cat' => $category,
-        'qids' => $qIdsStr,
+        'qids' => $qIdsJson,
         'mode' => $mode,
         'exp' => $expiresAt,
     ]);

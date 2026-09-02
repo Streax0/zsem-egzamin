@@ -80,8 +80,21 @@ try {
         'lobby_enabled',
         'show_results_to_student',
         'show_predicted_grade',
+        'show_correct_answers',
+        'randomize_per_student',
+        'lock_after_finish',
+        'pass_threshold',
+        'max_attempts',
+        'navigation_mode',
+        'allow_answer_changes',
+        'warning_limit',
+        'warning_action',
+        'late_join_cutoff_minutes',
+        'results_available_at',
+        'print_include_answer_key',
+        'available_from',
+        'available_until',
         'grade_thresholds',
-        'settings',
     ];
 
     $columns = ['teacher_id'];

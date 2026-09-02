@@ -1,9 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Global Login Entry Point / Forwarder
- */
 $query = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
-header('Location: auth/login.php' . $query);
+header('Location: auth/register.php' . $query);
 exit;

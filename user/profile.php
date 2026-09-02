@@ -20,8 +20,8 @@ $stmt->execute([$viewId]);
 $userData = $stmt->fetch();
 
 if (!$userData) {
-    setSessionMessage('Użytkownik nie istnieje.', 'warning');
-    header('Location: ../pages/ranking.php');
+    setSessionMessage('warning', 'Użytkownik nie istnieje.');
+    header('Location: ../ranking.php');
     exit;
 }
 
@@ -821,7 +821,7 @@ include '../includes/header.php';
                             ?>
                             
                             <?php if ($status === 'none' && $canAddFriends): ?>
-                                <form action="actions/send_friend_request.php" method="POST" class="d-inline">
+                                <form action="../actions/send_friend_request.php" method="POST" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                                     <input type="hidden" name="friend_id" value="<?php echo $viewId; ?>">
                                     <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">
@@ -894,7 +894,7 @@ include '../includes/header.php';
                                 <button class="btn btn-light btn-sm px-3" onclick="cancelBio()">Anuluj</button>
                             </div>
                         </div>
-                        <form action="actions/update_profile.php" method="POST" enctype="multipart/form-data" class="border rounded-3 p-3 mt-3 profile-edit-tools" style="display:none;">
+                        <form action="../actions/update_profile.php" method="POST" enctype="multipart/form-data" class="border rounded-3 p-3 mt-3 profile-edit-tools" style="display:none;">
                             <?php echo csrfTokenField(); ?>
                             <input type="hidden" name="return_to" value="profile.php">
                             <input type="hidden" name="username" value="<?php echo htmlspecialchars($username); ?>">
@@ -909,7 +909,7 @@ include '../includes/header.php';
                             <div class="form-text">JPG, PNG albo WebP. Maks. 2 MB przed wysłaniem; zapis WebP na serwerze nie przekracza 25 KB.</div>
                         </form>
                         <?php if ($avatarSrc): ?>
-                        <form action="actions/update_profile.php" method="POST" class="mt-2 profile-edit-tools" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć zdjęcie profilowe?')">
+                        <form action="../actions/update_profile.php" method="POST" class="mt-2 profile-edit-tools" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć zdjęcie profilowe?')">
                             <?php echo csrfTokenField(); ?>
                             <input type="hidden" name="return_to" value="profile.php">
                             <input type="hidden" name="action" value="delete_avatar">
@@ -951,7 +951,7 @@ include '../includes/header.php';
                                 </div>
                             <?php endforeach; ?>
                             <?php if ($isOwnProfile): ?>
-                            <form action="actions/profile_section.php" method="POST" class="row g-2 mt-2 profile-edit-tools" style="display:none;">
+                            <form action="../actions/profile_section.php" method="POST" class="row g-2 mt-2 profile-edit-tools" style="display:none;">
                                 <?php echo csrfTokenField(); ?><input type="hidden" name="type" value="education">
                                 <div class="col-md-4"><select name="level" class="form-select form-select-sm"><option>podstawowe</option><option>średnie</option><option>wyższe</option></select></div>
                                 <div class="col-md-8"><input name="school_name" class="form-control form-control-sm" placeholder="Szkoła / uczelnia" required></div>
@@ -988,7 +988,7 @@ include '../includes/header.php';
                                     <?php endforeach; ?>
                                 </div>
                                 <?php if ($isOwnProfile): ?>
-                                <form action="actions/profile_section.php" method="POST" class="row g-2 profile-edit-tools" style="display:none;">
+                                <form action="../actions/profile_section.php" method="POST" class="row g-2 profile-edit-tools" style="display:none;">
                                     <?php echo csrfTokenField(); ?><input type="hidden" name="type" value="social">
                                     <div class="col-md-4">
                                         <select name="platform" class="form-select form-select-sm" required>
@@ -1011,7 +1011,7 @@ include '../includes/header.php';
                                     <?php endforeach; ?>
                                 </div>
                                 <?php if ($isOwnProfile): ?>
-                                <form action="actions/profile_section.php" method="POST" class="row g-2 mt-2 profile-edit-tools" style="display:none;">
+                                <form action="../actions/profile_section.php" method="POST" class="row g-2 mt-2 profile-edit-tools" style="display:none;">
                                     <?php echo csrfTokenField(); ?><input type="hidden" name="type" value="language">
                                     <div class="col-md-6">
                                         <select name="language_name" class="form-select form-select-sm" required>
@@ -1068,7 +1068,7 @@ include '../includes/header.php';
                                             </div>
                                         <?php endforeach; ?>
                                         <?php if ($isOwnProfile): ?>
-                                        <form action="actions/profile_section.php" method="POST" class="vstack gap-1 profile-edit-tools" style="display:none;">
+                                        <form action="../actions/profile_section.php" method="POST" class="vstack gap-1 profile-edit-tools" style="display:none;">
                                             <?php echo csrfTokenField(); ?>
                                             <input type="hidden" name="type" value="<?php echo $key === 'certificates' ? 'certificate' : ($key === 'courses' ? 'course' : ($key === 'volunteering' ? 'volunteering' : 'organization')); ?>">
                                             <?php if ($key === 'certificates'): ?>
@@ -1365,10 +1365,10 @@ include '../includes/header.php';
                                         <span class="fw-bold">Szczegóły</span>
                                     </button>
                                     <?php if ($isOwnProfile): ?>
-                                        <form method="POST" action="actions/delete_test_result.php" class="d-inline-block ms-1" onsubmit="return appConfirmSubmit(this, 'Usunąć ten wynik z historii?')">
+                                        <form method="POST" action="../actions/delete_test_result.php" class="d-inline-block ms-1" onsubmit="return appConfirmSubmit(this, 'Usunąć ten wynik z historii?')">
                                             <?php echo csrfTokenField('delete_test_result'); ?>
                                             <input type="hidden" name="result_id" value="<?php echo (int)$result['id']; ?>">
-                                            <input type="hidden" name="return_to" value="../profile.php?id=<?php echo (int)$userId; ?>">
+                                            <input type="hidden" name="return_to" value="profile.php?id=<?php echo (int)$userId; ?>">
                                             <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń wynik" style="border-radius: 12px;"><i class="bi bi-trash"></i></button>
                                         </form>
                                     <?php endif; ?>
@@ -1390,7 +1390,7 @@ include '../includes/header.php';
             <div class="text-center py-4">
                 <i class="bi bi-inbox-fill text-muted" style="font-size: 3rem;"></i>
                 <p class="mt-3 text-muted">Brak historii testów. Rozpocznij pierwszy test!</p>
-                <a href="test.php?setup=1&new=1" class="btn btn-primary">
+                <a href="../test.php?setup=1&new=1" class="btn btn-primary">
                     <i class="bi bi-pencil-square"></i> Rozpocznij test
                 </a>
             </div>
@@ -1409,7 +1409,7 @@ include '../includes/header.php';
                     <div class="panel-header mb-3">
                         <h5 class="panel-title mb-0"><i class="bi bi-person-search me-2 text-primary"></i>Szukaj użytkowników</h5>
                     </div>
-                    <form action="search_users.php" method="GET" class="mb-3">
+                    <form action="../search_users.php" method="GET" class="mb-3">
                         <div class="input-group">
                             <input type="text" name="query" class="form-control" placeholder="Nazwa użytkownika...">
                             <button class="btn btn-primary" type="submit">
@@ -1485,19 +1485,24 @@ include '../includes/header.php';
                     
                     <?php foreach ($currentMissions as $m): ?>
                     <?php 
-                        $key = $m['mission_type'];
-                        $config = $missionPool[$key];
-                        $percent = min(100, round(($m['current_value'] / $m['target_value']) * 100));
+                        $key = $m['mission_type'] ?? '';
+                        $config = $missionPool[$key] ?? [
+                            'title' => (string)($m['mission_description'] ?? 'Misja dzienna'),
+                            'color' => 'primary'
+                        ];
+                        $targetVal = max(1, (int)($m['target_value'] ?? 1));
+                        $currentVal = max(0, (float)($m['current_value'] ?? 0));
+                        $percent = min(100, (int)round(($currentVal / $targetVal) * 100));
                     ?>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1 small">
-                            <span><?php echo htmlspecialchars(str_replace('{target}', (string)$m['target_value'], $config['title'] ?? $m['mission_description'])); ?></span>
+                            <span><?php echo htmlspecialchars(str_replace('{target}', (string)$targetVal, $config['title'] ?? ($m['mission_description'] ?? 'Misja'))); ?></span>
                             <span class="fw-bold"><?php echo $percent; ?>%</span>
                         </div>
                         <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-<?php echo $config['color']; ?>" style="width: <?php echo $percent; ?>%"></div>
+                            <div class="progress-bar bg-<?php echo htmlspecialchars($config['color'] ?? 'primary'); ?>" style="width: <?php echo $percent; ?>%"></div>
                         </div>
-                        <div class="small text-muted mt-1"><?php echo round($m['current_value'], 1); ?>/<?php echo $m['target_value']; ?></div>
+                        <div class="small text-muted mt-1"><?php echo round($currentVal, 1); ?>/<?php echo $targetVal; ?></div>
                     </div>
                     <?php endforeach; ?>
                     
@@ -1516,7 +1521,7 @@ include '../includes/header.php';
                 <div class="alert alert-warning border-0 small">Komentarze pod tym profilem są wyłączone.</div>
             <?php endif; ?>
             <?php if ($allowProfileComments): ?>
-            <form action="actions/profile_comment.php" method="POST" class="mb-4 comment-form-card">
+            <form action="../actions/profile_comment.php" method="POST" class="mb-4 comment-form-card">
                 <?php echo csrfTokenField(); ?>
                 <input type="hidden" name="profile_user_id" value="<?php echo $userId; ?>">
                 <label class="form-label fw-bold" for="profileCommentText">Dodaj komentarz</label>
@@ -1548,7 +1553,7 @@ include '../includes/header.php';
                             </div>
                         </div>
                         <?php if ((int)$comment['author_id'] === $myId || roleHasAdminAccess($myRole)): ?>
-                        <form action="actions/profile_comment.php" method="POST" class="comment-delete-form">
+                        <form action="../actions/profile_comment.php" method="POST" class="comment-delete-form">
                             <?php echo csrfTokenField(); ?>
                             <input type="hidden" name="comment_action" value="delete">
                             <input type="hidden" name="profile_user_id" value="<?php echo $userId; ?>">
@@ -1575,7 +1580,7 @@ include '../includes/header.php';
                     <h5 class="modal-title"><i class="bi bi-key-fill"></i> Zmiana hasła</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="actions/change_password.php" method="POST">
+                <form action="../actions/change_password.php" method="POST">
                     <div class="modal-body">
                         <?php echo csrfTokenField(); ?>
                         <input type="hidden" name="user_id" value="<?php echo $userId; ?>">
@@ -1739,9 +1744,11 @@ include '../includes/header.php';
             <?php endif; ?>
         }
         
+        const getProfileAjaxUrl = (path) => (window.location.pathname.includes('/user/') ? '../' : '') + path;
+        
         function saveBio() {
             const bio = document.getElementById('bioInput').value;
-            fetch('ajax/update_bio.php', {
+            fetch(getProfileAjaxUrl('ajax/update_bio.php'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'bio=' + encodeURIComponent(bio) + '&csrf_token=' + encodeURIComponent(profileCsrfToken)
@@ -1775,7 +1782,7 @@ include '../includes/header.php';
                     const testId = this.getAttribute('data-test-id');
                     modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Ładowanie...</span></div></div>';
                     
-                    fetch('ajax/get_test_details.php?id=' + testId)
+                    fetch(getProfileAjaxUrl('ajax/get_test_details.php?id=' + testId))
                         .then(response => response.text())
                         .then(html => {
                             modalBody.innerHTML = html;

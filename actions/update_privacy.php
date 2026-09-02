@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // CSRF Protection
     if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Błąd bezpieczeństwa (CSRF).');
-        securityRedirect('../settings.php', '../settings.php');
+        securityRedirect('../user/settings.php', '../user/settings.php');
     }
 
     $userId = $_SESSION['user_id'];
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($rateLimit['allowed'])) {
         securityAudit('update_privacy_rate_limited', ['user_id' => (int)$userId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
         setSessionMessage('error', 'Zbyt wiele zmian naraz. Spróbuj za chwilę.');
-        securityRedirect('../settings.php', '../settings.php');
+        securityRedirect('../user/settings.php', '../user/settings.php');
     }
     
     // Checkboxes are only sent if they are checked
@@ -75,4 +75,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-securityRedirect('../settings.php', '../settings.php');
+securityRedirect('../user/settings.php', '../user/settings.php');

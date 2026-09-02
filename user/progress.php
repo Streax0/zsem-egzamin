@@ -740,9 +740,8 @@ include '../includes/header.php';
                 button.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const questionId = this.getAttribute('data-question-id');
-                    const csrfToken = document.getElementById('csrf_token').value;
-
-                    fetch('ajax/mark_mastered.php', {
+                    const ajaxUrl = (window.location.pathname.includes('/user/') ? '../' : '') + 'ajax/mark_mastered.php';
+                    fetch(ajaxUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',

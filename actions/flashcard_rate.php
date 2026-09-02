@@ -56,7 +56,34 @@ $_sm2Stmt = $pdo->prepare(
      FROM flashcard_sm2
      WHERE user_id = ? AND card_key = ?"
 );
-$_sm2Stmt->execute([$userId, $cardKey]);
+try {
+    $_sm2Stmt->execute([$userId, $cardKey]);
+} catch (PDOException $e) {
+    if (str_contains($e->getMessage(), "doesn't exist") || $e->getCode() === '42S02') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS flashcard_sm2 (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            card_key VARCHAR(64) NOT NULL,
+            easiness_factor FLOAT NOT NULL DEFAULT 2.5,
+            interval_days INT NOT NULL DEFAULT 1,
+            repetition_count INT NOT NULL DEFAULT 0,
+            next_review_date DATE NOT NULL DEFAULT (CURDATE()),
+            last_rating TINYINT DEFAULT NULL,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_user_card (user_id, card_key),
+            INDEX idx_sm2_review (user_id, next_review_date),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $_sm2Stmt = $pdo->prepare(
+            "SELECT easiness_factor, interval_days, repetition_count
+             FROM flashcard_sm2
+             WHERE user_id = ? AND card_key = ?"
+        );
+        $_sm2Stmt->execute([$userId, $cardKey]);
+    } else {
+        throw $e;
+    }
+}
 $current = $_sm2Stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
 $ef         = (float)($current['easiness_factor'] ?? 2.5);

@@ -590,7 +590,7 @@ function register($username, $email, $password, $firstName = null, $lastName = n
         $hasVerifiedAt = function_exists('dbColumnExists') && dbColumnExists($pdo, 'users', 'verified_at');
         $hasRegistrationIp = function_exists('dbColumnExists') && dbColumnExists($pdo, 'users', 'registration_ip');
         $columns = 'username, email, password_hash, role, first_name, last_name, class, class_year, class_suffix, verification_token, is_verified, xp, created_at';
-        $values = ':username, :email, :password_hash, :role, :first_name, :last_name, :class_label, :class_year, :class_suffix, :token, 0, 4100, NOW()';
+        $values = ':username, :email, :password_hash, :role, :first_name, :last_name, :class_label, :class_year, :class_suffix, :token, 0, 0, NOW()';
         if ($hasVerifiedAt) {
             $columns .= ', verified_at, verified_by_admin_id';
             $values .= ', NULL, NULL';

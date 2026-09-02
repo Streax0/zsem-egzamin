@@ -17,14 +17,14 @@ $allInUsed = getAllInUsage($pdo, (int)$myId);
 
 if ($opponentId <= 0 || $opponentId === $myId) {
     setSessionMessage('error', 'Nieprawidłowy przeciwnik.');
-    redirect('../social.php');
+    redirect('../user/social.php');
 }
 
 // Check if they are friends
 $status = getFriendshipStatus($pdo, $myId, $opponentId);
 if ($status !== 'friends') {
     setSessionMessage('error', 'Możesz wyzywać na pojedynek tylko swoich znajomych.');
-    redirect('../social.php');
+    redirect('../user/social.php');
 }
 
 // Load opponent info
@@ -34,7 +34,7 @@ $opponent = $stmt->fetch();
 
 if (!$opponent) {
     setSessionMessage('error', 'Przeciwnik nie istnieje.');
-    redirect('../social.php');
+    redirect('../user/social.php');
 }
 
 if ($revengeParentId > 0 && !duelRevengeIsAvailable($pdo, $revengeParentId, (int)$myId, $opponentId)) {

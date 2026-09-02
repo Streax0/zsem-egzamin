@@ -10,7 +10,7 @@ requireLogin();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!securityValidateRequestCsrf()) {
         setSessionMessage('error', 'Nieprawidłowy token CSRF.');
-        securityRedirect('../settings.php', '../settings.php');
+        securityRedirect('../user/settings.php', '../user/settings.php');
     }
 
     $userId = $_SESSION['user_id'];
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($rateLimit['allowed'])) {
         securityAudit('delete_account_rate_limited', ['user_id' => (int)$userId, 'retry_after' => $rateLimit['retry_after'] ?? 0], 'warning');
         setSessionMessage('error', 'Zbyt wiele prób usunięcia konta. Spróbuj za chwilę.');
-        securityRedirect('../settings.php', '../settings.php');
+        securityRedirect('../user/settings.php', '../user/settings.php');
     }
 
     try {
@@ -36,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (Exception $e) {
         error_log('Delete account failed: ' . $e->getMessage());
         setSessionMessage('error', 'Nie udało się usunąć konta. Spróbuj ponownie za chwilę.');
-        securityRedirect('../settings.php', '../settings.php');
+        securityRedirect('../user/settings.php', '../user/settings.php');
     }
 }
 
-securityRedirect('../settings.php', '../settings.php');
+securityRedirect('../user/settings.php', '../user/settings.php');

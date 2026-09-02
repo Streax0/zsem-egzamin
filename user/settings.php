@@ -1344,9 +1344,15 @@ include '../includes/header.php';
                                                     Zarejestruj czytnik linii papilarnych, Face ID lub klucz U2F, aby używać ich zamiast hasła. Opcja dostępna tylko dla personelu.
                                                 </div>
                                             </div>
-                                            <button type="button" class="btn btn-outline-primary rounded-pill px-4" onclick="registerPasskey()">
-                                                <i class="bi bi-plus-circle me-1"></i>Dodaj Passkey
-                                            </button>
+                                            <?php if (in_array($_SESSION['role'] ?? '', ['admin', 'dyrektor', 'teacher'], true)): ?>
+                                                <button type="button" class="btn btn-outline-primary rounded-pill px-4" onclick="registerPasskey()">
+                                                    <i class="bi bi-plus-circle me-1"></i>Dodaj Passkey
+                                                </button>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-2">
+                                                    <i class="bi bi-shield-lock me-1"></i>Dostępne dla personelu
+                                                </span>
+                                            <?php endif; ?>
                                         </div>
                                         
                                         <?php

@@ -11,10 +11,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     securitySendJson(['success' => false, 'message' => 'Wymagane zapytanie POST.'], 405);
 }
 
-$currentUser = getCurrentUser();
-if (!$currentUser) {
+$userId = (int)($_SESSION['user_id'] ?? 0);
+if ($userId <= 0) {
     securitySendJson(['success' => false, 'message' => 'Wymagane logowanie.'], 401);
 }
+$currentUser = ['id' => $userId];
 
 $raw = file_get_contents('php://input');
 $data = json_decode($raw, true);

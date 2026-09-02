@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->query("SELECT id FROM users WHERE role IN ('admin', 'dyrektor')");
             $admins = $stmt->fetchAll(PDO::FETCH_COLUMN);
             foreach ($admins as $adminId) {
-                addNotification($pdo, $adminId, 'admin_request', 'Nowy wniosek od ' . ($_SESSION['username'] ?? 'Nauczyciel'), 'admin_requests.php');
+                addNotification($pdo, $adminId, 'admin_request', 'Nowy wniosek od ' . ($_SESSION['username'] ?? 'Nauczyciel'), 'admin/requests.php');
             }
         } catch (PDOException $e) {
             error_log('Notify admins error: ' . $e->getMessage());

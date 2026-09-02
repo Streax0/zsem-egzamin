@@ -100,7 +100,8 @@ $currentIdx = $answeredCount;
 
 $debugInfo = '';
 $isLocalRequest = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
-if ((defined('APP_ENV') ? APP_ENV : 'local') === 'local' && $isLocalRequest) {
+$showDebug = !empty($_GET['debug']) && (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true));
+if ((defined('APP_ENV') ? APP_ENV : 'local') === 'local' && $isLocalRequest && $showDebug) {
     $debugInfo = "<div class='alert alert-info py-1 small mb-2'>DEBUG: W bazie sesji: $totalInDb | Znaleziono w JSON: $resolvedCount | Odpowiedziano: $answeredCount</div>";
 }
 

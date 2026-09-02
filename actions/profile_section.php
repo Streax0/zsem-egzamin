@@ -9,7 +9,7 @@ requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !validateCsrfToken($_POST['csrf_token'] ?? '')) {
     setSessionMessage('error', 'Błąd bezpieczeństwa.');
-    redirect('../profile.php');
+    redirect('../user/profile.php');
 }
 
 $userId = (int)$_SESSION['user_id'];
@@ -31,7 +31,7 @@ $tables = [
 
 if (!isset($tables[$type])) {
     setSessionMessage('error', 'Nieznana sekcja profilu.');
-    redirect('../profile.php');
+    redirect('../user/profile.php');
 }
 
 function profileText($key, $max = 160) {
@@ -62,14 +62,14 @@ try {
         $stmt = $pdo->prepare("DELETE FROM {$tables[$type]} WHERE id = ? AND user_id = ?");
         $stmt->execute([$id, $userId]);
         setSessionMessage('success', 'Element profilu został usunięty.');
-        redirect('../profile.php');
+        redirect('../user/profile.php');
     }
 
     $textFields = $_POST;
     foreach ($textFields as $value) {
         if (containsProfanity($value)) {
             setSessionMessage('error', 'Treść zawiera niedozwolone słowa.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
     }
 
@@ -83,11 +83,11 @@ try {
         $end = $endRaw !== '' && preg_match('/^\d{4}$/', $endRaw) ? (int)$endRaw : null;
         if ($endRaw !== '' && $end === null) {
             setSessionMessage('error', 'Nieprawidłowy rok zakończenia.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         if (!in_array($level, ['podstawowe','średnie','wyższe'], true) || $school === '' || $start < 2000 || $start > 2040 || ($end !== null && ($end < 2000 || $end > 2040 || $end < $start))) {
             setSessionMessage('error', 'Nieprawidłowe dane wykształcenia.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
 
         if (in_array($level, ['podstawowe', 'średnie'], true)) {
@@ -95,7 +95,7 @@ try {
             $countStmt->execute([$userId, $level]);
             if ($countStmt->fetchColumn() > 0) {
                 setSessionMessage('error', 'Możesz dodać tylko jedno wpisy wykształcenia dla poziomu podstawowego lub średniego.');
-                redirect('../profile.php');
+                redirect('../user/profile.php');
             }
         }
 
@@ -105,7 +105,7 @@ try {
         $date = profileDateOrNull('obtained_date');
         if ($date === false || profileText('name') === '' || profileText('organization') === '') {
             setSessionMessage('error', 'Nieprawidłowe dane certyfikatu.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         $stmt = $pdo->prepare("INSERT INTO user_certificates (user_id, name, organization, obtained_date, description) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$userId, profileText('name'), profileText('organization'), $date, profileText('description', 500)]);
@@ -113,7 +113,7 @@ try {
         $date = profileDateOrNull('completed_date');
         if ($date === false || profileText('name') === '' || profileText('provider') === '') {
             setSessionMessage('error', 'Nieprawidłowe dane kursu.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         $stmt = $pdo->prepare("INSERT INTO user_courses (user_id, name, provider, completed_date, description) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([$userId, profileText('name'), profileText('provider'), $date, profileText('description', 500)]);
@@ -122,7 +122,7 @@ try {
         $endDate = profileDateOrNull('end_date');
         if ($startDate === false || $endDate === false || ($startDate && $endDate && $endDate < $startDate) || profileText('organization') === '' || profileText('role_name') === '') {
             setSessionMessage('error', 'Nieprawidłowe dane wolontariatu.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         $stmt = $pdo->prepare("INSERT INTO user_volunteering (user_id, organization, role_name, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$userId, profileText('organization'), profileText('role_name'), $startDate, $endDate, profileText('description', 500)]);
@@ -134,11 +134,11 @@ try {
         $countStmt->execute([$userId]);
         if ((int)$countStmt->fetchColumn() >= 7) {
             setSessionMessage('error', 'Możesz dodać maksymalnie 7 języków.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         if (!in_array($language, $allowedLanguages, true) || !in_array($level, ['podstawowy','średni','zaawansowany','biegły'], true)) {
             setSessionMessage('error', 'Nieprawidłowy język lub poziom.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         $stmt = $pdo->prepare("INSERT INTO user_languages (user_id, language_name, level) VALUES (?, ?, ?)");
         $stmt->execute([$userId, $language, $level]);
@@ -147,7 +147,7 @@ try {
         $endDate = profileDateOrNull('end_date');
         if ($startDate === false || $endDate === false || ($startDate && $endDate && $endDate < $startDate) || profileText('name') === '') {
             setSessionMessage('error', 'Nieprawidłowe dane organizacji.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         $stmt = $pdo->prepare("INSERT INTO user_organizations (user_id, name, role_name, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$userId, profileText('name'), profileText('role_name'), $startDate, $endDate, profileText('description', 500)]);
@@ -176,7 +176,7 @@ try {
         }
         if (!isset($hosts[$platform]) || $scheme !== 'https' || mb_strlen($url, 'UTF-8') > 255 || !filter_var($url, FILTER_VALIDATE_URL) || !$validHost) {
             setSessionMessage('error', 'Nieprawidłowy link społecznościowy.');
-            redirect('../profile.php');
+            redirect('../user/profile.php');
         }
         $stmt = $pdo->prepare("INSERT INTO user_social_links (user_id, platform, url) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE url = VALUES(url)");
         $stmt->execute([$userId, $platform, $url]);
@@ -188,4 +188,4 @@ try {
     setSessionMessage('error', 'Nie udało się zapisać sekcji profilu. Sprawdź, czy full_schema.sql został zaimportowany.');
 }
 
-redirect('../profile.php');
+redirect('../user/profile.php');

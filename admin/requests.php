@@ -16,7 +16,7 @@ if (!isAdmin($pdo, $_SESSION['user_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrfToken($_POST['csrf_token'] ?? '', 'admin_requests')) {
         setSessionMessage('error', 'Nieprawidłowy token CSRF.');
-        redirect('admin_requests.php');
+        redirect('requests.php');
     }
 
     $action = $_POST['action'] ?? '';
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 setSessionMessage('error', 'Błąd podczas zapisu odpowiedzi.');
             }
         }
-        redirect('admin_requests.php');
+        redirect('requests.php');
     }
 
     if ($action === 'mark_read' && $requestId > 0) {
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             setSessionMessage('error', 'Błąd podczas aktualizacji.');
         }
-        redirect('admin_requests.php');
+        redirect('requests.php');
     }
 
     if ($action === 'delete_request' && $requestId > 0) {
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             setSessionMessage('error', 'Nie udało się usunąć wniosku.');
         }
-        redirect('admin_requests.php');
+        redirect('requests.php');
     }
 
     if ($action === 'resolve_teacher_application' && $requestId > 0) {
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             setSessionMessage('error', 'Nie udało się rozpatrzyć aplikacji.');
         }
-        redirect('admin_requests.php');
+        redirect('requests.php');
     }
 }
 

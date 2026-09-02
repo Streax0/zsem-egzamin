@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ZSEM Tech — Offline PWA Engine & IndexedDB Sync Manager
  * Manages local test results storage during network disconnection
  * and transparently synchronizes progress and XP upon reconnection.
@@ -146,6 +146,10 @@
 
         setupServiceWorkerListener() {
             if ('serviceWorker' in navigator) {
+                const swPath = (window.__ZSEM_BASE_URL || '/') + 'sw.js';
+                navigator.serviceWorker.register(swPath, { scope: (window.__ZSEM_BASE_URL || '/') }).catch((err) => {
+                    console.warn('[OfflineEngine] Service worker registration non-fatal notice:', err);
+                });
                 navigator.serviceWorker.addEventListener('message', (event) => {
                     if (event.data && event.data.type === 'TRIGGER_OFFLINE_SYNC') {
                         this.syncAll();

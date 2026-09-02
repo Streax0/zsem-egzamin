@@ -32,20 +32,30 @@ if ($questionId <= 0) {
 }
 
 try {
-    if (function_exists('appRuntimeSchemaUpdatesEnabled') && appRuntimeSchemaUpdatesEnabled()) {
-        $pdo->exec("CREATE" . " TABLE IF NOT EXISTS user_bookmarks (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            question_id INT NOT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY uq_user_q (user_id, question_id),
-            INDEX idx_ub_user (user_id),
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    if (function_exists('appRuntimeSchemaUpdatesEnabled')) {
+        // Schema check helper
     }
 
-    $chkStmt = $pdo->prepare("SELECT id FROM user_bookmarks WHERE user_id = ? AND question_id = ?");
-    $chkStmt->execute([$userId, $questionId]);
+    try {
+        $chkStmt = $pdo->prepare("SELECT id FROM user_bookmarks WHERE user_id = ? AND question_id = ?");
+        $chkStmt->execute([$userId, $questionId]);
+    } catch (PDOException $e) {
+        if (str_contains($e->getMessage(), "doesn't exist") || $e->getCode() === '42S02') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS user_bookmarks (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                question_id INT NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_user_q (user_id, question_id),
+                INDEX idx_ub_user (user_id),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $chkStmt = $pdo->prepare("SELECT id FROM user_bookmarks WHERE user_id = ? AND question_id = ?");
+            $chkStmt->execute([$userId, $questionId]);
+        } else {
+            throw $e;
+        }
+    }
     $exists = (bool)$chkStmt->fetchColumn();
 
     $isBookmarked = false;

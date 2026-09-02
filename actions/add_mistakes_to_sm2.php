@@ -55,9 +55,26 @@ try {
         ]);
     }
 
+    if (function_exists('appRuntimeSchemaUpdatesEnabled') && appRuntimeSchemaUpdatesEnabled()) {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS flashcard_sm2 (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            card_key VARCHAR(64) NOT NULL,
+            easiness_factor FLOAT NOT NULL DEFAULT 2.5,
+            interval_days INT NOT NULL DEFAULT 1,
+            repetition_count INT NOT NULL DEFAULT 0,
+            next_review_date DATE NOT NULL DEFAULT (CURDATE()),
+            last_rating TINYINT DEFAULT NULL,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_user_card (user_id, card_key),
+            INDEX idx_sm2_review (user_id, next_review_date),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
     // Insert or reset SM-2 card state for each wrong question
     $added = 0;
-    $insStmt = $pdo->prepare("
+    $insSql = "
         INSERT INTO flashcard_sm2 (user_id, card_key, easiness_factor, interval_days, repetition_count, next_review_date, last_rating, updated_at)
         VALUES (?, ?, 2.5, 1, 0, CURDATE(), NULL, NOW())
         ON DUPLICATE KEY UPDATE
@@ -65,13 +82,37 @@ try {
             repetition_count = 0,
             next_review_date = CURDATE(),
             updated_at = NOW()
-    ");
+    ";
+    $insStmt = $pdo->prepare($insSql);
 
     foreach ($wrongQids as $qid) {
         $qid = (int)$qid;
         if ($qid <= 0) continue;
         $cardKey = 'q_' . $qid;
-        $insStmt->execute([$userId, $cardKey]);
+        try {
+            $insStmt->execute([$userId, $cardKey]);
+        } catch (PDOException $e) {
+            if (str_contains($e->getMessage(), "doesn't exist") || $e->getCode() === '42S02') {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS flashcard_sm2 (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    card_key VARCHAR(64) NOT NULL,
+                    easiness_factor FLOAT NOT NULL DEFAULT 2.5,
+                    interval_days INT NOT NULL DEFAULT 1,
+                    repetition_count INT NOT NULL DEFAULT 0,
+                    next_review_date DATE NOT NULL DEFAULT (CURDATE()),
+                    last_rating TINYINT DEFAULT NULL,
+                    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    UNIQUE KEY uq_user_card (user_id, card_key),
+                    INDEX idx_sm2_review (user_id, next_review_date),
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+                $insStmt = $pdo->prepare($insSql);
+                $insStmt->execute([$userId, $cardKey]);
+            } else {
+                throw $e;
+            }
+        }
         $added++;
     }
 

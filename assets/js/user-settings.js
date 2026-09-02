@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ZSEM Tech - User Settings Module
  * Handles profile avatar previews, UI preferences synchronization,
  * tab persistence, password validation, and WebAuthn Passkeys.
@@ -278,7 +278,8 @@
         }
 
         try {
-            const generateRes = await fetch('../ajax/passkey_register.php?action=generate');
+            const passkeyUrl = (window.location.pathname.includes('/user/') ? '../' : '') + 'ajax/passkey_register.php';
+            const generateRes = await fetch(passkeyUrl + '?action=generate');
             const generateData = await generateRes.json();
 
             if (generateData.status !== 'success') {
@@ -308,7 +309,7 @@
             if (!deviceName) deviceName = 'Moje urządzenie';
             formData.append('deviceName', deviceName);
 
-            const verifyRes = await fetch('../ajax/passkey_register.php', {
+            const verifyRes = await fetch(passkeyUrl, {
                 method: 'POST',
                 body: formData
             });
@@ -336,11 +337,12 @@
 
     window.deletePasskey = async function (id) {
         try {
+            const passkeyUrl = (window.location.pathname.includes('/user/') ? '../' : '') + 'ajax/passkey_register.php';
             const formData = new FormData();
             formData.append('action', 'delete');
             formData.append('id', id);
 
-            const res = await fetch('../ajax/passkey_register.php', {
+            const res = await fetch(passkeyUrl, {
                 method: 'POST',
                 body: formData
             });

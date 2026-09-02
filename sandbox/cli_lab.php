@@ -23,7 +23,7 @@ if ($userId && isset($pdo)) {
         $userRow = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($userRow) {
             $userXp = (int)($userRow['xp'] ?? 0);
-            $userRankInfo = getRankDetails($userXp);
+            $userRankInfo = getRankInfoByXp($userXp);
         }
 
         // Fetch completed CLI lab scenarios

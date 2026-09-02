@@ -13,8 +13,7 @@ try {
         securitySendJson(['success' => false, 'message' => 'Niedozwolona metoda HTTP.'], 405);
     }
 
-    $currentUser = getCurrentUser();
-    $userId = $currentUser ? (int)$currentUser['id'] : 0;
+    $userId = (int)($_SESSION['user_id'] ?? 0);
     
     global $pdo;
     if (!isset($pdo) || !($pdo instanceof PDO)) {
@@ -28,26 +27,36 @@ try {
 
     if ($userId > 0) {
         try {
+            $recentResultsStmt = $pdo->prepare("SELECT id FROM test_results WHERE user_id = ? ORDER BY id DESC LIMIT 20");
+            $recentResultsStmt->execute([$userId]);
+            $recentResultIds = $recentResultsStmt->fetchAll(PDO::FETCH_COLUMN);
+
             $sql = "
                 SELECT q.id, q.category, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.explanation, q.image_url,
-                       COALESCE(sm2.easiness_factor, 2.5) AS easiness_factor,
-                       COALESCE(sm2.repetition_count, 0) AS repetition_count,
+                       COALESCE(MAX(sm2.easiness_factor), 2.5) AS easiness_factor,
+                       COALESCE(MAX(sm2.repetition_count), 0) AS repetition_count,
                        COUNT(ta.id) AS fail_count
                 FROM questions q
-                LEFT JOIN flashcard_sm2 sm2 ON sm2.user_id = :uid1 AND sm2.card_key = MD5(q.question_text)
-                LEFT JOIN test_answers ta ON ta.question_id = q.id AND ta.is_correct = 0 AND ta.test_result_id IN (
-                    SELECT tr.id FROM test_results tr WHERE tr.user_id = :uid2 ORDER BY tr.id DESC LIMIT 20
-                )
-                WHERE 1=1
+                LEFT JOIN flashcard_sm2 sm2 ON sm2.user_id = :uid1 AND sm2.card_key = CONCAT('q_', q.id)
             ";
-            $params = [':uid1' => $userId, ':uid2' => $userId];
+
+            $params = [':uid1' => $userId];
+            if (!empty($recentResultIds)) {
+                $placeholders = implode(',', array_map('intval', $recentResultIds));
+                $sql .= " LEFT JOIN test_answers ta ON ta.question_id = q.id AND ta.is_correct = 0 AND ta.result_id IN ($placeholders) ";
+            } else {
+                $sql .= " LEFT JOIN test_answers ta ON 1=0 ";
+            }
+
+            $sql .= " WHERE 1=1 ";
             if ($category !== '') {
-                $sql .= " AND q.category = :category";
+                $sql .= " AND q.category = :category ";
                 $params[':category'] = $category;
             }
+
             $sql .= "
-                GROUP BY q.id
-                ORDER BY (fail_count * 3 + (CASE WHEN sm2.next_review_date <= CURDATE() THEN 5 ELSE 0 END)) DESC, RAND()
+                GROUP BY q.id, q.category, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.explanation, q.image_url
+                ORDER BY (COUNT(ta.id) * 3 + (CASE WHEN MAX(sm2.next_review_date) <= CURDATE() THEN 5 ELSE 0 END)) DESC, RAND()
                 LIMIT :lim
             ";
 

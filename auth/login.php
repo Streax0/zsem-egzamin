@@ -51,10 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 updateLastLogin($result['user_id']);
             }
             if (!empty($result['mfa_required'])) {
-                header("Location: mfa.php");
+                $mfaTarget = str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/auth/') ? 'mfa.php' : 'auth/mfa.php';
+                header("Location: $mfaTarget");
                 exit;
             }
-            header('Location: ../index.php');
+            $indexTarget = str_contains($_SERVER['SCRIPT_NAME'] ?? '', '/auth/') ? '../index.php' : 'index.php';
+            header("Location: $indexTarget");
             exit;
         } else {
             $errors[] = $result['message'] ?? 'Nieprawidłowe dane logowania.';

@@ -225,7 +225,17 @@ class DeviceSessionManager
                 ");
                 $stmt->execute([$userId, $sessionHash, $ip, $ua]);
             } catch (Throwable $ex) {
-                error_log('DeviceSessionManager::recordSession error: ' . $ex->getMessage());
+                try {
+                    $uaHash = hash('sha256', $ua);
+                    $stmt = $this->pdo->prepare("
+                        INSERT INTO active_user_sessions (user_id, session_hash, ip_address, user_agent_hash, last_seen)
+                        VALUES (?, ?, ?, ?, NOW())
+                        ON DUPLICATE KEY UPDATE ip_address = VALUES(ip_address), last_seen = NOW()
+                    ");
+                    $stmt->execute([$userId, $sessionHash, $ip, $uaHash]);
+                } catch (Throwable $ex2) {
+                    error_log('DeviceSessionManager::recordSession error: ' . $ex2->getMessage());
+                }
             }
         }
     }

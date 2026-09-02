@@ -138,15 +138,23 @@ foreach ($selectedRubric['criteria'] as $crit) {
 $scorePercent = $maxPoints > 0 ? (int)round(($totalEarned / $maxPoints) * 100) : 0;
 $passedExam = $scorePercent >= 50;
 
-$currentUser = getCurrentUser();
-if ($currentUser && $passedExam) {
+$userId = (int)($_SESSION['user_id'] ?? 0);
+$xpAwarded = 0;
+if ($userId > 0 && $passedExam) {
     try {
         global $pdo;
         if (!isset($pdo) || !($pdo instanceof PDO)) {
             require_once __DIR__ . '/../config/db.php';
         }
         if (isset($pdo) && $pdo instanceof PDO) {
-            awardXp($pdo, (int)$currentUser['id'], 20, 'network_lab', null, "Auto-Grader CKE: " . $selectedRubric['name']);
+            $rubricDesc = "Auto-Grader CKE: " . $selectedRubric['name'];
+            $chk = $pdo->prepare("SELECT 1 FROM xp_events WHERE user_id = ? AND source = 'network_lab' AND description = ? AND created_at >= CURDATE() LIMIT 1");
+            $chk->execute([$userId, $rubricDesc]);
+            if (!$chk->fetchColumn()) {
+                if (awardXp($pdo, $userId, 20, 'network_lab', null, $rubricDesc)) {
+                    $xpAwarded = 20;
+                }
+            }
         }
     } catch (Throwable $e) {
         error_log('Failed to award network lab autograde XP: ' . $e->getMessage());
@@ -160,6 +168,7 @@ securitySendJson([
     'total_earned' => $totalEarned,
     'max_points' => $maxPoints,
     'passed' => $passedExam,
+    'xp_awarded' => $xpAwarded,
     'criteria' => $results,
     'verdict' => $passedExam ? 'EGZAMIN ZDANY (>=50%)' : 'EGZAMIN NIEZALICZONY (<50%)',
 ], 200);

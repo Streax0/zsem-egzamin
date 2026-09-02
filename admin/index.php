@@ -2694,7 +2694,7 @@ include '../includes/header.php';
                                             <h6 class="fw-bold mb-1"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Wnioski i odpowiedzi</h6>
                                             <p class="small text-muted mb-0">Ostatnie wnioski nauczycieli oraz widoczna odpowiedź administratora.</p>
                                         </div>
-                                        <a href="admin_requests.php" class="btn btn-sm btn-outline-primary rounded-pill">Otwórz</a>
+                                        <a href="requests.php" class="btn btn-sm btn-outline-primary rounded-pill">Otwórz</a>
                                     </div>
                                     <div class="vstack gap-2" style="max-height: 460px; overflow:auto;">
                                         <?php foreach ($adminRequests as $request): ?>
@@ -2733,7 +2733,7 @@ include '../includes/header.php';
                                                 <?php endif; ?>
                                                 <div class="d-flex justify-content-between align-items-center gap-2 mt-2 small text-muted">
                                                     <span><?php echo (int)($request['reply_count'] ?? 0); ?> odpowiedzi w historii</span>
-                                                    <a href="admin_requests.php#request-<?php echo (int)$request['id']; ?>" class="text-decoration-none fw-semibold">Szczegóły</a>
+                                                    <a href="requests.php#request-<?php echo (int)$request['id']; ?>" class="text-decoration-none fw-semibold">Szczegóły</a>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>

@@ -40,25 +40,38 @@ if (!in_array($issueType, $validTypes, true)) {
 $cleanDesc = mb_substr($description, 0, 1000, 'UTF-8');
 
 try {
-    if (function_exists('appRuntimeSchemaUpdatesEnabled') && appRuntimeSchemaUpdatesEnabled()) {
-        $pdo->exec("CREATE" . " TABLE IF NOT EXISTS question_reports (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            question_id INT NOT NULL,
-            user_id INT NOT NULL,
-            issue_type VARCHAR(32) NOT NULL,
-            description TEXT NOT NULL,
-            status VARCHAR(20) NOT NULL DEFAULT 'pending',
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_qr_status (status),
-            INDEX idx_qr_qid (question_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    if (function_exists('appRuntimeSchemaUpdatesEnabled')) {
+        // Schema check helper
     }
 
-    $stmt = $pdo->prepare("
-        INSERT INTO question_reports (question_id, user_id, issue_type, description, status, created_at)
-        VALUES (?, ?, ?, ?, 'pending', NOW())
-    ");
-    $stmt->execute([$questionId, $userId, $issueType, $cleanDesc]);
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO question_reports (question_id, user_id, issue_type, description, status, created_at)
+            VALUES (?, ?, ?, ?, 'pending', NOW())
+        ");
+        $stmt->execute([$questionId, $userId, $issueType, $cleanDesc]);
+    } catch (PDOException $e) {
+        if (str_contains($e->getMessage(), "doesn't exist") || $e->getCode() === '42S02') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS question_reports (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                question_id INT NOT NULL,
+                user_id INT NOT NULL,
+                issue_type VARCHAR(32) NOT NULL,
+                description TEXT NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_qr_status (status),
+                INDEX idx_qr_qid (question_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+            $stmt = $pdo->prepare("
+                INSERT INTO question_reports (question_id, user_id, issue_type, description, status, created_at)
+                VALUES (?, ?, ?, ?, 'pending', NOW())
+            ");
+            $stmt->execute([$questionId, $userId, $issueType, $cleanDesc]);
+        } else {
+            throw $e;
+        }
+    }
 
     securitySendJson([
         'success' => true,

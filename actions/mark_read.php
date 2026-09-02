@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !securityValidateRequestCsrf('notif
         securitySendJson(['success' => false, 'ok' => false, 'error' => 'csrf'], 403);
     }
     setSessionMessage('error', 'Błąd bezpieczeństwa.');
-    header('Location: ../notifications.php');
+    header('Location: ../user/notifications.php');
     exit;
 }
 

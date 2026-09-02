@@ -471,7 +471,7 @@ function _ensurePlatformUsers(PDO $pdo): void {
             dbAddIndexIfMissing($pdo, 'users', 'idx_registration_ip', '(registration_ip)');
             dbAddIndexIfMissing($pdo, 'users', 'idx_ban_expiry', '(is_banned, ban_expires_at)');
             try {
-                $pdo->exec("ALTER TABLE users MODIFY xp INT DEFAULT 4100");
+                $pdo->exec("ALTER TABLE users MODIFY xp INT DEFAULT 0");
             } catch (PDOException $e) {
                 error_log('XP default migration skipped: ' . $e->getMessage());
             }
@@ -6388,7 +6388,7 @@ function userAvatarSrc($avatarPath, string $basePrefix = ''): ?string {
 }
 
 function scanAvatarImageSafety($image, int $width, int $height): array {
-    if (!is_resource($image) && !($image instanceof GdImage)) {
+    if (!function_exists('imagecolorat') || (!is_resource($image) && !($image instanceof \GdImage))) {
         return ['ok' => false, 'message' => 'Nie udało się zweryfikować zdjęcia profilowego.'];
     }
     $sampleW = min(80, max(1, $width));

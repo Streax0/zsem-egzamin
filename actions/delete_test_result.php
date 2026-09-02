@@ -9,14 +9,14 @@ requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !securityValidateRequestCsrf('delete_test_result')) {
     setSessionMessage('error', 'Nieprawidłowe żądanie.');
-    redirect('../history.php');
+    redirect('../user/history.php');
 }
 
 $resultId = securityInputInt($_POST['result_id'] ?? 0, 0, PHP_INT_MAX, 0);
 $returnTo = securityLocalRedirectTarget(
-    (string)($_POST['return_to'] ?? '../history.php'),
-    '../history.php',
-    ['#^(?:\.\./)?(?:history|profile)\.php(?:\?id=\d+)?$#']
+    (string)($_POST['return_to'] ?? '../user/history.php'),
+    '../user/history.php',
+    ['#^(?:\.\./)?(?:history|profile)\.php(?:\?id=\d+)?$#', '#^(?:\.\./)?(?:user/)?(?:history|profile)\.php(?:\?id=\d+)?$#']
 );
 $rateLimit = securityConsumeRateLimit('history:delete_test_result:' . securityActorKey(), 25, 60);
 if (empty($rateLimit['allowed'])) {

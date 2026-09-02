@@ -25,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 requireJsonCsrfToken();
 
 $userId = (int)$_SESSION['user_id'];
-if (function_exists('securityConsumeRateLimit') && !securityConsumeRateLimit('subnetting:submit:' . $userId, 30, 60)) {
+$rateLimit = securityConsumeRateLimit('subnetting:submit:' . $userId, 30, 60);
+if (empty($rateLimit['allowed'])) {
     securitySendJson(['success' => false, 'error' => 'Zbyt wiele prób. Odczekaj chwilę.'], 429);
 }
 $networkIp  = trim((string)($_POST['network_ip'] ?? ''));

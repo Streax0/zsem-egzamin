@@ -27,13 +27,13 @@ $participant = $stmt->fetch();
 
 if (!$participant) {
     setSessionMessage('error', 'Uczestnik nie istnieje.');
-    redirect('my_exams.php');
+    redirect('custom_exams.php');
 }
 
 // Security: Check if teacher owns this exam
 if (!roleHasAdminAccess($_SESSION['role'] ?? '') && $participant['teacher_id'] != $userId) {
     setSessionMessage('error', 'Brak uprawnień do podglądu tego wyniku.');
-    redirect('my_exams.php');
+    redirect('custom_exams.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmtAdmins = $pdo->query("SELECT id FROM users WHERE role IN ('admin', 'dyrektor')");
             foreach ($stmtAdmins->fetchAll(PDO::FETCH_COLUMN) as $adminId) {
-                addNotification($pdo, (int)$adminId, 'admin_request', 'Nowa prośba o weryfikację pytania po sprawdzianie.', 'admin_requests.php');
+                addNotification($pdo, (int)$adminId, 'admin_request', 'Nowa prośba o weryfikację pytania po sprawdzianie.', 'admin/requests.php');
             }
         } catch (PDOException $e) {
             error_log('Question override admin notify failed: ' . $e->getMessage());

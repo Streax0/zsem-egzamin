@@ -262,6 +262,7 @@ include 'includes/header.php';
                             <div class="alert alert-warning">Ten <?php echo $activeItem['type'] === 'exam' ? 'egzamin' : 'quiz'; ?> nie zawiera jeszcze pytań.</div>
                         <?php else: ?>
                             <form id="courseQuizForm" action="ajax/course_progress.php" method="post">
+                                <?php echo csrfTokenField('course_progress'); ?>
                                 <input type="hidden" name="item_id" value="<?php echo $activeItemId; ?>">
                                 <?php foreach ($questions as $number => $question): ?>
                                     <fieldset class="course-quiz-question mb-4" data-question-id="<?php echo (int)$question['id']; ?>">

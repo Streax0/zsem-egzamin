@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/CourseService.php';
 
@@ -14,7 +15,11 @@ try {
         securitySendJson(['success' => false, 'message' => 'Tylko zapytania POST są dozwolone.'], 405);
     }
 
-    $currentUser = getCurrentUser();
+    $userId = (int)($_SESSION['user_id'] ?? 0);
+    if ($userId <= 0) {
+        securitySendJson(['success' => false, 'message' => 'Wymagane logowanie.'], 401);
+    }
+    $currentUser = getUserById($userId);
     if (!$currentUser) {
         securitySendJson(['success' => false, 'message' => 'Wymagane logowanie.'], 401);
     }
@@ -82,17 +87,37 @@ try {
         ], 200);
     }
 
+    $alreadyAwarded = false;
+    $xpEventDesc = "CLI Lab: " . $itemId . ':' . $taskId;
     try {
-        awardXp($pdo, (int)$currentUser['id'], $xpReward, 'course_cli', null, "CLI Lab: " . ($targetBlock['title'] ?? 'Zadanie CLI'));
-    } catch (Throwable $e) {
-        error_log('Failed to award CLI course XP: ' . $e->getMessage());
+        $chkXp = $pdo->prepare("SELECT 1 FROM xp_events WHERE user_id = ? AND source = 'course_cli' AND description = ? LIMIT 1");
+        $chkXp->execute([(int)$currentUser['id'], $xpEventDesc]);
+        if ($chkXp->fetchColumn()) {
+            $alreadyAwarded = true;
+        }
+    } catch (Throwable $e) {}
+
+    $xpAwarded = 0;
+    if (!$alreadyAwarded) {
+        try {
+            if (awardXp($pdo, (int)$currentUser['id'], $xpReward, 'course_cli', $itemId, $xpEventDesc)) {
+                $xpAwarded = $xpReward;
+            }
+        } catch (Throwable $e) {
+            error_log('Failed to award CLI course XP: ' . $e->getMessage());
+        }
     }
+
+    $msg = $alreadyAwarded
+        ? 'Zadanie wykonane poprawnie! (Nagroda XP została już wcześniej odebrana)'
+        : 'Zadanie wykonane pomyślnie! +' . $xpReward . ' XP';
 
     securitySendJson([
         'success' => true,
         'output' => $expectedOutput ?: "Polecenie wykonane prawidłowo.\n[OK] Sukces!",
-        'xp_awarded' => $xpReward,
-        'message' => 'Zadanie wykonane pomyślnie! +' . $xpReward . ' XP',
+        'xp_awarded' => $xpAwarded,
+        'already_awarded' => $alreadyAwarded,
+        'message' => $msg,
     ], 200);
 } catch (Throwable $e) {
     securitySendJson([

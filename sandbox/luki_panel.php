@@ -208,7 +208,7 @@ function lukiSpinResponsePayload(array $outcome, int $spinId, int $resultIndex, 
 }
 
 $segments = lukiSegments();
-$segmentCount = count($segments);
+$segmentCount = max(1, count($segments));
 
 // Generate exact 0deg-based conic-gradient stops
 $wheelGradientStops = [];

@@ -186,17 +186,17 @@ include '../includes/header.php';
                                                         Szczegóły
                                                     </a>
                                                     <?php if (($test['kind'] ?? 'test') === 'test'): ?>
-                                                        <form method="POST" action="actions/delete_test_result.php" onsubmit="return appConfirmSubmit(this, 'Usunąć ten wynik z historii?');">
+                                                        <form method="POST" action="../actions/delete_test_result.php" onsubmit="return appConfirmSubmit(this, 'Usunąć ten wynik z historii?');">
                                                             <?php echo csrfTokenField('delete_test_result'); ?>
                                                             <input type="hidden" name="result_id" value="<?php echo (int)$test['id']; ?>">
-                                                            <input type="hidden" name="return_to" value="../history.php">
+                                                            <input type="hidden" name="return_to" value="history.php">
                                                             <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń wynik" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
                                                         </form>
                                                     <?php elseif (($test['kind'] ?? 'test') === 'duel' && !empty($test['can_hide'])): ?>
-                                                        <form method="POST" action="actions/delete_duel_history.php" onsubmit="return appConfirmSubmit(this, 'Usunąć ten pojedynek z Twojej historii?');">
+                                                        <form method="POST" action="../actions/delete_duel_history.php" onsubmit="return appConfirmSubmit(this, 'Usunąć ten pojedynek z Twojej historii?');">
                                                             <?php echo csrfTokenField('delete_duel_history'); ?>
                                                             <input type="hidden" name="duel_id" value="<?php echo (int)$test['id']; ?>">
-                                                            <input type="hidden" name="return_to" value="../history.php">
+                                                            <input type="hidden" name="return_to" value="history.php">
                                                             <button class="btn btn-sm btn-outline-danger" type="submit" title="Usuń pojedynek" style="border-radius: 8px;"><i class="bi bi-trash"></i></button>
                                                         </form>
                                                     <?php endif; ?>

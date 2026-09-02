@@ -52,7 +52,7 @@ try {
     echo '<div class="test-details-container">';
     echo '  <ul class="list-group list-group-flush mb-4">';
     echo '      <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="bi bi-calendar3 text-muted me-2"></i> Data testu:</span> <strong>' . htmlspecialchars($testResult['test_date']) . '</strong></li>';
-    echo '      <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="bi bi-bullseye text-muted me-2"></i> Wynik:</span> <strong class="text-primary">' . htmlspecialchars(round($testResult['score_percent'], 1)) . '%</strong></li>';
+    echo '      <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="bi bi-bullseye text-muted me-2"></i> Wynik:</span> <strong class="text-primary">' . htmlspecialchars((string)round((float)$testResult['score_percent'], 1)) . '%</strong></li>';
     echo '      <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="bi bi-check-circle text-success me-2"></i> Poprawne:</span> <strong>' . (int)$testResult['correct_answers'] . ' / ' . (int)$testResult['total_questions'] . '</strong></li>';
     echo '      <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="bi bi-clock text-muted me-2"></i> Czas trwania:</span> <strong>' . gmdate("H:i:s", (int)$testResult['time_spent']) . '</strong></li>';
     echo '  </ul>';

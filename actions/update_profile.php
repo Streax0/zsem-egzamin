@@ -7,10 +7,10 @@ require_once '../includes/functions.php';
 startSecureSession();
 requireLogin();
 
-$returnTarget = ($_POST['return_to'] ?? '') === 'profile.php' ? '../profile.php' : '../settings.php';
+$returnTarget = ($_POST['return_to'] ?? '') === 'profile.php' ? '../user/profile.php' : '../user/settings.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    securityRedirect('../settings.php', '../settings.php');
+    securityRedirect('../user/settings.php', '../user/settings.php');
 }
 
 if (!securityValidateRequestCsrf()) {
@@ -52,6 +52,9 @@ $avatarDestination = null;
 const AVATAR_MAX_BYTES = 204800; // Increased limit from AVATAR_MAX_BYTES = 25600 (25 KB) to 200 KB
 
 function saveAvatarWebpWithinLimit($source, int $width, int $height, string $dest): bool {
+    if (!function_exists('imagecreatetruecolor') || !function_exists('imagewebp')) {
+        return false;
+    }
     $sizes = [512, 384, 320, 256, 192, 160, 128];
     $qualities = [82, 74, 66, 58, 50, 42, 34, 28];
 

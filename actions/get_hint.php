@@ -52,17 +52,32 @@ if ($tier === 3) {
 $xpCosts = [1 => 2, 2 => 5, 3 => 10];
 $xpCost  = $xpCosts[$tier];
 
-// Fetch question
-$_stmt = $pdo->prepare(
-    "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
-            q.correct_answer, q.explanation,
-            qh.hint_tier1, qh.hint_tier2, qh.hint_tier3
-     FROM questions q
-     LEFT JOIN question_hints qh ON qh.question_id = q.id
-     WHERE q.id = ?"
-);
-$_stmt->execute([$questionId]);
-$question = $_stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+try {
+    $_stmt = $pdo->prepare(
+        "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+                q.correct_answer, q.explanation,
+                qh.hint_tier1, qh.hint_tier2, qh.hint_tier3
+         FROM questions q
+         LEFT JOIN question_hints qh ON qh.question_id = q.id
+         WHERE q.id = ?"
+    );
+    $_stmt->execute([$questionId]);
+    $question = $_stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+} catch (PDOException $e) {
+    if (str_contains($e->getMessage(), "doesn't exist") || $e->getCode() === '42S02') {
+        $_stmt = $pdo->prepare(
+            "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+                    q.correct_answer, q.explanation,
+                    NULL AS hint_tier1, NULL AS hint_tier2, NULL AS hint_tier3
+             FROM questions q
+             WHERE q.id = ?"
+        );
+        $_stmt->execute([$questionId]);
+        $question = $_stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    } else {
+        throw $e;
+    }
+}
 
 if (!$question) {
     securitySendJson(['success' => false, 'error' => 'Pytanie nie znalezione'], 404);
