@@ -3939,3 +3939,31 @@ body.dark-mode #transitionModalIconWrapper {
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
+/* ── Responsiveness & 320px Overflow Safeguards ── */
+@media (max-width: 360px) {
+  body {
+    overflow-x: hidden;
+  }
+  .content-body, .main-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  .quiz-action-bar, .review-next-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .btn-lg {
+    padding: 0.6rem 1rem !important;
+    font-size: 0.95rem !important;
+  }
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+img[loading="lazy"] {
+  content-visibility: auto;
+}
+
+

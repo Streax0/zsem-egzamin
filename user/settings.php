@@ -1190,7 +1190,7 @@ include '../includes/header.php';
                                             <h5 class="panel-title mb-0 text-warning"><i class="bi bi-exclamation-triangle me-2"></i>Zalecana migracja hasła</h5>
                                         </div>
                                         <div class="p-3">
-                                            <p>Twoje hasło korzysta ze starszego sposobu zabezpieczenia (MD5). Zalecamy jednorazową migrację do nowoczesnego standardu Argon2id.</p>
+                                            <p>Twoje hasło korzysta ze starszego formatu zabezpieczeń. Zalecamy aktualizację do nowoczesnego standardu kryptograficznego.</p>
                                             <form action="../actions/migrate_md5.php" method="POST">
                                                 <?php echo csrfTokenField(); ?>
                                                 <input type="hidden" name="return_to" value="settings.php">
@@ -1651,7 +1651,12 @@ include '../includes/header.php';
                                                     </div>
                                                 </div>
 
-                                                <div class="settings-release-timeline">
+                                                <details class="settings-changelog-accordion mt-4" open>
+                                                    <summary class="settings-changelog-summary fw-bold mb-3 cursor-pointer text-primary user-select-none">
+                                                        <i class="bi bi-clock-history me-2"></i>Historia zmian (Changelog)
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-2">Wersja 2.5</span>
+                                                    </summary>
+                                                    <div class="settings-release-timeline">
                                                     <!-- Changelog 2.5 Release (Najnowsza) -->
                                                     <div class="settings-release-card release-latest">
                                                         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -1723,7 +1728,8 @@ include '../includes/header.php';
                                                             <span><i class="bi bi-check-all"></i> TESTS UPDATE</span>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                    </div>
+                                                </details>
                                             </div>
 
                                             <div class="dashboard-panel animate-in" id="app-status">

@@ -351,7 +351,7 @@ button { padding: 10px 16px; border-radius: 8px; }</textarea></label>
                                 <button id="clearCode" class="btn btn-light border rounded-pill" type="button"><i class="bi bi-eraser me-1"></i>Wyczyść</button>
                             </div>
                         </div>
-                        <iframe id="codePreview" class="preview-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin"></iframe>
+                        <iframe id="codePreview" class="preview-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
                     </section>
                 <?php elseif ($tool === 'crypto'): ?>
                     <section class="sandbox-workbench crypto-workbench" data-tool="crypto">

@@ -975,7 +975,7 @@ def test_external_cdn_resources_have_sri() -> None:
         "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css":
             "sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH",
         "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js":
-            "sha384-9Q0jWoineiIq95JeIyBsNV90KKLfDsbkj29k/YFxf76a2JwkHDYkMuSbNGN6XJfV",
+            "sha384-hStSInNIZ8ljtOVrmrgf7zdHMapaLBWoSnPTtF0nzsybp4+LuhDz6sHuEVpWIX8o",
         "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js":
             "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e",
         "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js":

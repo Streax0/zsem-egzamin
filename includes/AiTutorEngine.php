@@ -7,6 +7,73 @@ declare(strict_types=1);
  * Total dataset: 1805 questions
  */
 
+function aiTutorGetDictionary(): array {
+    static $dictCache = null;
+    if ($dictCache !== null) {
+        return $dictCache;
+    }
+    $dictPath = dirname(__DIR__) . '/data/dictionary.json';
+    $dictCache = [];
+    if (file_exists($dictPath)) {
+        $raw = json_decode(file_get_contents($dictPath), true) ?: [];
+        foreach ($raw as $entry) {
+            $qual = strtoupper(trim((string)($entry['qualification'] ?? 'COMMON')));
+            foreach ($entry['terms'] ?? [] as $t) {
+                $termName = mb_strtolower(trim((string)($t['term'] ?? '')), 'UTF-8');
+                if ($termName === '') continue;
+                $def = trim((string)($t['definition'] ?? ''));
+                if ($def === '') continue;
+                $dictCache[$qual][$termName] = $def;
+                if (!isset($dictCache['ALL'][$termName])) {
+                    $dictCache['ALL'][$termName] = $def;
+                }
+            }
+        }
+    }
+    return $dictCache;
+}
+
+function aiTutorLookupTermDefinition(string $text, string $category = 'INF.02'): ?string {
+    $dict = aiTutorGetDictionary();
+    if (empty($dict)) return null;
+
+    $cat = strtoupper(trim($category));
+    if ($cat === 'EE.08') $cat = 'INF.02';
+    if ($cat === 'EE.09') $cat = 'INF.03';
+
+    $clean = mb_strtolower(trim($text), 'UTF-8');
+    $clean = trim($clean, " \t\n\r\0\x0B.,;:()\"'[]{}");
+
+    // Exact match in current category
+    if (isset($dict[$cat][$clean])) {
+        return $dict[$cat][$clean];
+    }
+    // Exact match in ALL
+    if (isset($dict['ALL'][$clean])) {
+        return $dict['ALL'][$clean];
+    }
+
+    // Substring lookup for composite terms
+    if (mb_strlen($clean) >= 4) {
+        if (isset($dict[$cat])) {
+            foreach ($dict[$cat] as $term => $def) {
+                if (mb_strlen($term) >= 4 && (str_contains($clean, $term) || str_contains($term, $clean))) {
+                    return $def;
+                }
+            }
+        }
+        if (isset($dict['ALL'])) {
+            foreach ($dict['ALL'] as $term => $def) {
+                if (mb_strlen($term) >= 4 && (str_contains($clean, $term) || str_contains($term, $clean))) {
+                    return $def;
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
 function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', string $correctText = '', bool $isCorrect = false, string $category = 'INF.02'): string {
     $clean = trim($text);
     if ($clean === '') {
@@ -523,13 +590,18 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
         'proxy' => 'Serwer Proxy pośredniczy w zapytaniach sieciowych między klientem a serwerem docelowym, buforując dane i filtrując ruch.',
     ];
     if (isset($hardwareMap[$cleanLower])) {
-        return $hardwareMap[$cleanLower];
+        if ($cleanLower === 'switch' && ($category === 'INF.04' || $category === 'INF.03')) {
+            // Fall through to programming map
+        } else {
+            return $hardwareMap[$cleanLower];
+        }
     }
 
     // -------------------------------------------------------------------------
     // 16. PROGRAMMING & OBJECT-ORIENTED PARADIGMS (INF.04)
     // -------------------------------------------------------------------------
     $progMap = [
+        'switch' => 'Instrukcja switch to instrukcja wyboru wielowariantowego dopasowująca wartość wyrażenia do etykiet case.',
         'c#' => 'C# to obiektowy język programowania stworzony przez firmę Microsoft, kompilowany do kodu pośredniego CIL i uruchamiany w środowisku .NET CLR.',
         'c++' => 'C++ to wysokowydajny, wieloparadygmatowy język programowania z bezpośrednim zarządzaniem pamięcią i kompilacją do kodu maszynowego.',
         'java' => 'Java to język obiektowy kompilowany do bajtkodu i wykonywany na wirtualnej maszynie JVM (zasada WORA: Write Once, Run Anywhere).',
@@ -1446,28 +1518,6 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
         }
     }
 
-    // -------------------------------------------------------------------------
-    // 38. COMPOUND PHRASES (split by " i ", " oraz ", ", ", " + ")
-    // -------------------------------------------------------------------------
-    if (preg_match('/\b(i|oraz)\b|,|\+/iu', $cleanLower)) {
-        $parts = preg_split('/\s+(?:i|oraz)\s+|,\s*|\+\s*/iu', $clean);
-        if (count($parts) >= 2) {
-            $partExplanations = [];
-            foreach ($parts as $p) {
-                $p = trim($p);
-                if ($p === '') continue;
-                $pReason = aiTutorAnalyzeTechnicalOption($p, $questionText, $correctText, false, $category);
-                if ($pReason !== '' && !str_contains($pReason, 'nie spełnia warunków') && !str_contains($pReason, 'nie stanowi prawidłowego') && !str_contains($pReason, 'dotyczy innego')) {
-                    $partExplanations[] = "„{$p}” (" . lcfirst(rtrim($pReason, '.')) . ")";
-                }
-            }
-            if (count($partExplanations) >= 2) {
-                return implode(' oraz ', $partExplanations) . ' — żadne z tych rozwiązań nie spełnia wymagań zadania.';
-            } elseif (count($partExplanations) === 1) {
-                return $partExplanations[0] . ' — nie rozwiązuje w pełni zagadnienia z treści pytania.';
-            }
-        }
-    }
 
     // -------------------------------------------------------------------------
     // 39. HARDWARE, DIAGNOSTICS & SYSTEM UPGRADES
@@ -1724,10 +1774,15 @@ function aiTutorAnalyzeTechnicalOption(string $text, string $questionText = '', 
             : "Składnia „{$clean}” implementuje logikę niezgodną z wymogami zadania.";
     }
 
-    if ($correctText !== '') {
-        return "Opcja {$clean} pełni inną rolę w informatyce niż {$correctText}, dlatego nie jest prawidłowym rozwiązaniem tego zagadnienia.";
+    $termDef = aiTutorLookupTermDefinition($clean, $category);
+    if ($termDef !== null) {
+        return "„{$clean}” – {$termDef} W tym zadaniu nie rozwiązuje problemu opisanego w pytaniu (właściwą odpowiedzią jest „{$correctText}”).";
     }
-    return "Opcja {$clean} nie rozwiązuje problemu opisanego w pytaniu.";
+
+    if ($correctText !== '') {
+        return "Wariant „{$clean}” odnosi się do innych założeń technicznych i nie rozwiązuje problemu opisanego w pytaniu (wymaganą odpowiedzią jest „{$correctText}”).";
+    }
+    return "Wskazanie „{$clean}” nie rozwiązuje problemu opisanego w pytaniu.";
 }
 
 function aiTutorEvaluateMathAndConversions(string $optionText, string $questionText, string $correctText): string {

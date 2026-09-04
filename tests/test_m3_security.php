@@ -169,6 +169,12 @@ assertTest("Firewall violator IP not banned before 5 violations", !$firewall->is
 
 $firewall->recordViolation($violatorIp);
 assertTest("Firewall automatically bans IP on 5th violation", $firewall->isBanned($violatorIp));
+
+// Test that protectRequest enforces IP ban even when wafLevel is 'disabled'
+$_SERVER['REMOTE_ADDR'] = $violatorIp;
+assertTest("Firewall protectRequest blocks banned IP even when wafLevel is disabled", $firewall->protectRequest('disabled') === false);
+$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
 $firewall->unbanIp($violatorIp);
 echo "\n";
 

@@ -8,6 +8,7 @@ const QuizEngine = {
     },
 
     init() {
+        window.selectQuizOption = (el) => this.selectOption(el);
         this.setupEventListeners();
         this.setupOfflineListeners();
     },
@@ -79,6 +80,33 @@ const QuizEngine = {
         const quizForm = document.getElementById('quizForm');
         if (quizForm) {
             quizForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
+            quizForm.addEventListener('click', (e) => {
+                const checkBtn = e.target.closest('#checkAnswerBtn');
+                if (checkBtn && !checkBtn.disabled && !this.state.isBusy) {
+                    e.preventDefault();
+                    this.checkAnswer();
+                }
+            });
+        }
+
+        // Delegate click for .quiz-option on answersContainer
+        const answersContainer = document.getElementById('answersContainer');
+        if (answersContainer) {
+            answersContainer.addEventListener('click', (e) => {
+                const opt = e.target.closest('.quiz-option');
+                if (opt && answersContainer.contains(opt)) {
+                    this.selectOption(opt);
+                }
+            });
+        }
+
+        // Flag question button
+        const flagBtn = document.getElementById('btnFlagQuestion');
+        if (flagBtn) {
+            flagBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.toggleFlagQuestion(flagBtn);
+            });
         }
 
         // Global keydown for shortcuts
@@ -146,7 +174,7 @@ const QuizEngine = {
                     window.location.href = data.redirect;
                 } else if (data.next_question) {
                     this.updateProgressPanel(data);
-                    this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
+                    this.renderQuestion(data.question, data.current, data.total, data.saved_answer, data);
                     if (typeof window.resetQuestionTimer === 'function') {
                         window.resetQuestionTimer(data.question_time_limit || data.question_time_left);
                     }
@@ -174,6 +202,8 @@ const QuizEngine = {
 
     async checkAnswer() {
         if (this.state.isBusy) return;
+        const checkBtn = document.getElementById('checkAnswerBtn');
+        if (checkBtn && checkBtn.disabled) return;
 
         const selectedInput = document.getElementById('selectedAnswer');
         const questionIdInput = document.querySelector('input[name="question_id"]');
@@ -190,8 +220,8 @@ const QuizEngine = {
 
         const formData = new FormData();
         formData.append('action', 'check_answer');
-        formData.append('question_id', questionIdInput.value);
-        formData.append('answer', selectedInput.value || '');
+        formData.append('question_id', questionIdInput ? questionIdInput.value : '');
+        formData.append('answer', selectedInput ? selectedInput.value : '');
         formData.append('csrf_token', csrfToken);
 
         let keepOptionsLocked = false;
@@ -230,16 +260,23 @@ const QuizEngine = {
                 if (data.finished) {
                     window.allowQuizNavigation?.();
                     window.location.href = data.redirect;
-                } else {
+                } else if (data.phase === 'review' && data.result) {
                     this.updateProgressPanel(data);
-                    this.renderQuestion(data.question, data.current, data.total, data.saved_answer);
+                    this.renderReview(data.result);
+                } else if (data.question) {
+                    this.updateProgressPanel(data);
+                    this.renderQuestion(data.question, data.current, data.total, data.saved_answer, data);
                     if (typeof window.resetQuestionTimer === 'function') {
                         window.resetQuestionTimer(data.question_time_limit || data.question_time_left);
                     }
                 }
+            } else {
+                this.notify('Błąd: ' + (data.error || 'Nie można przejść do następnego pytania.'), 'danger');
+                this.updateProgressPanel(data);
             }
         } catch (error) {
             console.error('Quiz Error:', error);
+            this.notify('Wystąpił błąd połączenia.', 'danger');
         } finally {
             this.setBusy(false);
         }
@@ -283,6 +320,9 @@ const QuizEngine = {
             checkBtn.disabled = !available;
             checkBtn.classList.toggle('is-exhausted', !available);
             checkBtn.dataset.answerCheckRemaining = String(Math.max(0, remaining));
+            if (!document.querySelector('.review-box')) {
+                checkBtn.classList.remove('d-none');
+            }
         }
     },
 
@@ -312,9 +352,9 @@ const QuizEngine = {
         }
     },
 
-    renderQuestion(q, current, total, savedAnswer = '') {
+    renderQuestion(q, current, total, savedAnswer = '', data = {}) {
         const cardBody = document.querySelector('.question-card .card-body');
-        if (!cardBody) return;
+        if (!cardBody || !q) return;
         cardBody.classList.remove('fade-in');
         cardBody.classList.add('fade-out');
 
@@ -335,40 +375,82 @@ const QuizEngine = {
 
             // Update text
             const qText = cardBody.querySelector('.h4');
-            qText.innerHTML = this.escapeHtml(q.question_text).replace(/\n/g, '<br>');
+            if (qText) {
+                qText.innerHTML = this.escapeHtml(q.question_text || '').replace(/\n/g, '<br>');
+            }
 
             // Reset form
             const form = document.getElementById('quizForm');
-            form.querySelector('input[name="question_id"]').value = q.id;
-            document.getElementById('selectedAnswer').value = savedAnswer || '';
-            document.getElementById('submitBtn').disabled = !savedAnswer;
+            if (form) {
+                const qIdInput = form.querySelector('input[name="question_id"]');
+                if (qIdInput) qIdInput.value = q.id;
+            }
+            const selectedInput = document.getElementById('selectedAnswer');
+            if (selectedInput) {
+                selectedInput.value = savedAnswer || '';
+            }
+
+            // Restore submit button to answering state
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.onclick = null;
+                submitBtn.innerHTML = '<span>Zatwierdź odpowiedź</span><span class="btn-icon-circle"><i class="bi bi-check2"></i></span>';
+                submitBtn.disabled = !savedAnswer;
+            }
+
+            // Restore check answer button visibility
+            const checkBtn = document.getElementById('checkAnswerBtn');
+            if (checkBtn) {
+                checkBtn.classList.remove('d-none');
+            }
+
             const prevButton = document.querySelector('[data-question-nav="previous"]');
             if (prevButton) prevButton.disabled = current <= 0;
 
             // Re-render options
             const container = document.getElementById('answersContainer');
-            container.innerHTML = '';
-            for (const [key, text] of Object.entries(q.options)) {
-                if (!text || text.trim() === '') continue;
-                const opt = document.createElement('div');
-                opt.className = 'answer-option quiz-option' + (savedAnswer === key ? ' selected' : '');
-                opt.dataset.answer = key;
-                opt.innerHTML = `<div class="answer-letter">${key}</div><div class="answer-text">${this.escapeHtml(text)}</div>`;
-                opt.onclick = () => this.selectOption(opt);
-                container.appendChild(opt);
+            if (container) {
+                container.innerHTML = '';
+                let idx = 0;
+                for (const [key, text] of Object.entries(q.options || {})) {
+                    if (!text || text.trim() === '') continue;
+                    const opt = document.createElement('div');
+                    opt.className = 'answer-option quiz-option' + (savedAnswer === key ? ' selected' : '');
+                    opt.dataset.answer = key;
+                    opt.innerHTML = `<div class="answer-letter">${key}<span class="key-indicator" title="Skrót klawiszowy">${idx + 1}</span></div><div class="answer-text">${this.escapeHtml(text)}</div>`;
+                    opt.onclick = () => this.selectOption(opt);
+                    container.appendChild(opt);
+                    idx++;
+                }
             }
 
             // Update Category badge
             const badge = document.querySelector('.badge.bg-primary');
-            if (badge) badge.textContent = q.category;
+            if (badge) badge.textContent = q.category || 'Ogólne';
+
+            // Update AI Tutor button question ID
+            const tutorBtn = document.getElementById('btnAiTutor');
+            if (tutorBtn) {
+                tutorBtn.setAttribute('data-question-id', q.id);
+                tutorBtn.dataset.questionId = q.id;
+            }
+
+            // Update Flag question button state and question ID
+            const flagBtn = document.getElementById('btnFlagQuestion');
+            if (flagBtn) {
+                flagBtn.setAttribute('data-question-id', q.id);
+                flagBtn.dataset.questionId = q.id;
+                this.updateFlagButton(Boolean(q.is_bookmarked || q.is_flagged));
+            }
 
             cardBody.querySelectorAll('.review-box, .review-next-actions').forEach(node => node.remove());
             const submitActions = document.querySelector('#quizForm .quiz-action-bar');
             if (submitActions) submitActions.style.display = 'flex';
 
+            this.lockOptions(false);
             cardBody.classList.remove('fade-out');
             cardBody.classList.add('fade-in');
-            this.syncAnswerCheckControls();
+            this.syncAnswerCheckControls(data);
             this.scrollToQuestionTop();
         }, 300);
     },
@@ -381,6 +463,10 @@ const QuizEngine = {
     },
 
     renderReview(result) {
+        if (typeof window.pauseQuestionTimer === 'function') {
+            window.pauseQuestionTimer();
+        }
+
         // Update options classes
         const options = document.querySelectorAll('.quiz-option');
         options.forEach(opt => {
@@ -472,26 +558,64 @@ const QuizEngine = {
                         </div>
                     ` : ''}
                 </div>
-            </div>
-        `;
-        
+            </div>`;
         cardBody.insertAdjacentHTML('beforeend', reviewHtml);
+
+        const checkBtn = document.getElementById('checkAnswerBtn');
+        if (checkBtn) {
+            checkBtn.disabled = true;
+            checkBtn.classList.add('d-none');
+        }
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.innerHTML = `<span>${result.is_last ? 'Zakończ test' : 'Następne pytanie'}</span> <span class="btn-icon-circle"><i class="bi bi-arrow-right"></i></span>`;
+            submitBtn.disabled = false;
+            submitBtn.onclick = (e) => {
+                e.preventDefault();
+                QuizEngine.nextQuestion();
+            };
+        }
     },
 
     selectOption(el) {
-        if (el.classList.contains('disabled')) return;
+        if (!el || el.classList.contains('disabled') || el.classList.contains('correct') || el.classList.contains('incorrect') || document.querySelector('.review-box')) return;
         document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
         el.classList.add('selected');
-        document.getElementById('selectedAnswer').value = el.dataset.answer;
-        document.getElementById('submitBtn').disabled = false;
+        const selectedInput = document.getElementById('selectedAnswer');
+        if (selectedInput) {
+            selectedInput.value = el.dataset.answer || '';
+        }
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
     },
 
     handleKeyboard(e) {
-        if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable || document.querySelector('.modal.show')) return;
+        if (document.querySelector('.review-box')) {
+            if (e.key === 'Enter') {
+                const nextBtn = document.querySelector('.review-next-actions button, .review-next-actions form button');
+                if (nextBtn && nextBtn.offsetParent !== null) {
+                    nextBtn.click();
+                }
+            }
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                this.toggleFlagQuestion();
+            }
+            return;
+        }
+
         const map = {'1':'A','2':'B','3':'C','4':'D'};
         if (map[e.key]) {
             const opt = document.querySelector(`.quiz-option[data-answer="${map[e.key]}"]`) || document.querySelector(`.sim-answer-option[data-answer="${map[e.key]}"]`);
             if (opt) opt.click();
+        }
+        if (e.key === 'f' || e.key === 'F') {
+            e.preventDefault();
+            this.toggleFlagQuestion();
+            return;
         }
         if (e.key === 'Enter') {
             const simBtn = document.getElementById('simSubmitBtn');
@@ -565,6 +689,70 @@ const QuizEngine = {
         button.setAttribute('aria-expanded', willShow ? 'true' : 'false');
     },
 
+    async toggleFlagQuestion(btn = null) {
+        const flagBtn = btn || document.getElementById('btnFlagQuestion');
+        const form = document.getElementById('quizForm');
+        const questionId = flagBtn?.getAttribute('data-question-id')
+            || flagBtn?.dataset?.questionId
+            || form?.querySelector('input[name="question_id"]')?.value;
+        if (!questionId) return;
+
+        const csrfToken = this.getCsrfToken(form || document);
+        const formData = new FormData();
+        formData.append('question_id', questionId);
+        formData.append('action', 'toggle');
+        formData.append('csrf_token', csrfToken);
+
+        try {
+            let res;
+            if (window.AppApi?.postForm) {
+                res = await window.AppApi.postForm('actions/bookmark_question.php', formData);
+            } else {
+                const response = await fetch('actions/bookmark_question.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRF-Token': csrfToken }
+                });
+                res = await response.json();
+            }
+
+            if (res && res.success) {
+                this.updateFlagButton(res.is_bookmarked);
+                this.notify(res.message || (res.is_bookmarked ? 'Pytanie dodano do zapisanych.' : 'Pytanie usunięto z zapisanych.'), 'info');
+            } else {
+                this.notify(res?.error || 'Błąd zapisu zakładki.', 'warning');
+            }
+        } catch (err) {
+            console.error('Bookmark error:', err);
+            this.notify('Wystąpił błąd połączenia.', 'danger');
+        }
+    },
+
+    updateFlagButton(isFlagged) {
+        const flagBtn = document.getElementById('btnFlagQuestion');
+        if (!flagBtn) return;
+        const icon = flagBtn.querySelector('#flagIcon') || flagBtn.querySelector('i');
+        const text = flagBtn.querySelector('#flagText') || flagBtn.querySelector('.flag-text');
+
+        if (isFlagged) {
+            flagBtn.classList.remove('btn-outline-warning');
+            flagBtn.classList.add('btn-warning');
+            if (icon) {
+                icon.className = 'bi bi-flag-fill me-1';
+            }
+            if (text) text.textContent = 'Oznaczono';
+            flagBtn.setAttribute('title', 'Usuń oznaczenie flagą (Skrót [F])');
+        } else {
+            flagBtn.classList.remove('btn-warning');
+            flagBtn.classList.add('btn-outline-warning');
+            if (icon) {
+                icon.className = 'bi bi-flag me-1';
+            }
+            if (text) text.textContent = 'Oznacz';
+            flagBtn.setAttribute('title', 'Oznacz pytanie flagą do weryfikacji (Skrót [F])');
+        }
+    },
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -573,6 +761,7 @@ const QuizEngine = {
 };
 
 window.QuizEngine = QuizEngine;
+window.selectQuizOption = (el) => QuizEngine.selectOption(el);
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => QuizEngine.init());

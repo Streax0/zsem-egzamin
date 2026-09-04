@@ -73,7 +73,7 @@ include '../includes/header.php';
             <main role="main" class="content-body">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold">Historia Twoich testów</h2>
-                    <a href="test.php?mode=exam&setup=1" class="btn btn-primary">
+                    <a href="../test.php?mode=exam&setup=1" class="btn btn-primary">
                         <i class="bi bi-plus-lg me-2"></i>Nowy test
                     </a>
                 </div>

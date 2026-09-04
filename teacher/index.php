@@ -243,7 +243,7 @@ include '../includes/header.php';
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0" id="teacherExamsTable">
                                     <thead>
-                                        <tr class="text-muted small">
+                                        <tr class="text-muted small text-nowrap">
                                             <th>NAZWA</th>
                                             <th>STATUS</th>
                                             <th>KOD</th>
@@ -279,12 +279,12 @@ include '../includes/header.php';
                                                     <span class="text-muted">—</span>
                                                 <?php endif; ?>
                                             </td>
-                                            <td>
+                                            <td class="text-nowrap">
                                                 <span class="fw-bold"><?= (int)($exam['participant_count'] ?? 0) ?></span>
                                                 <span class="text-muted">/ <?= $exam['max_participants'] ?></span>
                                             </td>
-                                            <td><?= $exam['question_count'] ?></td>
-                                            <td class="small text-muted"><?= date('d.m.Y H:i', strtotime($exam['created_at'])) ?></td>
+                                            <td class="text-nowrap"><?= $exam['question_count'] ?></td>
+                                            <td class="small text-muted text-nowrap"><?= date('d.m.Y H:i', strtotime($exam['created_at'])) ?></td>
                                             <td>
                                                 <div class="d-flex gap-2">
                                                     <?php if (in_array($exam['status'], ['lobby', 'in_progress', 'paused'])): ?>
@@ -292,7 +292,7 @@ include '../includes/header.php';
                                                             <i class="bi bi-broadcast me-1"></i>Zarządzaj
                                                         </a>
                                                     <?php elseif ($exam['status'] === 'finished'): ?>
-                                                        <a href="host_exam.php?session=<?= $exam['session_id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                        <a href="exam_details.php?session=<?= $exam['session_id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                                             <i class="bi bi-bar-chart me-1"></i>Wyniki
                                                         </a>
                                                         <form method="POST" class="d-inline" onsubmit="return appConfirmSubmit(this, 'Czy na pewno chcesz usunąć wyniki tego sprawdzianu?')">
@@ -303,7 +303,7 @@ include '../includes/header.php';
                                                                 <i class="bi bi-trash3"></i>
                                                             </button>
                                                         </form>
-                                                    <?php elseif (!$exam['session_id']): ?>
+                                                    <?php elseif ($exam['status'] === 'expired' || !$exam['session_id']): ?>
                                                         <a href="host_exam.php?exam=<?= $exam['id'] ?>" class="btn btn-sm btn-success rounded-pill px-3">
                                                             <i class="bi bi-play-fill me-1"></i>Hostuj
                                                         </a>
@@ -314,8 +314,12 @@ include '../includes/header.php';
                                                             <i class="bi bi-three-dots-vertical"></i>
                                                         </button>
                                                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                                            <li><a class="dropdown-item" href="edit_exam.php?id=<?= $exam['id'] ?>"><i class="bi bi-pencil me-2 text-primary"></i>Edytuj</a></li>
-                                                            <li><a class="dropdown-item" href="clone_exam.php?id=<?= $exam['id'] ?>"><i class="bi bi-copy me-2 text-info"></i>Duplikuj (Kopia)</a></li>
+                                                            <li><a class="dropdown-item" href="host_exam.php?exam=<?= $exam['id'] ?>"><i class="bi bi-broadcast me-2 text-info"></i>Nowa sesja (Hostuj)</a></li>
+                                                            <?php if (!empty($exam['session_id'])): ?>
+                                                                <li><a class="dropdown-item" href="exam_details.php?session=<?= $exam['session_id'] ?>"><i class="bi bi-bar-chart me-2 text-primary"></i>Arkusz ocen</a></li>
+                                                            <?php endif; ?>
+                                                            <li><a class="dropdown-item" href="edit_exam.php?id=<?= $exam['id'] ?>"><i class="bi bi-pencil me-2 text-secondary"></i>Edytuj</a></li>
+                                                            <li><a class="dropdown-item" href="clone_exam.php?id=<?= $exam['id'] ?>"><i class="bi bi-copy me-2 text-secondary"></i>Duplikuj (Kopia)</a></li>
                                                             <li><a class="dropdown-item" href="#" onclick="copyShareLink('<?= $exam['id'] ?>'); return false;"><i class="bi bi-share me-2 text-success"></i>Udostępnij link</a></li>
                                                             <li><hr class="dropdown-divider"></li>
                                                             <li>

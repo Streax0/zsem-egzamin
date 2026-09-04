@@ -14,6 +14,9 @@ if (!isset($base_url)) {
     <meta name="theme-color" content="#4f46e5">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="<?php echo htmlspecialchars($base_url); ?>zsemtech_profile.ico">
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">

@@ -311,8 +311,8 @@ $bodyClassStr = implode(' ', $bodyClasses);
                                                        value="<?= htmlspecialchars($_POST['access_code'] ?? '') ?>">
                                             </div>
                                             <div class="d-flex align-items-end qr-mobile-only">
-                                                <button type="button" id="scanQrButton" class="btn btn-outline-primary btn-lg w-100">
-                                                    <i class="bi bi-qr-code-scan me-2"></i> Skanuj QR
+                                                <button type="button" id="scanQrButton" class="btn btn-outline-primary btn-lg w-100 text-nowrap">
+                                                    <i class="bi bi-qr-code-scan me-2"></i>Skanuj QR
                                                 </button>
                                             </div>
                                         </div>
@@ -383,7 +383,7 @@ $bodyClassStr = implode(' ', $bodyClasses);
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" integrity="sha384-9Q0jWoineiIq95JeIyBsNV90KKLfDsbkj29k/YFxf76a2JwkHDYkMuSbNGN6XJfV" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" integrity="sha384-hStSInNIZ8ljtOVrmrgf7zdHMapaLBWoSnPTtF0nzsybp4+LuhDz6sHuEVpWIX8o" crossorigin="anonymous"></script>
     <script>
     (function() {
         const accessCodeInput = document.getElementById('access_code');

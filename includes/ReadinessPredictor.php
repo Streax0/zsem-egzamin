@@ -72,7 +72,7 @@ function calculateCkeReadinessIndex(PDO $pdo, int $userId): array {
                 SELECT q.category, COUNT(ta.id) AS total_ans, SUM(CASE WHEN ta.is_correct = 1 THEN 1 ELSE 0 END) AS correct_ans
                 FROM test_answers ta
                 JOIN questions q ON q.id = ta.question_id
-                WHERE ta.test_result_id IN ($inClause)
+                WHERE ta.result_id IN ($inClause)
                 GROUP BY q.category
             ");
             if ($cStmt) {

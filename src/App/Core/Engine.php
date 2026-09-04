@@ -95,10 +95,6 @@ class Engine
 
         $this->waf = new Waf();
         $this->firewall = new Firewall($this->waf);
-        
-        if ($wafLevel === 'disabled' && !$csrfEnforced) {
-            return;
-        }
 
         $passed = $this->firewall->protectRequest($wafLevel, $csrfEnforced);
         if (!$passed) {

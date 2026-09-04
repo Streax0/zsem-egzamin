@@ -82,36 +82,31 @@ include 'includes/header.php';
             <div class="landing-copy">
                 <div class="hero-badge-tag">
                     <span class="badge-dot"></span>
-                    <span>PROJEKT UCZNIOWSKI ZSEM • EGZAMINY ZAWODOWE CKE 2026</span>
+                    <span>OFICJALNA PLATFORMA NAUKOWA • ZSEM NOWY SĄCZ</span>
                 </div>
                 
                 <h1 class="hero-title">
-                    Egzaminy INF i sprawdziany <span class="text-gradient">w jednym miejscu</span>.
+                    Platforma egzaminacyjna technika informatyka i programisty ZSEM
                 </h1>
                 
                 <p class="hero-desc">
-                    Przygotuj się do egzaminu zawodowego, dołączaj do sprawdzianów za pomocą kodu i śledź swoje postępy. Wszystko w jednym, nowoczesnym narzędziu stworzonym z myślą o uczniach i nauczycielach.
+                    Kompleksowe przygotowanie do państwowych egzaminów zawodowych CKE. Testy kwalifikacyjne, sprawdziany szkolne z kodem PIN oraz szczegółowa analiza postępów.
                 </p>
                 
                 <div class="landing-actions">
-                    <a href="auth/register.php" class="btn btn-primary-hero">
-                        <i class="bi bi-rocket-takeoff-fill"></i> Rozpocznij za darmo
+                    <a href="categories.php" class="btn btn-primary-hero">
+                        <i class="bi bi-ui-checks-grid"></i> Wybierz egzamin
                     </a>
-                    
-                    <form method="POST" action="actions/start_guest.php" class="guest-action-form">
-                        <?php echo csrfTokenField('guest_start'); ?>
-                        <input type="hidden" name="target" value="test">
-                        <button type="submit" class="btn btn-outline-hero">
-                            <i class="bi bi-incognito"></i> Wypróbuj jako gość
-                        </button>
-                    </form>
+                    <a href="auth/login.php" class="btn btn-outline-hero">
+                        <i class="bi bi-box-arrow-in-right"></i> Zaloguj się
+                    </a>
                 </div>
                 
                 <div class="landing-trust-tags">
-                    <span class="trust-item"><i class="bi bi-check-circle-fill text-cyan"></i> 100% Bezpłatny dostęp</span>
-                    <span class="trust-item"><i class="bi bi-patch-check-fill text-emerald"></i> Oficjalna baza CKE</span>
-                    <span class="trust-item"><i class="bi bi-phone-fill text-purple"></i> Działa offline (PWA)</span>
-                    <span class="trust-item"><i class="bi bi-shield-lock-fill text-amber"></i> Sprawdziany z PIN</span>
+                    <span class="trust-item"><i class="bi bi-patch-check-fill text-cyan"></i> Oficjalne arkusze CKE</span>
+                    <span class="trust-item"><i class="bi bi-check-circle-fill text-emerald"></i> Natychmiastowe sprawdzanie</span>
+                    <span class="trust-item"><i class="bi bi-shield-lock-fill text-purple"></i> Sprawdziany klasowe z PIN</span>
+                    <span class="trust-item"><i class="bi bi-graph-up-arrow text-amber"></i> Statystyki i postępy</span>
                 </div>
             </div>
 
@@ -283,6 +278,50 @@ include 'includes/header.php';
                     <div class="qual-footer">
                         <span class="qual-count"><i class="bi bi-database-check me-1"></i> Baza pytań CKE</span>
                         <a href="categories.php?code=INF.04" class="qual-link">Ćwicz kwalifikację <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </article>
+
+                <!-- INF.07 -->
+                <article class="qual-card reveal-on-scroll">
+                    <div class="qual-card-glow"></div>
+                    <div class="qual-header">
+                        <div class="qual-icon qual-icon-emerald"><i class="bi bi-hdd-network"></i></div>
+                        <span class="qual-tag">Teleinformatyka</span>
+                    </div>
+                    <h3 class="qual-title">INF.07</h3>
+                    <div class="qual-full-name">Montaż i eksploatacja systemów teleinformatycznych</div>
+                    <p class="qual-desc">Instalacja i konserwacja szerokopasmowych sieci dostępowych, urządzeń transmisyjnych, okablowania strukturalnego oraz central abonenckich.</p>
+                    <div class="qual-skills">
+                        <span>Światłowody</span>
+                        <span>Sieci dostępowe</span>
+                        <span>VoIP</span>
+                        <span>Pomiary</span>
+                    </div>
+                    <div class="qual-footer">
+                        <span class="qual-count"><i class="bi bi-database-check me-1"></i> Baza pytań CKE</span>
+                        <a href="categories.php?code=INF.07" class="qual-link">Ćwicz kwalifikację <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </article>
+
+                <!-- INF.08 -->
+                <article class="qual-card reveal-on-scroll">
+                    <div class="qual-card-glow"></div>
+                    <div class="qual-header">
+                        <div class="qual-icon qual-icon-amber"><i class="bi bi-shield-lock"></i></div>
+                        <span class="qual-tag">Cyberbezpieczeństwo</span>
+                    </div>
+                    <h3 class="qual-title">INF.08</h3>
+                    <div class="qual-full-name">Eksploatacja i ochrona zintegrowanych systemów</div>
+                    <p class="qual-desc">Audyt bezpieczeństwa, ochrona danych w chmurze, konfiguracja zapor sieciowych UTM, monitorowanie zdarzeń SIEM i ochrona systemów.</p>
+                    <div class="qual-skills">
+                        <span>Cybersec</span>
+                        <span>Zapory UTM</span>
+                        <span>SIEM &amp; Audyt</span>
+                        <span>Szyfrowanie</span>
+                    </div>
+                    <div class="qual-footer">
+                        <span class="qual-count"><i class="bi bi-database-check me-1"></i> Baza pytań CKE</span>
+                        <a href="categories.php?code=INF.08" class="qual-link">Ćwicz kwalifikację <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </article>
 

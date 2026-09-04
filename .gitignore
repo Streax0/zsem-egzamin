@@ -10,3 +10,4 @@ Desktop.ini
 __pycache__/
 *.pyc
 .jules/
+data/cache/

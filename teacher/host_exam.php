@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sessionId = (int)($_POST['session_id'] ?? 0);
         $pdo->prepare("UPDATE exam_sessions SET status = 'finished', finished_at = NOW() WHERE id = ? AND exam_id IN (SELECT id FROM exams WHERE teacher_id = ?)")
             ->execute([$sessionId, $userId]);
-        $pdo->prepare("UPDATE exam_participants SET status = 'finished', finished_at = NOW() WHERE session_id = ? AND status IN ('taking_exam','in_lobby')")
+        $pdo->prepare("UPDATE exam_participants SET status = 'finished', finished_at = NOW(), time_spent = IF(time_spent > 0, time_spent, GREATEST(1, TIMESTAMPDIFF(SECOND, COALESCE(started_at, joined_at, NOW()), NOW()))) WHERE session_id = ? AND status IN ('taking_exam','in_lobby')")
             ->execute([$sessionId]);
         redirect('exam_details.php?session=' . $sessionId);
     }
@@ -155,8 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'remove_participant') {
         $participantId = (int)($_POST['participant_id'] ?? 0);
         $sessionId = (int)($_POST['session_id'] ?? 0);
-        $pdo->prepare("UPDATE exam_participants SET status = 'removed' WHERE id = ? AND session_id = ?")
-            ->execute([$participantId, $sessionId]);
+        $pdo->prepare("UPDATE exam_participants SET status = 'removed' WHERE id = ? AND session_id = ? AND session_id IN (SELECT es.id FROM exam_sessions es JOIN exams e ON es.exam_id = e.id WHERE e.teacher_id = ?)")
+            ->execute([$participantId, $sessionId, $userId]);
         redirect('host_exam.php?session=' . $sessionId);
     }
 }
@@ -189,22 +189,6 @@ if ($sessionId) {
     $stmt->execute([$sessionId]);
     $participants = $stmt->fetchAll();
 
-    $printQuestions = [];
-    try {
-        $stmt = $pdo->prepare("
-            SELECT q.id, q.category, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d, q.correct_answer, q.explanation, q.image_url
-            FROM exam_session_questions esq
-            JOIN questions q ON q.id = esq.question_id
-            WHERE esq.session_id = ?
-            ORDER BY esq.question_order ASC, esq.id ASC
-        ");
-        $stmt->execute([$sessionId]);
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $printQuestions[] = normalizeQuestionRow($row);
-        }
-    } catch (PDOException $e) {
-        $printQuestions = [];
-    }
     
 } elseif ($examId) {
     $stmt = $pdo->prepare("SELECT id, teacher_id, title, description, question_count, selected_questions, categories, difficulty_level, shuffle_questions, shuffle_answers, max_participants, time_per_question, total_time, exam_mode, auto_finish_on_time, allow_rejoin, anti_cheat_enabled, block_tab_switch, require_fullscreen, lobby_enabled, show_results_to_student, show_predicted_grade, show_correct_answers, randomize_per_student, lock_after_finish, pass_threshold, max_attempts, navigation_mode, allow_answer_changes, warning_limit, warning_action, late_join_cutoff_minutes, results_available_at, print_include_answer_key, available_from, available_until, grade_thresholds, created_at, updated_at FROM exams WHERE id = ? AND teacher_id = ?");
@@ -221,9 +205,25 @@ $teacherName = $_SESSION['username'] ?? 'Nauczyciel';
 $flashMsg = getSessionMessage();
 $joinUrl = '';
 $visibleParticipantCount = 0;
+$initialAvgScore = 0;
+$initialFinishedCount = 0;
+$initialTotalViolations = 0;
 if ($session) {
-    $visibleParticipantCount = count(array_filter($participants, static fn($p) => ($p['status'] ?? '') !== 'removed'));
+    $activeParticipants = array_filter($participants, static fn($p) => ($p['status'] ?? '') !== 'removed');
+    $visibleParticipantCount = count($activeParticipants);
     $joinUrl = securityPublicBaseUrl() . '/exam/join.php?code=' . rawurlencode((string)$session['access_code']);
+    
+    $finishedScores = [];
+    foreach ($activeParticipants as $p) {
+        $initialTotalViolations += (int)($p['violation_count'] ?? 0);
+        if (($p['status'] ?? '') === 'finished') {
+            $initialFinishedCount++;
+            $finishedScores[] = (float)($p['score_percent'] ?? 0);
+        }
+    }
+    if (!empty($finishedScores)) {
+        $initialAvgScore = round(array_sum($finishedScores) / count($finishedScores), 1);
+    }
 }
 ?>
 <?php
@@ -266,9 +266,60 @@ $extraHead = <<<HTML
                 linear-gradient(180deg, rgba(248,250,252,.98), #ffffff),
                 radial-gradient(circle at 50% 0%, rgba(59,130,246,.14), transparent 45%);
         }
+        .host-code-actions {
+            gap: 0.75rem !important;
+        }
         .host-code-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
             min-height: 42px;
-            font-weight: 850;
+            padding: 0.5rem 1.4rem;
+            font-size: 0.92rem;
+            font-weight: 700;
+            border-radius: 999px;
+            border-width: 1.5px;
+            background: #ffffff;
+            color: #2563eb;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .host-code-actions .btn:hover {
+            border-color: #2563eb;
+            background: #2563eb;
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.25);
+        }
+        .host-code-actions .btn:focus-visible {
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+        }
+        .host-code-actions .btn[aria-expanded="true"],
+        .host-code-actions .btn.active {
+            border-color: #1d4ed8 !important;
+            background: #1d4ed8 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(29, 78, 216, 0.3) !important;
+        }
+        body.dark-mode .host-code-actions .btn {
+            background: rgba(30, 41, 59, 0.85);
+            border-color: rgba(96, 165, 250, 0.4);
+            color: #93c5fd;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        body.dark-mode .host-code-actions .btn:hover {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        body.dark-mode .host-code-actions .btn[aria-expanded="true"],
+        body.dark-mode .host-code-actions .btn.active {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            color: #ffffff !important;
         }
         .qr-box {
             border: 1px solid rgba(148,163,184,.22);
@@ -406,24 +457,46 @@ include '../includes/header.php';
                                         <h3 class="fw-bold mb-1"><?= htmlspecialchars($session['title']) ?></h3>
                                         <p class="text-muted mb-0">
                                             <?php
-                                            echo match($session['status']) {
-                                                'lobby' => '<span class="badge bg-warning text-dark fs-6"><i class="bi bi-hourglass-split me-1"></i>Lobby – oczekiwanie na uczniów</span>',
-                                                'in_progress' => '<span class="badge bg-success fs-6 pulse"><i class="bi bi-broadcast me-1"></i>Egzamin w trakcie</span>',
-                                                'paused' => '<span class="badge bg-info fs-6"><i class="bi bi-pause-fill me-1"></i>Wstrzymany</span>',
-                                                'finished' => '<span class="badge bg-secondary fs-6"><i class="bi bi-check-circle me-1"></i>Zakończony</span>',
-                                                default => '<span class="badge bg-light text-muted">Nieznany</span>',
-                                            };
-                                            ?>
+                                             echo match($session['status']) {
+                                                 'lobby' => '<span class="badge bg-warning text-dark fs-6"><i class="bi bi-hourglass-split me-1"></i>Lobby – oczekiwanie na uczniów</span>',
+                                                 'in_progress' => '<span class="badge bg-success fs-6 pulse"><i class="bi bi-broadcast me-1"></i>Egzamin w trakcie</span>',
+                                                 'paused' => '<span class="badge bg-info fs-6"><i class="bi bi-pause-fill me-1"></i>Wstrzymany</span>',
+                                                 'finished' => '<span class="badge bg-secondary fs-6"><i class="bi bi-check-circle me-1"></i>Zakończony</span>',
+                                                 default => '<span class="badge bg-light text-muted">Nieznany</span>',
+                                             };
+                                             ?>
                                         </p>
                                     </div>
-                                    <a href="index.php" class="btn btn-outline-secondary btn-sm rounded-pill">
-                                        <i class="bi bi-arrow-left me-1"></i>Panel
-                                    </a>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <?php if ($session['status'] === 'finished'): ?>
+                                            <a href="exam_details.php?session=<?= $sessionId ?>" class="btn btn-primary btn-sm rounded-pill">
+                                                <i class="bi bi-bar-chart-fill me-1"></i>Arkusz ocen
+                                            </a>
+                                        <?php endif; ?>
+                                        <a href="index.php" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                            <i class="bi bi-arrow-left me-1"></i>Panel
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
 
+                            <?php if ($session['status'] === 'finished'): ?>
+                            <div class="alert alert-info d-flex align-items-center justify-content-between p-3 mb-4 rounded-4 shadow-sm border-0">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-check-circle-fill text-primary fs-3"></i>
+                                    <div>
+                                        <div class="fw-bold">Sprawdzian został zakończony</div>
+                                        <div class="small text-muted">Możesz przejść do pełnej analizy wyników i mapy luk wiedzy.</div>
+                                    </div>
+                                </div>
+                                <a href="exam_details.php?session=<?= $sessionId ?>" class="btn btn-primary rounded-pill px-4">
+                                    <i class="bi bi-bar-chart me-1"></i>Zobacz wyniki
+                                </a>
+                            </div>
+                            <?php endif; ?>
+
                             <!-- Access Code -->
-                            <div class="dashboard-panel host-code-panel printable-panel mb-4 text-center animate-in" style="animation-delay:0.1s;">
+                            <div class="dashboard-panel host-code-panel mb-4 text-center animate-in" style="animation-delay:0.1s;">
                                 <div class="small text-muted mb-2 fw-bold" style="letter-spacing: 2px;">KOD DOSTĘPU</div>
                                 <div class="access-code mb-2" id="displayCode"><?= htmlspecialchars($session['access_code']) ?></div>
                                 <div class="small text-muted mt-2">
@@ -432,44 +505,24 @@ include '../includes/header.php';
                                         <span class="badge bg-danger ms-2">Wygasł</span>
                                     <?php endif; ?>
                                 </div>
-                                <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap no-print host-code-actions">
-                                    <button class="btn btn-primary btn-sm rounded-pill px-4" type="button" onclick="copyHostText(<?= json_encode((string)$session['access_code']) ?>, 'Kod skopiowany!')">
+                                <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap host-code-actions">
+                                    <button class="btn btn-outline-primary rounded-pill px-4" type="button" onclick="copyHostText(<?= json_encode((string)$session['access_code']) ?>, 'Kod skopiowany!', this)">
                                         <i class="bi bi-clipboard me-1"></i>Kopiuj kod
                                     </button>
-                                    <button class="btn btn-dark btn-sm rounded-pill px-4" type="button" data-bs-toggle="collapse" data-bs-target="#qrSection">
+                                    <button class="btn btn-outline-primary rounded-pill px-4" type="button" data-bs-toggle="collapse" data-bs-target="#qrSection" id="qrToggleBtn" aria-expanded="false">
                                         <i class="bi bi-qr-code me-1"></i>Kod QR
                                     </button>
-                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-4" type="button" onclick="copyHostText(<?= json_encode($joinUrl) ?>, 'Link skopiowany!')">
+                                    <button class="btn btn-outline-primary rounded-pill px-4" type="button" onclick="copyHostText(<?= json_encode($joinUrl) ?>, 'Link skopiowany!', this)">
                                         <i class="bi bi-link-45deg me-1"></i>Kopiuj link
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" type="button" onclick="window.print()">
-                                        <i class="bi bi-printer me-1"></i>Drukuj arkusz
                                     </button>
                                 </div>
                                 <div class="collapse mt-4" id="qrSection">
                                     <div class="p-3 d-inline-block shadow-sm qr-box">
                                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=<?= urlencode($joinUrl) ?>" alt="Kod QR do dołączenia do sprawdzianu" class="img-fluid" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-                                        <div class="mt-2 small text-dark fw-bold">Zeskanuj, aby dołączyć</div>
+                                        <div class="mt-2 small text-body fw-bold">Zeskanuj, aby dołączyć</div>
                                         <div class="small text-muted text-break" style="max-width:260px;"><?= htmlspecialchars($joinUrl) ?></div>
                                     </div>
                                 </div>
-                                <?php if (!empty($printQuestions)): ?>
-                                    <div class="print-exam-sheet text-start mt-5">
-                                        <h4 class="fw-bold text-center mb-1"><?= htmlspecialchars($session['title']) ?></h4>
-                                        <p class="text-center text-muted small mb-4">Kod: <?= htmlspecialchars($session['access_code']) ?> · Pytań: <?= count($printQuestions) ?></p>
-                                        <?php foreach ($printQuestions as $idx => $question): ?>
-                                            <div class="print-question mb-4">
-                                                <div class="fw-bold mb-2"><?= ($idx + 1) ?>. <?= htmlspecialchars($question['question_text']) ?></div>
-                                                <ol type="A" class="mb-0">
-                                                    <li><?= htmlspecialchars($question['option_a']) ?></li>
-                                                    <li><?= htmlspecialchars($question['option_b']) ?></li>
-                                                    <li><?= htmlspecialchars($question['option_c']) ?></li>
-                                                    <li><?= htmlspecialchars($question['option_d']) ?></li>
-                                                </ol>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
                             </div>
 
                             <!-- Live Stats -->
@@ -477,19 +530,19 @@ include '../includes/header.php';
                                 <div class="col-md-4">
                                     <div class="dashboard-panel host-stat-card text-center p-3">
                                         <div class="text-muted small mb-1">Średni wynik</div>
-                                        <div class="h3 fw-bold mb-0 text-success" id="avgScore">0%</div>
+                                        <div class="h3 fw-bold mb-0 text-success" id="avgScore"><?= $initialAvgScore ?>%</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="dashboard-panel host-stat-card text-center p-3">
                                         <div class="text-muted small mb-1">Ukończyło</div>
-                                        <div class="h3 fw-bold mb-0 text-primary" id="finishedCount">0</div>
+                                        <div class="h3 fw-bold mb-0 text-primary" id="finishedCount"><?= $initialFinishedCount ?></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="dashboard-panel host-stat-card text-center p-3">
                                         <div class="text-muted small mb-1">Naruszenia</div>
-                                        <div class="h3 fw-bold mb-0 text-danger" id="totalViolations">0</div>
+                                        <div class="h3 fw-bold mb-0 text-danger" id="totalViolations"><?= $initialTotalViolations ?></div>
                                     </div>
                                 </div>
                             </div>
@@ -625,9 +678,7 @@ include '../includes/header.php';
                                         <div class="min-w-0">
                                             <div class="fw-bold small text-truncate">${fullName || 'Uczestnik'}</div>
                                             <div class="text-muted" style="font-size:0.75rem">
-                                                ${escapeHtml(p.class)}
-                                                ${p.status === 'taking_exam' ? ` · Pytanie ${current} · ${correct}/${answered} poprawnych` : ''}
-                                                ${p.status === 'finished' ? ` · Wynik: ${score}%` : ''}
+                                                ${escapeHtml(p.class)}${p.status === 'taking_exam' ? ` &middot; Pytanie ${current} &middot; ${correct}/${answered} poprawnych` : ''}${p.status === 'finished' ? ` &middot; Wynik: ${score}%` : ''}
                                             </div>
                                             ${violations > 0 ? `
                                                 <span class="badge bg-danger violation-badge mt-1">
@@ -666,11 +717,50 @@ include '../includes/header.php';
                     function updateParticipantMeta(list, serverTime) {
                         const badge = document.getElementById('participantsCountBadge');
                         const updated = document.getElementById('participantsUpdatedAt');
+                        const avgScoreEl = document.getElementById('avgScore');
+                        const finishedCountEl = document.getElementById('finishedCount');
+                        const totalViolationsEl = document.getElementById('totalViolations');
                         const max = document.getElementById('participantsList')?.dataset.maxParticipants || '<?= (int)$session['max_participants'] ?>';
-                        const visible = Array.isArray(list) ? list.filter(p => p.status !== 'removed').length : 0;
-                        if (badge) badge.textContent = `${visible} / ${max}`;
+                        
+                        if (Array.isArray(list)) {
+                            const activeList = list.filter(p => p.status !== 'removed');
+                            if (badge) badge.textContent = `${activeList.length} / ${max}`;
+                            
+                            let finishedCount = 0;
+                            let scoreSum = 0;
+                            let violations = 0;
+                            
+                            activeList.forEach(p => {
+                                violations += parseInt(p.violation_count, 10) || 0;
+                                if (p.status === 'finished') {
+                                    finishedCount++;
+                                    scoreSum += parseFloat(p.score_percent) || 0;
+                                }
+                            });
+                            
+                            if (avgScoreEl) {
+                                const avg = finishedCount > 0 ? (scoreSum / finishedCount).toFixed(1).replace('.0', '') : '0';
+                                avgScoreEl.textContent = `${avg}%`;
+                            }
+                            if (finishedCountEl) {
+                                finishedCountEl.textContent = finishedCount;
+                            }
+                            if (totalViolationsEl) {
+                                totalViolationsEl.textContent = violations;
+                            }
+                        } else {
+                            if (badge) badge.textContent = `0 / ${max}`;
+                        }
+                        
                         if (updated) {
-                            const stamp = serverTime && serverTime !== 'start' ? serverTime : new Date().toLocaleTimeString('pl-PL');
+                            let stamp = '';
+                            if (typeof serverTime === 'number' || (/^\d{10,}$/).test(String(serverTime))) {
+                                stamp = new Date(Number(serverTime) * 1000).toLocaleTimeString('pl-PL');
+                            } else if (serverTime && serverTime !== 'start') {
+                                stamp = String(serverTime);
+                            } else {
+                                stamp = new Date().toLocaleTimeString('pl-PL');
+                            }
                             updated.textContent = `Ostatnie odświeżenie: ${stamp}`;
                         }
                     }
@@ -705,7 +795,7 @@ include '../includes/header.php';
                         }
                     }
 
-                    async function copyHostText(text, message) {
+                    async function copyHostText(text, message, btnEl) {
                         try {
                             if (navigator.clipboard && window.isSecureContext) {
                                 await navigator.clipboard.writeText(String(text));
@@ -721,6 +811,15 @@ include '../includes/header.php';
                                 input.remove();
                             }
                             appNotice(message || 'Skopiowano.', 'success');
+                            if (btnEl) {
+                                const orig = btnEl.innerHTML;
+                                btnEl.innerHTML = '<i class="bi bi-check-lg me-1 text-success"></i>Skopiowano!';
+                                btnEl.style.borderColor = '#22c55e';
+                                setTimeout(() => {
+                                    btnEl.innerHTML = orig;
+                                    btnEl.style.borderColor = '';
+                                }, 1600);
+                            }
                         } catch (e) {
                             appNotice('Nie udało się skopiować. Zaznacz tekst ręcznie.', 'warning');
                         }

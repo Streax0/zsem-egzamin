@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
-    $questionCount = max(1, min(100, (int)($_POST['question_count'] ?? 40)));
+    $questionCount = max(1, min(120, (int)($_POST['question_count'] ?? 40)));
     $maxParticipants = max(1, min(36, (int)($_POST['max_participants'] ?? 36)));
     $timePerQuestion = !empty($_POST['time_per_question']) ? (int)$_POST['time_per_question'] : null;
     $totalTime = !empty($_POST['total_time']) ? (int)$_POST['total_time'] : null;
@@ -86,13 +86,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $newGradeThresholds = null;
     if ($showGrade) {
-        $newGradeThresholds = json_encode([
+        $gradeValues = [
             '6' => (int)($_POST['grade_6'] ?? 95),
             '5' => (int)($_POST['grade_5'] ?? 85),
             '4' => (int)($_POST['grade_4'] ?? 70),
             '3' => (int)($_POST['grade_3'] ?? 50),
             '2' => (int)($_POST['grade_2'] ?? 30),
-        ]);
+        ];
+        if (!($gradeValues['6'] > $gradeValues['5'] && $gradeValues['5'] > $gradeValues['4'] && $gradeValues['4'] > $gradeValues['3'] && $gradeValues['3'] > $gradeValues['2'])) {
+            setSessionMessage('error', 'Progi ocen muszą maleć: 6 > 5 > 4 > 3 > 2.');
+            redirect('edit_exam.php?id=' . $examId);
+        }
+        $newGradeThresholds = json_encode($gradeValues);
     }
 
     $selectedQuestionIds = isset($_POST['use_selected_questions']) ? ($_POST['selected_questions'] ?? []) : [];
@@ -210,7 +215,7 @@ include '../includes/header.php';
                                         <div class="row g-3">
                                             <div class="col-md-6">
                                                 <label class="form-label fw-semibold">Liczba pytań</label>
-                                                <input type="number" name="question_count" class="form-control" value="<?= $exam['question_count'] ?>" min="1" max="100">
+                                                <input type="number" name="question_count" class="form-control" value="<?= $exam['question_count'] ?>" min="1" max="120">
                                             </div>
                                             <div class="col-12">
                                                 <label class="form-label fw-semibold d-block mb-3">Kategorie pytań</label>

@@ -17,10 +17,6 @@ class Firewall
 
     public function protectRequest(string $wafLevel = 'medium', bool $enforceCsrf = true): bool
     {
-        if ($wafLevel === 'disabled' && !$enforceCsrf) {
-            return true;
-        }
-
         $ip = function_exists('securityClientIp') ? securityClientIp() : ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
         if ($ip === '0.0.0.0') {
             $ip = !empty($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';

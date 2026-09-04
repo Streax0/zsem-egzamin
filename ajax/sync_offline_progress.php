@@ -56,14 +56,15 @@ try {
         $timeSpent = max(1, min(7200, (int)($testItem['time_spent'] ?? 60)));
         $mode = in_array($testItem['mode'] ?? '', ['exam', 'practice', 'category'], true) ? $testItem['mode'] : 'practice';
         $startTime = !empty($testItem['client_saved_at']) ? date('Y-m-d H:i:s', strtotime($testItem['client_saved_at'])) : date('Y-m-d H:i:s');
+        $excludeFromRanking = ($totalQ >= 40 && in_array($mode, ['exam', 'exam_simulator'], true)) ? 0 : 1;
 
         $pdo->beginTransaction();
 
         $stmt = $pdo->prepare("
             INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode, start_time, exclude_from_ranking)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $mode, $startTime]);
+        $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $mode, $startTime, $excludeFromRanking]);
         $resultId = (int)$pdo->lastInsertId();
 
         // Process individual answers if provided
@@ -73,8 +74,14 @@ try {
                 VALUES (?, ?, ?, ?, ?)
             ");
             foreach ($testItem['answers'] as $ans) {
-                $qId = (int)($ans['question_id'] ?? 0);
-                if ($qId <= 0) continue;
+                $rawQid = (int)($ans['question_id'] ?? 0);
+                if ($rawQid <= 0) continue;
+                $qId = ensureQuestionRecordExists($pdo, [
+                    'id' => $rawQid,
+                    'question_text' => (string)($ans['question_text'] ?? ($ans['question'] ?? '')),
+                    'category' => (string)($ans['category'] ?? ($testItem['category'] ?? 'Ogólne')),
+                    'correct_answer' => (string)($ans['correct_answer'] ?? '')
+                ]);
                 $userAns = strtoupper(substr(trim((string)($ans['user_answer'] ?? '')), 0, 1));
                 $correctAns = strtoupper(substr(trim((string)($ans['correct_answer'] ?? '')), 0, 1));
                 $isCorrect = ($userAns !== '' && $correctAns !== '' && $userAns === $correctAns) ? 1 : 0;

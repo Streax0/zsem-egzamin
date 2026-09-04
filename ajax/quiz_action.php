@@ -104,7 +104,8 @@ switch ($action) {
         
         if (isset($test['questions'][$currentIdx]) && (int)$test['questions'][$currentIdx]['id'] === $questionId) {
             $q = $test['questions'][$currentIdx];
-            $isCorrect = ($userAnswer === $q['correct_answer']);
+            $correctAnswer = strtoupper(trim((string)($q['correct_answer'] ?? ($q['correct'] ?? ''))));
+            $isCorrect = ($userAnswer !== '' && $correctAnswer !== '' && $userAnswer === $correctAnswer);
 
             if (!empty($test['answers'][$currentIdx]['revealed_by_check'])) {
                 $test['phase'] = 'reviewing';
@@ -140,7 +141,9 @@ switch ($action) {
             ];
             
             if (!$isGuest && isset($_SESSION['user_id'])) {
-                updateQuestionProgress($pdo, $_SESSION['user_id'], $questionId, $isCorrect);
+                $qId = ensureQuestionRecordExists($pdo, $q);
+                updateQuestionProgress($pdo, $_SESSION['user_id'], $qId, $isCorrect);
+                $test['progress_updated'][$currentIdx] = true;
             }
             
             if ($test['mode'] === 'exam') {
@@ -208,9 +211,15 @@ switch ($action) {
     case 'check_answer':
         $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
         $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
+        $currentIdx = $test['current'] ?? 0;
+        $q = $test['questions'][$currentIdx] ?? null;
+        if ($q && (int)($q['id'] ?? 0) === $questionId && $pdo) {
+            $qId = ensureQuestionRecordExists($pdo, $q);
+        }
         $checkResult = applyTestAnswerCheck($test, $questionId, $userAnswer, $pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $isGuest);
 
         if (!empty($checkResult['success'])) {
+            $test['progress_updated'][$currentIdx] = true;
             saveCurrentTest($pdo, $ajaxUserId > 0 ? $ajaxUserId : null, $test);
             echo securityJsonEncode(array_merge([
                 'success' => true,
@@ -355,13 +364,27 @@ switch ($action) {
         echo securityJsonEncode(['success' => false, 'error' => 'Unknown action']);
 }
 
-function formatQuestionForAjax($q) {
+function formatQuestionForAjax($q, ?PDO $pdo = null, int $userId = 0) {
+    $pdo = $pdo ?? ($GLOBALS['pdo'] ?? null);
+    $userId = $userId > 0 ? $userId : (int)($_SESSION['user_id'] ?? 0);
+    $isBookmarked = false;
+    $qId = (int)($q['id'] ?? 0);
+    if ($pdo && $userId > 0 && $qId > 0) {
+        try {
+            $bmStmt = $pdo->prepare("SELECT 1 FROM user_bookmarks WHERE user_id = ? AND question_id = ? LIMIT 1");
+            $bmStmt->execute([$userId, $qId]);
+            $isBookmarked = (bool)$bmStmt->fetchColumn();
+        } catch (Throwable $e) {
+            $isBookmarked = false;
+        }
+    }
     return [
         'id' => $q['id'],
         'question_text' => $q['question_text'],
         'explanation' => $q['explanation'] ?? '',
         'image_url' => questionImageSrc($q['image_url'] ?? '') ?? '',
         'category' => $q['category'] ?? 'Ogólne',
+        'is_bookmarked' => $isBookmarked,
         'options' => [
             'A' => $q['option_a'] ?? $q['A'] ?? '',
             'B' => $q['option_b'] ?? $q['B'] ?? '',

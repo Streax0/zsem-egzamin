@@ -1946,7 +1946,7 @@ function normalizeProfanityText($value, bool $joinTokens = true): string {
     $value = mb_strtolower((string)$value, 'UTF-8');
     $value = strtr($value, [
         'ą' => 'a', 'ć' => 'c', 'ę' => 'e', 'ł' => 'l', 'ń' => 'n',
-        'ó' => 'o', 'ś' => 's', 'ż' => 'z', 'ź' => 'z',
+        'ó' => 'u', 'ś' => 's', 'ż' => 'z', 'ź' => 'z',
         'а' => 'a', 'е' => 'e', 'о' => 'o', 'р' => 'p', 'с' => 'c',
         'у' => 'y', 'х' => 'x', 'к' => 'k', 'м' => 'm', 'т' => 't',
         '@' => 'a', '$' => 's', '€' => 'e', '0' => 'o', '1' => 'i', '!' => 'i',
@@ -1954,7 +1954,7 @@ function normalizeProfanityText($value, bool $joinTokens = true): string {
         '8' => 'b', '9' => 'g'
     ]);
     $value = preg_replace('/(.)\1{2,}/u', '$1$1', $value);
-    $pattern = $joinTokens ? '/[^\p{L}\p{N}]+/u' : '/[^\p{L}\p{N}]+/u';
+    $pattern = '/[^\p{L}\p{N}]+/u';
     return trim((string)preg_replace($pattern, $joinTokens ? '' : ' ', $value));
 }
 
@@ -1962,12 +1962,30 @@ function profanityVariants($value): array {
     $spaced = normalizeProfanityText($value, false);
     $joined = normalizeProfanityText($value, true);
     $compactNoVowels = preg_replace('/[aeiouy]+/u', '', $joined);
-    return array_values(array_unique(array_filter([$joined, $spaced, $compactNoVowels])));
+    $phoneticH = str_replace('ch', 'h', $joined);
+    $phoneticU = strtr($joined, ['o' => 'u']);
+    $phoneticAll = str_replace('ch', 'h', $phoneticU);
+    return array_values(array_unique(array_filter([$joined, $spaced, $compactNoVowels, $phoneticH, $phoneticU, $phoneticAll])));
 }
 
 function containsProfanity($value) {
+    $strVal = (string)$value;
+    $maskedPatterns = [
+        '/(?:c[\W_]*h|h)[\W_]*[uó0o\*@_]++[\W_]*j/iu',
+        '/k[\W_]*[uó0o\*@_]++[\W_]*r[\W_]*w/iu',
+        '/p[\W_]*[i1\*!|]++[\W_]*[e3\*]++[\W_]*r[\W_]*d/iu',
+        '/j[\W_]*[e3\*]++[\W_]*b/iu',
+        '/p[\W_]*[i1\*!|]++[\W_]*z[\W_]*d/iu',
+        '/k[\W_]*[uó0o\*]++[\W_]*t[\W_]*a[\W_]*s/iu'
+    ];
+    foreach ($maskedPatterns as $p) {
+        if (preg_match($p, $strVal)) {
+            return true;
+        }
+    }
+
     $blocked = profanityWordList();
-    foreach (profanityVariants($value) as $variant) {
+    foreach (profanityVariants($strVal) as $variant) {
         $joinedVariant = str_replace(' ', '', $variant);
         foreach ($blocked as $word) {
             if ($word !== '' && mb_strpos($joinedVariant, $word) !== false) {
@@ -2500,6 +2518,83 @@ function getQuestionsByIds($pdo, array $ids): array {
 }
 
 /**
+ * Ensures that a question loaded from JSON or memory has a corresponding
+ * persistent row in the questions table before inserting into test_answers.
+ * Prevents MySQL FOREIGN KEY constraint failures.
+ */
+function ensureQuestionRecordExists(?PDO $pdo, array $q): int {
+    $qId = (int)($q['id'] ?? 0);
+    if (!$pdo) {
+        return max(1, $qId);
+    }
+    if ($qId > 0) {
+        try {
+            $checkStmt = $pdo->prepare("SELECT id FROM questions WHERE id = ?");
+            $checkStmt->execute([$qId]);
+            if ($checkStmt->fetchColumn()) {
+                return $qId;
+            }
+            $text = trim((string)($q['question_text'] ?? ($q['question'] ?? 'Pytanie')));
+            $cat = (string)($q['category'] ?? 'Inne');
+            $optA = (string)($q['option_a'] ?? ($q['options']['A'] ?? ($q['options'][0] ?? '')));
+            $optB = (string)($q['option_b'] ?? ($q['options']['B'] ?? ($q['options'][1] ?? '')));
+            $optC = (string)($q['option_c'] ?? ($q['options']['C'] ?? ($q['options'][2] ?? '')));
+            $optD = (string)($q['option_d'] ?? ($q['options']['D'] ?? ($q['options'][3] ?? '')));
+            $ans = strtoupper(substr(trim((string)($q['correct_answer'] ?? ($q['correct'] ?? 'A'))), 0, 1));
+            $exp = (string)($q['explanation'] ?? '');
+            $img = !empty($q['image_url']) ? (string)$q['image_url'] : null;
+
+            $ins = $pdo->prepare("INSERT INTO questions (id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $ins->execute([$qId, $cat, $text ?: 'Pytanie', $optA, $optB, $optC, $optD, $ans, $exp, $img]);
+            return $qId;
+        } catch (Throwable $e) {
+            try {
+                $text = trim((string)($q['question_text'] ?? ($q['question'] ?? '')));
+                if ($text !== '') {
+                    $findStmt = $pdo->prepare("SELECT id FROM questions WHERE question_text = ? LIMIT 1");
+                    $findStmt->execute([$text]);
+                    $foundId = (int)$findStmt->fetchColumn();
+                    if ($foundId > 0) {
+                        return $foundId;
+                    }
+                }
+            } catch (Throwable $e2) {}
+            return max(1, $qId);
+        }
+    } else {
+        try {
+            $text = trim((string)($q['question_text'] ?? ($q['question'] ?? '')));
+            if ($text !== '') {
+                $findStmt = $pdo->prepare("SELECT id FROM questions WHERE question_text = ? LIMIT 1");
+                $findStmt->execute([$text]);
+                $foundId = (int)$findStmt->fetchColumn();
+                if ($foundId > 0) {
+                    return $foundId;
+                }
+            }
+            $cat = (string)($q['category'] ?? 'Inne');
+            $optA = (string)($q['option_a'] ?? ($q['options']['A'] ?? ($q['options'][0] ?? '')));
+            $optB = (string)($q['option_b'] ?? ($q['options']['B'] ?? ($q['options'][1] ?? '')));
+            $optC = (string)($q['option_c'] ?? ($q['options']['C'] ?? ($q['options'][2] ?? '')));
+            $optD = (string)($q['option_d'] ?? ($q['options']['D'] ?? ($q['options'][3] ?? '')));
+            $ans = strtoupper(substr(trim((string)($q['correct_answer'] ?? ($q['correct'] ?? 'A'))), 0, 1));
+            $exp = (string)($q['explanation'] ?? '');
+            $img = !empty($q['image_url']) ? (string)$q['image_url'] : null;
+
+            $ins = $pdo->prepare("INSERT INTO questions (category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $ins->execute([$cat, $text ?: 'Pytanie', $optA, $optB, $optC, $optD, $ans, $exp, $img]);
+            $newId = (int)$pdo->lastInsertId();
+            if ($newId > 0) {
+                return $newId;
+            }
+        } catch (Throwable $e3) {}
+        return 1;
+    }
+}
+
+/**
  * Get random questions from array
  * @param array $questions Array of all questions
  * @param int $count Number of questions to return
@@ -3011,6 +3106,7 @@ function normalizeHistoryMode($mode, array $row = []): string {
 
 function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
     $items = [];
+    $basePrefix = file_exists('config/db.php') ? '' : '../';
     $modeLabels = [
         'exam' => 'Test',
         'practice' => 'Ćwiczenia',
@@ -3029,7 +3125,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
             'correct_count' => (int)$row['correct_count'],
             'total_questions' => (int)$row['total_questions'],
             'time_spent' => (int)$row['time_spent'],
-            'url' => 'result.php?id=' . (int)$row['id'],
+            'url' => $basePrefix . 'result.php?id=' . (int)$row['id'],
         ];
     }
 
@@ -3080,7 +3176,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
                 'correct_count' => null,
                 'total_questions' => (int)$duel['question_count'],
                 'time_spent' => (int)($isChallenger ? $duel['challenger_time_spent'] : $duel['opponent_time_spent']),
-                'url' => 'duels/results.php?id=' . (int)$duel['id'],
+                'url' => $basePrefix . 'duels/results.php?id=' . (int)$duel['id'],
                 'can_hide' => $duelHistoryCanHide,
             ];
         }
@@ -3115,7 +3211,7 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
                 'correct_count' => $visible ? (int)$exam['correct_answers'] : null,
                 'total_questions' => (int)$exam['total_answered'],
                 'time_spent' => (int)$exam['time_spent'],
-                'url' => 'exam/finished.php?session=' . (int)$exam['session_id'],
+                'url' => $basePrefix . 'exam/finished.php?session=' . (int)$exam['session_id'],
                 'locked' => !$visible,
             ];
         }
@@ -3499,11 +3595,17 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
     if (str_contains($tLower, 'dhcp')) {
         return 'DHCP automatycznie przydziela konfigurację IP klientom sieci — to nie jest funkcja opisana w pytaniu.';
     }
-    if (str_contains($tLower, 'router')) {
-        return 'Router przekazuje pakiety między różnymi sieciami IP w warstwie 3 OSI — ta funkcja nie odpowiada wymaganiom pytania.';
-    }
-    if (str_contains($tLower, 'switch') || str_contains($tLower, 'przełącz')) {
-        return 'Przełącznik (switch) przekazuje ramki w sieci LAN na podstawie adresów MAC — ta funkcja nie realizuje zadania opisanego w pytaniu.';
+    if ($cat !== 'INF.04' && $cat !== 'INF.03') {
+        if (str_contains($tLower, 'router')) {
+            return 'Router przekazuje pakiety między różnymi sieciami IP w warstwie 3 OSI — ta funkcja nie odpowiada wymaganiom pytania.';
+        }
+        if (str_contains($tLower, 'switch') || str_contains($tLower, 'przełącz')) {
+            return 'Przełącznik (switch) przekazuje ramki w sieci LAN na podstawie adresów MAC — ta funkcja nie realizuje zadania opisanego w pytaniu.';
+        }
+    } else {
+        if ($tLower === 'switch') {
+            return 'Instrukcja switch to instrukcja wyboru wielowariantowego dopasowująca wartość wyrażenia do etykiet case.';
+        }
     }
     if (str_contains($tLower, 'mask')) {
         return 'Maska podsieci definiuje granicę między częścią sieciową a hostową adresu IP — sama nie wykonuje akcji wymaganej w pytaniu.';
@@ -3526,10 +3628,15 @@ function buildDistractorExplanation(array $question, string $letter, string $opt
         return 'uszkodzenie zasilacza prowadzi do wyłączania się sprzętu lub niemożności jego uruchomienia, a nie do komunikatów systemu operacyjnego.';
     }
 
+    $termDef = function_exists('aiTutorLookupTermDefinition') ? aiTutorLookupTermDefinition($text, $cat) : null;
     $correct = strtoupper(trim((string)($question['correct_answer'] ?? ($question['correct'] ?? ''))));
     $correctOptionText = answerOptionText($question, $correct);
+
+    if ($termDef !== null) {
+        return "„{$text}” – {$termDef} Wariant ten nie rozwiązuje problemu opisanego w pytaniu" . ($correctOptionText !== '' ? " (właściwym wyborem jest „{$correctOptionText}”)." : ".");
+    }
     if ($correctOptionText !== '' && $correctOptionText !== $text) {
-        return "Opcja „{$text}” pełni inną rolę techniczną niż „{$correctOptionText}”, więc nie rozwiązuje problemu opisanego w pytaniu.";
+        return "Wariant „{$text}” odnosi się do innych założeń technicznych niż „{$correctOptionText}” i nie rozwiązuje problemu opisanego w pytaniu.";
     }
     return "Opcja „{$text}” nie rozwiązuje problemu opisanego w pytaniu.";
 }
@@ -4709,7 +4816,9 @@ function applyTestAnswerCheck(array &$test, int $questionId, string $userAnswer,
     ];
 
     if (!$isGuest && $pdo && $userId && $userId > 0) {
-        updateQuestionProgress($pdo, $userId, $questionId, $isCorrect);
+        $qId = ensureQuestionRecordExists($pdo, $question);
+        updateQuestionProgress($pdo, $userId, $qId > 0 ? $qId : $questionId, $isCorrect);
+        $test['progress_updated'][$currentIdx] = true;
         if (($test['mode'] ?? '') === 'single') {
             $historyId = saveSingleQuestionResult($pdo, $userId, $question, $selected, $isCorrect);
             if ($historyId > 0) {
@@ -4788,7 +4897,10 @@ function finishTest($pdo, $userId, $test) {
     // Save test summary
     $startTime = date('Y-m-d H:i:s', $test['start_time']);
     
-    $excludeFromRanking = $test['exclude_from_ranking'] ?? 0;
+    $excludeFromRanking = (int)($test['exclude_from_ranking'] ?? 0);
+    if ($totalQ < 40 || !in_array($testMode, ['exam', 'exam_simulator'], true)) {
+        $excludeFromRanking = 1;
+    }
 
     $skipUnrankedQuota = false;
     
@@ -4814,7 +4926,10 @@ function finishTest($pdo, $userId, $test) {
             $stmt->execute([$userId, $today]);
             $usage = $stmt->fetch();
             if ($usage && $usage['usage_count'] >= 2) {
-                $excludeFromRanking = 0; // Limit reached, force ranked
+                // If total questions >= 40, user can be ranked once limit reached; otherwise keep excluded
+                if ($totalQ >= 40 && in_array($testMode, ['exam', 'exam_simulator'], true)) {
+                    $excludeFromRanking = 0;
+                }
             } else {
                 $pdo->prepare("INSERT INTO unranked_usage (user_id, used_date, usage_count) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE usage_count = usage_count + 1")
                     ->execute([$userId, $today]);
@@ -4870,7 +4985,7 @@ function finishTest($pdo, $userId, $test) {
         $params = [];
         $answeredList = [];
         foreach ($test['questions'] as $index => $q) {
-            $qId = (int)$q['id'];
+            $qId = ensureQuestionRecordExists($pdo, $q);
             $userAnswer = '';
             $isCorrect = 0;
             
@@ -4884,7 +4999,7 @@ function finishTest($pdo, $userId, $test) {
             array_push($params, $resultId, $qId, $userAnswer, $correctAnswer, $isCorrect);
 
             if ($userAnswer !== '' && $userAnswer !== '-') {
-                $answeredList[] = ['qId' => $qId, 'isCorrect' => $isCorrect];
+                $answeredList[$index] = ['qId' => $qId, 'isCorrect' => $isCorrect];
             }
         }
 
@@ -4895,8 +5010,10 @@ function finishTest($pdo, $userId, $test) {
         $pdo->commit();
 
         // Update question progress / mastery for every answered question
-        foreach ($answeredList as $ansItem) {
-            updateQuestionProgress($pdo, (int)$userId, $ansItem['qId'], (bool)$ansItem['isCorrect']);
+        foreach ($answeredList as $index => $ansItem) {
+            if (empty($test['progress_updated'][$index])) {
+                updateQuestionProgress($pdo, (int)$userId, $ansItem['qId'], (bool)$ansItem['isCorrect']);
+            }
         }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -4991,7 +5108,7 @@ function finishGuestTest(array $test): string {
  */
 function saveSingleQuestionResult($pdo, $userId, $question, $userAnswer, $isCorrect) {
     try {
-        $questionId = (int)($question['id'] ?? 0);
+        $questionId = ensureQuestionRecordExists($pdo, $question);
         $answerKey = strtoupper(trim((string)$userAnswer));
         $sessionKey = 'single_result_dedupe_' . $questionId . '_' . hash('sha256', $answerKey);
         if (!empty($_SESSION[$sessionKey]['id']) && (time() - (int)($_SESSION[$sessionKey]['time'] ?? 0)) <= 10) {
@@ -5054,6 +5171,16 @@ function saveSingleQuestionResult($pdo, $userId, $question, $userAnswer, $isCorr
             $correctAnswer,
             $isCorrect ? 1 : 0
         ]);
+
+        $testRef = &$_SESSION['current_test'];
+        $currentIdx = (int)($testRef['current'] ?? 0);
+        if (empty($testRef['progress_updated'][$currentIdx]) && empty($_SESSION['single_progress_updated_' . $questionId])) {
+            updateQuestionProgress($pdo, (int)$userId, (int)$questionId, (bool)$isCorrect);
+            if (is_array($testRef)) {
+                $testRef['progress_updated'][$currentIdx] = true;
+            }
+            $_SESSION['single_progress_updated_' . $questionId] = true;
+        }
 
         $_SESSION[$sessionKey] = ['id' => $resultId, 'time' => time()];
         pruneUserTestHistory($pdo, (int)$userId, 50);
@@ -5136,7 +5263,7 @@ function hideUserDuelFromHistory(PDO $pdo, int $userId, int $duelId): bool {
  */
 function getTopRankings($pdo, $limit = 10) {
     ensurePlatformEnhancements($pdo);
-    $completedSql = completedFullTestSql('tr_count', 1, false);
+    $completedSql = completedFullTestSql('tr_count', 40, false);
     $sql = "SELECT id, username, role, xp, is_verified, ranking_visible, avatar_path,
         (SELECT COUNT(*) FROM test_results tr_count WHERE tr_count.user_id = users.id AND {$completedSql} AND COALESCE(tr_count.exclude_from_ranking, 0) = 0) as tests_count
         FROM users
@@ -5187,7 +5314,7 @@ function getUsersPerformanceStreaks(PDO $pdo, array $userIds): array {
     }
 
     try {
-        $completedSql = completedFullTestSql('tr', 1, false);
+        $completedSql = completedFullTestSql('tr', 40, false);
         $placeholders = implode(',', array_fill(0, count($userIds), '?'));
         $stmt = $pdo->prepare("
             SELECT ranked.user_id, ranked.score_percent
@@ -5214,7 +5341,7 @@ function getUsersPerformanceStreaks(PDO $pdo, array $userIds): array {
     } catch (PDOException $e) {
         error_log('Bulk performance streak error: ' . $e->getMessage());
         try {
-            $completedSql = completedFullTestSql('tr', 1, false);
+            $completedSql = completedFullTestSql('tr', 40, false);
             $stmt = $pdo->prepare("
                 SELECT tr.user_id, tr.score_percent
                 FROM test_results tr
@@ -5246,7 +5373,7 @@ function getUsersPerformanceStreaks(PDO $pdo, array $userIds): array {
 
 function getUserPerformanceStreak($pdo, $userId) {
     try {
-        $completedSql = completedFullTestSql('tr', 1, false);
+        $completedSql = completedFullTestSql('tr', 40, false);
         $stmt = $pdo->prepare("
             SELECT score_percent
             FROM test_results tr
@@ -6378,13 +6505,45 @@ function userAvatarSrc($avatarPath, string $basePrefix = ''): ?string {
         return $avatarCache[$cacheKey];
     }
     $trimmed = trim((string)$avatarPath);
-    if ($trimmed === '' || !preg_match('#^uploads/avatars/user_\d+_[a-f0-9]{12}\.webp$#', $trimmed)) {
+    if ($trimmed === '') {
         return $avatarCache[$cacheKey] = null;
     }
-    if (!is_file(dirname(__DIR__) . '/' . $trimmed)) {
+    $cleanPath = preg_replace('#^(\.\./|/)+#', '', $trimmed);
+    if (!preg_match('#^uploads/avatars/user_\d+_[a-f0-9]+(\.[a-z0-9]+)?$#i', $cleanPath)) {
         return $avatarCache[$cacheKey] = null;
     }
-    return $avatarCache[$cacheKey] = rtrim($basePrefix, '/') . ($basePrefix !== '' ? '/' : '') . ltrim($trimmed, '/');
+    $diskFile = dirname(__DIR__) . '/' . $cleanPath;
+    if (!is_file($diskFile)) {
+        return $avatarCache[$cacheKey] = null;
+    }
+    $version = (int)@filemtime($diskFile);
+    $url = rtrim($basePrefix, '/') . ($basePrefix !== '' ? '/' : '') . $cleanPath;
+    if ($version > 0) {
+        $url .= '?v=' . $version;
+    }
+    return $avatarCache[$cacheKey] = $url;
+}
+
+function canUserChangeAvatar(PDO $pdo, int $userId, string $role): array {
+    if (in_array($role, ['admin', 'dyrektor', 'teacher'], true)) {
+        return ['allowed' => true, 'days_left' => 0];
+    }
+    try {
+        $stmt = $pdo->prepare("SELECT avatar_changed_at FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $changedAt = $stmt->fetchColumn();
+        if ($changedAt) {
+            $diff = time() - strtotime((string)$changedAt);
+            $limitSeconds = 30 * 86400;
+            if ($diff < $limitSeconds) {
+                $daysLeft = (int)ceil(($limitSeconds - $diff) / 86400);
+                return ['allowed' => false, 'days_left' => $daysLeft];
+            }
+        }
+    } catch (Throwable $e) {
+        error_log("Error checking avatar rate limit: " . $e->getMessage());
+    }
+    return ['allowed' => true, 'days_left' => 0];
 }
 
 function scanAvatarImageSafety($image, int $width, int $height): array {

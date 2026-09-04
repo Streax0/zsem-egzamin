@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!securityValidateRequestCsrf()) {
         http_response_code(403);
         setSessionMessage('error', 'Błąd bezpieczeństwa (CSRF). Odśwież stronę i spróbuj ponownie.');
-        header('Location: practice.php');
+        header('Location: test.php');
         exit;
     }
 
@@ -259,11 +259,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (($test['mode'] ?? '') === 'single' && !isGuestMode()) {
             if (testHasReviewedCurrentAnswer($test)) {
                 $resultId = ensureSingleQuestionResultSaved($pdo, $test, $userId);
-                if ($resultId <= 0) {
-                    setSessionMessage('error', 'Nie udało się zapisać wyniku. Spróbuj ponownie.');
-                    header('Location: test.php');
-                    exit;
-                }
             } else {
                 $resultId = 0;
             }
@@ -369,9 +364,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'check_answer') {
         $questionId = securityInputInt($_POST['question_id'] ?? 0, 0, PHP_INT_MAX, 0);
         $userAnswer = securityInputAnswerLetter($_POST['answer'] ?? '');
+        $currentIdx = $test['current'] ?? 0;
+        $q = $questions[$currentIdx] ?? null;
+        if ($q && (int)($q['id'] ?? 0) === $questionId && $pdo) {
+            $qId = ensureQuestionRecordExists($pdo, $q);
+        }
         $checkResult = applyTestAnswerCheck($test, $questionId, $userAnswer, $pdo, $userId > 0 ? $userId : null, isGuestMode());
 
         if (!empty($checkResult['success'])) {
+            $test['progress_updated'][$currentIdx] = true;
             saveCurrentTest($pdo, $userId > 0 ? $userId : null, $test);
         } else {
             setSessionMessage('error', (string)($checkResult['error'] ?? 'Nie można sprawdzić odpowiedzi.'));
@@ -419,7 +420,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Update per-question progress stats
             if (!isGuestMode() && isset($_SESSION['user_id'])) {
-                updateQuestionProgress($pdo, $_SESSION['user_id'], $questionId, $isCorrect);
+                $qId = ensureQuestionRecordExists($pdo, $q);
+                updateQuestionProgress($pdo, $_SESSION['user_id'], $qId, $isCorrect);
+                $test['progress_updated'][$currentIdx] = true;
             }
 
             if ($mode === 'exam_simulator') {
@@ -492,7 +495,7 @@ if ($test) {
     $phase           = $test['phase'] ?? 'answering';
     $lastResult      = $test['last_result'] ?? null;
     $answeredCount   = count($test['answers'] ?? []);
-    $isTestActive    = ($phase === 'answering' && !$showSetup);
+    $isTestActive    = (in_array($phase, ['answering', 'reviewing', 'review'], true) && !$showSetup);
     $savedAnswer     = strtoupper(trim((string)($test['answers'][$currentIdx]['user_answer'] ?? '')));
     $perQuestionLimit = getTestQuestionTimeLimit($test);
     $questionTimeLeft = 0;
@@ -637,6 +640,31 @@ include 'includes/header.php';
                     'icon' => 'bi-shield-fill-check',
                     'desc' => 'Zasady bezpieczeństwa, higieny pracy i ergonomii w informatyce.',
                     'color' => '#ef4444'
+                ],
+                'INF.02' => [
+                    'icon' => 'bi-motherboard-fill',
+                    'desc' => 'Sprzęt komputerowy, systemy operacyjne i sieci komputerowe.',
+                    'color' => '#0ea5e9'
+                ],
+                'INF.03' => [
+                    'icon' => 'bi-code-slash',
+                    'desc' => 'Tworzenie stron i aplikacji internetowych oraz bazy danych.',
+                    'color' => '#6366f1'
+                ],
+                'INF.04' => [
+                    'icon' => 'bi-terminal-fill',
+                    'desc' => 'Projektowanie, programowanie i testowanie aplikacji.',
+                    'color' => '#8b5cf6'
+                ],
+                'INF.07' => [
+                    'icon' => 'bi-hdd-network-fill',
+                    'desc' => 'Montaż i eksploatacja systemów teleinformatycznych.',
+                    'color' => '#10b981'
+                ],
+                'INF.08' => [
+                    'icon' => 'bi-shield-shaded',
+                    'desc' => 'Cyberbezpieczeństwo i sieci zintegrowane.',
+                    'color' => '#f59e0b'
                 ]
             ];
             
@@ -680,8 +708,14 @@ include 'includes/header.php';
             <input type="hidden" name="order" value="random">
             <div class="exam-sim-setup-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-collection-fill me-2"></i>Wybierz kategorie</h5>
-                    <span class="text-muted small">W tym trybie wybierasz tylko kwalifikacje / kategorie.</span>
+                    <div>
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-collection-fill me-2"></i>Wybierz kategorie</h5>
+                        <span class="text-muted small">W tym trybie wybierasz kwalifikacje do oficjalnego arkusza.</span>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <button type="button" class="btn btn-sm btn-link text-success text-decoration-none fw-bold p-0" id="simSelectAllCats"><i class="bi bi-check2-all me-1"></i>Zaznacz wszystkie</button>
+                        <button type="button" class="btn btn-sm btn-link text-danger text-decoration-none fw-bold p-0" id="simDeselectAllCats"><i class="bi bi-x-lg me-1"></i>Odznacz wszystkie</button>
+                    </div>
                 </div>
                 <div class="category-grid">
                     <?php
@@ -1164,7 +1198,7 @@ include 'includes/header.php';
                         </div>
                         <?php endif; ?>
                     </div>
-                    <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" onclick="confirmEndTest()" title="Zakończ test">
+                    <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" id="testEndBtn" onclick="confirmEndTest()" title="Zakończ test" aria-label="Zakończ test">
                         <i class="bi bi-stop-circle"></i>
                     </button>
                 </div>
@@ -1184,8 +1218,20 @@ include 'includes/header.php';
             <div class="panel-header d-flex justify-content-between align-items-center mb-4 question-card-header">
                 <div class="d-flex align-items-center gap-3">
                     <h5 class="mb-0 fw-bold">Pytanie</h5>
-                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 btn-flag-question" id="btnFlagQuestion" title="Oznacz pytanie flagą do weryfikacji (Skrót [F])">
-                        <i class="bi bi-flag me-1" id="flagIcon"></i><span class="flag-text" id="flagText">Oznacz</span>
+                    <?php
+                    $isCurrentBookmarked = false;
+                    if (!empty($userId) && $userId > 0 && !empty($currentQuestion['id']) && $pdo) {
+                        try {
+                            $bmStmt = $pdo->prepare("SELECT 1 FROM user_bookmarks WHERE user_id = ? AND question_id = ? LIMIT 1");
+                            $bmStmt->execute([$userId, (int)$currentQuestion['id']]);
+                            $isCurrentBookmarked = (bool)$bmStmt->fetchColumn();
+                        } catch (Throwable $e) {
+                            $isCurrentBookmarked = false;
+                        }
+                    }
+                    ?>
+                    <button type="button" class="btn btn-sm <?= $isCurrentBookmarked ? 'btn-warning' : 'btn-outline-warning' ?> rounded-pill px-3 btn-flag-question" id="btnFlagQuestion" data-question-id="<?= (int)$currentQuestion['id'] ?>" title="<?= $isCurrentBookmarked ? 'Usuń oznaczenie flagą (Skrót [F])' : 'Oznacz pytanie flagą do weryfikacji (Skrót [F])' ?>">
+                        <i class="bi bi-flag<?= $isCurrentBookmarked ? '-fill' : '' ?> me-1" id="flagIcon"></i><span class="flag-text" id="flagText"><?= $isCurrentBookmarked ? 'Oznaczono' : 'Oznacz' ?></span>
                     </button>
                 </div>
             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2"><?= htmlspecialchars($currentQuestion['category'] ?? 'Ogólne') ?></span>
@@ -1208,6 +1254,17 @@ include 'includes/header.php';
                 <input type="hidden" name="action"      value="submit_answer">
                 <input type="hidden" name="answer"      id="selectedAnswer" value="<?= htmlspecialchars($savedAnswer) ?>">
 
+                <script>
+                window.__fallbackSelectOption = function(el) {
+                    if (!el || el.classList.contains('disabled') || el.classList.contains('correct') || el.classList.contains('incorrect') || document.querySelector('.review-box')) return;
+                    document.querySelectorAll('.quiz-option').forEach(function(o) { o.classList.remove('selected'); });
+                    el.classList.add('selected');
+                    var input = document.getElementById('selectedAnswer');
+                    if (input) input.value = el.dataset.answer || '';
+                    var btn = document.getElementById('submitBtn');
+                    if (btn) btn.disabled = false;
+                };
+                </script>
                 <div id="answersContainer" class="d-flex flex-column gap-2">
                     <?php 
                     $optionsFound = 0;
@@ -1221,7 +1278,7 @@ include 'includes/header.php';
                         if (trim($text) === '') continue;
                         $optionsFound++;
                     ?>
-                    <div class="answer-option quiz-option <?= $savedAnswer === $opt ? 'selected' : '' ?>" data-answer="<?= $opt ?>" onclick="QuizEngine.selectOption(this)">
+                    <div class="answer-option quiz-option <?= $savedAnswer === $opt ? 'selected' : '' ?>" data-answer="<?= $opt ?>" onclick="window.QuizEngine ? window.QuizEngine.selectOption(this) : (window.selectQuizOption ? window.selectQuizOption(this) : window.__fallbackSelectOption(this))">
                         <div class="answer-letter"><?= $opt ?><span class="key-indicator" title="Skrót klawiszowy"><?= $optionsFound ?></span></div>
                         <div class="answer-text"><?= htmlspecialchars($text) ?></div>
                     </div>
@@ -1258,8 +1315,8 @@ include 'includes/header.php';
                             <i class="bi bi-arrow-left me-2"></i>Poprzednie pytanie
                         </button>
                         <?php endif; ?>
-                        <button type="button" class="btn btn-outline-warning btn-lg px-3 btn-ai-tutor" id="btnAiTutor" data-question-id="<?= (int)$currentQuestion['id'] ?>" title="Wskazówka sokratejska (naprowadzenie na właściwy tok myślenia)">
-                            <i class="bi bi-lightbulb me-1"></i>Wskazówka Sokratejska
+                        <button type="button" class="btn btn-outline-warning btn-lg px-3 btn-ai-tutor" id="btnAiTutor" data-question-id="<?= (int)$currentQuestion['id'] ?>" title="Wskazówka (naprowadzenie na właściwy tok myślenia)">
+                            <i class="bi bi-lightbulb me-1"></i>Wskazówka
                         </button>
                     </div>
                 </div>
@@ -1436,7 +1493,7 @@ include 'includes/header.php';
         <div class="modal-content border-0 shadow-lg bg-body">
             <div class="modal-header border-bottom border-warning-subtle bg-warning bg-opacity-10 py-3">
                 <h5 class="modal-title d-flex align-items-center gap-2 text-dark fw-bold" id="aiTutorModalLabel">
-                    <i class="bi bi-lightbulb-fill text-warning"></i> Sokratejska Wskazówka Myślowa
+                    <i class="bi bi-lightbulb-fill text-warning"></i> Wskazówka
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
             </div>
@@ -1459,13 +1516,13 @@ include 'includes/header.php';
 window.__EXAM_CONFIG__ = {
     phase: <?= json_encode($phase) ?>,
     csrfToken: <?= json_encode($_SESSION['csrf_token'] ?? '') ?>,
-    timeLimit: <?= json_encode(!empty($test['time_limit']) && $phase === 'answering' ? max(0, (isset($test['time_limit']) ? (int)$test['time_limit'] : 3600) - (time() - (int)($test['start_time'] ?? time()))) : null) ?>,
-    perQuestionLimit: <?= json_encode($perQuestionLimit > 0 && $phase === 'answering' ? (int)$perQuestionLimit : null) ?>,
-    questionTimeLeft: <?= json_encode($perQuestionLimit > 0 && $phase === 'answering' ? (int)$questionTimeLeft : null) ?>
+    timeLimit: <?= json_encode(!empty($test['time_limit']) && in_array($phase, ['answering', 'reviewing', 'review'], true) ? max(0, (isset($test['time_limit']) ? (int)$test['time_limit'] : 3600) - (time() - (int)($test['start_time'] ?? time()))) : null) ?>,
+    perQuestionLimit: <?= json_encode($perQuestionLimit > 0 && in_array($phase, ['answering', 'reviewing', 'review'], true) ? (int)$perQuestionLimit : null) ?>,
+    questionTimeLeft: <?= json_encode($perQuestionLimit > 0 && in_array($phase, ['answering', 'reviewing', 'review'], true) ? (int)$questionTimeLeft : null) ?>
 };
 </script>
 <!-- Exam Runner navigation: submitFinishEarlyForm -->
-<script src="assets/js/exam-runner.js" defer></script>
+<script src="assets/js/exam-runner.js?v=<?= filemtime(__DIR__ . '/assets/js/exam-runner.js') ?>" defer></script>
 
 </body>
 </html>

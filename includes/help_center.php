@@ -44,7 +44,6 @@ if (!isset($base_url)) {
                 <button type="button" class="help-tag-chip" data-query="sprawdzian">#sprawdzian</button>
                 <button type="button" class="help-tag-chip" data-query="passkey">#passkey</button>
                 <button type="button" class="help-tag-chip" data-query="xp">#punkty-xp</button>
-                <button type="button" class="help-tag-chip" data-query="zakonnicomat">#panel-lukiego</button>
             </div>
 
             <!-- Quick Navigation Tiles (6 Action Cards) -->
@@ -227,36 +226,6 @@ if (!isset($base_url)) {
                         <p class="mb-0">
                             <strong>Limit sesji:</strong> Ze względów bezpieczeństwa jedno konto może być aktywne jednocześnie na maksymalnie 2 urządzeniach.
                         </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Item 5: Świątynia Zakonnicomat (Panel Lukiego) -->
-            <div class="accordion-item help-section" data-cat="cke" data-keywords="luki zakonnicomat wujek luki kolo fortuny spin ryzyka nagrody xp">
-                <h3 class="accordion-header" id="headingLuki">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLuki" aria-expanded="false" aria-controls="collapseLuki">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="help-icon-wrap bg-danger bg-opacity-10 text-danger">
-                                <i class="bi bi-stars"></i>
-                            </span>
-                            <div>
-                                <div class="fw-bold text-body">Świątynia Zakonnicomat (Panel Lukiego)</div>
-                                <div class="small text-muted" style="font-size:.72rem;">Endgame prestige i koło 13 Świętych Zakonnic</div>
-                            </div>
-                        </div>
-                    </button>
-                </h3>
-                <div id="collapseLuki" class="accordion-collapse collapse" aria-labelledby="headingLuki" data-bs-parent="#helpAccordion">
-                    <div class="accordion-body help-content small text-body-secondary">
-                        <p class="mb-2">
-                            Dostępny dla kont o statusie <strong>Wujek Luki</strong> i <strong>Administrator</strong>. Koło fortuny z dźwiękami Web Audio API i cząsteczkami konfetti pozwala losować łaskę 13 Świętych Zakonnic.
-                        </p>
-                        <p class="mb-2">
-                            <strong>Tryb Ryzyka:</strong> Włączenie podwójnej stawki podwaja zdobywany (lub tracony) XP.
-                        </p>
-                        <a href="<?php echo htmlspecialchars($base_url); ?>sandbox/luki_panel.php" class="btn btn-outline-danger btn-sm rounded-pill">
-                            <i class="bi bi-arrow-repeat me-1"></i>Przejdź do Zakonnicomatu
-                        </a>
                     </div>
                 </div>
             </div>
@@ -577,6 +546,24 @@ document.addEventListener('DOMContentLoaded', function() {
     panel?.classList.remove('d-none');
     fab?.classList.remove('d-none');
     fab?.removeAttribute('aria-hidden');
+
+    // Avoid footer collision: lift FAB if overlapping with page footer
+    const pageFooter = document.querySelector('footer, .main-footer, .landing-footer, .footer');
+    if (pageFooter && fab) {
+        const adjustFabPos = () => {
+            const footerRect = pageFooter.getBoundingClientRect();
+            const winHeight = window.innerHeight;
+            if (footerRect.top < winHeight) {
+                const overlap = winHeight - footerRect.top;
+                fab.style.bottom = `${Math.min(overlap + 24, 220)}px`;
+            } else {
+                fab.style.bottom = '2rem';
+            }
+        };
+        window.addEventListener('scroll', adjustFabPos, { passive: true });
+        window.addEventListener('resize', adjustFabPos, { passive: true });
+        adjustFabPos();
+    }
 
     let fallbackBackdrop = null;
     const setFallbackOpen = (open) => {

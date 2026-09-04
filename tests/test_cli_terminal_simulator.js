@@ -14,6 +14,20 @@ global.localStorage = {
     clear: () => { Object.keys(storageMock).forEach(k => delete storageMock[k]); }
 };
 
+global.FormData = class FormData {
+    constructor() { this.data = {}; }
+    append(k, v) { this.data[k] = v; }
+    get(k) { return this.data[k]; }
+};
+
+global.fetch = async (url, options) => {
+    return {
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true, xp_awarded: 25, total_xp: 150 })
+    };
+};
+
 function createMockElement(id = '', tag = 'div') {
     const el = {
         id,
@@ -266,3 +280,5 @@ assert(term.activeScenario.completed === true, 'Scenario completed 100% after st
 console.log(`\n======================================================`);
 console.log(`🏁 ALL ${passedTests}/${totalTests} TESTS PASSED WITH 100% SUCCESS!`);
 console.log(`======================================================\n`);
+process.exit(totalTests === passedTests ? 0 : 1);
+

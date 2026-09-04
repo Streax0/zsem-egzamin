@@ -27,13 +27,13 @@ $participant = $stmt->fetch();
 
 if (!$participant) {
     setSessionMessage('error', 'Uczestnik nie istnieje.');
-    redirect('custom_exams.php');
+    redirect('index.php');
 }
 
 // Security: Check if teacher owns this exam
 if (!roleHasAdminAccess($_SESSION['role'] ?? '') && $participant['teacher_id'] != $userId) {
     setSessionMessage('error', 'Brak uprawnień do podglądu tego wyniku.');
-    redirect('custom_exams.php');
+    redirect('index.php');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -77,7 +77,15 @@ foreach (getQuestionsByIds($pdo, $sessionQuestionIds) as $question) {
 $flashMsg = getSessionMessage();
 $pageTitle = 'Szczegóły wyniku: ' . htmlspecialchars($participant['first_name'] . ' ' . $participant['last_name']);
 $extraCss = ['assets/css/dashboard-new.css'];
+$extraHead = <<<HTML
+<style>
+body.dark-mode .option-choice-neutral { background: rgba(255,255,255,0.05) !important; color: #e2e8f0 !important; border-color: rgba(255,255,255,0.1) !important; }
+body.dark-mode .bg-light { background-color: rgba(255,255,255,0.05) !important; color: #f1f5f9 !important; }
+</style>
+HTML;
 include '../includes/header.php';
+$returnUrl = ($participant['session_status'] === 'finished') ? "exam_details.php?session={$participant['session_id']}" : "host_exam.php?session={$participant['session_id']}";
+$returnLabel = ($participant['session_status'] === 'finished') ? "Powrót do wyników" : "Powrót do sesji";
 ?>
     <div class="dashboard-layout">
         <?php include '../includes/sidebar.php'; ?>
@@ -90,8 +98,8 @@ include '../includes/header.php';
                             <h2 class="fw-bold mb-0">Szczegóły uczestnika</h2>
                             <p class="text-muted"><?= htmlspecialchars($participant['exam_title']) ?> (Kod: <?= $participant['access_code'] ?>)</p>
                         </div>
-                        <a href="host_exam.php?session=<?= $participant['session_id'] ?>" class="btn btn-outline-secondary rounded-pill">
-                            <i class="bi bi-arrow-left me-1"></i>Powrót do sesji
+                        <a href="<?= $returnUrl ?>" class="btn btn-outline-secondary rounded-pill">
+                            <i class="bi bi-arrow-left me-1"></i><?= $returnLabel ?>
                         </a>
                     </div>
                     <?php if ($flashMsg): ?>
@@ -126,7 +134,8 @@ include '../includes/header.php';
                                     <div class="col-6">
                                         <div class="bg-light p-3 rounded">
                                             <div class="text-muted small">Poprawne</div>
-                                            <div class="h3 fw-bold text-success mb-0"><?= $participant['correct_answers'] ?>/<?= $participant['total_answered'] ?></div>
+                                            <div class="h3 fw-bold text-success mb-0"><?= (int)$participant['correct_answers'] ?>/<?= count($sessionQuestions) ?></div>
+                                            <div class="text-muted" style="font-size:0.75rem">udzielono: <?= (int)$participant['total_answered'] ?>/<?= count($sessionQuestions) ?></div>
                                         </div>
                                     </div>
                                     <div class="col-6">
@@ -182,6 +191,12 @@ include '../includes/header.php';
                                             <p class="fw-medium mb-3"><?= $qData ? htmlspecialchars($qData['question_text']) : '<span class="text-danger">Nie znaleziono treści pytania</span>' ?></p>
                                             
                                             <?php if ($qData): ?>
+                                                <?php $qImg = questionImageSrc($qData['image_url'] ?? '', '../'); ?>
+                                                <?php if ($qImg): ?>
+                                                    <div class="mb-3">
+                                                        <img src="<?= htmlspecialchars($qImg) ?>" class="img-fluid rounded border bg-white p-2" style="max-height: 240px; object-fit: contain;" alt="Ilustracja do pytania" loading="lazy">
+                                                    </div>
+                                                <?php endif; ?>
                                             <div class="row g-2 small mb-3">
                                                 <?php foreach (['A','B','C','D'] as $opt): 
                                                     $optText = $qData['option_'.strtolower($opt)] ?? '';
@@ -189,7 +204,7 @@ include '../includes/header.php';
                                                     $isCorrect = ($effectiveCorrect === $opt);
                                                     $isUser = ($userAnswer && strtoupper($userAnswer['user_answer']) === $opt);
                                                     
-                                                    $class = 'bg-white border';
+                                                    $class = 'bg-white border option-choice-neutral';
                                                     if ($isCorrect) $class = 'bg-success bg-opacity-10 border-success text-success fw-bold';
                                                     if ($isUser && !$isCorrect) $class = 'bg-danger bg-opacity-10 border-danger text-danger fw-bold';
                                                 ?>

@@ -183,7 +183,7 @@ unset($_SESSION['sandbox_element_block_notice']);
     </div>
 </header>
 
-<?php if (is_array($mfaPromptNotification)): ?>
+<?php if (is_array($mfaPromptNotification) && !in_array(basename($_SERVER['PHP_SELF'] ?? ''), ['host_exam.php', 'exam_details.php', 'take.php', 'lobby.php'], true)): ?>
 <style>
 .mfa-choice-dialog {
     width: min(92vw, 520px);
@@ -620,7 +620,7 @@ if ($isTeacherAreaTopbar):
 $teacherOpsCurrent = basename(str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? ''));
 $teacherOpsLinks = [
     ['href' => 'teacher/index.php', 'icon' => 'bi-speedometer2', 'label' => 'Panel', 'files' => ['index.php']],
-    ['href' => 'teacher/create_exam.php', 'icon' => 'bi-plus-circle', 'label' => 'Online', 'files' => ['create_exam.php', 'edit_exam.php', 'host_exam.php', 'exam_details.php']],
+    ['href' => 'teacher/create_exam.php', 'icon' => 'bi-plus-circle', 'label' => 'Online', 'files' => ['create_exam.php', 'edit_exam.php', 'host_exam.php', 'exam_details.php', 'view_participant_result.php', 'clone_exam.php']],
     ['href' => 'teacher/pdf_generator.php', 'icon' => 'bi-file-earmark-text', 'label' => 'Generator', 'files' => ['pdf_generator.php', 'txt_generator.php', 'import_txt.php']],
     ['href' => 'teacher/custom_exams.php', 'icon' => 'bi-collection', 'label' => 'Baza własna', 'files' => ['custom_exams.php', 'custom_exam.php', 'custom_exam_edit.php']],
     ['href' => 'teacher/requests.php', 'icon' => 'bi-inbox', 'label' => 'Zgłoszenia', 'files' => ['requests.php']],

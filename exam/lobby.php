@@ -254,7 +254,7 @@ $bodyClassStr = implode(' ', $bodyClasses);
                                         <div class="participant-chip">
                                             <span class="participant-avatar"><?= htmlspecialchars(strtoupper(substr($p['first_name'], 0, 1))) ?></span>
                                             <div class="min-w-0">
-                                                <div class="fw-bold"><?= htmlspecialchars($p['first_name'] . ' ' . substr($p['last_name'], 0, 1) . '.') ?></div>
+                                                <div class="fw-bold"><?= htmlspecialchars(trim($p['first_name'] . ' ' . (!empty($p['last_name']) ? mb_substr($p['last_name'], 0, 1) . '.' : ''))) ?></div>
                                                 <div class="small text-muted"><span class="participant-dot me-1"></span><?= htmlspecialchars($p['class']) ?></div>
                                             </div>
                                         </div>
@@ -269,51 +269,74 @@ $bodyClassStr = implode(' ', $bodyClasses);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
-    // Poll for exam start
-     function checkStatus() {
-         fetch('../ajax/exam_status.php?session=<?= $sessionId ?>')
-             .then(r => r.json())
-             .then(data => {
-                 if (data.status === 'in_progress') {
-                     window.location.href = 'take.php?session=<?= $sessionId ?>';
-                 } else if (data.status === 'finished' || data.status === 'expired') {
-                     window.location.href = '../index.php';
-                 } else {
-                     // Update participant count
-                     if (data.participant_count !== undefined) {
-                         const count1 = document.getElementById('participantCount');
-                         const count2 = document.getElementById('participantCountAlt');
-                         if (count1) count1.textContent = data.participant_count;
-                         if (count2) count2.textContent = data.participant_count;
-                     }
-                     
-                     // Update participant list
-                     if (data.participants) {
-                         const grid = document.getElementById('participantsGrid');
-                         if (grid) {
-                             let html = '';
-                             data.participants.forEach(p => {
-                                 const firstName = escapeHtml(p.first_name);
-                                 const lastNameInit = p.last_name ? escapeHtml(p.last_name.substring(0, 1)) + '.' : '';
-                                 const participantClass = escapeHtml(p.class);
-                                 html += `
-                                     <div class="participant-chip animate-in">
-                                         <span class="participant-avatar">${firstName.substring(0, 1).toUpperCase()}</span>
-                                         <div class="min-w-0">
-                                             <div class="fw-bold">${firstName} ${lastNameInit}</div>
-                                             <div class="small text-muted"><span class="participant-dot me-1"></span>${participantClass}</div>
-                                         </div>
-                                     </div>
-                                 `;
-                             });
-                             grid.innerHTML = html;
-                         }
-                     }
-                 }
-             })
-             .catch(() => {});
-     }
-     setInterval(checkStatus, 1000);
+    let isTransitioning = false;
+    function checkStatus() {
+        if (isTransitioning) return;
+        fetch('../ajax/exam_status.php?session=<?= $sessionId ?>')
+            .then(r => {
+                if (r.status === 403) {
+                    isTransitioning = true;
+                    if (window.appNotice) {
+                        window.appNotice('Zostałeś wykluczony ze sprawdzianu przez nauczyciela.', 'danger');
+                    }
+                    setTimeout(() => { window.location.href = 'join.php'; }, 2000);
+                    return null;
+                }
+                return r.json();
+            })
+            .then(data => {
+                if (!data) return;
+                if (data.error === 'forbidden') {
+                    isTransitioning = true;
+                    if (window.appNotice) {
+                        window.appNotice('Zostałeś wykluczony ze sprawdzianu przez nauczyciela.', 'danger');
+                    }
+                    setTimeout(() => { window.location.href = 'join.php'; }, 2000);
+                    return;
+                }
+                if (data.status === 'in_progress') {
+                    isTransitioning = true;
+                    window.location.href = 'take.php?session=<?= $sessionId ?>';
+                } else if (data.status === 'finished' || data.status === 'expired') {
+                    isTransitioning = true;
+                    window.location.href = '../index.php';
+                } else {
+                    // Update participant count
+                    if (data.participant_count !== undefined) {
+                        const count1 = document.getElementById('participantCount');
+                        const count2 = document.getElementById('participantCountAlt');
+                        if (count1) count1.textContent = data.participant_count;
+                        if (count2) count2.textContent = data.participant_count;
+                    }
+                    
+                    // Update participant list
+                    if (data.participants) {
+                        const grid = document.getElementById('participantsGrid');
+                        if (grid) {
+                            let html = '';
+                            data.participants.forEach(p => {
+                                const firstName = escapeHtml(p.first_name);
+                                const lastNameInit = p.last_name ? escapeHtml(p.last_name.substring(0, 1)) + '.' : '';
+                                const participantClass = escapeHtml(p.class);
+                                const displayName = [firstName, lastNameInit].filter(Boolean).join(' ');
+                                html += `
+                                    <div class="participant-chip animate-in">
+                                        <span class="participant-avatar">${firstName.substring(0, 1).toUpperCase()}</span>
+                                        <div class="min-w-0">
+                                            <div class="fw-bold">${displayName}</div>
+                                            <div class="small text-muted"><span class="participant-dot me-1"></span>${participantClass}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            grid.innerHTML = html;
+                        }
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+    setInterval(checkStatus, 1000);
     </script>
     <?php include '../includes/help_center.php'; ?>
 </body>

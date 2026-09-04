@@ -306,11 +306,13 @@ $extraHead = <<<HTML
             color: white !important;
         }
         .nav-link.btn-outline-primary:not(.active) {
-            color: #212529 !important;
+            color: var(--bs-body-color, #212529) !important;
+        }
+        body.dark-mode .nav-link.btn-outline-primary:not(.active) {
+            color: #e2e8f0 !important;
         }
         .exam-summary-card {
-            position: sticky;
-            top: 1rem;
+            position: static;
         }
         .summary-row {
             display: flex;
@@ -346,7 +348,6 @@ $extraHead = <<<HTML
         @media (max-width: 991.98px) {
             .create-exam-hero { flex-direction: column; }
             .preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .exam-summary-card { position: static; }
         }
         @media (max-width: 575.98px) {
             .preset-grid,
@@ -497,7 +498,7 @@ include '../includes/header.php';
                                                                 <input type="checkbox" class="btn-check" name="categories[]" id="cat_<?= md5($cat) ?>" value="<?= htmlspecialchars($cat) ?>" autocomplete="off">
                                                                 <label class="btn btn-outline-primary rounded-pill px-3 py-2 btn-sm fw-medium transition-all" for="cat_<?= md5($cat) ?>">
                                                                     <i class="bi bi-tag-fill me-1 small"></i><?= htmlspecialchars($cat) ?>
-                                                                    <span class="badge bg-primary bg-opacity-10 text-dark ms-1 fw-bold"><?= (int)($categoryCounts[$cat] ?? 0) ?></span>
+                                                                    <span class="badge bg-primary bg-opacity-10 text-body ms-1 fw-bold"><?= (int)($categoryCounts[$cat] ?? 0) ?></span>
                                                                 </label>
                                                             </div>
                                                             <?php endforeach; ?>
@@ -521,7 +522,7 @@ include '../includes/header.php';
                                                                 <div class="question-item form-check py-2 border-bottom" data-question-text="<?= htmlspecialchars(mb_strtolower(($q['question_text'] ?? '') . ' ' . ($q['category'] ?? ''), 'UTF-8')) ?>">
                                                                     <input class="form-check-input" type="checkbox" name="selected_questions[]" value="<?= $q['id'] ?>" id="q<?= $q['id'] ?>">
                                                                     <label class="form-check-label small" for="q<?= $q['id'] ?>">
-                                                                        <span class="badge bg-secondary bg-opacity-25 text-dark me-1">#<?= $q['id'] ?></span>
+                                                                        <span class="badge bg-secondary bg-opacity-25 text-body me-1">#<?= $q['id'] ?></span>
                                                                         <span class="badge bg-primary bg-opacity-10 text-primary fw-bold me-1"><i class="bi bi-tag me-1"></i><?= htmlspecialchars($q['category'] ?? '') ?></span>
                                                                         <?= htmlspecialchars(mb_substr($q['question_text'], 0, 120)) ?>...
                                                                     </label>
@@ -699,16 +700,10 @@ include '../includes/header.php';
                                                     <label class="form-label small fw-semibold" for="lateJoinCutoff">Blokuj dołączanie po (min)</label>
                                                     <input type="number" name="late_join_cutoff_minutes" id="lateJoinCutoff" class="form-control form-control-sm" min="1" max="120" placeholder="bez blokady">
                                                 </div>
-                                                <div class="col-md-6">
+                                                <div class="col-12">
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" name="allow_answer_changes" id="allowAnswerChanges" checked>
                                                         <label class="form-check-label" for="allowAnswerChanges">Pozwól zmieniać odpowiedzi</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" name="print_include_answer_key" id="printIncludeAnswerKey">
-                                                        <label class="form-check-label" for="printIncludeAnswerKey">Klucz odpowiedzi w wydruku</label>
                                                     </div>
                                                 </div>
                                             </div>

@@ -1513,7 +1513,7 @@ include '../includes/header.php';
         </div> <!-- /row -->
 
         <?php if ($allowProfileComments || $isOwnProfile || roleHasAdminAccess($myRole)): ?>
-        <div class="dashboard-panel mb-4 profile-comments-panel">
+        <div class="dashboard-panel mb-4 profile-comments-panel" id="profile-comments">
             <div class="panel-header mb-3">
                 <h4 class="panel-title mb-0"><i class="bi bi-chat-left-text me-2 text-primary"></i>Komentarze</h4>
             </div>
@@ -1536,7 +1536,7 @@ include '../includes/header.php';
                 <article class="comment-card mb-3">
                     <div class="comment-card-grid">
                         <div class="comment-avatar" aria-hidden="true">
-                            <?php $commentAvatar = userAvatarSrc($comment['avatar_path'] ?? ''); ?>
+                            <?php $commentAvatar = userAvatarSrc($comment['avatar_path'] ?? '', '../'); ?>
                             <?php if ($commentAvatar): ?>
                                 <img src="<?php echo htmlspecialchars($commentAvatar); ?>" alt="" class="comment-avatar-img" loading="lazy" decoding="async">
                             <?php else: ?>

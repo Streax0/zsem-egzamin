@@ -256,9 +256,13 @@ if ($showResultsToStudent) {
                             </div>
                             <?php endif; ?>
 
+                            <?php
+                            $returnUrl = (!empty($_SESSION['user_id'])) ? '../index.php' : 'join.php';
+                            $returnLabel = (!empty($_SESSION['user_id'])) ? 'Powrót do panelu' : 'Dołącz do innego testu';
+                            ?>
                             <div class="text-center mb-4">
-                                <a href="../index.php" class="btn btn-primary rounded-pill px-5">
-                                    <i class="bi bi-house me-1"></i>Powrót do panelu
+                                <a href="<?= $returnUrl ?>" class="btn btn-primary rounded-pill px-5">
+                                    <i class="bi <?= !empty($_SESSION['user_id']) ? 'bi-house' : 'bi-qr-code-scan' ?> me-1"></i><?= $returnLabel ?>
                                 </a>
                             </div>
                         </div>

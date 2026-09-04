@@ -3,6 +3,8 @@
  * Test Suite for Milestone 4: R3 Admin Dashboard & Sidebar Integration
  */
 
+define('APP_DB_SKIP_CONNECT', true);
+
 require_once __DIR__ . '/../includes/autoloader.php';
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/session.php';

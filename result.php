@@ -1060,7 +1060,7 @@ $shareCardData = [
                                     $why_pos = mb_strpos($answer_explanation, $why_marker, 0, 'UTF-8');
                                     if ($why_pos !== false) {
                                         $answer_explanation_main = trim(mb_substr($answer_explanation, 0, $why_pos, 'UTF-8'));
-                                        $answer_distractors = trim(mb_substr($answer_explanation, $why_pos, mb_strlen($answer_explanation, 'UTF-8'), 'UTF-8'));
+                                        $answer_distractors = trim(mb_substr($answer_explanation, $why_pos + mb_strlen($why_marker, 'UTF-8'), null, 'UTF-8'));
                                     }
                                     ?>
                                     <div class="answer-card" data-answer-state="<?php echo $is_correct ? 'correct' : 'wrong'; ?>" data-question-id="<?php echo $question_id; ?>" data-user-answer="<?php echo addslashes($user_answer); ?>" data-correct-answer="<?php echo addslashes($correct_answer); ?>">

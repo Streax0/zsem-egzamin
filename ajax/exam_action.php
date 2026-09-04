@@ -128,8 +128,10 @@ switch ($action) {
 
             $finished = $answeredCount >= $totalQuestions;
             if ($finished) {
-                $pdo->prepare("UPDATE exam_participants SET status = 'finished', finished_at = NOW() WHERE id = ?")
-                    ->execute([$participant['id']]);
+                $startedAt = $participant['started_at'] ?? $participant['joined_at'] ?? null;
+                $totalTimeSpent = $startedAt ? max(1, time() - strtotime($startedAt)) : 0;
+                $pdo->prepare("UPDATE exam_participants SET status = 'finished', finished_at = NOW(), time_spent = ? WHERE id = ?")
+                    ->execute([$totalTimeSpent, $participant['id']]);
             }
 
             $pdo->commit();

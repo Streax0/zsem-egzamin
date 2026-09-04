@@ -1,22 +1,6 @@
 <?php
 declare(strict_types=1);
 
-// Prevent output buffering
-if (function_exists('apache_setenv')) {
-    @apache_setenv('no-gzip', '1');
-}
-@ini_set('zlib.output_compression', '0');
-@ini_set('implicit_flush', '1');
-while (ob_get_level() > 0) {
-    ob_end_flush();
-}
-flush();
-
-header('Content-Type: text/event-stream; charset=utf-8');
-header('Cache-Control: no-cache, no-store, must-revalidate');
-header('Connection: keep-alive');
-header('X-Accel-Buffering: no');
-
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/session.php';
 require_once __DIR__ . '/../includes/auth.php';
@@ -28,6 +12,23 @@ $userRole = (string)($_SESSION['role'] ?? '');
 
 // Release PHP session lock immediately to prevent blocking other tabs
 session_write_close();
+
+// Prevent output buffering and configure stream headers
+if (function_exists('apache_setenv')) {
+    @apache_setenv('no-gzip', '1');
+}
+@ini_set('zlib.output_compression', '0');
+@ini_set('implicit_flush', '1');
+
+header('Content-Type: text/event-stream; charset=utf-8');
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Connection: keep-alive');
+header('X-Accel-Buffering: no');
+
+while (ob_get_level() > 0) {
+    @ob_end_flush();
+}
+flush();
 
 if ($userId <= 0) {
     echo "event: error\ndata: " . json_encode(['error' => 'Unauthorized']) . "\n\n";
@@ -135,7 +136,7 @@ while (time() - $startTime < $maxExecutionTime) {
                     'opponent_answered' => $opponentAnswered,
                     'opponent_finished' => !empty($isChallenger ? $duel['opponent_finished_at'] : $duel['challenger_finished_at']),
                     'my_finished' => !empty($isChallenger ? $duel['challenger_finished_at'] : $duel['opponent_finished_at']),
-                    'server_time' => time()
+                    'server_time' => date('H:i:s')
                 ];
 
                 $currentHash = md5(json_encode($payload));

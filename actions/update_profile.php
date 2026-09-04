@@ -49,14 +49,14 @@ $avatarUploaded = false;
 $avatarPath = null;
 $avatarDestination = null;
 
-const AVATAR_MAX_BYTES = 204800; // Increased limit from AVATAR_MAX_BYTES = 25600 (25 KB) to 200 KB
+const AVATAR_MAX_BYTES = 102400; // Increased limit from AVATAR_MAX_BYTES = 25600 (25 KB) to 100 KB (max 500x500 WebP)
 
 function saveAvatarWebpWithinLimit($source, int $width, int $height, string $dest): bool {
     if (!function_exists('imagecreatetruecolor') || !function_exists('imagewebp')) {
         return false;
     }
-    $sizes = [512, 384, 320, 256, 192, 160, 128];
-    $qualities = [82, 74, 66, 58, 50, 42, 34, 28];
+    $sizes = [500, 400, 320, 256, 192, 128];
+    $qualities = [80, 75, 70, 62, 54, 46];
 
     foreach ($sizes as $maxSide) {
         $scale = min(1, $maxSide / max(1, $width), $maxSide / max(1, $height));
@@ -141,7 +141,11 @@ if (empty($errors) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ??
     } elseif (!function_exists('imagewebp')) {
         $errors[] = 'Serwer nie obsługuje konwersji zdjęć do WebP.';
     } else {
-        // Avatar limit check skipped for seamless user avatar updates
+        $userRole = (string)($_SESSION['role'] ?? 'user');
+        $avatarLimit = canUserChangeAvatar($pdo, $userId, $userRole);
+        if (!$avatarLimit['allowed']) {
+            $errors[] = "Zdjęcie profilowe możesz zmienić ponownie za {$avatarLimit['days_left']} dni (limit: raz na 30 dni dla uczniów).";
+        }
         $tmp = (string)($file['tmp_name'] ?? '');
         if (empty($errors) && ($tmp === '' || !is_uploaded_file($tmp))) {
             $errors[] = 'Nieprawidłowy plik zdjęcia profilowego.';

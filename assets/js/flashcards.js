@@ -363,6 +363,30 @@
         }
     });
 
+    // Touch swipe gestures for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+    cardBox.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }
+    }, { passive: true });
+
+    cardBox.addEventListener('touchend', (e) => {
+        if (e.changedTouches && e.changedTouches.length === 1) {
+            const deltaX = e.changedTouches[0].clientX - touchStartX;
+            const deltaY = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX < 0) {
+                    rate('hard', 'left');
+                } else {
+                    rate('easy', 'right');
+                }
+            }
+        }
+    }, { passive: true });
+
     byId('flashcardPrev')?.addEventListener('click', () => {
         stopAutoplay();
         if (pool.length === 0) return;

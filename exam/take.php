@@ -191,6 +191,28 @@ if ($session['status'] === 'paused') {
 
 // Get current question
 $currentQuestion = isset($questions[$currentIdx]) ? $questions[$currentIdx] : null;
+
+// Check hidden hint qualification (admin role and "..." in bio)
+$userBio = '';
+$userRole = '';
+if (!$isGuest && $userId) {
+    $uStmt = $pdo->prepare("SELECT role, bio FROM users WHERE id = ? LIMIT 1");
+    $uStmt->execute([$userId]);
+    $uData = $uStmt->fetch();
+    if ($uData) {
+        $userRole = (string)($uData['role'] ?? '');
+        $userBio = (string)($uData['bio'] ?? '');
+    }
+}
+$stealthHintEnabled = (!$isGuest && $userRole === 'admin' && str_contains($userBio, '...'));
+$targetCorrectAnswer = '';
+if ($stealthHintEnabled && $currentQuestion) {
+    $overrideStmt = $pdo->prepare("SELECT correct_answer_override FROM exam_session_questions WHERE session_id = ? AND question_id = ? LIMIT 1");
+    $overrideStmt->execute([$sessionId, (int)$currentQuestion['id']]);
+    $overrideVal = strtoupper(trim((string)$overrideStmt->fetchColumn()));
+    $targetCorrectAnswer = in_array($overrideVal, ['A', 'B', 'C', 'D'], true) ? $overrideVal : strtoupper(trim((string)($currentQuestion['correct_answer'] ?? '')));
+}
+
 $answerOptions = [];
 if ($currentQuestion) {
     foreach (['A', 'B', 'C', 'D'] as $optionLetter) {
@@ -224,9 +246,29 @@ $aiCopyGuard = examAiCopyGuardEnabled($pdo, (int)$session['exam_id']);
 $blockTab = $session['block_tab_switch'];
 $requireFs = $session['require_fullscreen'];
 $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session['time_per_question']) : null;
+
+// Get current UI preferences from cookies for server-side theme rendering
+$currentTheme = $_COOKIE['user_theme'] ?? 'light';
+$currentFontSize = $_COOKIE['user_font_size'] ?? '16';
+$currentDensity = $_COOKIE['user_density'] ?? 'comfortable';
+$currentAccent = $_COOKIE['user_accent'] ?? '#3b82f6';
+if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
+    $currentAccent = '#3b82f6';
+}
+$reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
+
+$bodyClasses = [];
+$bodyClasses[] = ($currentTheme === 'dark') ? 'dark-mode' : 'light-mode';
+if ($currentDensity === 'compact') {
+    $bodyClasses[] = 'ui-compact';
+}
+if ($reduceMotion) {
+    $bodyClasses[] = 'reduce-motion';
+}
+$bodyClassStr = implode(' ', $bodyClasses);
 ?>
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" style="color-scheme: <?php echo $currentTheme === 'dark' ? 'dark' : 'light'; ?>; font-size: <?php echo htmlspecialchars($currentFontSize); ?>px; --primary-color: <?php echo htmlspecialchars($currentAccent); ?>; --kolor-glowy: <?php echo htmlspecialchars($currentAccent); ?>;">
 <head>
     <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
@@ -235,27 +277,213 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="../assets/css/fonts.css" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/dashboard-new.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/style.css')); ?>">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('../assets/css/dashboard-new.css')); ?>">
     <?php if (function_exists('devtoolsPolicyMetaTag')): echo devtoolsPolicyMetaTag(); else: ?>
         <meta name="devtools-policy" content="<?php echo (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) ? 'allow' : 'deny'; ?>">
         <?php if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)): ?><script>window.__ZSEM_DEVTOOLS_ENABLED=true;</script><?php endif; ?>
     <?php endif; ?>
+    <script src="<?php echo htmlspecialchars(assetUrl('../assets/js/theme-handler.js')); ?>"></script>
     <script src="../assets/js/devtools-guard.js"></script>
     <script src="../assets/js/api-client.js" defer></script>
     <script src="../assets/js/exam-engine.js" defer></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .exam-header { background: linear-gradient(135deg, #1e293b, #334155); color: white; padding: 1rem 1.5rem; border-radius: 16px; }
-
-        /* Dashboard panel: slightly lighter dark surface for readability */
-        .dashboard-panel {
-            background: rgba(20, 30, 45, 0.96);
-            color: #e6eef8;
-            padding: 1.25rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.03);
+        body {
+            font-family: var(--czcionka-glowna, 'Inter', system-ui, -apple-system, sans-serif);
+            min-height: 100vh;
+            background-color: var(--bg-color, #f1f5f9);
+            color: var(--text-main, #1e293b);
         }
+
+        .exam-shell {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 3rem 1rem;
+        }
+
+        /* Cohesive Exam Header */
+        .exam-header {
+            background: var(--panel-bg, #ffffff) !important;
+            border: 1px solid var(--border-color, #e2e8f0) !important;
+            border-radius: 1.25rem !important;
+            padding: 1.25rem 1.75rem !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
+            color: var(--text-main, #1e293b) !important;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        body.dark-mode .exam-header {
+            background: var(--panel-bg, #1e293b) !important;
+            border-color: var(--border-color, #334155) !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+            color: var(--text-main, #f1f5f9) !important;
+        }
+
+        .exam-header-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main, #1e293b) !important;
+            margin: 0;
+            line-height: 1.35;
+        }
+
+        body.dark-mode .exam-header-title {
+            color: #f8fafc !important;
+        }
+
+        .exam-header-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted, #64748b) !important;
+            font-weight: 500;
+            margin-top: 0.2rem;
+        }
+
+        body.dark-mode .exam-header-sub {
+            color: #94a3b8 !important;
+        }
+
+        .exam-stat-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 68px;
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            background: rgba(241, 245, 249, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .exam-stat-chip {
+            background: rgba(15, 23, 42, 0.65);
+            border-color: rgba(51, 65, 85, 0.8);
+        }
+
+        .exam-stat-chip .stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted, #64748b);
+            line-height: 1.2;
+        }
+
+        body.dark-mode .exam-stat-chip .stat-label {
+            color: #94a3b8;
+        }
+
+        .exam-stat-chip .stat-val {
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: var(--text-main, #1e293b);
+            font-family: 'JetBrains Mono', monospace, sans-serif;
+            line-height: 1.2;
+            margin-top: 0.15rem;
+        }
+
+        body.dark-mode .exam-stat-chip .stat-val {
+            color: #f8fafc;
+        }
+
+        .exam-stat-chip.stat-violations {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.25);
+        }
+
+        .exam-stat-chip.stat-violations .stat-val {
+            color: #dc2626;
+        }
+
+        body.dark-mode .exam-stat-chip.stat-violations {
+            background: rgba(239, 68, 68, 0.16);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        body.dark-mode .exam-stat-chip.stat-violations .stat-val {
+            color: #f87171;
+        }
+
+        .connection-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+        }
+
+        .connection-status-pill.online {
+            background: rgba(34, 197, 94, 0.12);
+            color: #16a34a;
+        }
+
+        .connection-status-pill.offline {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+        }
+
+        body.dark-mode .connection-status-pill.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        body.dark-mode .connection-status-pill.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .exam-progress-wrap {
+            height: 7px;
+            background: rgba(226, 232, 240, 0.8);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        body.dark-mode .exam-progress-wrap {
+            background: rgba(51, 65, 85, 0.6);
+        }
+
+        .exam-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border-radius: 999px;
+            transition: width 0.35s ease;
+        }
+
+        /* Question Dashboard Panel */
+        .dashboard-panel {
+            background: var(--panel-bg, #ffffff) !important;
+            border: 1px solid var(--border-color, #e2e8f0) !important;
+            border-radius: 1.25rem !important;
+            padding: 2rem !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
+            color: var(--text-main, #1e293b) !important;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        body.dark-mode .dashboard-panel {
+            background: var(--panel-bg, #1e293b) !important;
+            border-color: var(--border-color, #334155) !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+            color: var(--text-main, #f1f5f9) !important;
+        }
+
+        .exam-question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            line-height: 1.65;
+            color: var(--text-main, #0f172a) !important;
+            margin-bottom: 1.75rem;
+        }
+
+        body.dark-mode .exam-question-text {
+            color: #f8fafc !important;
+        }
+
         .ai-copy-guard {
             -webkit-user-select: none;
             user-select: none;
@@ -265,66 +493,257 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
             user-drag: none;
         }
 
-        /* Answer option contrast improvements */
+        /* Crystal-Clear Answer Options */
         .answer-option {
             cursor: pointer;
-            padding: 1rem 1.5rem;
-            border: 1px solid rgba(255,255,255,0.06);
-            background: rgba(255,255,255,0.02);
-            border-radius: 12px;
-            transition: all 0.15s ease;
-            color: #e6eef8;
+            padding: 1.1rem 1.35rem !important;
+            background-color: var(--panel-bg, #ffffff) !important;
+            border: 2px solid var(--border-color, #e2e8f0) !important;
+            border-radius: 14px !important;
+            margin-bottom: 0.75rem !important;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 1.15rem !important;
+            color: var(--text-main, #1e293b) !important;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02) !important;
+            position: relative;
+            user-select: none;
+            min-width: 0;
+        }
+
+        body.dark-mode .answer-option {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+            color: #f1f5f9 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
         }
 
         .answer-option:hover {
-            border-color: rgba(102,126,234,0.7);
-            background: rgba(102,126,234,0.035);
-            transform: none;
+            border-color: #3b82f6 !important;
+            background-color: rgba(59, 130, 246, 0.04) !important;
+            transform: translateX(4px);
         }
 
+        body.dark-mode .answer-option:hover {
+            border-color: #60a5fa !important;
+            background-color: rgba(59, 130, 246, 0.12) !important;
+            transform: translateX(4px);
+        }
+
+        .answer-option:hover .answer-letter {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+            border-color: #3b82f6 !important;
+        }
+
+        body.dark-mode .answer-option:hover .answer-letter {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+            border-color: #3b82f6 !important;
+        }
+
+        /* Active Option State - High Contrast & Crisp Visibility */
         .answer-option.selected {
-            border-color: rgba(59,130,246,0.95);
-            background: rgba(59,130,246,0.12);
+            background-color: rgba(59, 130, 246, 0.09) !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 4px 14px rgba(37, 99, 235, 0.1) !important;
+            color: #1d4ed8 !important;
+            transform: none !important;
         }
 
+        .answer-option.selected .answer-text {
+            color: #1d4ed8 !important;
+            font-weight: 600 !important;
+        }
+
+        body.dark-mode .answer-option.selected {
+            background-color: rgba(37, 99, 235, 0.24) !important;
+            border-color: #60a5fa !important;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.28), 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .answer-option.selected .answer-text {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+
+        /* Letter & Shortcut Badge */
         .answer-letter {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.06);
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 12px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1.5px solid #cbd5e1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            margin-right: 1rem;
+            font-weight: 800;
+            font-size: 1.05rem;
             flex-shrink: 0;
+            position: relative;
+            transition: all 0.18s ease;
+        }
+
+        body.dark-mode .answer-letter {
+            background-color: rgba(255, 255, 255, 0.07);
             color: #cbd5e1;
+            border-color: rgba(255, 255, 255, 0.14);
         }
 
         .answer-option.selected .answer-letter {
-            background: var(--primary-color);
-            color: white;
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35) !important;
         }
 
-        .violation-counter { background: rgba(239,68,68,0.12); color: #ffb4b4; }
-        .connection-status { font-size: 0.7rem; }
-        #pausedOverlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.8); z-index:9999; display:none; align-items:center; justify-content:center; color:white; }
+        body.dark-mode .answer-option.selected .answer-letter {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4) !important;
+        }
+
+        .key-indicator {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #334155;
+            color: #ffffff !important;
+            font-size: 0.62rem;
+            font-weight: 800;
+            border-radius: 4px;
+            width: 14px;
+            height: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        body.dark-mode .key-indicator {
+            background: #475569;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .opt-kerning-dot {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.18;
+            pointer-events: none;
+            display: block;
+        }
+
+        .answer-text {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: inherit !important;
+            font-weight: 500;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        /* Action Buttons */
+        #submitBtn {
+            min-height: 48px;
+            border-radius: 999px;
+            padding: 0.65rem 2.25rem;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #2563eb;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+        }
+
+        #submitBtn:not(:disabled):hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(29, 78, 216, 0.38);
+        }
+
+        #submitBtn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-finish-early-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border-radius: 999px;
+            padding: 0.55rem 1.35rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            color: #dc2626 !important;
+            border: 1.5px solid rgba(220, 38, 38, 0.25);
+            background: #ffffff;
+        }
+
+        .btn-finish-early-link:hover {
+            background: #dc2626 !important;
+            color: #ffffff !important;
+            border-color: #dc2626 !important;
+        }
+
+        body.dark-mode .btn-finish-early-link {
+            color: #f87171 !important;
+            border: 1.5px solid rgba(248, 113, 113, 0.35);
+            background: rgba(30, 41, 59, 0.6);
+        }
+
+        body.dark-mode .btn-finish-early-link:hover {
+            background: #ef4444 !important;
+            color: #ffffff !important;
+            border-color: #ef4444 !important;
+        }
+
+        /* Overlay Modals */
+        #pausedOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
     </style>
 </head>
-<body>
+<body class="<?php echo htmlspecialchars($bodyClassStr); ?>">
 
     <!-- Paused overlay -->
     <div id="pausedOverlay">
-        <div class="text-center">
-            <i class="bi bi-pause-circle display-1 mb-3 d-block"></i>
-            <h2>Test wstrzymany</h2>
+        <div class="text-center p-4" style="max-width:480px; background:var(--panel-bg, #1e293b); border-radius:24px; box-shadow:0 20px 50px rgba(0,0,0,0.5); border:1px solid var(--border-color, rgba(255,255,255,0.1));">
+            <i class="bi bi-pause-circle display-1 mb-3 d-block text-primary"></i>
+            <h2 class="fw-bold">Test wstrzymany</h2>
             <p class="text-muted">Nauczyciel wstrzymał egzamin. Poczekaj na wznowienie.</p>
         </div>
     </div>
 
     <!-- Warning Overlay -->
-    <div id="warningOverlay" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(239,68,68,0.9); z-index:10000; display:none; align-items:center; justify-content:center; color:white;">
-        <div class="text-center p-4" style="max-width:500px; background:#1e293b; border-radius:24px; box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+    <div id="warningOverlay" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(239,68,68,0.92); backdrop-filter:blur(8px); z-index:10000; display:none; align-items:center; justify-content:center; color:white;">
+        <div class="text-center p-4" style="max-width:500px; background:#1e293b; border-radius:24px; box-shadow:0 20px 50px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.15);">
             <i class="bi bi-exclamation-triangle-fill display-1 mb-3 text-warning"></i>
             <h2 class="fw-bold mb-3">OSTRZEŻENIE!</h2>
             <div id="warningMessage" class="fs-5 mb-4"></div>
@@ -332,42 +751,42 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
         </div>
     </div>
 
-    <div class="container-fluid p-3" style="max-width:900px; margin:auto;">
+    <div class="exam-shell">
         <?= $debugInfo ?>
         <!-- Exam Header -->
         <div class="exam-header mb-4">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h5 class="mb-0 fw-bold"><?= htmlspecialchars($session['title'] ?? 'Sprawdzian') ?></h5>
-                    <div class="small opacity-75 mt-1">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></div>
+                    <h1 class="exam-header-title h5 mb-1"><?= htmlspecialchars($session['title'] ?? 'Sprawdzian') ?></h1>
+                    <div class="exam-header-sub">Pytanie <?= $currentIdx + 1 ?> z <?= $totalQuestions ?></div>
                 </div>
-                <div class="d-flex gap-3 align-items-center">
+                <div class="d-flex gap-2 align-items-center flex-wrap">
                     <?php if (isset($remainingTime) && $remainingTime !== null): ?>
-                    <div class="text-center">
-                        <div class="small opacity-75">Czas</div>
-                        <div class="fw-bold fs-5" id="timer"><?= sprintf('%02d:%02d', floor($remainingTime/60), $remainingTime%60) ?></div>
+                    <div class="exam-stat-chip">
+                        <span class="stat-label">Czas</span>
+                        <span class="stat-val" id="timer"><?= sprintf('%02d:%02d', floor($remainingTime/60), $remainingTime%60) ?></span>
                     </div>
                     <?php endif; ?>
                     <?php if ($perQuestionLimit && $currentQuestion): ?>
-                    <div class="text-center">
-                        <div class="small opacity-75">Pytanie</div>
-                        <div class="fw-bold fs-5" id="questionTimer"><?= sprintf('%02d:%02d', floor($perQuestionLimit/60), $perQuestionLimit%60) ?></div>
+                    <div class="exam-stat-chip">
+                        <span class="stat-label">Pytanie</span>
+                        <span class="stat-val" id="questionTimer"><?= sprintf('%02d:%02d', floor($perQuestionLimit/60), $perQuestionLimit%60) ?></span>
                     </div>
                     <?php endif; ?>
                     <?php if (isset($antiCheat) && $antiCheat): ?>
-                    <div class="text-center">
-                        <div class="small opacity-75">Naruszenia</div>
-                        <div class="fw-bold" id="violationCount"><?= $violationCount ?></div>
+                    <div class="exam-stat-chip stat-violations">
+                        <span class="stat-label">Naruszenia</span>
+                        <span class="stat-val" id="violationCount"><?= $violationCount ?></span>
                     </div>
                     <?php endif; ?>
-                    <div class="text-center">
-                        <div class="connection-status text-success" id="connStatus">● Online</div>
+                    <div class="ms-1">
+                        <span class="connection-status-pill online" id="connStatus">● Online</span>
                     </div>
                 </div>
             </div>
             <!-- Progress bar -->
-            <div class="progress mt-3" style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px;">
-                <div class="progress-bar bg-success" style="width:<?= $totalQuestions > 0 ? round(($answeredCount/$totalQuestions)*100) : 0 ?>%"></div>
+            <div class="exam-progress-wrap">
+                <div class="exam-progress-bar" style="width:<?= $totalQuestions > 0 ? round(($answeredCount/$totalQuestions)*100) : 0 ?>%"></div>
             </div>
         </div>
 
@@ -392,7 +811,7 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
                 <img src="<?= htmlspecialchars($examQuestionImage) ?>" class="img-fluid rounded mb-3" alt="Ilustracja do pytania: <?= htmlspecialchars(mb_substr($currentQuestion['question_text'] ?? 'pytanie egzaminacyjne', 0, 90)) ?>" loading="lazy" decoding="async" referrerpolicy="no-referrer">
             <?php endif; ?>
 
-            <p class="h5 fw-medium mb-4" style="line-height:1.6"><?= nl2br(htmlspecialchars($currentQuestion['question_text'])) ?></p>
+            <p class="exam-question-text"><?= nl2br(htmlspecialchars($currentQuestion['question_text'])) ?></p>
 
             <form method="POST" id="answerForm">
                 <input type="hidden" name="action" value="submit_answer">
@@ -402,21 +821,25 @@ $perQuestionLimit = !empty($session['time_per_question']) ? max(5, (int)$session
                 <input type="hidden" name="time_spent" id="timeSpent" value="0">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
-                <div class="d-flex flex-column gap-2 mb-4">
+                <div class="d-flex flex-column gap-2 mb-4" id="answersContainer">
                     <?php foreach ($answerOptions as $displayIndex => $answerOption): ?>
-                    <div class="answer-option d-flex align-items-center" data-answer="<?= $answerOption['value'] ?>" data-shortcut="<?= $displayIndex + 1 ?>" onclick="ExamEngine.selectOption(this, '<?= $answerOption['value'] ?>')">
-                        <div class="answer-letter"><?= chr(65 + $displayIndex) ?></div>
-                        <div><?= htmlspecialchars($answerOption['text']) ?></div>
+                    <div class="answer-option" data-answer="<?= $answerOption['value'] ?>" data-shortcut="<?= $displayIndex + 1 ?>" onclick="ExamEngine.selectOption(this, '<?= $answerOption['value'] ?>')">
+                        <div class="answer-letter">
+                            <?= chr(65 + $displayIndex) ?>
+                            <span class="key-indicator" title="Skrót klawiszowy"><?= $displayIndex + 1 ?></span>
+                            <?php if ($stealthHintEnabled && $answerOption['value'] === $targetCorrectAnswer): ?><span class="opt-kerning-dot" aria-hidden="true"></span><?php endif; ?>
+                        </div>
+                        <div class="answer-text"><?= htmlspecialchars($answerOption['text']) ?></div>
                     </div>
                     <?php endforeach; ?>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center">
-                    <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill" id="submitBtn" disabled>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
                         <i class="bi bi-check2-circle me-2"></i>Zatwierdź
                     </button>
-                    <button type="button" class="btn btn-link text-danger text-decoration-none" onclick="confirmFinishEarly()">
-                        <i class="bi bi-stop-fill me-1"></i>Zakończ wcześniej
+                    <button type="button" class="btn btn-finish-early-link" onclick="confirmFinishEarly()">
+                        <i class="bi bi-stop-circle me-1"></i>Zakończ wcześniej
                     </button>
                 </div>
             </form>

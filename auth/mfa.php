@@ -135,7 +135,7 @@ $csrf = generateCsrfToken('mfa');
                     <code class="d-block"><?= htmlspecialchars($code) ?></code>
                 <?php endforeach; ?>
             </div>
-            <a href="index.php" class="btn btn-primary w-100">Przejdź do panelu</a>
+            <a href="../index.php" class="btn btn-primary w-100">Przejdź do panelu</a>
         <?php else: ?>
             <?php if (!$enabled): ?>
                 <div class="totp-qr-card">

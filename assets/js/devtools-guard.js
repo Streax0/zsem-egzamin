@@ -251,12 +251,18 @@
 
         let isDetected = false;
 
-        // Check A: Dimensions check (for docked DevTools)
-        const threshold = 160;
-        const widthDiff = (window.outerWidth - window.innerWidth) > threshold;
-        const heightDiff = (window.outerHeight - window.innerHeight) > threshold;
-        if (widthDiff || heightDiff) {
-            isDetected = true;
+        // Check A: Dimensions check (for docked DevTools on desktop only)
+        const isMobileOrTablet = window.innerWidth <= 768
+            || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+            || ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+        if (!isMobileOrTablet) {
+            const threshold = 160;
+            const widthDiff = (window.outerWidth - window.innerWidth) > threshold;
+            const heightDiff = (window.outerHeight - window.innerHeight) > threshold;
+            if (widthDiff || heightDiff) {
+                isDetected = true;
+            }
         }
 
         // Check B: Debugger timing check

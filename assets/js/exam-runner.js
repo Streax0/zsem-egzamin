@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ZSEM Tech - Unified Exam & Test Runner Module
  * Handles exam setup, unranked limits, category selectors, timers,
  * navigation confirmations, and AI Tutor interactions.
@@ -27,7 +27,20 @@
         setTimeout(() => { button.innerHTML = html; }, 1600);
     }
 
-    // --- 1. Simulator Answer Selector ---
+    // --- 1. Simulator Answer Selector & Global Confirm Fallback ---
+    window.confirmEndTest = function () {
+        if (typeof window.confirmFinish === 'function') {
+            window.confirmFinish(null);
+            return;
+        }
+        const modal = modalInstance('testConfirmModal');
+        if (modal) {
+            modal.show();
+            return;
+        }
+        window.submitFinishEarlyForm?.(null);
+    };
+
     window.selectSimAnswer = function (option) {
         document.querySelectorAll('.sim-answer-option').forEach(el => el.classList.remove('selected'));
         if (!option) return;
@@ -40,22 +53,57 @@
 
     // --- 2. Setup Page Controllers ---
     function initSetupPage() {
-        // Exam Simulator Category Setup Form
-        const simCards = document.querySelectorAll('.category-card');
-        const simInput = document.getElementById('categoryInput');
         const simSetupForm = document.getElementById('examSimulatorSetupForm');
-        if (simSetupForm && simInput) {
+        const standardSetupForm = document.getElementById('premiumSetupForm');
+        const countInput = document.getElementById('questionCountInput');
+
+        if (!simSetupForm && !standardSetupForm && !countInput) {
+            return;
+        }
+
+        // Exam Simulator Category Setup Form
+        if (simSetupForm) {
+            const simCards = simSetupForm.querySelectorAll('.category-card');
+            const simInput = simSetupForm.querySelector('#categoryInput');
+
+            function updateSimCategoryInput() {
+                const selected = [];
+                simCards.forEach(card => {
+                    if (card.classList.contains('selected')) {
+                        selected.push(card.dataset.category);
+                    }
+                });
+                if (simInput) {
+                    simInput.value = selected.join(',');
+                }
+            }
+
             simCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    simCards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    simInput.value = card.dataset.category || '';
+                card.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    card.classList.toggle('selected');
+                    updateSimCategoryInput();
                 });
             });
+
+            document.getElementById('simSelectAllCats')?.addEventListener('click', () => {
+                simCards.forEach(card => card.classList.add('selected'));
+                updateSimCategoryInput();
+            });
+
+            document.getElementById('simDeselectAllCats')?.addEventListener('click', () => {
+                simCards.forEach(card => card.classList.remove('selected'));
+                updateSimCategoryInput();
+            });
+
             simSetupForm.addEventListener('submit', function (e) {
-                if (!simInput.value.trim()) {
+                updateSimCategoryInput();
+                if (!simInput || !simInput.value.trim()) {
                     e.preventDefault();
-                    if (window.appNotice) window.appNotice('Wybierz kategorie egzaminu.', 'warning');
+                    if (window.appNotice) {
+                        window.appNotice('Wybierz co najmniej jedną kwalifikację / kategorię egzaminu.', 'warning');
+                    }
                 }
             });
         }
@@ -74,7 +122,6 @@
                     } else {
                         unrankedInfo.textContent = `Pozostało ${remaining} z 2 użyć`;
                     }
-                    const countInput = document.getElementById('questionCountInput');
                     const syncRankingInfo = () => {
                         if (!countInput || !unrankedSw) return;
                         if (remaining <= 0) {
@@ -94,57 +141,60 @@
                 });
         }
 
-        // Standard Setup Multi-Category Selector
-        const categoryCards = document.querySelectorAll('.dashboard-panel.premium-setup-container .category-card');
-        const categoryInput = document.querySelector('.dashboard-panel.premium-setup-container #categoryInput');
-        const countInput = document.getElementById('questionCountInput');
+        // Standard Setup Multi-Category Selector (ONLY inside #premiumSetupForm)
+        if (standardSetupForm) {
+            const categoryCards = standardSetupForm.querySelectorAll('.category-card');
+            const categoryInput = standardSetupForm.querySelector('#categoryInput');
 
-        if (categoryCards.length && categoryInput) {
-            function updateCategoryInput() {
-                const selected = [];
+            if (categoryCards.length && categoryInput) {
+                function updateCategoryInput() {
+                    const selected = [];
+                    categoryCards.forEach(card => {
+                        if (card.classList.contains('selected')) {
+                            selected.push(card.dataset.category);
+                        }
+                    });
+                    categoryInput.value = selected.join(',');
+                }
+
                 categoryCards.forEach(card => {
-                    if (card.classList.contains('selected')) {
-                        selected.push(card.dataset.category);
-                    }
+                    card.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        card.classList.toggle('selected');
+                        updateCategoryInput();
+                    });
                 });
-                categoryInput.value = selected.join(',');
-            }
 
-            categoryCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    card.classList.toggle('selected');
+                document.getElementById('selectAllCats')?.addEventListener('click', () => {
+                    categoryCards.forEach(card => card.classList.add('selected'));
                     updateCategoryInput();
                 });
-            });
 
-            document.getElementById('selectAllCats')?.addEventListener('click', () => {
-                categoryCards.forEach(card => card.classList.add('selected'));
-                updateCategoryInput();
-            });
+                document.getElementById('deselectAllCats')?.addEventListener('click', () => {
+                    categoryCards.forEach(card => card.classList.remove('selected'));
+                    updateCategoryInput();
+                });
 
-            document.getElementById('deselectAllCats')?.addEventListener('click', () => {
-                categoryCards.forEach(card => card.classList.remove('selected'));
-                updateCategoryInput();
-            });
-
-            document.getElementById('saveDefaultCategoryBtn')?.addEventListener('click', () => {
-                const selected = [];
-                categoryCards.forEach(card => {
-                    if (card.classList.contains('selected')) {
-                        selected.push(card.dataset.category);
+                document.getElementById('saveDefaultCategoryBtn')?.addEventListener('click', () => {
+                    const selected = [];
+                    categoryCards.forEach(card => {
+                        if (card.classList.contains('selected')) {
+                            selected.push(card.dataset.category);
+                        }
+                    });
+                    if (!selected.length) {
+                        if (window.appNotice) window.appNotice('Wybierz przynajmniej jedną kategorię, aby zapisać domyślną.', 'warning');
+                        return;
+                    }
+                    setCookie('default_test_categories', selected.join(','), 365);
+                    const btn = document.getElementById('saveDefaultCategoryBtn');
+                    if (btn) {
+                        btn.textContent = 'Zapisano';
+                        setTimeout(() => { btn.innerHTML = '<i class="bi bi-bookmark-star me-1"></i>Zapisz jako domyślną'; }, 1600);
                     }
                 });
-                if (!selected.length) {
-                    if (window.appNotice) window.appNotice('Wybierz przynajmniej jedną kategorię, aby zapisać domyślną.', 'warning');
-                    return;
-                }
-                setCookie('default_test_categories', selected.join(','), 365);
-                const btn = document.getElementById('saveDefaultCategoryBtn');
-                if (btn) {
-                    btn.textContent = 'Zapisano';
-                    setTimeout(() => { btn.innerHTML = '<i class="bi bi-bookmark-star me-1"></i>Zapisz jako domyślną'; }, 1600);
-                }
-            });
+            }
         }
 
         document.getElementById('saveDefaultCountBtn')?.addEventListener('click', () => {
@@ -313,7 +363,8 @@
     // --- 3. Active Test / Answering Phase Runner ---
     function initActiveTest() {
         const config = window.__EXAM_CONFIG__ || {};
-        window.shouldConfirmNavigation = (config.phase === 'answering');
+        const isAnsweringOrReview = (config.phase === 'answering' || config.phase === 'review' || config.phase === 'reviewing');
+        window.shouldConfirmNavigation = isAnsweringOrReview;
 
         let pendingFinishForm = null;
         let confirmModal = null;
@@ -332,8 +383,19 @@
             const f = document.createElement('form');
             f.method = 'POST';
             const csrf = config.csrfToken || '';
-            f.innerHTML = `<input type="hidden" name="csrf_token" value="${encodeURIComponent(csrf)}">` +
-                          '<input type="hidden" name="action" value="finish_early">';
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrf;
+            f.appendChild(csrfInput);
+
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'finish_early';
+            f.appendChild(actionInput);
+
             document.body.appendChild(f);
             f.submit();
         };
@@ -354,8 +416,15 @@
             window.confirmFinish(null);
         };
 
+        document.getElementById('testEndBtn')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.confirmEndTest();
+        });
+
         document.getElementById('testConfirmSubmit')?.addEventListener('click', function () {
-            if (confirmModal) confirmModal.hide();
+            if (confirmModal) {
+                try { confirmModal.hide(); } catch (e) {}
+            }
             window.submitFinishEarlyForm(pendingFinishForm);
         });
 
@@ -376,14 +445,16 @@
         // Total Exam Timer
         if (config.timeLimit !== null && config.timeLimit !== undefined) {
             let timeLeft = Number(config.timeLimit);
-            const timerEl = document.getElementById('timer');
             let timerExpired = false;
+            let totalTimerInterval = null;
 
             function updateTimer() {
-                if (timerExpired || !timerEl) return;
+                if (timerExpired) return;
+                const timerNodes = document.querySelectorAll('#timer, .sim-timer');
+                if (!timerNodes.length) return;
                 const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
                 const s = String(timeLeft % 60).padStart(2, '0');
-                timerEl.textContent = `${m}:${s}`;
+                timerNodes.forEach(el => { el.textContent = `${m}:${s}`; });
                 const totalChip = document.getElementById('totalTimerChip');
                 if (timeLeft <= 300) {
                     totalChip?.classList.add('timer-warning');
@@ -392,7 +463,7 @@
                 }
                 if (timeLeft <= 0) {
                     timerExpired = true;
-                    clearInterval(totalTimerInterval);
+                    if (totalTimerInterval) clearInterval(totalTimerInterval);
                     window.shouldConfirmNavigation = false;
                     timeExpiredModal = timeExpiredModal || modalInstance('testTimeExpiredModal');
                     if (timeExpiredModal) timeExpiredModal.show();
@@ -402,7 +473,7 @@
                 timeLeft--;
             }
             updateTimer();
-            const totalTimerInterval = setInterval(updateTimer, 1000);
+            totalTimerInterval = setInterval(updateTimer, 1000);
         }
 
         // Per-Question Timer
@@ -448,6 +519,13 @@
                 questionTimerChip?.classList.remove('timer-warning');
                 if (questionTimerInterval) clearInterval(questionTimerInterval);
                 questionTimerInterval = setInterval(updateQuestionTimer, 1000);
+            };
+
+            window.pauseQuestionTimer = function () {
+                if (questionTimerInterval) {
+                    clearInterval(questionTimerInterval);
+                    questionTimerInterval = null;
+                }
             };
 
             updateQuestionTimer();
@@ -512,9 +590,14 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            initSetupPage();
+            initActiveTest();
+        });
+    } else {
         initSetupPage();
         initActiveTest();
-    });
+    }
 
 })(window, document);
