@@ -91,30 +91,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ts = strtotime($dueRaw);
             if ($ts === false) $errors[] = 'Nieprawidłowy termin zadania.';
             else $dueAt = date('Y-m-d H:i:s', $ts);
-        }        if ($pdfFile && ($pdfFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-            if (($pdfFile['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-                $errors[] = 'Błąd przesyłania pliku PDF.';
-            } else {
-                $tmpName = $pdfFile['tmp_name'];
-                $originalName = trim((string)$pdfFile['name']);
-                $extension = getUploadedFileExtension($originalName);
-                $mimeType = '';
-                if (is_uploaded_file($tmpName) && function_exists('finfo_open')) {
-                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                    $mimeType = finfo_file($finfo, $tmpName);
-                    finfo_close($finfo);
+        }        // Normalize multiple or single PDF upload (max 3 files, max 10 MB each, magic bytes %PDF-)
+        $uploadedPdfList = [];
+        if (!empty($_FILES['pdf_files']) && is_array($_FILES['pdf_files']['name'])) {
+            $fCount = count($_FILES['pdf_files']['name']);
+            for ($i = 0; $i < $fCount; $i++) {
+                if (($_FILES['pdf_files']['error'][$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                    continue;
                 }
-                if ($extension !== 'pdf' || ($mimeType !== '' && $mimeType !== 'application/pdf')) {
-                    $errors[] = 'Dozwolony jest tylko plik PDF.';
-                } elseif ($pdfFile['size'] > 16 * 1024 * 1024) {
-                    $errors[] = 'Plik PDF może mieć maksymalnie 16 MB.';
-                } elseif (!is_uploaded_file($tmpName)) {
-                    $errors[] = 'Nieprawidłowy plik PDF.';
-                }
+                $uploadedPdfList[] = [
+                    'name' => $_FILES['pdf_files']['name'][$i],
+                    'type' => $_FILES['pdf_files']['type'][$i] ?? '',
+                    'tmp_name' => $_FILES['pdf_files']['tmp_name'][$i],
+                    'error' => $_FILES['pdf_files']['error'][$i],
+                    'size' => $_FILES['pdf_files']['size'][$i],
+                ];
             }
-        } else {
-            $pdfFile = null;
+        } elseif (!empty($_FILES['pdf_file']) && ($_FILES['pdf_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            $uploadedPdfList[] = $_FILES['pdf_file'];
         }
+
+        if (count($uploadedPdfList) > 3) {
+            $errors[] = 'Możesz dodać maksymalnie 3 pliki PDF do jednej lekcji.';
+        }
+
+        foreach ($uploadedPdfList as $pIdx => $fItem) {
+            $itemNum = $pIdx + 1;
+            $origName = trim((string)$fItem['name']);
+            $tmpName = $fItem['tmp_name'];
+            $errCode = $fItem['error'] ?? UPLOAD_ERR_OK;
+            $fSize = (int)($fItem['size'] ?? 0);
+
+            if ($errCode !== UPLOAD_ERR_OK) {
+                $errors[] = "Błąd przesyłania pliku PDF #{$itemNum} ({$origName}).";
+                continue;
+            }
+            if (!is_uploaded_file($tmpName)) {
+                $errors[] = "Nieprawidłowy plik PDF #{$itemNum}.";
+                continue;
+            }
+            if ($fSize > 10 * 1024 * 1024) {
+                $errors[] = "Plik PDF #{$itemNum} ({$origName}) przekracza dopuszczalny limit 10 MB.";
+                continue;
+            }
+            $ext = getUploadedFileExtension($origName);
+            if ($ext !== 'pdf') {
+                $errors[] = "Plik #{$itemNum} ({$origName}) musi posiadać rozszerzenie .pdf.";
+                continue;
+            }
+
+            // MIME type check
+            $mimeType = '';
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $tmpName);
+                finfo_close($finfo);
+            }
+            if ($mimeType !== '' && $mimeType !== 'application/pdf') {
+                $errors[] = "Plik #{$itemNum} ({$origName}) ma nieprawidłowy typ MIME ({$mimeType}). Wymagany application/pdf.";
+                continue;
+            }
+
+            // Magic bytes verification: %PDF- (0x25 0x50 0x44 0x46 0x2D)
+            $fh = @fopen($tmpName, 'rb');
+            $magic = $fh ? fread($fh, 5) : '';
+            if ($fh) fclose($fh);
+            if ($magic !== '%PDF-') {
+                $errors[] = "Plik #{$itemNum} ({$origName}) nie jest prawidłowym dokumentem PDF (nieprawidłowe nagłówki magic bytes).";
+                continue;
+            }
+
+            // Malicious script content detection in header
+            $contentHead = @file_get_contents($tmpName, false, null, 0, 8192);
+            if ($contentHead !== false && preg_match('/<\?(php|=|%)|<script|<iframe/i', $contentHead)) {
+                $errors[] = "Plik #{$itemNum} ({$origName}) zawiera niedozwoloną zawartość skryptową.";
+                continue;
+            }
+        }
+        $pdfFile = !empty($uploadedPdfList) ? $uploadedPdfList[0] : null;
         $lessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
             && dbColumnExists($pdo, 'lessons', 'pdf_filename')
             && dbColumnExists($pdo, 'lessons', 'pdf_download_allowed');
@@ -125,36 +179,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$userId, $title, $body, $qualification, $lessonType, $dueAt]);
             $lessonId = (int)$pdo->lastInsertId();
 
-            if ($pdfFile) {
+            if (!empty($uploadedPdfList)) {
                 $uploadDir = __DIR__ . '/pdf';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
 
-                // File system paths
-                $destination = $uploadDir . '/lesson_' . $lessonId . '.pdf';
-                $metaDestination = $uploadDir . '/lesson_' . $lessonId . '.json';
+                $savedFilesMeta = [];
+                $firstSavedFilename = '';
+                foreach ($uploadedPdfList as $pIdx => $fItem) {
+                    $itemIndex = $pIdx + 1;
+                    $origFilename = trim((string)$fItem['name']);
+                    $destFilename = ($itemIndex === 1) ? 'lesson_' . $lessonId . '.pdf' : 'lesson_' . $lessonId . '_' . $itemIndex . '.pdf';
+                    $destFullPath = $uploadDir . '/' . $destFilename;
 
-                if (move_uploaded_file($pdfFile['tmp_name'], $destination)) {
-                    // Write metadata to file system as primary/fallback source
+                    if (move_uploaded_file($fItem['tmp_name'], $destFullPath)) {
+                        if ($itemIndex === 1) {
+                            $firstSavedFilename = $origFilename;
+                            if (count($uploadedPdfList) > 1) {
+                                @copy($destFullPath, $uploadDir . '/lesson_' . $lessonId . '_1.pdf');
+                            }
+                        }
+                        $savedFilesMeta[] = [
+                            'index' => $itemIndex,
+                            'filename' => $origFilename,
+                            'path' => 'pdf/' . $destFilename,
+                            'size' => (int)$fItem['size']
+                        ];
+                    }
+                }
+
+                if (!empty($savedFilesMeta)) {
+                    $metaDestination = $uploadDir . '/lesson_' . $lessonId . '.json';
                     $meta = [
-                        'pdf_filename' => $originalName,
-                        'pdf_download_allowed' => $pdfDownloadAllowed
+                        'pdf_filename' => $firstSavedFilename,
+                        'pdf_download_allowed' => $pdfDownloadAllowed,
+                        'files' => $savedFilesMeta
                     ];
                     writeJsonMetadata($metaDestination, $meta);
 
-                    // If columns exist, also attempt to update them in the database for consistency
                     if ($lessonHasPdfColumns) {
                         try {
                             $updateStmt = $pdo->prepare('UPDATE lessons SET pdf_path = ?, pdf_filename = ?, pdf_download_allowed = ? WHERE id = ?');
-                            $updateStmt->execute(['pdf/lesson_' . $lessonId . '.pdf', $originalName, $pdfDownloadAllowed, $lessonId]);
+                            $updateStmt->execute(['pdf/lesson_' . $lessonId . '.pdf', $firstSavedFilename, $pdfDownloadAllowed, $lessonId]);
                         } catch (Throwable $e) {
                             error_log('Failed to update PDF columns in DB: ' . $e->getMessage());
                         }
                     }
-                } else {
-                    setSessionMessage('error', 'Lekcja została opublikowana, ale nie udało się zapisać pliku PDF.');
-                    redirect('lessons.php');
                 }
             }
 
@@ -173,9 +244,10 @@ $where = ["l.status = 'published'"];
 $params = [];
 if ($query !== '') {
     $where[] = "(l.title LIKE ? OR l.body LIKE ? OR u.username LIKE ?)";
-    $params[] = '%' . $query . '%';
-    $params[] = '%' . $query . '%';
-    $params[] = '%' . $query . '%';
+    $escapedQuery = '%' . addcslashes($query, '%_\\') . '%';
+    $params[] = $escapedQuery;
+    $params[] = $escapedQuery;
+    $params[] = $escapedQuery;
 }
 if (array_key_exists($filterQual, $qualifications) && $filterQual !== '') {
     $where[] = "l.qualification = ?";
@@ -212,14 +284,17 @@ foreach ($lessons as $k => $lesson) {
             $meta = readJsonMetadata(__DIR__ . '/' . $fsJsonPath);
             $lessons[$k]['pdf_filename'] = $meta['pdf_filename'] ?? 'dokument.pdf';
             $lessons[$k]['pdf_download_allowed'] = (int)($meta['pdf_download_allowed'] ?? 0);
+            $lessons[$k]['pdf_files'] = $meta['files'] ?? [];
         } else {
             $lessons[$k]['pdf_filename'] = $dbPdfFilename ?: 'dokument.pdf';
             $lessons[$k]['pdf_download_allowed'] = $dbPdfDownloadAllowed;
+            $lessons[$k]['pdf_files'] = [];
         }
     } else {
         $lessons[$k]['pdf_path'] = $dbPdfPath;
         $lessons[$k]['pdf_filename'] = $dbPdfFilename ?: 'dokument.pdf';
         $lessons[$k]['pdf_download_allowed'] = $dbPdfDownloadAllowed;
+        $lessons[$k]['pdf_files'] = [];
     }
 }
 
@@ -1218,9 +1293,9 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
                             <label class="form-label fw-bold">Termin zadania</label>
                             <input name="due_at" type="datetime-local" class="form-control">
                         </div>                        <div class="col-lg-6">
-                            <label class="form-label fw-bold">Załącznik PDF</label>
-                            <input type="file" name="pdf_file" accept="application/pdf" class="form-control">
-                            <div class="form-text">Opcjonalnie dodaj plik PDF z materiałem lekcji.</div>
+                            <label class="form-label fw-bold">Załączniki PDF (Maksymalnie 3 pliki)</label>
+                            <input type="file" name="pdf_files[]" accept="application/pdf" multiple class="form-control" id="lessonPdfFiles">
+                            <div class="form-text">Opcjonalnie dodaj do 3 plików PDF (każdy do 10 MB).</div>
                         </div>
                         <div class="col-lg-6 d-flex align-items-center">
                             <div class="form-check mt-3 mt-lg-0">
@@ -1282,12 +1357,34 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
                                 <?php endif; ?>
                             </div>
                             <div class="lesson-body"><?php echo htmlspecialchars($lesson['body']); ?></div>                            <?php if (!empty($lesson['pdf_path'])): ?>
-                                <div class="d-flex flex-wrap gap-2 mt-3">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill" type="button" onclick="openLessonPdf(<?php echo (int)$lesson['id']; ?>, <?php echo (int)$lesson['pdf_download_allowed']; ?>)">
-                                        <i class="bi bi-file-earmark-pdf me-1"></i>Otwórz PDF
-                                    </button>
+                                <div class="d-flex flex-wrap gap-2 mt-3 align-items-center">
+                                    <?php if (!empty($lesson['pdf_files']) && count($lesson['pdf_files']) > 1): ?>
+                                        <?php foreach ($lesson['pdf_files'] as $fIdx => $pFile): ?>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary rounded-start-pill" type="button" onclick="openLessonPdf(<?php echo (int)$lesson['id']; ?>, <?php echo (int)$lesson['pdf_download_allowed']; ?>, <?php echo (int)$pFile['index']; ?>)">
+                                                    <i class="bi bi-file-earmark-pdf me-1"></i><?php echo htmlspecialchars($pFile['filename']); ?>
+                                                </button>
+                                                <?php if ((int)$lesson['pdf_download_allowed'] === 1): ?>
+                                                    <a href="lesson_pdf.php?lesson_id=<?php echo (int)$lesson['id']; ?>&file_index=<?php echo (int)$pFile['index']; ?>&download=1" class="btn btn-outline-success rounded-end-pill" title="Pobierz <?php echo htmlspecialchars($pFile['filename']); ?>">
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill" type="button" onclick="openLessonPdf(<?php echo (int)$lesson['id']; ?>, <?php echo (int)$lesson['pdf_download_allowed']; ?>, 1)">
+                                            <i class="bi bi-file-earmark-pdf me-1"></i>Otwórz PDF
+                                        </button>
+                                        <?php if ((int)$lesson['pdf_download_allowed'] === 1): ?>
+                                            <a href="lesson_pdf.php?lesson_id=<?php echo (int)$lesson['id']; ?>&download=1" class="btn btn-sm btn-outline-success rounded-pill">
+                                                <i class="bi bi-download me-1"></i>Pobierz PDF
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill d-flex align-items-center">Pobieranie wyłączone</span>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
                                     <?php if ($canCreateLesson && ((int)$lesson['teacher_id'] === $userId || in_array($role, ['admin', 'dyrektor'], true))): ?>
-                                        <form method="POST" class="d-inline">
+                                        <form method="POST" class="d-inline ms-auto">
                                             <?php echo csrfTokenField('lessons'); ?>
                                             <input type="hidden" name="action" value="toggle_pdf_download">
                                             <input type="hidden" name="lesson_id" value="<?php echo (int)$lesson['id']; ?>">
@@ -1296,13 +1393,6 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
                                                 <?php echo (int)$lesson['pdf_download_allowed'] === 1 ? 'Zablokuj pobieranie' : 'Zezwól na pobieranie'; ?>
                                             </button>
                                         </form>
-                                    <?php endif; ?>
-                                    <?php if ((int)$lesson['pdf_download_allowed'] === 1): ?>
-                                        <a href="lesson_pdf.php?lesson_id=<?php echo (int)$lesson['id']; ?>&download=1" class="btn btn-sm btn-outline-success rounded-pill">
-                                            <i class="bi bi-download me-1"></i>Pobierz PDF
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill d-flex align-items-center">Pobieranie wyłączone</span>
                                     <?php endif; ?>
                                 </div>
                             <?php endif; ?>                            <button class="btn btn-sm btn-light border rounded-pill mt-3" type="button" data-expand-lesson>
@@ -1537,11 +1627,12 @@ function formatPdfViewerStatus(pageCount) {
     return `${pageCount} strona${pageCount !== 1 ? 'y' : ''} • Zoom: ${zoom}`;
 }
 
-async function openLessonPdf(lessonId, allowDownload) {
+async function openLessonPdf(lessonId, allowDownload, fileIndex = 1) {
     lessonPdfViewer.renderToken++;
     lessonPdfViewer.pdf = null;
     lessonPdfViewer.pages = [];
     lessonPdfViewer.lessonId = Number(lessonId);
+    lessonPdfViewer.fileIndex = Number(fileIndex) || 1;
     lessonPdfViewer.allowDownload = Boolean(Number(allowDownload));
     lessonPdfViewer.scale = 1;
     lessonPdfViewer.fitMode = getInitialPdfFitMode();
@@ -1556,7 +1647,7 @@ async function openLessonPdf(lessonId, allowDownload) {
     if (pdfDownloadEl) {
         pdfDownloadEl.classList.toggle('d-none', !lessonPdfViewer.allowDownload);
         pdfDownloadEl.href = lessonPdfViewer.allowDownload
-            ? `lesson_pdf.php?lesson_id=${encodeURIComponent(lessonId)}&download=1`
+            ? `lesson_pdf.php?lesson_id=${encodeURIComponent(lessonId)}&file_index=${encodeURIComponent(lessonPdfViewer.fileIndex)}&download=1`
             : '#';
     }
 
@@ -1570,7 +1661,7 @@ async function openLessonPdf(lessonId, allowDownload) {
 
     try {
         await waitForNextFrame();
-        await loadLessonPdf(lessonId);
+        await loadLessonPdf(lessonId, lessonPdfViewer.fileIndex);
         await waitForNextFrame();
         setPdfFit(getInitialPdfFitMode());
     } catch (error) {
@@ -1579,8 +1670,8 @@ async function openLessonPdf(lessonId, allowDownload) {
     }
 }
 
-async function loadLessonPdf(lessonId) {
-    const response = await fetch(`lesson_pdf.php?lesson_id=${encodeURIComponent(lessonId)}`, {
+async function loadLessonPdf(lessonId, fileIndex = 1) {
+    const response = await fetch(`lesson_pdf.php?lesson_id=${encodeURIComponent(lessonId)}&file_index=${encodeURIComponent(fileIndex)}`, {
         credentials: 'same-origin',
         cache: 'no-store',
         headers: {

@@ -395,8 +395,8 @@ include '../includes/header.php';
                         </p>
                     </div>
                     <div class="luki-hero-art">
-                        <img class="luki-sign" src="assets/images/luki-zakonnicomat-sign.svg" alt="Szyld maszyny losującej Wujka Lukiego" loading="lazy" decoding="async">
-                        <img class="luki-mascot" src="assets/images/luki-zakonnica.svg" alt="" aria-hidden="true" loading="lazy" decoding="async">
+                        <img class="luki-sign" src="<?php echo htmlspecialchars(assetUrl('assets/images/luki-zakonnicomat-sign.svg')); ?>" alt="Szyld maszyny losującej Wujka Lukiego" loading="lazy" decoding="async">
+                        <img class="luki-mascot" src="<?php echo htmlspecialchars(assetUrl('assets/images/luki-zakonnica.svg')); ?>" alt="" aria-hidden="true" loading="lazy" decoding="async">
                     </div>
                 </section>
 

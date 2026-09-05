@@ -28,7 +28,7 @@ if ($currentUserId > 0) {
 }
 if ($search !== '') {
     $where .= ' AND (c.title LIKE ? OR c.description LIKE ?)';
-    $term = '%' . $search . '%';
+    $term = '%' . addcslashes($search, '%_\\') . '%';
     $params[] = $term;
     $params[] = $term;
 }
@@ -38,7 +38,7 @@ if ($filterDifficulty !== '') {
 }
 if ($filterCategory !== '') {
     $where .= ' AND c.category LIKE ?';
-    $params[] = '%' . $filterCategory . '%';
+    $params[] = '%' . addcslashes($filterCategory, '%_\\') . '%';
 }
 
 $countStatement = $pdo->prepare("SELECT COUNT(*) FROM courses c WHERE $where");
@@ -48,8 +48,13 @@ $pages = max(1, (int)ceil($total / $limit));
 $page = min($page, $pages);
 $offset = ($page - 1) * $limit;
 
-$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.category, c.difficulty, c.estimated_hours, c.status, c.created_by, c.start_date, c.end_date, c.sequential_learning, c.is_external, c.external_url, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c WHERE $where ORDER BY c.updated_at DESC, c.id DESC LIMIT $limit OFFSET $offset");
-$statement->execute($params);
+$statement = $pdo->prepare("SELECT c.id, c.title, c.description, c.image_url, c.category, c.difficulty, c.estimated_hours, c.status, c.created_by, c.start_date, c.end_date, c.sequential_learning, c.is_external, c.external_url, c.updated_at, (SELECT COUNT(*) FROM course_modules cm WHERE cm.course_id = c.id) AS module_count, (SELECT COUNT(*) FROM course_items ci JOIN course_modules cm ON cm.id = ci.module_id WHERE cm.course_id = c.id) AS item_count, (SELECT COUNT(*) FROM user_course_enrollments uce WHERE uce.course_id = c.id) AS enrollment_count FROM courses c WHERE $where ORDER BY c.updated_at DESC, c.id DESC LIMIT ? OFFSET ?");
+foreach ($params as $idx => $val) {
+    $statement->bindValue($idx + 1, $val);
+}
+$statement->bindValue(count($params) + 1, (int)$limit, PDO::PARAM_INT);
+$statement->bindValue(count($params) + 2, (int)$offset, PDO::PARAM_INT);
+$statement->execute();
 $courses = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 $allCategoriesRows = dbQueryCached($pdo, "SELECT DISTINCT category FROM courses WHERE category IS NOT NULL AND category != '' AND status = 'active' ORDER BY category ASC", [], 300);

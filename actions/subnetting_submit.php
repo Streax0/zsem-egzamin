@@ -31,8 +31,8 @@ if (empty($rateLimit['allowed'])) {
 }
 $networkIp  = trim((string)($_POST['network_ip'] ?? ''));
 $cidr       = (int)($_POST['cidr'] ?? 0);
-$difficulty = in_array($_POST['difficulty'] ?? '', ['easy','medium','hard','expert'])
-    ? $_POST['difficulty'] : 'medium';
+$rawDifficulty = (string)($_POST['difficulty'] ?? '');
+$difficulty = in_array($rawDifficulty, ['easy', 'medium', 'hard', 'expert'], true) ? $rawDifficulty : 'medium';
 
 // Answers from user
 $answers = [

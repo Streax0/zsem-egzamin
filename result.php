@@ -739,50 +739,142 @@ $shareCardData = [
 
         /* ===== Share card preview modal ===== */
         .result-share-modal .modal-content {
-            border: 0;
-            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
             overflow: hidden;
-            background: var(--panel-bg, #fff);
+            background: linear-gradient(180deg, #0d1527 0%, #080d1a 100%);
+            box-shadow: 0 32px 80px -16px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) inset, 0 16px 48px rgba(37, 99, 235, 0.2);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
         }
         .result-share-modal .modal-header {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            color: #fff;
-            border: 0;
-            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.65) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.35rem 1.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .result-share-modal .modal-header .modal-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+        .result-share-modal .modal-header-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border: 1px solid rgba(96, 165, 250, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #60a5fa;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
         }
         .result-share-modal .modal-title {
+            color: #ffffff !important;
             font-weight: 800;
-            letter-spacing: 0.02em;
+            font-size: 1.25rem;
+            letter-spacing: -0.01em;
+            margin: 0 0 2px 0;
+            line-height: 1.2;
+        }
+        .result-share-modal .modal-header .modal-subtitle {
+            color: rgba(148, 163, 184, 0.9);
+            font-size: 0.84rem;
+            font-weight: 500;
+            margin: 0;
+            line-height: 1.3;
+        }
+        .result-share-modal .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+            opacity: 0.75;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .result-share-modal .btn-close:hover {
+            opacity: 1;
+            transform: scale(1.1) rotate(90deg);
         }
         .result-share-modal .modal-body {
-            padding: 1.5rem;
-            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-        }
-        body.dark-mode .result-share-modal .modal-body {
-            background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+            padding: 1.75rem;
+            background: radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
         }
         .result-share-preview-wrap {
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
-            background: #0f172a;
+            border-radius: 22px;
+            padding: 8px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(59, 130, 246, 0.15);
             line-height: 0;
+            position: relative;
         }
         .result-share-preview-wrap canvas,
         .result-share-preview-wrap img {
             width: 100%;
             height: auto;
             display: block;
+            border-radius: 16px;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
         }
         .result-share-modal .modal-footer {
-            border: 0;
-            padding: 1rem 1.5rem 1.35rem;
-            gap: 0.65rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(10, 15, 26, 0.75);
+            padding: 1.15rem 1.75rem;
+            gap: 0.75rem;
+        }
+        .result-share-modal .footer-hint {
+            color: rgba(148, 163, 184, 0.85);
+            font-size: 0.82rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .result-share-modal .footer-hint-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+            display: inline-block;
+        }
+        .result-share-modal .btn-cancel-share {
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 0.65rem 1.4rem;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #cbd5e1;
+            transition: all 0.2s ease;
+        }
+        .result-share-modal .btn-cancel-share:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.25);
         }
         .result-share-modal .btn-download-share {
             border-radius: 999px;
             font-weight: 700;
-            padding: 0.65rem 1.35rem;
+            font-size: 0.92rem;
+            padding: 0.68rem 1.65rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.01em;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .result-share-modal .btn-download-share:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(37, 99, 235, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            color: #ffffff;
+        }
+        .result-share-modal .btn-download-share:active {
+            transform: translateY(0);
         }
 
         /* ===== Misc Legacy ===== */
@@ -1187,22 +1279,30 @@ $shareCardData = [
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content shadow-lg">
                 <div class="modal-header">
-                    <div>
-                        <h5 class="modal-title mb-1" id="resultShareModalLabel"><i class="bi bi-mortarboard-fill me-2"></i>Podgląd karty wyniku</h5>
-                        <div class="small opacity-75">ZSEM TECH · sprawdź wygląd przed pobraniem</div>
+                    <div class="modal-title-wrap">
+                        <div class="modal-header-icon">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title" id="resultShareModalLabel">Podgląd karty wyniku</h5>
+                            <p class="modal-subtitle">ZSEM TECH · oficjalny certyfikat wygenerowany w czasie rzeczywistym</p>
+                        </div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
                 </div>
                 <div class="modal-body">
                     <div class="result-share-preview-wrap" id="resultSharePreviewWrap">
                         <canvas id="resultSharePreviewCanvas" aria-label="Podgląd karty wyniku"></canvas>
                     </div>
                 </div>
-                <div class="modal-footer d-flex justify-content-between flex-wrap">
-                    <span class="text-muted small align-self-center">PNG w wysokiej rozdzielczości · gotowe do udostępnienia</span>
+                <div class="modal-footer d-flex justify-content-between flex-wrap align-items-center">
+                    <span class="footer-hint">
+                        <span class="footer-hint-dot"></span>
+                        PNG Ultra HD (2400×1440) · Gotowe do zapisu lub publikacji
+                    </span>
                     <div class="d-flex gap-2 flex-wrap">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Anuluj</button>
-                        <button type="button" class="btn btn-primary btn-download-share" id="downloadResultShareBtn">
+                        <button type="button" class="btn btn-cancel-share" data-bs-dismiss="modal">Zamknij</button>
+                        <button type="button" class="btn btn-download-share" id="downloadResultShareBtn">
                             <i class="bi bi-download me-2"></i>Pobierz zdjęcie
                         </button>
                     </div>

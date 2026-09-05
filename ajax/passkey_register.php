@@ -8,7 +8,6 @@ require_once __DIR__ . '/../includes/auth.php';
 use lbuchs\WebAuthn\WebAuthn;
 use lbuchs\WebAuthn\WebAuthnException;
 
-error_reporting(0);
 securityApplyJsonHeaders();
 
 startSecureSession();
@@ -69,6 +68,7 @@ if ($action === 'verify') {
         echo securityJsonEncode(['status' => 'error', 'message' => 'Invalid method']);
         exit;
     }
+    requireJsonCsrfToken();
 
     $clientDataJSON = base64_decode($_POST['clientDataJSON'] ?? '');
     $attestationObject = base64_decode($_POST['attestationObject'] ?? '');
@@ -112,6 +112,7 @@ if ($action === 'delete') {
         echo securityJsonEncode(['status' => 'error', 'message' => 'Invalid method']);
         exit;
     }
+    requireJsonCsrfToken();
 
     $id = (int)($_POST['id'] ?? 0);
     $stmt = $pdo->prepare("DELETE FROM user_passkeys WHERE id = ? AND user_id = ?");

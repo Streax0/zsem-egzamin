@@ -68,7 +68,7 @@ $payload = [
     'updated_at' => date('Y-m-d H:i:s'),
 ];
 
-$written = @file_put_contents($noteFile, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+$written = @file_put_contents($noteFile, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX);
 
 securitySendJson([
     'success' => $written !== false,

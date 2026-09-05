@@ -180,6 +180,9 @@ if ($needNewTest && !$showSetup && $wantsStart) {
     }
 
     $excludeFromRanking = isset($_GET['unranked']) && $_GET['unranked'] === '1' ? 1 : 0;
+    if (count($selectedQuestions) < 40 && $mode !== 'exam_simulator') {
+        $excludeFromRanking = 1;
+    }
     if ($mode === 'exam_simulator') {
         $excludeFromRanking = 0;
     }
@@ -1032,13 +1035,13 @@ include 'includes/header.php';
                                 <div class="switch-card-info">
                                     <div class="switch-card-icon"><i class="bi bi-eye-slash-fill"></i></div>
                                     <div>
-                                        <div class="switch-card-label">Nie wliczaj do rankingu</div>
-                                        <div class="switch-card-desc font-weight-normal">Rozwiąż test treningowo bez wpływu na punkty rankingu głównego.</div>
+                                        <div class="switch-card-label">Nie wliczaj wyniku do moich statystyk i rankingu</div>
+                                        <div class="switch-card-desc font-weight-normal">Rozwiąż test treningowo bez wpływu na punkty rankingu głównego i statystyki.</div>
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column align-items-end gap-1">
                                     <div class="form-check form-switch p-0 m-0">
-                                        <input class="form-check-input m-0" type="checkbox" id="unrankedSwitch" name="unranked" value="1" style="width: 2.8em; height: 1.4em; cursor: pointer;">
+                                        <input class="form-check-input m-0" type="checkbox" id="unrankedSwitch" name="unranked" value="1" <?= (!empty($_GET['unranked']) || $count < 40) ? 'checked' : '' ?> style="width: 2.8em; height: 1.4em; cursor: pointer;">
                                     </div>
                                     <span class="badge bg-primary bg-opacity-10 text-muted px-2 py-1 rounded-pill" id="unrankedInfo" style="color: var(--text-muted) !important; font-weight: 600; font-size: 0.68rem; max-width: 150px; white-space: normal; text-align: right;">Limit...</span>
                                 </div>

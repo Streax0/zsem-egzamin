@@ -104,7 +104,7 @@ function saveJsonFile(string $filePath, array $questions): bool {
         ];
     }
     $jsonString = json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    return file_put_contents($filePath, $jsonString) !== false;
+    return file_put_contents($filePath, $jsonString, LOCK_EX) !== false;
 }
 
 $availableJsonFiles = getQuestionJsonFiles($dataDir);
@@ -949,27 +949,27 @@ include '../includes/header.php';
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-bold">Treść pytania</label>
+                        <label class="form-label small fw-bold" for="add_text">Treść pytania</label>
                         <textarea name="question_text" id="add_text" class="form-control" rows="3" placeholder="Wpisz treść pytania..." required></textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">Opcja A</label>
+                        <label class="form-label small fw-bold" for="add_a">Opcja A</label>
                         <input type="text" name="option_a" id="add_a" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">Opcja B</label>
+                        <label class="form-label small fw-bold" for="add_b">Opcja B</label>
                         <input type="text" name="option_b" id="add_b" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">Opcja C</label>
+                        <label class="form-label small fw-bold" for="add_c">Opcja C</label>
                         <input type="text" name="option_c" id="add_c" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">Opcja D</label>
+                        <label class="form-label small fw-bold" for="add_d">Opcja D</label>
                         <input type="text" name="option_d" id="add_d" class="form-control" required>
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-bold">URL obrazka (opcjonalnie)</label>
+                        <label class="form-label small fw-bold" for="add_image">URL obrazka (opcjonalnie)</label>
                         <input type="text" name="image_url" id="add_image" class="form-control" placeholder="https://www.praktycznyegzamin.pl/ee08/...">
                     </div>
                     <div class="col-12">

@@ -8,6 +8,8 @@ class ConfigStore
     private array $config = [];
     private array $defaults = [
         'maintenance_mode' => false,
+        'maintenance_message' => 'Trwają planowane prace serwisowe. Zapraszamy wkrótce.',
+        'maintenance_until' => '',
         'minification_enabled' => true,
         'compression_enabled' => true,
         'waf_level' => 'medium',

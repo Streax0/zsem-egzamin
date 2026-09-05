@@ -601,7 +601,7 @@ $linkedInAddUrl = "https://www.linkedin.com/profile/add?startTask=CERTIFICATION_
                 <div>
                     <div class="small fw-bold text-dark mb-1">Data wystawienia:</div>
                     <div class="small text-muted mb-2"><?php echo date('d.m.Y'); ?></div>
-                    <a href="verify_certificate.php?code=<?php echo urlencode($certCode); ?>" target="_blank" class="cert-code-box text-decoration-none d-inline-block">
+                    <a href="verify_certificate.php?code=<?php echo urlencode($certCode); ?>" target="_blank" rel="noopener noreferrer" class="cert-code-box text-decoration-none d-inline-block">
                         <i class="bi bi-patch-check-fill me-1 text-primary"></i> Weryfikacja ID: <strong><?php echo htmlspecialchars($certCode, ENT_QUOTES, 'UTF-8'); ?></strong>
                     </a>
                 </div>

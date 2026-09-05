@@ -146,20 +146,19 @@ include '../includes/header.php';
                             <?php endif; ?>
                         <?php endforeach; ?>
 
-                        <!-- ── Nowe moduły interaktywne ── -->
-                        <a class="sandbox-tool-tile" href="cli_lab.php" style="border-color:rgba(57,211,83,.3);background:rgba(13,17,23,.04)">
-                            <span class="sandbox-tool-icon" style="color:#39d353"><i class="bi bi-terminal-fill"></i></span>
+                        <a class="sandbox-tool-tile" href="cli_lab.php">
+                            <span class="sandbox-tool-icon"><i class="bi bi-terminal-fill"></i></span>
                             <strong>CLI Lab — Terminal</strong>
                             <span>Ćwicz polecenia Linux i Windows w symulowanym terminalu. Komendy sieciowe, systemctl, iptables i scenariusze egzaminacyjne.</span>
-                            <span class="sandbox-tool-chip" style="background:rgba(57,211,83,.15);color:#16a34a">Linux &amp; Windows</span>
+                            <span class="sandbox-tool-chip">Linux &amp; Windows</span>
                             <i class="bi bi-arrow-right-short sandbox-arrow"></i>
                         </a>
 
-                        <a class="sandbox-tool-tile" href="subnetting_challenge.php" style="border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.03)">
-                            <span class="sandbox-tool-icon" style="color:#6366f1"><i class="bi bi-router-fill"></i></span>
+                        <a class="sandbox-tool-tile" href="subnetting_challenge.php">
+                            <span class="sandbox-tool-icon"><i class="bi bi-router-fill"></i></span>
                             <strong>Subnetting Challenge</strong>
                             <span>Timed speed challenge — obliczaj sieć, broadcast, hosty z IPv4. Streak multiplier, 4 poziomy trudności i tabela wyników.</span>
-                            <span class="sandbox-tool-chip" style="background:rgba(99,102,241,.15);color:#4338ca">Mini-gra z XP</span>
+                            <span class="sandbox-tool-chip">Mini-gra z XP</span>
                             <i class="bi bi-arrow-right-short sandbox-arrow"></i>
                         </a>
                     </section>
@@ -333,25 +332,214 @@ include '../includes/header.php';
                     </section>
                 <?php elseif ($tool === 'live'): ?>
                     <section class="sandbox-workbench live-workbench" data-tool="live">
-                        <div class="sandbox-panel">
-                            <h2 class="fw-800 mb-3 fs-5">Edytor</h2>
-                            <div class="code-editors">
-                                <label>HTML<textarea id="htmlCode" class="form-control"><h1>ZSEM Tech</h1>
-<button id="btn">Kliknij</button></textarea></label>
-                                <label>CSS<textarea id="cssCode" class="form-control">body { font-family: Inter, sans-serif; padding: 24px; }
-button { padding: 10px 16px; border-radius: 8px; }</textarea></label>
-                                <label>JS<textarea id="jsCode" class="form-control">document.getElementById('btn').onclick = () => {
-  document.getElementById('out').textContent = 'Działa';
-};</textarea></label>
+                        <div class="sandbox-panel live-editor-panel">
+                            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <h2 class="fw-800 mb-0 fs-5">Edytor kodu</h2>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" id="liveStatusBadge">
+                                        <i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>Na żywo
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-2 align-items-center flex-wrap">
+                                    <div class="btn-group btn-group-sm" role="group" id="editorViewSwitcher" aria-label="Wybór widoku edytora">
+                                        <button type="button" class="btn btn-outline-primary active" data-editor-tab="html"><i class="bi bi-filetype-html me-1"></i>HTML</button>
+                                        <button type="button" class="btn btn-outline-primary" data-editor-tab="css"><i class="bi bi-filetype-css me-1"></i>CSS</button>
+                                        <button type="button" class="btn btn-outline-primary" data-editor-tab="js"><i class="bi bi-filetype-js me-1"></i>JS</button>
+                                        <button type="button" class="btn btn-outline-primary" data-editor-tab="split" title="Pokaż wszystkie 3 edytory obok siebie"><i class="bi bi-columns-gap me-1"></i>Podzielony</button>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill" type="button" id="livePresetsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-collection me-1"></i>Szablony
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="livePresetsDropdown">
+                                            <li><button class="dropdown-item active" type="button" data-live-preset="counter"><i class="bi bi-hand-index-thumb me-2 text-primary"></i>Karta i Przycisk (DOM)</button></li>
+                                            <li><button class="dropdown-item" type="button" data-live-preset="card"><i class="bi bi-palette me-2 text-success"></i>Animowana karta &amp; Gradient</button></li>
+                                            <li><button class="dropdown-item" type="button" data-live-preset="form"><i class="bi bi-input-cursor-text me-2 text-warning"></i>Walidator hasła na żywo</button></li>
+                                            <li><button class="dropdown-item" type="button" data-live-preset="theme"><i class="bi bi-moon-stars me-2 text-info"></i>Przełącznik motywu (Dark/Light)</button></li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
+
+                            <div class="code-editors-wrapper" id="codeEditorsWrapper" data-active-tab="html">
+                                <div class="code-editor-pane" data-pane="html">
+                                    <div class="code-editor-header">
+                                        <span class="code-lang-tag"><i class="bi bi-filetype-html text-danger me-1"></i>Struktura HTML</span>
+                                        <span class="code-hint">Skrót: Tab wstawia 2 spacje</span>
+                                    </div>
+                                    <textarea id="htmlCode" class="form-control code-textarea" spellcheck="false" placeholder="Wpisz kod HTML...">&lt;div class="app-card"&gt;
+  &lt;div class="badge"&gt;ZSEM Tech Live&lt;/div&gt;
+  &lt;h1&gt;Interaktywny Przycisk&lt;/h1&gt;
+  &lt;p&gt;Zmieniaj kod w edytorze po lewej — podgląd odświeża się w czasie rzeczywistym!&lt;/p&gt;
+  &lt;button id="btn" type="button"&gt;Kliknij mnie ✨&lt;/button&gt;
+  &lt;div id="out" class="status-box"&gt;Oczekiwanie na kliknięcie...&lt;/div&gt;
+&lt;/div&gt;</textarea>
+                                </div>
+
+                                <div class="code-editor-pane d-none" data-pane="css">
+                                    <div class="code-editor-header">
+                                        <span class="code-lang-tag"><i class="bi bi-filetype-css text-primary me-1"></i>Style CSS</span>
+                                        <span class="code-hint">Automatyczny reset i font Inter</span>
+                                    </div>
+                                    <textarea id="cssCode" class="form-control code-textarea" spellcheck="false" placeholder="Wpisz reguły CSS...">body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+  padding: 24px;
+}
+
+.app-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+}
+
+.badge {
+  display: inline-block;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  color: #ffffff;
+}
+
+p {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+}
+
+button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.status-box {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #38bdf8;
+  font-weight: 600;
+  font-size: 0.88rem;
+}</textarea>
+                                </div>
+
+                                <div class="code-editor-pane d-none" data-pane="js">
+                                    <div class="code-editor-header">
+                                        <span class="code-lang-tag"><i class="bi bi-filetype-js text-warning me-1"></i>Skrypt JavaScript</span>
+                                        <span class="code-hint">Błędy i logi trafiają do konsoli</span>
+                                    </div>
+                                    <textarea id="jsCode" class="form-control code-textarea" spellcheck="false" placeholder="Wpisz kod JS...">let count = 0;
+const btn = document.getElementById('btn');
+const out = document.getElementById('out');
+
+btn.onclick = () => {
+  count++;
+  out.textContent = `Kliknięto ${count} raz${count === 1 ? '' : (count > 1 && count < 5 ? 'y' : 'y')}! Działa wyśmienicie 🚀`;
+  console.log(`Licznik kliknięć: ${count}`);
+};</textarea>
+                                </div>
+                            </div>
+
                             <div id="codeWarning" class="alert alert-warning d-none mt-3 mb-0"></div>
-                            <div class="d-flex gap-2 mt-3">
-                                <button id="runCode" class="btn btn-primary rounded-pill" type="button"><i class="bi bi-play-fill me-1"></i>Uruchom</button>
-                                <button id="liveDemo" class="btn btn-outline-primary rounded-pill" type="button"><i class="bi bi-stars me-1"></i>Demo</button>
-                                <button id="clearCode" class="btn btn-light border rounded-pill" type="button"><i class="bi bi-eraser me-1"></i>Wyczyść</button>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-2 border-top">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <button id="runCode" class="btn btn-primary rounded-pill px-3" type="button" title="Uruchom kod (Ctrl+Enter)">
+                                        <i class="bi bi-play-fill me-1"></i>Uruchom
+                                    </button>
+                                    <button id="liveDemo" class="btn btn-outline-primary rounded-pill px-3" type="button">
+                                        <i class="bi bi-stars me-1"></i>Demo
+                                    </button>
+                                    <button id="clearCode" class="btn btn-light border rounded-pill px-3" type="button">
+                                        <i class="bi bi-eraser me-1"></i>Wyczyść
+                                    </button>
+                                </div>
+                                <span class="text-muted small d-none d-sm-inline">
+                                    <kbd class="bg-light text-dark border">Ctrl</kbd> + <kbd class="bg-light text-dark border">Enter</kbd> aby uruchomić
+                                </span>
                             </div>
                         </div>
-                        <iframe id="codePreview" class="preview-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
+
+                        <div class="sandbox-panel live-preview-panel p-0 overflow-hidden d-flex flex-column">
+                            <div class="live-preview-header d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="window-dots d-flex gap-1 me-2">
+                                        <span class="dot dot-red"></span>
+                                        <span class="dot dot-yellow"></span>
+                                        <span class="dot dot-green"></span>
+                                    </div>
+                                    <span class="small fw-bold text-muted d-none d-md-inline">Podgląd na żywo</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-light border btn-sm active" id="viewportDesktopBtn" title="Pełna szerokość (Desktop)"><i class="bi bi-display"></i></button>
+                                        <button type="button" class="btn btn-light border btn-sm" id="viewportMobileBtn" title="Widok mobilny (375px)"><i class="bi bi-phone"></i></button>
+                                    </div>
+                                    <button type="button" class="btn btn-light border btn-sm" id="reloadPreviewBtn" title="Przeładuj podgląd"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button type="button" class="btn btn-light border btn-sm" id="toggleConsoleBtn" title="Pokaż/Ukryj konsolę">
+                                        <i class="bi bi-terminal me-1"></i>Konsola <span class="badge bg-secondary rounded-pill" id="consoleBadge">0</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="live-preview-viewport-wrapper flex-grow-1 d-flex align-items-center justify-content-center" id="previewViewportWrap">
+                                <iframe id="codePreview" class="preview-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups" title="Podgląd kodu na żywo"></iframe>
+                            </div>
+                            <div class="live-console-drawer border-top d-none" id="liveConsoleDrawer">
+                                <div class="live-console-header d-flex justify-content-between align-items-center px-3 py-1 bg-dark text-white border-bottom">
+                                    <span class="small font-monospace"><i class="bi bi-terminal-fill me-1 text-info"></i>Konsola deweloperska</span>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-link btn-sm text-secondary p-0 text-decoration-none" id="clearConsoleBtn"><i class="bi bi-trash3 me-1"></i>Wyczyść</button>
+                                        <button type="button" class="btn-close btn-close-white btn-sm ms-2" id="closeConsoleBtn" aria-label="Zamknij"></button>
+                                    </div>
+                                </div>
+                                <div class="live-console-body font-monospace p-2" id="liveConsoleOutput">
+                                    <div class="text-muted small">Brak logów w konsoli. Użyj console.log() w sekcji JS.</div>
+                                </div>
+                            </div>
+                        </div>
                     </section>
                 <?php elseif ($tool === 'crypto'): ?>
                     <section class="sandbox-workbench crypto-workbench" data-tool="crypto">

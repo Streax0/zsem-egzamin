@@ -32,6 +32,7 @@
         'user_font_size',
         'user_density',
         'user_accent',
+        'user_accent_secondary',
         'reduce_motion',
         'dashboard_view',
         'default_test_mode',
@@ -180,14 +181,22 @@
         const fontSize = getPreference('user_font_size', '16');
         const density = getPreference('user_density', 'comfortable');
         const accent = getPreference('user_accent', '#3b82f6');
+        const secondaryAccent = getPreference('user_accent_secondary', '#10b981');
         const reduceMotion = getPreference('reduce_motion', '0') === '1';
+
+        const cleanPrimary = /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6';
+        const cleanSecondary = /^#[0-9a-fA-F]{6}$/.test(secondaryAccent) ? secondaryAccent : '#10b981';
 
         document.body.classList.toggle('dark-mode', theme === 'dark');
         document.body.classList.toggle('light-mode', theme !== 'dark');
         document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
         document.documentElement.style.fontSize = (/^(14|16|18)$/.test(fontSize) ? fontSize : '16') + 'px';
-        document.documentElement.style.setProperty('--primary-color', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
-        document.documentElement.style.setProperty('--kolor-glowy', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
+        document.documentElement.style.setProperty('--primary-color', cleanPrimary);
+        document.documentElement.style.setProperty('--kolor-glowy', cleanPrimary);
+        document.documentElement.style.setProperty('--accent-primary', cleanPrimary);
+        document.documentElement.style.setProperty('--secondary-color', cleanSecondary);
+        document.documentElement.style.setProperty('--kolor-drugi', cleanSecondary);
+        document.documentElement.style.setProperty('--accent-secondary', cleanSecondary);
         document.body.classList.toggle('ui-compact', density === 'compact');
         document.body.classList.toggle('reduce-motion', reduceMotion);
 
@@ -536,7 +545,26 @@
     window.updateAccentSetting = function(accent) {
         setPreference('user_accent', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#3b82f6');
         applySettings();
-        window.testPreferenceFeedback?.('Kolor akcentu zapisany.');
+        window.testPreferenceFeedback?.('Kolor główny zapisany.');
+    };
+
+    window.updateSecondaryAccentSetting = function(accent) {
+        setPreference('user_accent_secondary', /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : '#10b981');
+        applySettings();
+        window.testPreferenceFeedback?.('Drugi kolor akcentu zapisany.');
+    };
+
+    window.previewAccentColors = function(primary, secondary) {
+        if (primary && /^#[0-9a-fA-F]{6}$/.test(primary)) {
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.documentElement.style.setProperty('--kolor-glowy', primary);
+            document.documentElement.style.setProperty('--accent-primary', primary);
+        }
+        if (secondary && /^#[0-9a-fA-F]{6}$/.test(secondary)) {
+            document.documentElement.style.setProperty('--secondary-color', secondary);
+            document.documentElement.style.setProperty('--kolor-drugi', secondary);
+            document.documentElement.style.setProperty('--accent-secondary', secondary);
+        }
     };
 
     window.updateReduceMotionSetting = function(enabled) {

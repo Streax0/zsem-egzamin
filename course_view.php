@@ -217,7 +217,7 @@ include 'includes/header.php';
                                         </a>
 
                                         <?php if ((int)$enrollment['progress_percent'] >= 100 && $allExamsPassed && (int)($course['has_certificate'] ?? 1) === 1): ?>
-                                            <a class="btn btn-gold-cert w-100" href="course_certificate.php?course_id=<?php echo $courseId; ?>" target="_blank">
+                                            <a class="btn btn-gold-cert w-100" href="course_certificate.php?course_id=<?php echo $courseId; ?>" target="_blank" rel="noopener noreferrer">
                                                 <i class="bi bi-award-fill me-1"></i> Pobierz Certyfikat
                                             </a>
                                         <?php endif; ?>

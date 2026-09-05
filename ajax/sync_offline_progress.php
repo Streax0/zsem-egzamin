@@ -10,6 +10,7 @@ startSecureSession();
 securityApplyJsonHeaders();
 
 requireJsonLogin(true, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
+requireJsonCsrfToken();
 
 $userId = (int)($_SESSION['user_id'] ?? 0);
 if ($userId <= 0) {

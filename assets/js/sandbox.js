@@ -821,13 +821,171 @@
   function initLive() {
     if (!$('runCode')) return;
     const warning = $('codeWarning');
-    const draftKey = 'zsem.sandbox.liveDraft.v1';
+    const statusBadge = $('liveStatusBadge');
+    const draftKey = 'zsem.sandbox.liveDraft.v2';
     const fields = ['htmlCode', 'cssCode', 'jsCode'];
-    const demo = {
-      html: '<main class="card">\n  <h1>Live demo</h1>\n  <p>Ten projekt zostaje po odświeżeniu, ale znika po zmianie narzędzia.</p>\n  <button id="btn">Zmień kolor</button>\n</main>',
-      css: 'body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Inter, system-ui, sans-serif; background: #eef2ff; }\n.card { width: min(420px, 92vw); padding: 28px; border-radius: 14px; background: white; box-shadow: 0 20px 60px rgba(15,23,42,.14); }\nbutton { border: 0; border-radius: 999px; padding: 10px 16px; background: #1d4ed8; color: white; font-weight: 800; }',
-      js: "const colors = ['#1d4ed8', '#dc2626', '#16a34a', '#7c3aed'];\nlet index = 0;\ndocument.getElementById('btn').onclick = () => {\n  index = (index + 1) % colors.length;\n  document.body.style.background = colors[index] + '22';\n};"
+
+    const PRESETS = {
+      counter: {
+        html: `<div class="app-card">\n  <div class="badge">ZSEM Tech Live</div>\n  <h1>Interaktywny Przycisk</h1>\n  <p>Zmieniaj kod w edytorze po lewej — podgląd odświeża się w czasie rzeczywistym!</p>\n  <button id="btn" type="button">Kliknij mnie ✨</button>\n  <div id="out" class="status-box">Oczekiwanie na kliknięcie...</div>\n</div>`,
+        css: `body {\n  margin: 0;\n  min-height: 100vh;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);\n  color: #f8fafc;\n  padding: 24px;\n}\n\n.app-card {\n  background: rgba(30, 41, 59, 0.7);\n  border: 1px solid rgba(255, 255, 255, 0.12);\n  border-radius: 20px;\n  padding: 32px;\n  max-width: 440px;\n  width: 100%;\n  text-align: center;\n  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);\n  backdrop-filter: blur(16px);\n}\n\n.badge {\n  display: inline-block;\n  background: rgba(59, 130, 246, 0.2);\n  color: #60a5fa;\n  border: 1px solid rgba(96, 165, 250, 0.3);\n  padding: 4px 12px;\n  border-radius: 999px;\n  font-size: 0.75rem;\n  font-weight: 700;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n  margin-bottom: 14px;\n}\n\nh1 {\n  font-size: 1.5rem;\n  font-weight: 800;\n  margin: 0 0 10px 0;\n  color: #ffffff;\n}\n\np {\n  font-size: 0.9rem;\n  color: #94a3b8;\n  line-height: 1.5;\n  margin: 0 0 24px 0;\n}\n\nbutton {\n  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);\n  color: #ffffff;\n  border: none;\n  padding: 12px 28px;\n  font-size: 0.95rem;\n  font-weight: 700;\n  border-radius: 999px;\n  cursor: pointer;\n  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);\n  transition: transform 0.15s, box-shadow 0.15s;\n}\n\nbutton:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);\n}\n\nbutton:active {\n  transform: translateY(0);\n}\n\n.status-box {\n  margin-top: 20px;\n  padding: 12px;\n  border-radius: 12px;\n  background: rgba(15, 23, 42, 0.6);\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  color: #38bdf8;\n  font-weight: 600;\n  font-size: 0.88rem;\n}`,
+        js: `let count = 0;\nconst btn = document.getElementById('btn');\nconst out = document.getElementById('out');\n\nbtn.onclick = () => {\n  count++;\n  out.textContent = \`Kliknięto \${count} raz\${count === 1 ? '' : (count > 1 && count < 5 ? 'y' : 'y')}! Działa wyśmienicie 🚀\`;\n  console.log(\`Licznik kliknięć: \${count}\`);\n};`
+      },
+      card: {
+        html: `<div class="cube-card">\n  <div class="glow-orb"></div>\n  <h2>Karta Holograficzna</h2>\n  <p>Najedź kursorem lub dotknij, aby zobaczyć płynną animację CSS 3D.</p>\n  <button id="pulseBtn" type="button">Wygeneruj Efekt</button>\n</div>`,
+        css: `body {\n  margin: 0;\n  min-height: 100vh;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: #0a0e1a;\n  overflow: hidden;\n  font-family: 'Inter', sans-serif;\n}\n\n.cube-card {\n  position: relative;\n  width: 320px;\n  padding: 32px 24px;\n  border-radius: 24px;\n  background: rgba(255, 255, 255, 0.04);\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);\n  text-align: center;\n  color: white;\n  transition: transform 0.3s ease, border-color 0.3s ease;\n}\n\n.cube-card:hover {\n  transform: translateY(-6px) scale(1.02);\n  border-color: rgba(99, 102, 241, 0.5);\n}\n\n.glow-orb {\n  position: absolute;\n  top: -40px;\n  left: 50%;\n  transform: translateX(-50%);\n  width: 140px;\n  height: 140px;\n  background: radial-gradient(circle, #6366f1 0%, transparent 70%);\n  border-radius: 50%;\n  filter: blur(20px);\n  pointer-events: none;\n}\n\nh2 { font-size: 1.4rem; margin: 10px 0; font-weight: 800; }\np { font-size: 0.9rem; color: #94a3b8; line-height: 1.5; }\n\nbutton {\n  margin-top: 18px;\n  padding: 10px 20px;\n  border-radius: 999px;\n  border: none;\n  background: #6366f1;\n  color: white;\n  font-weight: 700;\n  cursor: pointer;\n}`,
+        js: `document.getElementById('pulseBtn').onclick = () => {\n  const card = document.querySelector('.cube-card');\n  card.style.transform = 'scale(0.96)';\n  setTimeout(() => { card.style.transform = ''; }, 150);\n  console.log('Efekt pulse aktywowany!');\n};`
+      },
+      form: {
+        html: `<div class="validator-box">\n  <h3>Walidator Hasła na Żywo</h3>\n  <input type="password" id="pwd" placeholder="Wpisz hasło do testu...">\n  <div class="meter"><div id="bar"></div></div>\n  <div id="feedback" class="hint">Wpisz co najmniej 8 znaków</div>\n</div>`,
+        css: `body {\n  margin: 0;\n  min-height: 100vh;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: #f1f5f9;\n  padding: 20px;\n  font-family: 'Inter', sans-serif;\n}\n.validator-box {\n  background: white;\n  padding: 28px;\n  border-radius: 18px;\n  box-shadow: 0 10px 30px rgba(0,0,0,0.08);\n  width: 100%;\n  max-width: 380px;\n}\nh3 { margin-top: 0; font-size: 1.15rem; color: #1e293b; }\ninput {\n  width: 100%;\n  padding: 12px 14px;\n  border-radius: 10px;\n  border: 1.5px solid #cbd5e1;\n  font-size: 1rem;\n  outline: none;\n  box-sizing: border-box;\n}\ninput:focus { border-color: #3b82f6; }\n.meter {\n  height: 8px;\n  background: #e2e8f0;\n  border-radius: 999px;\n  margin: 14px 0 8px 0;\n  overflow: hidden;\n}\n#bar { height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s; }\n.hint { font-size: 0.85rem; color: #64748b; }`,
+        js: `const pwd = document.getElementById('pwd');\nconst bar = document.getElementById('bar');\nconst fb = document.getElementById('feedback');\n\npwd.addEventListener('input', () => {\n  const val = pwd.value;\n  let score = 0;\n  if (val.length >= 8) score++;\n  if (/[A-Z]/.test(val)) score++;\n  if (/[0-9]/.test(val)) score++;\n  if (/[^A-Za-z0-9]/.test(val)) score++;\n\n  const pct = Math.min(100, score * 25);\n  bar.style.width = pct + '%';\n  const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];\n  bar.style.backgroundColor = colors[score - 1] || '#ef4444';\n  fb.textContent = ['Bardzo słabe', 'Słabe', 'Dobre', 'Silne i bezpieczne!'][score - 1] || 'Za krótkie';\n  console.log('Siła hasła:', score, '/ 4');\n});`
+      },
+      theme: {
+        html: `<div class="container">\n  <h1>Przełącznik Motywu</h1>\n  <p>Kliknij przycisk poniżej, aby przełączyć paletę barw.</p>\n  <button id="themeToggle" type="button">🌓 Przełącz Tryb</button>\n</div>`,
+        css: `:root {\n  --bg: #ffffff;\n  --text: #0f172a;\n  --card: #f8fafc;\n  --btn: #2563eb;\n}\nbody.dark {\n  --bg: #090d16;\n  --text: #f8fafc;\n  --card: #1e293b;\n  --btn: #38bdf8;\n}\nbody {\n  margin: 0;\n  min-height: 100vh;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: var(--bg);\n  color: var(--text);\n  transition: background 0.3s, color 0.3s;\n  font-family: 'Inter', sans-serif;\n}\n.container {\n  background: var(--card);\n  padding: 32px;\n  border-radius: 20px;\n  text-align: center;\n  box-shadow: 0 10px 30px rgba(0,0,0,0.1);\n}\nbutton {\n  padding: 10px 20px;\n  border-radius: 999px;\n  border: none;\n  background: var(--btn);\n  color: white;\n  font-weight: 700;\n  cursor: pointer;\n}`,
+        js: `const btn = document.getElementById('themeToggle');\nbtn.onclick = () => {\n  document.body.classList.toggle('dark');\n  const isDark = document.body.classList.contains('dark');\n  console.log('Aktualny motyw:', isDark ? 'Ciemny' : 'Jasny');\n};`
+      }
     };
+
+    const demo = PRESETS.counter;
+
+    // Tab Switcher
+    const wrapper = $('codeEditorsWrapper');
+    const tabButtons = document.querySelectorAll('[data-editor-tab]');
+    const panes = document.querySelectorAll('[data-pane]');
+
+    function setEditorTab(tab) {
+      tabButtons.forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-editor-tab') === tab);
+      });
+      if (tab === 'split') {
+        wrapper?.classList.add('is-split');
+        panes.forEach((pane) => pane.classList.remove('d-none'));
+      } else {
+        wrapper?.classList.remove('is-split');
+        panes.forEach((pane) => {
+          pane.classList.toggle('d-none', pane.getAttribute('data-pane') !== tab);
+        });
+      }
+    }
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        setEditorTab(btn.getAttribute('data-editor-tab'));
+      });
+    });
+
+    // Indentation and shortcuts for textareas
+    fields.forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = el.selectionStart;
+          const end = el.selectionEnd;
+          el.value = el.value.substring(0, start) + '  ' + el.value.substring(end);
+          el.selectionStart = el.selectionEnd = start + 2;
+          el.dispatchEvent(new Event('input'));
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          run();
+        }
+      });
+    });
+
+    // Console output handling
+    const consoleDrawer = $('liveConsoleDrawer');
+    const consoleOutput = $('liveConsoleOutput');
+    const consoleBadge = $('consoleBadge');
+    let logCount = 0;
+
+    function addConsoleEntry(level, text) {
+      if (!consoleOutput) return;
+      if (logCount === 0) consoleOutput.innerHTML = '';
+      logCount++;
+      if (consoleBadge) consoleBadge.textContent = String(logCount);
+
+      const row = document.createElement('div');
+      row.className = `console-entry entry-${level}`;
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'console-time';
+      timeSpan.textContent = `[${timeStr}]`;
+
+      const iconSpan = document.createElement('span');
+      iconSpan.className = 'console-icon';
+      iconSpan.innerHTML = level === 'error' ? '<i class="bi bi-x-circle-fill text-danger"></i>' : (level === 'warn' ? '<i class="bi bi-exclamation-triangle-fill text-warning"></i>' : '<i class="bi bi-chevron-right text-info"></i>');
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'console-msg';
+      textSpan.textContent = text;
+
+      row.appendChild(timeSpan);
+      row.appendChild(iconSpan);
+      row.appendChild(textSpan);
+      consoleOutput.appendChild(row);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+
+      if (level === 'error' && consoleDrawer?.classList.contains('d-none')) {
+        consoleDrawer.classList.remove('d-none');
+      }
+    }
+
+    $('toggleConsoleBtn')?.addEventListener('click', () => {
+      consoleDrawer?.classList.toggle('d-none');
+    });
+    $('closeConsoleBtn')?.addEventListener('click', () => {
+      consoleDrawer?.classList.add('d-none');
+    });
+    $('clearConsoleBtn')?.addEventListener('click', () => {
+      if (consoleOutput) consoleOutput.innerHTML = '<div class="text-muted small">Brak logów w konsoli. Użyj console.log() w sekcji JS.</div>';
+      logCount = 0;
+      if (consoleBadge) consoleBadge.textContent = '0';
+    });
+
+    // Viewport switcher
+    const viewportWrap = $('previewViewportWrap');
+    $('viewportDesktopBtn')?.addEventListener('click', function () {
+      this.classList.add('active');
+      $('viewportMobileBtn')?.classList.remove('active');
+      viewportWrap?.classList.remove('is-mobile');
+    });
+    $('viewportMobileBtn')?.addEventListener('click', function () {
+      this.classList.add('active');
+      $('viewportDesktopBtn')?.classList.remove('active');
+      viewportWrap?.classList.add('is-mobile');
+    });
+    $('reloadPreviewBtn')?.addEventListener('click', () => run());
+
+    // Presets dropdown
+    document.querySelectorAll('[data-live-preset]').forEach((item) => {
+      item.addEventListener('click', () => {
+        const key = item.getAttribute('data-live-preset');
+        const preset = PRESETS[key];
+        if (!preset) return;
+        document.querySelectorAll('[data-live-preset]').forEach((el) => el.classList.remove('active'));
+        item.classList.add('active');
+        $('htmlCode').value = preset.html;
+        $('cssCode').value = preset.css;
+        $('jsCode').value = preset.js;
+        run();
+      });
+    });
+
+    // Listen to messages from preview iframe
+    window.addEventListener('message', (e) => {
+      if (!e.data || e.data.source !== 'zsem-live-preview') return;
+      if (e.data.type === 'console') {
+        addConsoleEntry(e.data.level || 'info', e.data.text || '');
+      } else if (e.data.type === 'error') {
+        addConsoleEntry('error', `${e.data.message || 'Błąd wykonania'}${e.data.lineno ? ` (linia ${e.data.lineno})` : ''}`);
+      }
+    });
+
     const saveDraft = () => {
       const payload = {
         html: $('htmlCode').value,
@@ -840,9 +998,9 @@
       try {
         const payload = JSON.parse(safeSessionStorage.getItem(draftKey) || 'null');
         if (!payload) return;
-        if (typeof payload.html === 'string') $('htmlCode').value = payload.html;
-        if (typeof payload.css === 'string') $('cssCode').value = payload.css;
-        if (typeof payload.js === 'string') $('jsCode').value = payload.js;
+        if (typeof payload.html === 'string' && payload.html.trim()) $('htmlCode').value = payload.html;
+        if (typeof payload.css === 'string' && payload.css.trim()) $('cssCode').value = payload.css;
+        if (typeof payload.js === 'string' && payload.js.trim()) $('jsCode').value = payload.js;
       } catch (_) {}
     };
     const clearDraft = () => safeSessionStorage.removeItem(draftKey);
@@ -852,6 +1010,7 @@
       });
     });
     restoreDraft();
+
     const run = () => {
       const html = $('htmlCode').value;
       const css = $('cssCode').value;
@@ -859,12 +1018,77 @@
       if ([html, css, js].some(containsProfanity)) {
         warning.textContent = 'Kod zawiera niedozwolone słowa. Usuń je przed uruchomieniem podglądu.';
         warning.classList.remove('d-none');
+        if (statusBadge) {
+          statusBadge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill';
+          statusBadge.innerHTML = '<i class="bi bi-shield-x me-1"></i>Blokada treści';
+        }
         return;
       }
       warning.classList.add('d-none');
+      if (statusBadge) {
+        statusBadge.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill';
+        statusBadge.innerHTML = '<i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>Na żywo';
+      }
       saveDraft();
-      $('codePreview').srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>${css.replace(/<\/style>/gi, '<\\/style>')}</style></head><body>${html}<script>${js.replace(/<\/script>/gi, '<\\/script>')}<\/script></body></html>`;
+
+      const safeCss = css.replace(/<\/style>/gi, '<\\/style>');
+      const safeJs = js.replace(/<\/script>/gi, '<\\/script>');
+
+      $('codePreview').srcdoc = `<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    ${safeCss}
+  </style>
+  <script>
+    (function() {
+      function send(type, data) {
+        try { window.parent.postMessage(Object.assign({ source: 'zsem-live-preview', type: type }, data), '*'); } catch(_) {}
+      }
+      window.addEventListener('error', function(e) {
+        send('error', { message: e.message, lineno: e.lineno, colno: e.colno });
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        send('error', { message: 'Nieobsłużony błąd: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)) });
+      });
+      ['log', 'info', 'warn', 'error'].forEach(function(lvl) {
+        const orig = console[lvl];
+        console[lvl] = function() {
+          var args = Array.prototype.slice.call(arguments);
+          try {
+            var formatted = args.map(function(arg) {
+              if (typeof arg === 'object') {
+                try { return JSON.stringify(arg); } catch(_) { return String(arg); }
+              }
+              return String(arg);
+            });
+            send('console', { level: lvl, text: formatted.join(' ') });
+          } catch(_) {}
+          if (typeof orig === 'function') orig.apply(console, args);
+        };
+      });
+    })();
+  <\/script>
+</head>
+<body>
+  ${html}
+  <script>
+    try {
+      ${safeJs}
+    } catch(err) {
+      console.error(err.name + ': ' + err.message);
+    }
+  <\/script>
+</body>
+</html>`;
     };
+
     $('runCode').addEventListener('click', run);
     let liveTimer = null;
     fields.forEach((id) => $(id).addEventListener('input', () => {
@@ -880,6 +1104,9 @@
     $('clearCode').addEventListener('click', () => {
       fields.forEach((id) => { $(id).value = ''; });
       clearDraft();
+      if (consoleOutput) consoleOutput.innerHTML = '<div class="text-muted small">Brak logów w konsoli. Użyj console.log() w sekcji JS.</div>';
+      logCount = 0;
+      if (consoleBadge) consoleBadge.textContent = '0';
       run();
     });
     run();

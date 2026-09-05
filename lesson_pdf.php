@@ -25,38 +25,52 @@ if (!$lesson || $lesson['status'] !== 'published') {
     exit('Lekcja nie istnieje lub nie jest opublikowana.');
 }
 
-// --- Resolve file path ---
+// --- Resolve file path & support multiple files (Points 21-22) ---
 $pdfDir = __DIR__ . DIRECTORY_SEPARATOR . 'pdf';
-$pdfFile = $pdfDir . DIRECTORY_SEPARATOR . 'lesson_' . $lessonId . '.pdf';
+$fileIndex = max(1, min(3, (int)($_GET['file_index'] ?? $_GET['file_id'] ?? 1)));
+$pdfFile = ($fileIndex > 1) 
+    ? $pdfDir . DIRECTORY_SEPARATOR . 'lesson_' . $lessonId . '_' . $fileIndex . '.pdf'
+    : $pdfDir . DIRECTORY_SEPARATOR . 'lesson_' . $lessonId . '.pdf';
 $jsonFile = $pdfDir . DIRECTORY_SEPARATOR . 'lesson_' . $lessonId . '.json';
 
 $downloadAllowed = false;
 $filename = 'dokument.pdf';
 
+// If indexed file doesn't exist and index is 1, check fallback
+if (!file_exists($pdfFile) && $fileIndex === 1) {
+    $altIndexed = $pdfDir . DIRECTORY_SEPARATOR . 'lesson_' . $lessonId . '_1.pdf';
+    if (file_exists($altIndexed) && is_file($altIndexed)) {
+        $pdfFile = $altIndexed;
+    }
+}
+
 // If the exact file doesn't exist, attempt to find an uploaded file with a random suffix:
-// e.g. lesson_123_abcd.pdf — uploaded filenames may include a random suffix.
 $globPattern = $pdfDir . DIRECTORY_SEPARATOR . 'lesson_' . $lessonId . '_*.pdf';
 $globMatches = glob($globPattern);
 if ((!file_exists($pdfFile) || !is_file($pdfFile)) && !empty($globMatches)) {
-    // Pick the first matching file as the canonical PDF for this lesson
     $pdfFile = $globMatches[0];
-    // Prefer a JSON meta file with the same base name if present
     $jsonCandidate = preg_replace('/\.pdf$/i', '.json', $pdfFile);
     if (file_exists($jsonCandidate) && is_file($jsonCandidate)) {
         $jsonFile = $jsonCandidate;
     } else {
-        // fallback to legacy JSON name
         $jsonFile = $pdfDir . DIRECTORY_SEPARATOR . 'lesson_' . $lessonId . '.json';
     }
 }
 
 if (file_exists($pdfFile) && is_file($pdfFile)) {
-    // Standard new-style upload found
     if (file_exists($jsonFile)) {
         $meta = json_decode(file_get_contents($jsonFile), true);
         if (is_array($meta)) {
             $downloadAllowed = (int)($meta['pdf_download_allowed'] ?? 0) === 1;
-            if (!empty($meta['pdf_filename'])) {
+            if (!empty($meta['files']) && is_array($meta['files'])) {
+                foreach ($meta['files'] as $fEntry) {
+                    if ((int)($fEntry['index'] ?? 0) === $fileIndex && !empty($fEntry['filename'])) {
+                        $filename = basename($fEntry['filename']);
+                        break;
+                    }
+                }
+            }
+            if ($filename === 'dokument.pdf' && !empty($meta['pdf_filename'])) {
                 $filename = basename($meta['pdf_filename']);
             }
         }

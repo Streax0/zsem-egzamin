@@ -288,11 +288,11 @@ $csrf_token = generateCsrfToken();
                     </div>
                     <div class="form-check">
                         <input type="checkbox" name="terms" class="form-check-input" id="terms" required>
-                        <label class="form-check-label small text-muted" for="terms">Akceptuję <a href="../pages/terms.php" target="_blank" class="text-primary">Regulamin</a> i <a href="../pages/privacy.php" target="_blank" class="text-primary">Politykę prywatności</a></label>
+                        <label class="form-check-label small text-muted" for="terms">Akceptuję <a href="../pages/terms.php" target="_blank" rel="noopener noreferrer" class="text-primary">Regulamin</a> i <a href="../pages/privacy.php" target="_blank" rel="noopener noreferrer" class="text-primary">Politykę prywatności</a></label>
                     </div>
                     <div class="form-check mt-2">
                         <input type="checkbox" name="privacy_consent" class="form-check-input" id="privacyConsent" required>
-                        <label class="form-check-label small text-muted" for="privacyConsent">Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z <a href="../pages/privacy.php" target="_blank" class="text-primary">Polityką Prywatności</a> w celu rejestracji.</label>
+                        <label class="form-check-label small text-muted" for="privacyConsent">Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z <a href="../pages/privacy.php" target="_blank" rel="noopener noreferrer" class="text-primary">Polityką Prywatności</a> w celu rejestracji.</label>
                     </div>
                 </div>
 

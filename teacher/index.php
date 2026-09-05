@@ -146,74 +146,158 @@ include '../includes/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <!-- Quick Stats -->
+                    <!-- Bento Grid Top Row -->
                     <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <div class="dashboard-panel text-center animate-in p-4 position-relative overflow-hidden">
-                                <div class="position-absolute top-0 end-0 p-3 opacity-10 fs-1 text-primary"><i class="bi bi-journal-bookmark-fill"></i></div>
-                                <div class="h1 fw-800 text-primary mb-1"><?= $totalExams ?></div>
-                                <div class="text-muted small fw-semibold text-uppercase tracking-wider">Sprawdzianów łącznie</div>
+                        <!-- Bento Hero Card (8 cols) -->
+                        <div class="col-lg-8">
+                            <div class="dashboard-panel p-4 h-100 position-relative overflow-hidden bento-hero-card teacher-hero-bento" style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.04) 100%); border: 1px solid rgba(99, 102, 241, 0.2);">
+                                <div class="position-absolute top-0 end-0 p-4 opacity-10 fs-1 text-primary d-none d-md-block">
+                                    <i class="bi bi-mortarboard-fill" style="font-size: 5.5rem;"></i>
+                                </div>
+                                <div class="position-relative z-1">
+                                    <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 small fw-bold mb-3">
+                                        <i class="bi bi-shield-check me-1"></i> Panel Edukatora ZSEM Tech
+                                    </div>
+                                    <h3 class="fw-bold mb-2">Centrum Egzaminów i Sprawdzianów</h3>
+                                    <p class="text-muted mb-4" style="max-width: 580px; font-size: 0.95rem;">
+                                        Kompleksowe narzędzia dydaktyczne: twórz bezpieczne sesje testowe online z kodem PIN, generuj gotowe do druku arkusze egzaminacyjne A/B z kluczem odpowiedzi oraz buduj autorską bazę pytań.
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="create_exam.php" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold quick-action-tile">
+                                            <i class="bi bi-plus-circle-fill me-1"></i> Utwórz test online
+                                        </a>
+                                        <a href="pdf_generator.php" class="btn btn-outline-danger rounded-pill px-4 fw-semibold quick-action-tile">
+                                            <i class="bi bi-printer-fill me-1"></i> Drukuj arkusze (PDF)
+                                        </a>
+                                        <a href="custom_exams.php" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold quick-action-tile">
+                                            <i class="bi bi-collection-fill me-1"></i> Baza pytań
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-panel text-center animate-in p-4 position-relative overflow-hidden" style="animation-delay:0.1s">
-                                <div class="position-absolute top-0 end-0 p-3 opacity-10 fs-1 text-success"><i class="bi bi-broadcast"></i></div>
-                                <div class="h1 fw-800 text-success mb-1"><?= count($activeExams) ?></div>
-                                <div class="text-muted small fw-semibold text-uppercase tracking-wider">Aktywnych sesji</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-panel text-center animate-in p-4 position-relative overflow-hidden" style="animation-delay:0.2s">
-                                <div class="position-absolute top-0 end-0 p-3 opacity-10 fs-1 text-info"><i class="bi bi-people-fill"></i></div>
-                                <div class="h1 fw-800 text-info mb-1"><?= $totalParticipants ?></div>
-                                <div class="text-muted small fw-semibold text-uppercase tracking-wider">Uczestników łącznie</div>
+
+                        <!-- Bento Stats Card (4 cols) -->
+                        <div class="col-lg-4">
+                            <div class="dashboard-panel p-4 h-100 d-flex flex-column justify-content-between">
+                                <h6 class="fw-bold text-muted small text-uppercase tracking-wider mb-3 d-flex align-items-center gap-2">
+                                    <i class="bi bi-graph-up-arrow text-primary"></i> Twoje statystyki
+                                </h6>
+                                <div class="d-flex flex-column gap-3">
+                                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-body-tertiary stat-chip">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3 fs-4">
+                                                <i class="bi bi-journal-check"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-muted">Sprawdzianów łącznie</div>
+                                                <div class="fw-bold fs-5"><?= $totalExams ?></div>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">Baza</span>
+                                    </div>
+
+                                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-body-tertiary stat-chip">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="p-2 bg-success bg-opacity-10 text-success rounded-3 fs-4">
+                                                <i class="bi bi-broadcast"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-muted">Aktywne sesje</div>
+                                                <div class="fw-bold fs-5 text-success"><?= count($activeExams) ?></div>
+                                            </div>
+                                        </div>
+                                        <?php if (count($activeExams) > 0): ?>
+                                            <span class="badge bg-success text-white rounded-pill px-2 py-1 small animate-pulse">Live</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary bg-opacity-25 text-muted rounded-pill">Brak</span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-body-tertiary stat-chip">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="p-2 bg-info bg-opacity-10 text-info rounded-3 fs-4">
+                                                <i class="bi bi-people-fill"></i>
+                                            </div>
+                                            <div>
+                                                <div class="small text-muted">Uczestników łącznie</div>
+                                                <div class="fw-bold fs-5"><?= $totalParticipants ?></div>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill">Uczniowie</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Quick Actions -->
-                    <div class="row g-4 mb-4">
+                    <?php if (!empty($activeExams)): ?>
+                        <!-- Active Live Sessions Banner -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-success bg-opacity-10 border-start border-success border-4">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="spinner-grow text-success" role="status" style="width: 1.5rem; height: 1.5rem;">
+                                        <span class="visually-hidden">Live</span>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-success mb-0">Trwają aktywne sesje sprawdzianów na żywo!</h6>
+                                        <p class="text-muted small mb-0">Masz <?= count($activeExams) ?> aktywną(e) sesję(e). Kliknij, aby zarządzać uczestnikami w czasie rzeczywistym.</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <?php foreach ($activeExams as $aExam): ?>
+                                        <a href="host_exam.php?session=<?= (int)$aExam['session_id'] ?>" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
+                                            <i class="bi bi-broadcast me-1"></i> Kod PIN: <?= htmlspecialchars($aExam['access_code'] ?? '') ?> (<?= htmlspecialchars($aExam['title'] ?? '') ?>)
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Bento Quick Tools Grid (4 columns) -->
+                    <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6 col-xl-3">
-                            <a href="create_exam.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100">
-                                <div class="icon-circle bg-primary bg-opacity-10 text-primary fs-4 p-3 rounded-4">
+                            <a href="create_exam.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100 border">
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary fs-3 p-3 rounded-3 flex-shrink-0">
                                     <i class="bi bi-plus-square-fill"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-1">Utwórz test online</h6>
-                                    <p class="text-muted small mb-0">Skonfiguruj nowy test online.</p>
+                                    <h6 class="fw-bold text-body mb-1">Kreator testu</h6>
+                                    <p class="text-muted small mb-0">Egzamin online z kodem PIN.</p>
                                 </div>
                             </a>
                         </div>
                         <div class="col-12 col-sm-6 col-xl-3">
-                            <a href="custom_exams.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100" style="animation-delay: 0.05s">
-                                <div class="icon-circle bg-warning bg-opacity-10 text-warning fs-4 p-3 rounded-4">
-                                    <i class="bi bi-collection-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Baza pytań własnych</h6>
-                                    <p class="text-muted small mb-0">Zarządzaj autorskimi pytaniami.</p>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-6 col-xl-3">
-                            <a href="txt_generator.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100" style="animation-delay: 0.1s">
-                                <div class="icon-circle bg-info bg-opacity-10 text-info fs-4 p-3 rounded-4">
-                                    <i class="bi bi-file-earmark-plus-fill"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Generator z TXT</h6>
-                                    <p class="text-muted small mb-0">Masowe tworzenie pytań.</p>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-6 col-xl-3">
-                            <a href="pdf_generator.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100" style="animation-delay: 0.15s">
-                                <div class="icon-circle bg-danger bg-opacity-10 text-danger fs-4 p-3 rounded-4">
+                            <a href="pdf_generator.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100 border" style="animation-delay: 0.05s">
+                                <div class="icon-circle bg-danger bg-opacity-10 text-danger fs-3 p-3 rounded-3 flex-shrink-0">
                                     <i class="bi bi-file-earmark-pdf-fill"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-1">Generator PDF / Druk</h6>
-                                    <p class="text-muted small mb-0">Generuj arkusze z kluczem.</p>
+                                    <h6 class="fw-bold text-body mb-1">Generator PDF / Druk</h6>
+                                    <p class="text-muted small mb-0">Arkusze A/B z kluczem ocen.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <a href="custom_exams.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100 border" style="animation-delay: 0.1s">
+                                <div class="icon-circle bg-warning bg-opacity-10 text-warning fs-3 p-3 rounded-3 flex-shrink-0">
+                                    <i class="bi bi-collection-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-body mb-1">Baza pytań własnych</h6>
+                                    <p class="text-muted small mb-0">Autorskie zadania i testy.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <a href="txt_generator.php" class="dashboard-panel d-flex align-items-center gap-3 text-decoration-none hover-scale animate-in p-3 h-100 border" style="animation-delay: 0.15s">
+                                <div class="icon-circle bg-info bg-opacity-10 text-info fs-3 p-3 rounded-3 flex-shrink-0">
+                                    <i class="bi bi-file-earmark-arrow-up-fill"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-body mb-1">Generator z TXT</h6>
+                                    <p class="text-muted small mb-0">Masowy import z pliku.</p>
                                 </div>
                             </a>
                         </div>

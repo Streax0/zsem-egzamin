@@ -109,12 +109,16 @@ class Engine
         }
 
         $uri = $_SERVER['REQUEST_URI'] ?? '';
-        if (str_contains($uri, 'login.php') || str_contains($uri, 'actions/login.php') || str_contains($uri, '/admin/')) {
+        if (str_contains($uri, 'maintenance.php') || str_contains($uri, 'login.php') || str_contains($uri, 'actions/login.php') || str_contains($uri, '/admin/')) {
             return;
         }
 
         if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-            @session_start();
+            if (function_exists('startSecureSession')) {
+                startSecureSession();
+            } else {
+                @session_start();
+            }
         }
 
         $role = (string)($_SESSION['role'] ?? '');
@@ -127,18 +131,30 @@ class Engine
 
     private function renderMaintenancePage(): void
     {
-        if (!headers_sent()) {
-            http_response_code(503);
-            header('Retry-After: 300');
-        }
-
         if ($this->isAjaxRequest()) {
-            header('Content-Type: application/json; charset=utf-8');
+            if (!headers_sent()) {
+                http_response_code(503);
+                header('HTTP/1.1 503 Service Unavailable');
+                header('Retry-After: 300');
+                header('Content-Type: application/json; charset=utf-8');
+            }
             echo json_encode([
                 'status' => 'maintenance',
-                'message' => 'Serwis jest obecnie w trakcie prac konserwacyjnych. Spróbuj ponowić za chwilę.'
+                'message' => (string)$this->config->get('maintenance_message', 'Trwają planowane prace serwisowe. Zapraszamy wkrótce.')
             ], JSON_UNESCAPED_UNICODE);
             exit;
+        }
+
+        $target = file_exists('maintenance.php') ? 'maintenance.php' : '../maintenance.php';
+        if (file_exists($target) && !headers_sent()) {
+            header('Location: ' . $target, true, 307);
+            exit;
+        }
+
+        if (!headers_sent()) {
+            http_response_code(503);
+            header('HTTP/1.1 503 Service Unavailable');
+            header('Retry-After: 300');
         }
 
         echo <<<HTML

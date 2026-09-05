@@ -15,12 +15,13 @@ $myRole = $_SESSION['role'] ?? 'user';
 
 if (!empty($query)) {
     consumeRateLimit($pdo, 'user_search_page', (string)$userId . '|' . clientIpAddress(), 80, 300);
+    $escapedQuery = '%' . addcslashes($query, '%_\\') . '%';
     if (roleHasAdminAccess($myRole)) {
         $stmt = $pdo->prepare("SELECT id, username, role, is_verified, xp, last_activity, allow_friend_requests, avatar_path FROM users WHERE username LIKE ? AND id != ? ORDER BY last_activity DESC, xp DESC, username ASC LIMIT 6");
     } else {
         $stmt = $pdo->prepare("SELECT id, username, role, is_verified, xp, last_activity, allow_friend_requests, avatar_path FROM users WHERE username LIKE ? AND id != ? AND searchable = 1 AND profile_public = 1 ORDER BY last_activity DESC, xp DESC, username ASC LIMIT 6");
     }
-    $stmt->execute(['%' . $query . '%', $userId]);
+    $stmt->execute([$escapedQuery, $userId]);
     $results = $stmt->fetchAll();
 } else {
     if (roleHasAdminAccess($myRole)) {
@@ -254,6 +255,13 @@ if (!empty($query)) {
                                     </article>
                                 <?php endforeach; ?>
                             </div>
+                            <?php if (count($results) >= 6): ?>
+                            <div class="text-center mt-4" id="loadMoreContainer">
+                                <button type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold shadow-sm" id="loadMoreUsersBtn" data-offset="6" data-query="<?php echo htmlspecialchars($query); ?>">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Załaduj więcej
+                                </button>
+                            </div>
+                            <?php endif; ?>
                         <?php else: ?>
                             <div class="text-center py-5">
                                 <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
@@ -269,6 +277,41 @@ if (!empty($query)) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('loadMoreUsersBtn');
+        const grid = document.querySelector('.user-search-grid');
+        if (!btn || !grid) return;
+
+        btn.addEventListener('click', async () => {
+            const offset = parseInt(btn.dataset.offset || '6', 10);
+            const query = btn.dataset.query || '';
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Ładowanie...';
+
+            try {
+                const res = await fetch(`ajax/load_more_users.php?offset=${offset}&query=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.html) {
+                    grid.insertAdjacentHTML('beforeend', data.html);
+                    btn.dataset.offset = data.next_offset;
+                    if (!data.has_more) {
+                        document.getElementById('loadMoreContainer')?.remove();
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = origHtml;
+                    }
+                } else {
+                    document.getElementById('loadMoreContainer')?.remove();
+                }
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        });
+    });
+    </script>
     <?php include 'includes/help_center.php'; ?>
 </body>
 </html>

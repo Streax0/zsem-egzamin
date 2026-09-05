@@ -70,83 +70,103 @@ $missionData = $isOwnProfile ? syncUserMissions($pdo, $userId) : ['missions' => 
 $currentMissions = $missionData['missions'];
 $missionPool = $missionData['pool'];
 
-// Fetch all required data
-$stats = getUserStats($pdo, $userId);
-$testResults = getTestResults($pdo, $userId, 50);
-$profileHistoryResults = getUnifiedUserHistory($pdo, $userId, 50);
-$chartTestResults = getQualifiedTestResults($pdo, $userId, 100, 1);
-$totalQuestions = count(loadQuestions($pdo, false));
-$ckeReadiness = calculateCkeReadinessIndex($pdo, $userId);
+// Fetch profile data conditionally based on privacy
+if ($canViewProfile) {
+    $stats = getUserStats($pdo, $userId);
+    $testResults = getTestResults($pdo, $userId, 50);
+    $profileHistoryResults = getUnifiedUserHistory($pdo, $userId, 50);
+    $chartTestResults = getQualifiedTestResults($pdo, $userId, 100, 1);
+    $totalQuestions = count(loadQuestions($pdo, false));
+    $ckeReadiness = calculateCkeReadinessIndex($pdo, $userId);
 
-// Format total time spent
-$totalSeconds = $stats['total_time_spent'];
-$hours = floor($totalSeconds / 3600);
-$minutes = floor(($totalSeconds % 3600) / 60);
-$seconds = $totalSeconds % 60;
-if ($hours > 0) {
-    $totalTimeFormatted = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-} else {
-    $totalTimeFormatted = sprintf('%d minut', $minutes);
-}
-
-// Prepare data for chart - last 10 tests
-$chartLabels = [];
-$chartData = [];
-$chartResults = array_slice(array_reverse($chartTestResults), 0, 10);
-foreach ($chartResults as $result) {
-    $chartLabels[] = date('d.m', strtotime($result['test_date'] ?? $result['completed_at'] ?? 'now'));
-    $chartData[] = round($result['score_percent'], 2);
-}
-
-// Best and worst scores
-$bestScore = null;
-$worstScore = null;
-if (!empty($testResults)) {
-    $sortedByScore = $testResults;
-    usort($sortedByScore, function($a, $b) {
-        return $b['score_percent'] <=> $a['score_percent'];
-    });
-    $bestScore = $sortedByScore[0];
-    $worstScore = end($sortedByScore);
-}
-
-// Mode info is stored in test_results.mode
-// No need for complex mode counting from test_answers
-
-// Get last 10 history entries for table, including duels and teacher tests.
-$tableResults = array_slice($profileHistoryResults, 0, 10);
-
-$profileSections = [
-    'education' => [], 'certificates' => [], 'courses' => [], 'volunteering' => [],
-    'languages' => [], 'organizations' => [], 'social_links' => [], 'comments' => []
-];
-try {
-    $queries = [
-        'education' => "SELECT id, user_id, level, school_name, field, start_year, end_year, created_at FROM user_education WHERE user_id = ? ORDER BY start_year DESC",
-        'certificates' => "SELECT id, user_id, course_id, name, organization, certificate_code, obtained_date, description, created_at FROM user_certificates WHERE user_id = ? ORDER BY obtained_date DESC, id DESC",
-        'courses' => "SELECT id, user_id, name, provider, completed_date, description, created_at FROM user_courses WHERE user_id = ? ORDER BY completed_date DESC, id DESC",
-        'volunteering' => "SELECT id, user_id, organization, role_name, start_date, end_date, description, created_at FROM user_volunteering WHERE user_id = ? ORDER BY start_date DESC, id DESC",
-        'languages' => "SELECT id, user_id, language_name, level, created_at FROM user_languages WHERE user_id = ? ORDER BY language_name",
-        'organizations' => "SELECT id, user_id, name, role_name, start_date, end_date, description, created_at FROM user_organizations WHERE user_id = ? ORDER BY start_date DESC, id DESC",
-        'social_links' => "SELECT id, user_id, platform, url, created_at FROM user_social_links WHERE user_id = ? ORDER BY platform",
-    ];
-    foreach ($queries as $key => $sql) {
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$userId]);
-        $profileSections[$key] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Format total time spent
+    $totalSeconds = $stats['total_time_spent'];
+    $hours = floor($totalSeconds / 3600);
+    $minutes = floor(($totalSeconds % 3600) / 60);
+    $seconds = $totalSeconds % 60;
+    if ($hours > 0) {
+        $totalTimeFormatted = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+    } else {
+        $totalTimeFormatted = sprintf('%d minut', $minutes);
     }
-    $stmt = $pdo->prepare("
-        SELECT pc.id, pc.profile_user_id, pc.author_id, pc.comment_text, pc.created_at, u.username, u.role, u.is_verified, u.avatar_path
-        FROM profile_comments pc
-        JOIN users u ON u.id = pc.author_id
-        WHERE pc.profile_user_id = ?
-        ORDER BY pc.created_at DESC
-        LIMIT 20
-    ");
-    $stmt->execute([$userId]);
-    $profileSections['comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    error_log('Profile sections unavailable: ' . $e->getMessage());
+
+    // Prepare data for chart - last 10 tests
+    $chartLabels = [];
+    $chartData = [];
+    $chartResults = array_slice(array_reverse($chartTestResults), 0, 10);
+    foreach ($chartResults as $result) {
+        $chartLabels[] = date('d.m', strtotime($result['test_date'] ?? $result['completed_at'] ?? 'now'));
+        $chartData[] = round($result['score_percent'], 2);
+    }
+
+    // Best and worst scores
+    $bestScore = null;
+    $worstScore = null;
+    if (!empty($testResults)) {
+        $sortedByScore = $testResults;
+        usort($sortedByScore, function($a, $b) {
+            return $b['score_percent'] <=> $a['score_percent'];
+        });
+        $bestScore = $sortedByScore[0];
+        $worstScore = end($sortedByScore);
+    }
+
+    // Get last 10 history entries for table, including duels and teacher tests.
+    $tableResults = array_slice($profileHistoryResults, 0, 10);
+
+    $profileSections = [
+        'education' => [], 'certificates' => [], 'courses' => [], 'volunteering' => [],
+        'languages' => [], 'organizations' => [], 'social_links' => [], 'comments' => []
+    ];
+    try {
+        $queries = [
+            'education' => "SELECT id, user_id, level, school_name, field, start_year, end_year, created_at FROM user_education WHERE user_id = ? ORDER BY start_year DESC",
+            'certificates' => "SELECT id, user_id, course_id, name, organization, certificate_code, obtained_date, description, created_at FROM user_certificates WHERE user_id = ? ORDER BY obtained_date DESC, id DESC",
+            'courses' => "SELECT id, user_id, name, provider, completed_date, description, created_at FROM user_courses WHERE user_id = ? ORDER BY completed_date DESC, id DESC",
+            'volunteering' => "SELECT id, user_id, organization, role_name, start_date, end_date, description, created_at FROM user_volunteering WHERE user_id = ? ORDER BY start_date DESC, id DESC",
+            'languages' => "SELECT id, user_id, language_name, level, created_at FROM user_languages WHERE user_id = ? ORDER BY language_name",
+            'organizations' => "SELECT id, user_id, name, role_name, start_date, end_date, description, created_at FROM user_organizations WHERE user_id = ? ORDER BY start_date DESC, id DESC",
+            'social_links' => "SELECT id, user_id, platform, url, created_at FROM user_social_links WHERE user_id = ? ORDER BY platform",
+        ];
+        foreach ($queries as $key => $sql) {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$userId]);
+            $profileSections[$key] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        $stmt = $pdo->prepare("
+            SELECT pc.id, pc.profile_user_id, pc.author_id, pc.comment_text, pc.created_at, u.username, u.role, u.is_verified, u.avatar_path
+            FROM profile_comments pc
+            JOIN users u ON u.id = pc.author_id
+            WHERE pc.profile_user_id = ?
+            ORDER BY pc.created_at DESC
+            LIMIT 20
+        ");
+        $stmt->execute([$userId]);
+        $profileSections['comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log('Profile sections unavailable: ' . $e->getMessage());
+    }
+} else {
+    $stats = [
+        'total_tests' => 0, 'passed_tests' => 0, 'avg_score' => 0, 'total_questions' => 0,
+        'correct_answers' => 0, 'total_time_spent' => 0, 'current_streak' => 0, 'best_streak' => 0,
+        'last_active_date' => null
+    ];
+    $testResults = [];
+    $profileHistoryResults = [];
+    $chartTestResults = [];
+    $totalQuestions = 0;
+    $ckeReadiness = ['score' => 0, 'ready' => false, 'category_scores' => []];
+    $totalTimeFormatted = '0 minut';
+    $chartLabels = [];
+    $chartData = [];
+    $bestScore = null;
+    $worstScore = null;
+    $tableResults = [];
+    $profileSections = [
+        'education' => [], 'certificates' => [], 'courses' => [], 'volunteering' => [],
+        'languages' => [], 'organizations' => [], 'social_links' => [], 'comments' => []
+    ];
 }
 
 $rankInfo = getRankInfoByXp((int)($userData['xp'] ?? 0));
@@ -157,6 +177,14 @@ foreach (['education','certificates','courses','volunteering','languages','organ
         break;
     }
 }
+$hasLanguages = !empty($profileSections['languages']);
+$hasCertificates = !empty($profileSections['certificates']);
+$hasEducation = !empty($profileSections['education']);
+$hasCourses = !empty($profileSections['courses']);
+$hasVolunteering = !empty($profileSections['volunteering']);
+$hasOrganizations = !empty($profileSections['organizations']);
+$hasSocialLinks = !empty($profileSections['social_links']);
+$hasCareerData = $hasProfessionalData;
 $languagePresets = ['Angielski', 'Niemiecki', 'Hiszpański', 'Francuski', 'Włoski', 'Polski', 'Ukraiński', 'Rosyjski', 'Czeski', 'Słowacki'];
 $socialPlatforms = [
     'github' => ['GitHub', 'bi-github'],
@@ -922,8 +950,8 @@ include '../includes/header.php';
             </div>
         </div>
 
-        <?php if ($hasProfessionalData || $isOwnProfile): ?>
-        <div class="dashboard-panel mb-4 professional-profile-panel" <?php echo (!$hasProfessionalData && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
+        <?php if ($hasCareerData || $isOwnProfile): ?>
+        <div class="dashboard-panel mb-4 professional-profile-panel" <?php echo (!$hasCareerData && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
             <div class="panel-header mb-3 d-flex justify-content-between align-items-center">
                 <h4 class="panel-title mb-0"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Profil zawodowy</h4>
                 <?php if ($isOwnProfile): ?><span class="badge bg-primary bg-opacity-10 text-primary profile-edit-tools" style="display:none;">Edycja aktywna</span><?php endif; ?>
@@ -931,13 +959,14 @@ include '../includes/header.php';
 
             <div class="accordion" id="professionalAccordion">
                 <?php if (!empty($profileSections['education']) || $isOwnProfile): ?>
-                <div class="accordion-item">
+                <?php $eduEmpty = empty($profileSections['education']); ?>
+                <div class="accordion-item <?php echo $eduEmpty ? 'professional-empty-section' : ''; ?>" <?php echo ($eduEmpty && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
                     <h2 class="accordion-header" id="headingEducation">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEducation" aria-expanded="false" aria-controls="collapseEducation">
+                        <button class="accordion-button <?php echo $eduEmpty ? 'collapsed' : ''; ?>" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEducation" aria-expanded="<?php echo $eduEmpty ? 'false' : 'true'; ?>" aria-controls="collapseEducation">
                             <i class="bi bi-mortarboard me-2"></i>Wykształcenie
                         </button>
                     </h2>
-                    <div id="collapseEducation" class="accordion-collapse collapse show" aria-labelledby="headingEducation" data-bs-parent="#professionalAccordion">
+                    <div id="collapseEducation" class="accordion-collapse collapse <?php echo !$eduEmpty ? 'show' : ''; ?>" aria-labelledby="headingEducation" data-bs-parent="#professionalAccordion">
                         <div class="accordion-body">
                             <?php foreach ($profileSections['education'] as $item): ?>
                                 <div class="professional-item border rounded p-3 mb-2">
@@ -976,7 +1005,8 @@ include '../includes/header.php';
                     </h2>
                     <div id="collapseSocial" class="accordion-collapse collapse" aria-labelledby="headingSocial" data-bs-parent="#professionalAccordion">
                         <div class="accordion-body">
-                            <div class="mb-3">
+                            <?php if (!empty($profileSections['social_links']) || $isOwnProfile): ?>
+                            <div class="mb-3 <?php echo empty($profileSections['social_links']) ? 'professional-empty-subsection' : ''; ?>" <?php echo (empty($profileSections['social_links']) && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
                                 <h6 class="fw-bold">Linki społecznościowe</h6>
                                 <div class="d-flex flex-wrap gap-2 mb-3">
                                     <?php foreach ($profileSections['social_links'] as $link): ?>
@@ -1002,8 +1032,10 @@ include '../includes/header.php';
                                 </form>
                                 <?php endif; ?>
                             </div>
+                            <?php endif; ?>
 
-                            <div>
+                            <?php if (!empty($profileSections['languages']) || $isOwnProfile): ?>
+                            <div class="<?php echo empty($profileSections['languages']) ? 'professional-empty-subsection' : ''; ?>" <?php echo (empty($profileSections['languages']) && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
                                 <h6 class="fw-bold">Języki</h6>
                                 <div class="mb-3">
                                     <?php foreach ($profileSections['languages'] as $item): ?>
@@ -1026,6 +1058,7 @@ include '../includes/header.php';
                                 </form>
                                 <?php endif; ?>
                             </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -1059,7 +1092,7 @@ include '../includes/header.php';
                             <div class="row g-4">
                                 <?php foreach ($simpleSections as $key => [$label, $icon]): ?>
                                     <?php if (empty($profileSections[$key]) && !$isOwnProfile) continue; ?>
-                                    <div class="col-md-6 col-xl-3 professional-section <?php echo empty($profileSections[$key]) ? 'is-empty' : ''; ?>">
+                                    <div class="col-md-6 col-xl-3 professional-section <?php echo empty($profileSections[$key]) ? 'is-empty professional-empty-subsection' : ''; ?>" <?php echo (empty($profileSections[$key]) && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
                                         <h6 class="fw-bold"><i class="bi <?php echo $icon; ?> me-1"></i><?php echo $label; ?></h6>
                                         <?php foreach ($profileSections[$key] as $item): ?>
                                             <div class="professional-item small border rounded p-2 mb-2">
@@ -1120,8 +1153,8 @@ include '../includes/header.php';
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3 fs-5"><i class="bi bi-graph-up-arrow"></i></span>
                             <div>
-                                <h5 class="fw-bold mb-0">Wskaźnik Gotowości Egzaminacyjnej CKE</h5>
-                                <small class="text-muted">Estymacja zdawalności arkuszy państwowych (INF.02 / INF.03)</small>
+                                <h5 class="fw-bold mb-0">Wskaźnik Gotowości Egzaminacyjnej</h5>
+                                <small class="text-muted">Estymacja zdawalności</small>
                             </div>
                         </div>
                         <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 rounded-pill fw-bold">
@@ -1166,7 +1199,7 @@ include '../includes/header.php';
                                     <i class="bi bi-trophy"></i>
                                 </div>
                                 <h4 class="fw-bold mb-0"><?php echo $stats['average_score']; ?>%</h4>
-                                <p class="text-muted small mb-0">Wynik</p>
+                                <p class="text-muted small mb-0">Zdawalność</p>
                             </div>
                         </div>
                     </div>
@@ -1725,6 +1758,10 @@ include '../includes/header.php';
                 el.style.display = '';
                 el.classList.add('editing');
             });
+            document.querySelectorAll('.professional-empty-subsection').forEach(el => {
+                el.style.display = '';
+                el.classList.add('editing');
+            });
             document.querySelectorAll('.professional-section').forEach(el => el.classList.add('editing'));
             document.querySelectorAll('.profile-edit-tools').forEach(el => el.style.display = '');
             document.getElementById('bioInput').focus();
@@ -1736,6 +1773,10 @@ include '../includes/header.php';
             document.querySelectorAll('.profile-edit-tools').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.professional-section').forEach(el => el.classList.remove('editing'));
             document.querySelectorAll('.professional-empty-section').forEach(el => {
+                el.classList.remove('editing');
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.professional-empty-subsection').forEach(el => {
                 el.classList.remove('editing');
                 el.style.display = 'none';
             });

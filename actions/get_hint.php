@@ -14,6 +14,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/config/db.php';
 require_once dirname(__DIR__) . '/includes/session.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/AiTutorEngine.php';
 
 startSecureSession();
 
@@ -54,7 +55,7 @@ $xpCost  = $xpCosts[$tier];
 
 try {
     $_stmt = $pdo->prepare(
-        "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+        "SELECT q.id, q.category, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
                 q.correct_answer, q.explanation,
                 qh.hint_tier1, qh.hint_tier2, qh.hint_tier3
          FROM questions q
@@ -66,7 +67,7 @@ try {
 } catch (PDOException $e) {
     if (str_contains($e->getMessage(), "doesn't exist") || $e->getCode() === '42S02') {
         $_stmt = $pdo->prepare(
-            "SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+            "SELECT q.id, q.category, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
                     q.correct_answer, q.explanation,
                     NULL AS hint_tier1, NULL AS hint_tier2, NULL AS hint_tier3
              FROM questions q
@@ -111,12 +112,23 @@ if ($tier === 1) {
     if (!empty($question['hint_tier1'])) {
         $hint = $question['hint_tier1'];
     } else {
-        // Auto-generate from question structure
-        $questionWords = explode(' ', strip_tags($question['question_text']));
-        $keyWords = array_filter($questionWords, fn($w) => mb_strlen($w) > 4);
-        $keyWords = array_slice(array_values($keyWords), 0, 6);
-        $hint = 'Wskazówka: zastanów się nad pojęciami związanymi z '
-              . implode(', ', $keyWords) . '.';
+        // Auto-generate meaningful hint using the Socratic engine
+        $category = (string)($question['category'] ?? 'Ogólne');
+        $opts = [
+            (string)($question['option_a'] ?? ''),
+            (string)($question['option_b'] ?? ''),
+            (string)($question['option_c'] ?? ''),
+            (string)($question['option_d'] ?? ''),
+        ];
+        $socratic = aiTutorGenerateSocraticHint(
+            (string)$question['question_text'],
+            $category,
+            $opts
+        );
+        $hint = "💡 {$socratic['topic']}\n\n"
+              . "🤔 {$socratic['guiding_question']}\n\n"
+              . "📚 {$socratic['concept_refresher']}\n\n"
+              . "⚠️ {$socratic['trap_to_avoid']}";
     }
     $response['hint'] = $hint;
 

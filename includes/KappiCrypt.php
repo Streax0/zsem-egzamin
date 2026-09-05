@@ -7,7 +7,14 @@ class KappiCrypt {
 
     public static function init() {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            if (!function_exists('startSecureSession') && file_exists(__DIR__ . '/session.php')) {
+                require_once __DIR__ . '/session.php';
+            }
+            if (function_exists('startSecureSession')) {
+                startSecureSession();
+            } else {
+                session_start();
+            }
         }
 
         if (empty($_SESSION['kappicrypt_priv']) || empty($_SESSION['kappicrypt_pub'])) {

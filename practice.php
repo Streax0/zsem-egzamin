@@ -110,6 +110,25 @@ function practiceSessionTag(string $session): string {
 
 function getExamExplanation($qual, $year, $session) {
     $customGuides = [
+        'INF.03-2024-Czerwiec' => [
+            'overview' => 'Zadanie egzaminacyjne wymagało utworzenia <strong class="text-primary">portalu ogłoszeniowego lub forum dyskusyjnego</strong> z panelem dodawania wpisów, dynamicznym filtrowaniem kategorii i zabezpieczeniem przed atakami SQL Injection oraz XSS.',
+            'steps' => [
+                'Baza Danych i Kwerendy SQL' => '1. Zaimportuj plik <code>baza.sql</code> przez phpMyAdmin do bazy <code>ogloszenia</code>.<br>2. Przygotuj 4 kwerendy w pliku <code>kwerendy.txt</code>:<br>• Wybór aktywnych ogłoszeń z danej kategorii:<br><code class="d-block bg-dark text-white p-2 rounded my-2">SELECT id, tytul, tresc, data_dodania FROM ogloszenia WHERE kategoria_id = 1 ORDER BY data_dodania DESC;</code><br>• Zliczenie ogłoszeń każdego użytkownika:<br><code class="d-block bg-dark text-white p-2 rounded my-2">SELECT u.login, COUNT(o.id) AS liczba FROM uzytkownicy u LEFT JOIN ogloszenia o ON u.id = o.uzytkownik_id GROUP BY u.id;</code>',
+                'Projektowanie Witryny (HTML5 i CSS3)' => '1. Utwórz plik <code>index.php</code> ze standardem HTML5 i kodowaniem UTF-8.<br>2. Podziel stronę na nagłówek, menu boczne i sekcję główną zgodnie z rysunkiem z arkusza.<br>3. Zastosuj arkusz stylów <code>styl.css</code>. Wycentruj układ i ostyluj karty ogłoszeń z cieniem i zaokrągleniami narożników.',
+                'Skrypty PHP i Interakcja z Bazą' => '1. Nawiąż połączenie PDO z bazą danych MySQL.<br>2. Odbierz dane z formularza dodawania ogłoszenia i zabezpiecz wejścia za pomocą <code>htmlspecialchars()</code>.<br>3. Wykonaj bezpieczne zapytanie <code>INSERT</code> za pomocą prepared statements.<br>4. Po dodaniu ogłoszenia wyświetl komunikat potwierdzający i odśwież listę wpisów.',
+                'Skrypt Walidacji w JavaScript' => '1. W pliku <code>skrypt.js</code> obsłuż zdarzenie wysyłania formularza.<br>2. Sprawdź, czy tytuł ma co najmniej 3 znaki, a treść co najmniej 10 znaków.<br>3. W razie błędów zablokuj wysyłanie przyciskiem (<code>e.preventDefault()</code>) i wyświetl czytelne ostrzeżenie w kolorze czerwonym.'
+            ]
+        ],
+        'INF.02-2024-Czerwiec' => [
+            'overview' => 'Zadanie praktyczne koncentrowało się na <strong class="text-warning">konfiguracji stacji roboczej, montażu podzespołów, przygotowaniu kabla sieciowego UTP oraz instalacji usług sieciowych w systemie Linux</strong>.',
+            'steps' => [
+                'Montaż i Sprawdzenie Okablowania' => '1. Zaciśnij kabel prosty UTP kat. 5e z wtykami RJ-45 według standardu <strong>T568B</strong>.<br>2. Przetestuj poprawność połączenia żył miernikiem sieciowym. Wszystkie diody 1-8 powinny zapalać się sekwencyjnie.',
+                'Diagnostyka i Montaż Komputera' => '1. Odłącz zasilanie i załóż opaskę ESD.<br>2. Zamontuj dysk twardy oraz dodatkową pamięć RAM.<br>3. Uruchom komputer, wejdź do BIOS/UEFI i zweryfikuj czy dysk i pamięć są poprawnie wykrywane w pełnej pojemności.',
+                'Konfiguracja Adresacji i Udostępniania' => '1. W systemie Windows ustaw statyczny adres IP podany w arkuszu.<br>2. Utwórz folder <code>Dokumenty_Wspolne</code> i skonfiguruj udostępnianie SMB oraz uprawnienia NTFS dla wyznaczonych użytkowników.',
+                'Zarządzanie Użytkownikami i Usługami w Linux' => '1. W systemie Linux utwórz grupę <code>serwis</code> i użytkownika <code>technik</code>.<br>2. Skonfiguruj zaporę ogniową (UFW) zezwalając na połączenia SSH oraz ICMP ping:<br><code class="d-block bg-dark text-white p-2 rounded my-2">sudo ufw allow ssh\nsudo ufw enable</code><br>3. Sprawdź łączność poleceniem <code>ping</code> i sporządź zrzuty ekranu do dokumentacji.'
+            ]
+        ],
+
         'INF.03-2026-Styczeń' => [
             'overview' => 'Zadanie polegało na stworzeniu <strong class="text-primary">dynamicznej aplikacji webowej do obsługi rezerwacji hotelowych lub zgłoszeń</strong>, zintegrowanej z bazą danych MySQL i wyposażonej w zaawansowaną walidację formularza po stronie klienta (JavaScript) oraz bezpieczne przetwarzanie danych po stronie serwera (PHP z PDO).',
             'steps' => [
@@ -339,7 +358,7 @@ if (!is_array($exams)) {
             }
         }
     }
-    @file_put_contents($sheetsCacheFile, json_encode($exams, JSON_UNESCAPED_UNICODE));
+    @file_put_contents($sheetsCacheFile, json_encode($exams, JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
 // Sort exams by year desc, then session desc (Czerwiec > Styczeń)
@@ -433,6 +452,29 @@ unset($qualExams);
         
         @media (max-width: 991.98px) { .practice-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
         @media (max-width: 575.98px) { .practice-grid { grid-template-columns:1fr; } }
+    
+        .sheet-step-item code {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 0.15rem 0.45rem;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-family: var(--czcionka-mono, monospace);
+        }
+        body.dark-mode .sheet-step-item code {
+            background: #090d16;
+            color: #67e8f9;
+        }
+        .sheet-step-item code.d-block {
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body.dark-mode #modal-overview-container {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
     </style>
 </head>
 <body>
@@ -593,7 +635,7 @@ unset($qualExams);
                                                 <!-- Przyciski pobierania -->
                                                 <div class="d-flex flex-wrap gap-2 mb-3 mt-auto">
                                                     <?php if ($exam['exam_file']): ?>
-                                                        <a href="<?php echo htmlspecialchars($exam['exam_file']); ?>" target="_blank" class="sheet-btn sheet-btn-primary flex-fill justify-content-center">
+                                                        <a href="<?php echo htmlspecialchars($exam['exam_file']); ?>" target="_blank" rel="noopener noreferrer" class="sheet-btn sheet-btn-primary flex-fill justify-content-center">
                                                             <i class="bi bi-file-earmark-pdf"></i> Arkusz
                                                         </a>
                                                     <?php else: ?>
@@ -603,7 +645,7 @@ unset($qualExams);
                                                     <?php endif; ?>
 
                                                     <?php if ($exam['grading_file']): ?>
-                                                        <a href="<?php echo htmlspecialchars($exam['grading_file']); ?>" target="_blank" class="sheet-btn sheet-btn-success flex-fill justify-content-center">
+                                                        <a href="<?php echo htmlspecialchars($exam['grading_file']); ?>" target="_blank" rel="noopener noreferrer" class="sheet-btn sheet-btn-success flex-fill justify-content-center">
                                                             <i class="bi bi-check-square"></i> Ocenianie
                                                         </a>
                                                     <?php else: ?>
@@ -726,6 +768,49 @@ function buildGuideFilters(group) {
     });
 }
 
+function renderSafeGuideHtml(htmlString) {
+    if (!htmlString) return '';
+    const template = document.createElement('template');
+    template.innerHTML = String(htmlString);
+    const allowedTags = new Set(['BR', 'CODE', 'STRONG', 'B', 'I', 'EM', 'SPAN', 'U', 'PRE', 'P', 'DIV', 'UL', 'OL', 'LI', 'A']);
+    
+    function sanitize(node) {
+        const children = Array.from(node.childNodes);
+        for (const child of children) {
+            if (child.nodeType === Node.ELEMENT_NODE) {
+                if (!allowedTags.has(child.tagName)) {
+                    const textNode = document.createTextNode(child.textContent);
+                    node.replaceChild(textNode, child);
+                } else {
+                    const attrs = Array.from(child.attributes);
+                    for (const attr of attrs) {
+                        const name = attr.name.toLowerCase();
+                        if (name === 'class') {
+                            // Keep safe classes
+                        } else if (name === 'style') {
+                            if (/expression|javascript|vbscript/i.test(attr.value)) {
+                                child.removeAttribute(attr.name);
+                            }
+                        } else if (name === 'href' && child.tagName === 'A') {
+                            if (!/^https?:\/\//i.test(attr.value)) {
+                                child.removeAttribute(attr.name);
+                            } else {
+                                child.setAttribute('target', '_blank');
+                                child.setAttribute('rel', 'noopener noreferrer');
+                            }
+                        } else {
+                            child.removeAttribute(attr.name);
+                        }
+                    }
+                    sanitize(child);
+                }
+            }
+        }
+    }
+    sanitize(template.content);
+    return template.innerHTML;
+}
+
 function showExamGuide(btn) {
     const qual = btn.getAttribute('data-qual');
     const year = btn.getAttribute('data-year');
@@ -737,7 +822,7 @@ function showExamGuide(btn) {
     
     document.getElementById('modal-qual-badge').innerText = qual;
     document.getElementById('examGuideModalLabel').innerText = session + ' ' + year + ' - Poradnik';
-    document.getElementById('modal-overview-text').textContent = overview || '';
+    document.getElementById('modal-overview-text').innerHTML = renderSafeGuideHtml(overview || '');
     renderBadgeList(document.getElementById('modal-areas-container'), areas, 'text-success');
     renderBadgeList(document.getElementById('modal-concepts-container'), concepts, 'text-primary');
     
@@ -747,12 +832,14 @@ function showExamGuide(btn) {
     let stepNum = 1;
     for (const [title, text] of Object.entries(steps)) {
         const item = document.createElement('div');
-        item.className = 'sheet-step-item align-items-start d-flex gap-3';
+        item.className = 'sheet-step-item align-items-start d-flex gap-3 p-3 rounded-4 mb-2';
+        item.style.background = 'rgba(148, 163, 184, 0.05)';
+        item.style.border = '1px solid rgba(148, 163, 184, 0.12)';
         item.innerHTML = `
-            <div class="sheet-step-num mt-1 flex-shrink-0" style="width: 28px; height: 28px; border-radius: 8px; background: rgba(37,99,235,0.15); color: var(--primary-color-dark); display: grid; place-items: center; font-weight: 800; font-size: 0.85rem;">${stepNum++}</div>
-            <div>
-                <div class="fw-bold" style="color: var(--text-main); font-size: 0.95rem;">${escapeHtml(title)}</div>
-                <div class="text-muted small" style="line-height: 1.6;">${escapeHtml(String(text || ''))}</div>
+            <div class="sheet-step-num mt-1 flex-shrink-0" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(37,99,235,0.15); color: var(--primary-color-dark); display: grid; place-items: center; font-weight: 800; font-size: 0.9rem;">${stepNum++}</div>
+            <div class="flex-grow-1 min-w-0">
+                <div class="fw-bold mb-1" style="color: var(--text-main); font-size: 1rem;">${escapeHtml(title)}</div>
+                <div class="text-muted small" style="line-height: 1.65;">${renderSafeGuideHtml(String(text || ''))}</div>
             </div>
         `;
         container.appendChild(item);

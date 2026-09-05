@@ -32,6 +32,7 @@ if (mb_strlen($query) < 1) {
 }
 
 try {
+    $escapedQuery = '%' . addcslashes($query, '%_\\') . '%';
     if (roleHasAdminAccess($role)) {
         $stmt = $pdo->prepare("
             SELECT id, username, role, is_verified, xp, allow_friend_requests, last_activity, avatar_path
@@ -40,7 +41,7 @@ try {
             ORDER BY last_activity DESC, xp DESC, username ASC
             LIMIT 6
         ");
-        $stmt->execute([$userId, '%' . $query . '%']);
+        $stmt->execute([$userId, $escapedQuery]);
     } else {
         $stmt = $pdo->prepare("
             SELECT id, username, role, is_verified, xp, allow_friend_requests, last_activity, avatar_path
@@ -49,7 +50,7 @@ try {
             ORDER BY last_activity DESC, xp DESC, username ASC
             LIMIT 6
         ");
-        $stmt->execute([$userId, '%' . $query . '%']);
+        $stmt->execute([$userId, $escapedQuery]);
     }
 
     $rows = [];

@@ -123,26 +123,80 @@
         syncSettingsOverviewCards();
     }
 
-    function syncAccentUi(accentColor) {
-        let foundPreset = false;
-        document.querySelectorAll('.accent-dot').forEach(dot => {
+    function updateThemeLivePreview(primary, secondary) {
+        const previewBanner = document.getElementById('themePreviewBanner');
+        const previewBtn = document.getElementById('themePreviewBtn');
+        const previewBadge = document.getElementById('accentSecondaryPreview') || document.getElementById('themePreviewBadge');
+        const previewProgress = document.getElementById('themeProgress') || document.getElementById('themePreviewProgress');
+        const previewPrimaryHex = document.getElementById('themePreviewPrimaryHex');
+        const previewSecondaryHex = document.getElementById('themePreviewSecondaryHex');
+
+        if (previewBanner) {
+            previewBanner.style.background = `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`;
+        }
+        if (previewBtn) {
+            previewBtn.style.background = primary;
+            previewBtn.style.borderColor = primary;
+        }
+        if (previewBadge) {
+            previewBadge.style.color = secondary;
+            previewBadge.style.borderColor = secondary;
+            previewBadge.style.background = `color-mix(in srgb, ${secondary} 15%, transparent)`;
+        }
+        if (previewProgress) {
+            previewProgress.style.background = `linear-gradient(90deg, ${primary}, ${secondary})`;
+        }
+        if (previewPrimaryHex) previewPrimaryHex.textContent = primary;
+        if (previewSecondaryHex) previewSecondaryHex.textContent = secondary;
+    }
+
+    function syncAccentUi(accentColor, secondaryColor) {
+        const primary = /^#[0-9a-fA-F]{6}$/.test(accentColor) ? accentColor : readPreference('user_accent', '#3b82f6');
+        const secondary = /^#[0-9a-fA-F]{6}$/.test(secondaryColor) ? secondaryColor : readPreference('user_accent_secondary', '#10b981');
+
+        let foundPrimaryPreset = false;
+        document.querySelectorAll('.accent-dot:not(.secondary-dot)').forEach(dot => {
             const dotColor = dot.getAttribute('data-color');
-            if (dotColor === accentColor) {
+            if (dotColor && dotColor.toLowerCase() === primary.toLowerCase()) {
                 dot.classList.add('active');
-                foundPreset = true;
+                foundPrimaryPreset = true;
             } else {
                 dot.classList.remove('active');
             }
         });
         const customInput = document.getElementById('accentColor');
         if (customInput) {
-            customInput.style.setProperty('--accent-custom-color', accentColor);
-            if (!foundPreset) {
+            customInput.value = primary;
+            customInput.style.setProperty('--accent-custom-color', primary);
+            if (!foundPrimaryPreset) {
                 customInput.classList.add('active');
             } else {
                 customInput.classList.remove('active');
             }
         }
+
+        let foundSecondaryPreset = false;
+        document.querySelectorAll('.secondary-accent-dot, .accent-dot.secondary-dot').forEach(dot => {
+            const dotColor = dot.getAttribute('data-color');
+            if (dotColor && dotColor.toLowerCase() === secondary.toLowerCase()) {
+                dot.classList.add('active');
+                foundSecondaryPreset = true;
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        const customSecondaryInput = document.getElementById('accentColorSecondary');
+        if (customSecondaryInput) {
+            customSecondaryInput.value = secondary;
+            customSecondaryInput.style.setProperty('--accent-custom-color', secondary);
+            if (!foundSecondaryPreset) {
+                customSecondaryInput.classList.add('active');
+            } else {
+                customSecondaryInput.classList.remove('active');
+            }
+        }
+
+        updateThemeLivePreview(primary, secondary);
     }
 
     function syncWelcomeBannerStyleUi(activeStyle) {
@@ -160,8 +214,14 @@
             const reader = new FileReader();
             reader.onload = function (e) {
                 const previewWrapper = document.querySelector('.avatar-preview-wrapper');
-                if (previewWrapper) {
-                    previewWrapper.innerHTML = `<img src="${e.target.result}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" decoding="async">`;
+                if (previewWrapper && typeof e.target?.result === 'string') {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Avatar';
+                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                    img.loading = 'lazy';
+                    img.decoding = 'async';
+                    previewWrapper.replaceChildren(img);
                 }
             };
             reader.readAsDataURL(input.files[0]);
@@ -197,11 +257,23 @@
             window.updateAccentSetting(color);
         }
         applyUiPreferences();
-        syncAccentUi(color);
+        const secondary = readPreference('user_accent_secondary', '#10b981');
+        syncAccentUi(color, secondary);
+    };
+
+    window.pickSecondaryAccent = function (color) {
+        const input = document.getElementById('accentColorSecondary');
+        if (input) input.value = color;
+        if (window.updateSecondaryAccentSetting) {
+            window.updateSecondaryAccentSetting(color);
+        }
+        applyUiPreferences();
+        const primary = readPreference('user_accent', '#3b82f6');
+        syncAccentUi(primary, color);
     };
 
     window.resetUiPrefs = function () {
-        ['user_density','user_accent','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
+        ['user_density','user_accent','user_accent_secondary','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
             const secure = location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = `${n}=; path=/; max-age=0; SameSite=Lax${secure}`;
             try { safeStorage.removeItem(n); } catch (error) {}
@@ -300,10 +372,18 @@
 
             const credential = await navigator.credentials.create({ publicKey: publicKey });
 
+            const csrfToken = document.querySelector('input[name="csrf_token"]')?.value
+                || document.querySelector('meta[name="csrf-token"]')?.content
+                || window.csrfToken
+                || '';
+
             const formData = new FormData();
             formData.append('action', 'verify');
             formData.append('clientDataJSON', bufToBase64(credential.response.clientDataJSON));
             formData.append('attestationObject', bufToBase64(credential.response.attestationObject));
+            if (csrfToken) {
+                formData.append('csrf_token', csrfToken);
+            }
 
             let deviceName = (window.appPrompt ? await appPrompt('Podaj krótką nazwę dla tego urządzenia:', 'Moje urządzenie') : 'Moje urządzenie');
             if (!deviceName) deviceName = 'Moje urządzenie';
@@ -311,6 +391,7 @@
 
             const verifyRes = await fetch(passkeyUrl, {
                 method: 'POST',
+                headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
                 body: formData
             });
             const verifyData = await verifyRes.json();
@@ -338,12 +419,20 @@
     window.deletePasskey = async function (id) {
         try {
             const passkeyUrl = (window.location.pathname.includes('/user/') ? '../' : '') + 'ajax/passkey_register.php';
+            const csrfToken = document.querySelector('input[name="csrf_token"]')?.value
+                || document.querySelector('meta[name="csrf-token"]')?.content
+                || window.csrfToken
+                || '';
             const formData = new FormData();
             formData.append('action', 'delete');
             formData.append('id', id);
+            if (csrfToken) {
+                formData.append('csrf_token', csrfToken);
+            }
 
             const res = await fetch(passkeyUrl, {
                 method: 'POST',
+                headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
                 body: formData
             });
             const data = await res.json();
@@ -377,6 +466,10 @@
         const accentInput = document.getElementById('accentColor');
         if (accentInput && /^#[0-9a-fA-F]{6}$/.test(accent)) accentInput.value = accent;
 
+        const secondaryAccent = readPreference('user_accent_secondary', '#10b981');
+        const secondaryAccentInput = document.getElementById('accentColorSecondary');
+        if (secondaryAccentInput && /^#[0-9a-fA-F]{6}$/.test(secondaryAccent)) secondaryAccentInput.value = secondaryAccent;
+
         const dashboard = readPreference('dashboard_view', 'balanced');
         const dashboardSelect = document.getElementById('dashboardView');
         if (dashboardSelect && ['balanced', 'learning', 'compact'].includes(dashboard)) dashboardSelect.value = dashboard;
@@ -389,7 +482,7 @@
         const welcomeStyleSelect = document.getElementById('welcomeBannerStyleSelect');
         if (welcomeStyleSelect && ['gradient', 'pure', 'aurora', 'glass'].includes(welcomeStyle)) welcomeStyleSelect.value = welcomeStyle;
         syncWelcomeBannerStyleUi(welcomeStyle);
-        syncAccentUi(accent);
+        syncAccentUi(accent, secondaryAccent);
 
         const motion = document.getElementById('motionSwitch');
         if (motion) motion.checked = readPreference('reduce_motion', '0') === '1';
@@ -408,13 +501,41 @@
         if (sounds) sounds.checked = safeStorage.getItem('ui_sounds', '0') === '1';
         applyUiPreferences();
 
+        const primaryInput = document.getElementById('accentColor');
+        const secondaryInput = document.getElementById('accentColorSecondary');
+
+        if (primaryInput) {
+            primaryInput.addEventListener('input', (e) => {
+                const p = e.target.value;
+                const s = secondaryInput?.value || readPreference('user_accent_secondary', '#10b981');
+                window.previewAccentColors?.(p, s);
+                updateThemeLivePreview(p, s);
+            });
+            primaryInput.addEventListener('change', (e) => {
+                window.pickAccent(e.target.value);
+            });
+        }
+
+        if (secondaryInput) {
+            secondaryInput.addEventListener('input', (e) => {
+                const s = e.target.value;
+                const p = primaryInput?.value || readPreference('user_accent', '#3b82f6');
+                window.previewAccentColors?.(p, s);
+                updateThemeLivePreview(p, s);
+            });
+            secondaryInput.addEventListener('change', (e) => {
+                window.pickSecondaryAccent(e.target.value);
+            });
+        }
+
         document.querySelectorAll('#dashboardView, #defaultTestMode, #themeSelect, #densitySelect, #notifySwitch, #soundsSwitch, #externalTabSwitch, #motionSwitch, #welcomeBannerStyleSelect').forEach((el) => {
             el.addEventListener('change', () => setTimeout(() => {
                 applyUiPreferences();
                 syncSettingsMiniCards();
                 syncSettingsOverviewCards();
                 const accent = readPreference('user_accent', '#3b82f6');
-                syncAccentUi(accent);
+                const secondary = readPreference('user_accent_secondary', '#10b981');
+                syncAccentUi(accent, secondary);
                 const welcomeStyle = readPreference('welcome_banner_style', 'gradient');
                 syncWelcomeBannerStyleUi(welcomeStyle);
             }, 40));

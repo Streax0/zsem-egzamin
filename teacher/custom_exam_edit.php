@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $filename = $userId . '_' . $slug . '_' . time() . '.json';
     }
 
-    file_put_contents($customDir . '/' . $filename, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    file_put_contents($customDir . '/' . $filename, json_encode($saveData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
     setSessionMessage('success', $isEdit ? 'Sprawdzian zaktualizowany.' : 'Sprawdzian zapisany.');
     redirect('custom_exams.php');
 }

@@ -4960,7 +4960,12 @@
             if (!container) return;
             const toast = document.createElement('div');
             toast.className = 'cli-toast';
-            toast.innerHTML = `<i class="bi bi-info-circle-fill text-info"></i><span>${msg}</span>`;
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-info-circle-fill text-info';
+            const span = document.createElement('span');
+            span.textContent = msg;
+            toast.appendChild(icon);
+            toast.appendChild(span);
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';

@@ -144,7 +144,7 @@ if (empty($errors) && isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ??
         $userRole = (string)($_SESSION['role'] ?? 'user');
         $avatarLimit = canUserChangeAvatar($pdo, $userId, $userRole);
         if (!$avatarLimit['allowed']) {
-            $errors[] = "Zdjęcie profilowe możesz zmienić ponownie za {$avatarLimit['days_left']} dni (limit: raz na 30 dni dla uczniów).";
+            $errors[] = "Zdjęcie profilowe możesz zmienić ponownie za {$avatarLimit['days_left']} dni.";
         }
         $tmp = (string)($file['tmp_name'] ?? '');
         if (empty($errors) && ($tmp === '' || !is_uploaded_file($tmp))) {

@@ -126,10 +126,22 @@
         showHintContent('<span style="color:#94a3b8"><i class="bi bi-hourglass-split me-1"></i>Ładowanie...</span>', tier);
 
         try {
+            const csrfToken = document.querySelector('input[name="csrf_token"]')?.value
+                || document.querySelector('meta[name="csrf-token"]')?.content
+                || window.csrfToken
+                || '';
             const fd = new FormData();
             fd.append('question_id', qId);
             fd.append('tier', tier);
-            const res  = await fetch('actions/get_hint.php', { method: 'POST', body: fd, credentials: 'same-origin' });
+            if (csrfToken) {
+                fd.append('csrf_token', csrfToken);
+            }
+            const res = await fetch('actions/get_hint.php', {
+                method: 'POST',
+                headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+                body: fd,
+                credentials: 'same-origin'
+            });
             const data = await res.json();
 
             if (!data.success) {
@@ -147,7 +159,7 @@
                             border-radius:8px;font-weight:700;text-decoration:line-through">${escHtml(l)}</span>`).join('')}
                     </div>`;
             } else {
-                html = `<p style="margin:0">${escHtml(data.hint || '')}</p>`;
+                html = `<p style="margin:0;white-space:pre-line">${escHtml(data.hint || '')}</p>`;
             }
 
             // Cache

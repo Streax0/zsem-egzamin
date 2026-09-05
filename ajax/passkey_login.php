@@ -10,7 +10,6 @@ require_once __DIR__ . '/../includes/auth.php';
 use lbuchs\WebAuthn\WebAuthn;
 use lbuchs\WebAuthn\WebAuthnException;
 
-error_reporting(0);
 securityApplyJsonHeaders();
 
 startSecureSession();

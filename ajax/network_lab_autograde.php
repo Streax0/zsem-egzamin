@@ -11,6 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     securitySendJson(['success' => false, 'message' => 'Tylko zapytania POST są obsługiwane.'], 405);
 }
 
+requireJsonCsrfToken();
+
 $raw = file_get_contents('php://input');
 $data = json_decode($raw, true);
 if (!is_array($data)) {

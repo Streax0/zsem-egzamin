@@ -1577,6 +1577,31 @@
             border: 1px solid rgba(255, 255, 255, 0.05) !important;
         }
 
+        /* High-contrast active state for difficulty buttons */
+        .segmented-btn.difficulty-btn.active,
+        .difficulty-btn.active {
+            background: var(--primary-color, #2563eb) !important;
+            color: #ffffff !important;
+            border: 2px solid var(--primary-color, #2563eb) !important;
+            font-weight: 700 !important;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+        }
+        .segmented-btn.difficulty-btn.active i,
+        .difficulty-btn.active i {
+            color: #ffffff !important;
+        }
+        body.dark-mode .segmented-btn.difficulty-btn.active,
+        body.dark-mode .difficulty-btn.active {
+            background: var(--primary-color, #3b82f6) !important;
+            color: #ffffff !important;
+            border: 2px solid #93c5fd !important;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.55) !important;
+        }
+        body.dark-mode .segmented-btn.difficulty-btn.active i,
+        body.dark-mode .difficulty-btn.active i {
+            color: #ffffff !important;
+        }
+
         /* Accordion buttons luxury style */
         #categoryAccordion .accordion-button:not(.collapsed) {
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(59, 130, 246, 0) 100%) !important;

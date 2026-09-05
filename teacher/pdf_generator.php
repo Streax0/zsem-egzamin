@@ -132,7 +132,34 @@ function worksheetGroupLabels(int $count): array {
     return array_slice(range('A', 'J'), 0, $count);
 }
 
-function worksheetBuildGroups(array $questions, int $questionCount, int $groupCount, string $groupStrategy): array {
+function worksheetShuffleQuestionOptions(array $question): array {
+    if (worksheetQuestionIsOpen($question)) {
+        return $question;
+    }
+    $letters = ['a', 'b', 'c', 'd'];
+    $correctKey = strtolower(worksheetCorrectAnswer($question['correct_answer'] ?? 'A') ?: 'a');
+
+    $options = [];
+    foreach ($letters as $l) {
+        $options[] = [
+            'letter' => $l,
+            'text' => $question['option_' . $l] ?? '',
+            'is_correct' => ($l === $correctKey)
+        ];
+    }
+    shuffle($options);
+
+    $shuffledQuestion = $question;
+    foreach ($letters as $idx => $l) {
+        $shuffledQuestion['option_' . $l] = $options[$idx]['text'];
+        if ($options[$idx]['is_correct']) {
+            $shuffledQuestion['correct_answer'] = strtoupper($l);
+        }
+    }
+    return $shuffledQuestion;
+}
+
+function worksheetBuildGroups(array $questions, int $questionCount, int $groupCount, string $groupStrategy, bool $shuffleAnswers = false): array {
     $labels = worksheetGroupLabels($groupCount);
     $questionCount = max(1, min(120, $questionCount));
     $groupStrategy = in_array($groupStrategy, ['same', 'rotate', 'unique'], true) ? $groupStrategy : 'unique';
@@ -149,12 +176,21 @@ function worksheetBuildGroups(array $questions, int $questionCount, int $groupCo
         } elseif ($groupStrategy === 'rotate') {
             $pool = $questions;
             if (!empty($pool)) {
-                $shift = $groupIndex % count($pool);
+                $shift = ($groupIndex * 7) % count($pool);
                 $pool = array_merge(array_slice($pool, $shift), array_slice($pool, 0, $shift));
             }
             $slice = array_slice($pool, 0, $questionCount);
         } else {
             $slice = array_slice($questions, 0, $questionCount);
+            if ($groupIndex > 0) {
+                // Ensure Group B+ has shuffled or rotated order
+                $shift = ($groupIndex * 5) % max(1, count($slice));
+                $slice = array_merge(array_slice($slice, $shift), array_slice($slice, 0, $shift));
+            }
+        }
+
+        if ($shuffleAnswers) {
+            $slice = array_map('worksheetShuffleQuestionOptions', $slice);
         }
 
         $groups[] = [
@@ -409,7 +445,7 @@ if ($submitted) {
 }
 
 if (!empty($selected)) {
-    $worksheetGroups = worksheetBuildGroups($selected, $questionCount, $groupCount, $groupStrategy);
+    $worksheetGroups = worksheetBuildGroups($selected, $questionCount, $groupCount, $groupStrategy, $shuffleAnswers);
 }
 
 $currentUserStmt = $pdo->prepare("SELECT username, first_name, last_name FROM users WHERE id = ? LIMIT 1");
@@ -962,16 +998,89 @@ $extraHead = <<<HTML
             line-height:1;
             flex:0 0 auto;
         }
-        .worksheet-open-space {
-            height:128px;
-            border:1px solid #d1d5db;
-            border-radius:0;
+        .worksheet-open-space,
+        .worksheet-open-grid {
+            height:120px;
+            border:1px dashed #94a3b8;
+            border-radius:4px;
             margin-top:.75rem;
             background-color:#fff;
             background-image:
                 linear-gradient(#d8dce2 1px, transparent 1px),
                 linear-gradient(90deg, #d8dce2 1px, transparent 1px);
             background-size:18px 18px;
+        }
+        .worksheet-student-header-box {
+            border:2px solid #111827;
+            border-radius:8px;
+            padding:.85rem 1.15rem;
+            margin-bottom:1.25rem;
+            background:#fff;
+        }
+        .worksheet-student-header-top {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding-bottom:.5rem;
+            margin-bottom:.65rem;
+            border-bottom:1px solid #e2e8f0;
+        }
+        .worksheet-exam-title {
+            font-size:1.1rem;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:.02em;
+            display:flex;
+            align-items:center;
+            gap:.75rem;
+        }
+        .worksheet-group-badge {
+            background:#111827;
+            color:#fff;
+            padding:.2rem .65rem;
+            border-radius:4px;
+            font-size:.85rem;
+            font-weight:800;
+        }
+        .worksheet-exam-date {
+            font-family:monospace;
+            font-size:.8rem;
+            color:#64748b;
+        }
+        .worksheet-student-header-grid {
+            display:grid;
+            grid-template-columns:1fr auto;
+            gap:1.25rem;
+            align-items:center;
+        }
+        .worksheet-student-data {
+            font-size:.92rem;
+            line-height:1.8;
+        }
+        .worksheet-line-row {
+            display:flex;
+            gap:1.5rem;
+            margin-top:.25rem;
+        }
+        .worksheet-student-score-box {
+            border:1.5px solid #111827;
+            border-radius:6px;
+            padding:.5rem .85rem;
+            text-align:center;
+            background:#f8fafc;
+            min-width:220px;
+        }
+        .worksheet-score-title {
+            font-size:.72rem;
+            text-transform:uppercase;
+            font-weight:800;
+            letter-spacing:.05em;
+            color:#475569;
+            margin-bottom:.25rem;
+        }
+        .worksheet-score-numbers {
+            font-family:monospace;
+            font-size:.95rem;
         }
         .answer-key-page {
             page-break-before:always;
@@ -1145,9 +1254,9 @@ $extraHead = <<<HTML
             .worksheet-page { padding:1rem; }
         }
         @media print {
-            @page { size:A4; margin:12mm; }
-            html, body { background:#fff !important; color:#111827 !important; }
-            .sidebar, .topbar, .main-footer, .no-print { display:none !important; }
+            @page { size:A4; margin:10mm; }
+            html, body { background:#fff !important; color:#111827 !important; font-size:10pt !important; }
+            .sidebar, .topbar, .main-footer, .no-print, header.top-header, nav, .alert { display:none !important; }
             .main-container { margin:0 !important; padding:0 !important; }
             .content-body { padding:0 !important; background:#fff !important; }
             .generator-shell { max-width:none !important; margin:0 !important; }
@@ -1161,8 +1270,18 @@ $extraHead = <<<HTML
                 box-shadow:none !important;
             }
             .worksheet-options { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-            .worksheet-group-page { page-break-before:always; break-before:page; }
-            .worksheet-cover + .worksheet-group-page { page-break-before:auto; break-before:auto; }
+            .worksheet-group-page { page-break-before:always; break-before:page; margin-top:0 !important; padding-top:0 !important; border:0 !important; }
+            .worksheet-group-page:first-of-type { page-break-before:avoid; break-before:avoid; }
+            .worksheet-cover { display:none !important; }
+            .worksheet-student-header-box { page-break-inside:avoid; break-inside:avoid; margin-bottom:12px !important; }
+            .worksheet-question { page-break-inside:avoid; break-inside:avoid; margin-bottom:10px !important; }
+            .worksheet-open-space {
+                height:110px !important;
+                border:1px dashed #94a3b8 !important;
+                background-image:repeating-linear-gradient(transparent, transparent 21px, #cbd5e1 21px, #cbd5e1 22px) !important;
+                page-break-inside:avoid;
+            }
+            .answer-key-page { page-break-before:always; break-before:page; }
             .answer-key { columns:4 140px !important; }
             a[href]::after { content:""; }
         }
@@ -1560,19 +1679,12 @@ include '../includes/header.php';
                         }
                     ?>
                     <article class="worksheet-page" id="worksheetPrintSource" data-print-title="<?php echo htmlspecialchars($title); ?>">
-                        <header class="worksheet-cover">
-                            <div class="worksheet-student-header">
-                                <div class="worksheet-student-lines">
-                                    <div>Grupa <span class="worksheet-group-chip"><?php echo htmlspecialchars($worksheetHeaderGroup); ?></span> Klasa ....................................</div>
-                                    <div>Imię i nazwisko ....................................................................................</div>
-                                </div>
-                                <div class="worksheet-points-total">Liczba punktów ........ / <?php echo (int)$worksheetTotalPoints; ?></div>
-                            </div>
-                            <div class="d-flex justify-content-between gap-3 worksheet-title-row">
+                        <header class="worksheet-cover no-print">
+                            <div class="d-flex justify-content-between align-items-center gap-3 worksheet-title-row mb-3">
                                 <div>
                                     <h1 class="h3 fw-bold mb-1"><?php echo htmlspecialchars($title); ?></h1>
                                     <?php if ($description !== ''): ?>
-                                        <p class="mb-1"><?php echo htmlspecialchars($description); ?></p>
+                                        <p class="mb-1 text-muted"><?php echo htmlspecialchars($description); ?></p>
                                     <?php endif; ?>
                                     <p class="worksheet-title-meta small mb-0">
                                         Źródło: <?php echo htmlspecialchars($generationSourceLabel); ?> ·
@@ -1582,52 +1694,88 @@ include '../includes/header.php';
                                         Data: <?php echo date('d.m.Y'); ?>
                                     </p>
                                 </div>
-                                <div class="text-end small text-muted">ZSEM Tech</div>
-                            </div>
-                            <div class="worksheet-meta">
-                                <div>Imię i nazwisko:<br>................................</div>
-                                <div>Klasa:<br>....................</div>
-                                <div>Nr w dzienniku:<br>....................</div>
-                                <div>Wynik:<br>....................</div>
+                                <div class="text-end small text-muted">ZSEM Tech Generator</div>
                             </div>
                         </header>
 
                         <?php foreach ($worksheetGroups as $group): ?>
+                            <?php
+                                $groupTotalPoints = 0;
+                                foreach ($group['questions'] as $gq) {
+                                    $groupTotalPoints += worksheetQuestionIsOpen($gq) ? 2 : 1;
+                                }
+                            ?>
                             <section class="worksheet-group-page" data-worksheet-group="<?php echo htmlspecialchars($group['label']); ?>">
-                            <div class="worksheet-group-label"><i class="bi bi-collection"></i>Grupa <?php echo htmlspecialchars($group['label']); ?></div>
-                            <?php foreach ($group['questions'] as $index => $question): ?>
-                                <section class="worksheet-question">
-                                    <h2 class="fw-bold">
-                                        <span class="worksheet-question-number"><?php echo $index + 1; ?></span>
-                                        <span><?php echo htmlspecialchars($question['question_text'] ?? ''); ?></span>
-                                        <span class="worksheet-question-points"><?php echo worksheetQuestionIsOpen($question) ? '2 p.' : '1 p.'; ?></span>
-                                    </h2>
-                                    <?php if (!empty($question['image_url'])): ?>
-                                        <?php $imageSrc = questionImageSrc($question['image_url'], '../'); ?>
-                                        <?php if ($imageSrc): ?>
-                                            <img src="<?php echo htmlspecialchars($imageSrc); ?>" alt="Ilustracja do pytania <?php echo $index + 1; ?> w grupie <?php echo htmlspecialchars($group['label']); ?>" class="mb-2" style="max-width:100%;max-height:220px" loading="lazy" decoding="async">
-                                        <?php endif; ?>
-                                    <?php endif; ?>
-                                    <?php if (worksheetQuestionIsOpen($question)): ?>
-                                        <div class="worksheet-open-space"></div>
-                                    <?php else: ?>
-                                        <div class="worksheet-options">
-                                            <?php foreach (['A', 'B', 'C', 'D'] as $letter): ?>
-                                                <div class="worksheet-option">
-                                                    <strong><?php echo $letter; ?>.</strong>
-                                                    <?php echo htmlspecialchars($question['option_' . strtolower($letter)] ?? ''); ?>
-                                                </div>
-                                            <?php endforeach; ?>
+                                <!-- Clean Exam Sheet Student Header -->
+                                <div class="worksheet-student-header-box worksheet-student-header">
+                                    <div class="worksheet-student-header-top">
+                                        <div class="worksheet-exam-title">
+                                            <span><?php echo htmlspecialchars($title); ?></span>
+                                            <span class="worksheet-group-badge">GRUPA <?php echo htmlspecialchars($group['label']); ?></span>
                                         </div>
-                                    <?php endif; ?>
-                                </section>
-                            <?php endforeach; ?>
+                                        <div class="worksheet-exam-date">
+                                            Data: <?php echo date('d.m.Y'); ?> | ZSEM Tech
+                                        </div>
+                                    </div>
+                                    <div class="worksheet-student-header-grid">
+                                        <div class="worksheet-student-data">
+                                            <div class="worksheet-line-item"><strong>Imię i nazwisko:</strong> ........................................................................................</div>
+                                            <div class="worksheet-line-row">
+                                                <span><strong>Klasa:</strong> ....................</span>
+                                                <span><strong>Nr w dzienniku:</strong> ..........</span>
+                                                <span><strong>Grupa:</strong> <u class="fw-bold">&nbsp;<?php echo htmlspecialchars($group['label']); ?>&nbsp;</u></span>
+                                            </div>
+                                        </div>
+                                        <div class="worksheet-student-score-box worksheet-points-total">
+                                            <div class="worksheet-score-title">Ocena i punktacja</div>
+                                            <div class="worksheet-score-numbers">Punkty: <strong>____ / <?php echo (int)$groupTotalPoints; ?></strong> &nbsp;|&nbsp; Ocena: <strong>____</strong></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="worksheet-group-label no-print"><i class="bi bi-collection"></i>Grupa <?php echo htmlspecialchars($group['label']); ?></div>
+                                <?php foreach ($group['questions'] as $index => $question): ?>
+                                    <section class="worksheet-question">
+                                        <h2 class="fw-bold">
+                                            <span class="worksheet-question-number"><?php echo $index + 1; ?></span>
+                                            <span><?php echo htmlspecialchars($question['question_text'] ?? ''); ?></span>
+                                            <?php if ($showPoints): ?>
+                                                <span class="worksheet-question-points"><?php echo worksheetQuestionIsOpen($question) ? '2 p.' : '1 p.'; ?></span>
+                                            <?php endif; ?>
+                                        </h2>
+                                        <?php if (!empty($question['image_url'])): ?>
+                                            <?php $imageSrc = questionImageSrc($question['image_url'], '../'); ?>
+                                            <?php if ($imageSrc): ?>
+                                                <img src="<?php echo htmlspecialchars($imageSrc); ?>" alt="Ilustracja do pytania <?php echo $index + 1; ?> w grupie <?php echo htmlspecialchars($group['label']); ?>" class="mb-2" style="max-width:100%;max-height:220px" loading="lazy" decoding="async">
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                        <?php if (worksheetQuestionIsOpen($question)): ?>
+                                            <div class="worksheet-open-space worksheet-open-grid"></div>
+                                        <?php else: ?>
+                                            <div class="worksheet-options">
+                                                <?php foreach (['A', 'B', 'C', 'D'] as $letter): ?>
+                                                    <div class="worksheet-option">
+                                                        <span class="worksheet-checkbox">[ ]</span>
+                                                        <strong><?php echo $letter; ?>.</strong>
+                                                        <span><?php echo htmlspecialchars($question['option_' . strtolower($letter)] ?? ''); ?></span>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </section>
+                                <?php endforeach; ?>
+
+                                <footer class="worksheet-footer">
+                                    <span>Arkusz egzaminacyjny — Grupa <?php echo htmlspecialchars($group['label']); ?></span>
+                                    <span>(Punkty: ___ / <?php echo (int)$groupTotalPoints; ?>, Ocena: ___)</span>
+                                    <span>ZSEM Tech &copy; <?php echo date('Y'); ?></span>
+                                </footer>
                             </section>
                         <?php endforeach; ?>
 
                         <?php if ($includeKey): ?>
                             <section class="answer-key-page">
-                                <h2 class="h4 fw-bold">Klucz odpowiedzi</h2>
+                                <h2 class="h4 fw-bold">Klucz Odpowiedzi</h2>
                                 <p class="text-muted small">Ta sekcja zaczyna się od nowej strony.</p>
                                 <div class="answer-key">
                                     <?php foreach ($worksheetGroups as $group): ?>
@@ -1886,9 +2034,9 @@ function printWorksheet() {
         body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #fff; color: #111827; }
         ${css}
         @media print {
-            @page { size:A4; margin:12mm; }
-            html, body { background:#fff !important; color:#111827 !important; }
-            .sidebar, .topbar, .main-footer, .no-print { display:none !important; }
+            @page { size:A4; margin:10mm; }
+            html, body { background:#fff !important; color:#111827 !important; font-size:10pt !important; }
+            .sidebar, .topbar, .main-footer, .no-print, header.top-header, nav, .alert { display:none !important; }
             .main-container { margin:0 !important; padding:0 !important; }
             .content-body { padding:0 !important; background:#fff !important; }
             .generator-shell { max-width:none !important; margin:0 !important; }
@@ -1902,8 +2050,18 @@ function printWorksheet() {
                 box-shadow:none !important;
             }
             .worksheet-options { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
-            .worksheet-group-page { page-break-before:always; break-before:page; }
-            .worksheet-cover + .worksheet-group-page { page-break-before:auto; break-before:auto; }
+            .worksheet-group-page { page-break-before:always; break-before:page; margin-top:0 !important; padding-top:0 !important; border:0 !important; }
+            .worksheet-group-page:first-of-type { page-break-before:avoid; break-before:avoid; }
+            .worksheet-cover { display:none !important; }
+            .worksheet-student-header-box { page-break-inside:avoid; break-inside:avoid; margin-bottom:12px !important; }
+            .worksheet-question { page-break-inside:avoid; break-inside:avoid; margin-bottom:10px !important; }
+            .worksheet-open-space {
+                height:110px !important;
+                border:1px dashed #94a3b8 !important;
+                background-image:repeating-linear-gradient(transparent, transparent 21px, #cbd5e1 21px, #cbd5e1 22px) !important;
+                page-break-inside:avoid;
+            }
+            .answer-key-page { page-break-before:always; break-before:page; }
             .answer-key { columns:4 140px !important; }
             a[href]::after { content:""; }
         }

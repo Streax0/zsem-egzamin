@@ -35,7 +35,11 @@ class Firewall
         $uri = $_SERVER['REQUEST_URI'] ?? '';
         if (str_contains($uri, '/admin/')) {
             if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-                @session_start();
+                if (function_exists('startSecureSession')) {
+                    startSecureSession();
+                } else {
+                    @session_start();
+                }
             }
             $role = (string)($_SESSION['role'] ?? '');
             if (in_array($role, ['admin', 'dyrektor'], true)) {

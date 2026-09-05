@@ -96,7 +96,7 @@ foreach ($queue as $entry) {
 }
 
 if ($action === 'cancel') {
-    @file_put_contents($queueFile, json_encode($activeQueue, JSON_UNESCAPED_UNICODE));
+    @file_put_contents($queueFile, json_encode($activeQueue, JSON_UNESCAPED_UNICODE), LOCK_EX);
     if ($fp) {
         @flock($fp, LOCK_UN);
         @fclose($fp);
@@ -145,7 +145,7 @@ if ($matchedOpponent !== null) {
     ]);
     $duelId = (int)$pdo->lastInsertId();
 
-    @file_put_contents($queueFile, json_encode($remainingQueue, JSON_UNESCAPED_UNICODE));
+    @file_put_contents($queueFile, json_encode($remainingQueue, JSON_UNESCAPED_UNICODE), LOCK_EX);
     if ($fp) {
         @flock($fp, LOCK_UN);
         @fclose($fp);
@@ -169,7 +169,7 @@ $remainingQueue[] = [
     'timestamp' => $now,
 ];
 
-@file_put_contents($queueFile, json_encode($remainingQueue, JSON_UNESCAPED_UNICODE));
+@file_put_contents($queueFile, json_encode($remainingQueue, JSON_UNESCAPED_UNICODE), LOCK_EX);
 if ($fp) {
     @flock($fp, LOCK_UN);
     @fclose($fp);

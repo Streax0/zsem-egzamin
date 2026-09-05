@@ -361,7 +361,7 @@ $bodyClassStr = implode(' ', $bodyClasses);
                                     <?php endif; ?>
                                     <div class="form-check mb-4">
                                         <input class="form-check-input" type="checkbox" name="privacy_consent" id="privacyConsent" required>
-                                        <label class="form-check-label small" for="privacyConsent">Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z <a href="../pages/privacy.php" target="_blank">Polityką Prywatności</a> w celu rejestracji udziału w sprawdzianie.</label>
+                                        <label class="form-check-label small" for="privacyConsent">Wyrażam zgodę na przetwarzanie moich danych osobowych zgodnie z <a href="../pages/privacy.php" target="_blank" rel="noopener noreferrer">Polityką Prywatności</a> w celu rejestracji udziału w sprawdzianie.</label>
                                     </div>
 
                                     <div class="d-grid">

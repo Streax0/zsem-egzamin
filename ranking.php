@@ -254,38 +254,79 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
 
         /* Dark Theme Support */
         [data-bs-theme="dark"] .ranking-stat,
+        body.dark-mode .ranking-stat,
         body.dark-theme .ranking-stat {
-            background: rgba(15, 23, 42, 0.75) !important;
+            background: rgba(15, 23, 42, 0.85) !important;
             border-color: rgba(255, 255, 255, 0.12) !important;
         }
         [data-bs-theme="dark"] .ranking-stat .stat-num,
+        body.dark-mode .ranking-stat .stat-num,
         body.dark-theme .ranking-stat .stat-num {
             color: #ffffff !important;
         }
         [data-bs-theme="dark"] .ranking-stat .stat-title,
+        body.dark-mode .ranking-stat .stat-title,
         body.dark-theme .ranking-stat .stat-title {
             color: #94a3b8 !important;
         }
 
         [data-bs-theme="dark"] .podium-card,
+        body.dark-mode .podium-card,
         body.dark-theme .podium-card {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.85);
             border-color: rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
         }
         [data-bs-theme="dark"] .podium-card-1,
+        body.dark-mode .podium-card-1,
         body.dark-theme .podium-card-1 {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(15, 23, 42, 0.85) 100%);
-            border-color: rgba(245, 158, 11, 0.5);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-color: rgba(245, 158, 11, 0.6);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.15);
         }
         [data-bs-theme="dark"] .xp-badge,
+        body.dark-mode .xp-badge,
         body.dark-theme .xp-badge {
+            background: rgba(99, 102, 241, 0.2);
             color: #a5b4fc;
+            border-color: rgba(99, 102, 241, 0.4);
         }
         [data-bs-theme="dark"] .rank-threshold-item,
+        body.dark-mode .rank-threshold-item,
         body.dark-theme .rank-threshold-item {
             background: rgba(15, 23, 42, 0.6);
             border-color: rgba(255, 255, 255, 0.08);
             color: #f8fafc;
+        }
+        
+        #rankingFiltersCard {
+            background: var(--panel-bg, #ffffff);
+            border: 1px solid var(--border-color, #e2e8f0) !important;
+        }
+        body.dark-mode #rankingFiltersCard,
+        [data-bs-theme="dark"] #rankingFiltersCard {
+            background: #1e293b;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+        body.dark-mode .ranking-box-stat,
+        [data-bs-theme="dark"] .ranking-box-stat {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            color: #f8fafc !important;
+        }
+        body.dark-mode .ranking-box-stat .h5,
+        [data-bs-theme="dark"] .ranking-box-stat .h5 {
+            color: #ffffff !important;
+        }
+        body.dark-mode .table-light,
+        [data-bs-theme="dark"] .table-light {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+        body.dark-mode .table-light th,
+        [data-bs-theme="dark"] .table-light th {
+            background-color: #1e293b !important;
+            color: #cbd5e1 !important;
         }
 
         @media (max-width: 991.98px) {
@@ -592,13 +633,13 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                                     
                                     <div class="row g-2 mt-3">
                                         <div class="col-6">
-                                            <div class="bg-light rounded-3 p-3">
+                                            <div class="ranking-box-stat rounded-3 p-3 border bg-body-tertiary">
                                                 <div class="small text-muted mb-1">XP</div>
                                                 <div class="h5 fw-bold mb-0"><?php echo number_format($currentXp); ?></div>
                                             </div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="bg-light rounded-3 p-3">
+                                            <div class="ranking-box-stat rounded-3 p-3 border bg-body-tertiary">
                                                 <div class="small text-muted mb-1">Testy</div>
                                                 <div class="h5 fw-bold mb-0"><?php echo $currentTests; ?></div>
                                             </div>

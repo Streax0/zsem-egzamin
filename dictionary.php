@@ -285,7 +285,7 @@ foreach ($dictionaryData as $group) {
                             <div class="d-flex gap-2 align-items-center">
                                 <div class="search-wrapper flex-grow-1">
                                     <i class="bi bi-search search-icon-left fs-5"></i>
-                                    <input type="text" id="searchInput" class="form-control bg-white border-0" placeholder="Zacznij pisać, aby przefiltrować pojęcia...">
+                                    <input type="text" id="searchInput" class="form-control bg-white border-0" placeholder="Zacznij pisać, aby przefiltrować pojęcia..." aria-label="Wyszukaj pojęcie w słowniku">
                                     <button type="button" class="clear-search" id="clearSearchBtn" title="Wyczyść"><i class="bi bi-x-lg fs-5"></i></button>
                                 </div>
                                 <button class="btn btn-primary filter-toggle-btn px-3 px-md-4 d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel" aria-expanded="false" aria-controls="filterPanel">

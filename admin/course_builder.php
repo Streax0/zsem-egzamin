@@ -218,13 +218,13 @@ $csrfToken = generateCsrfToken('course_admin');
                                 $isOpen = ($activeModuleId === (int)$mod['id']) || (count($modules) === 1) || ($activeItemId === 0 && $mIdx === 0);
                                 ?>
                                 <div class="module-card mb-3" data-module-id="<?php echo (int)$mod['id']; ?>">
-                                    <div class="module-header d-flex align-items-center justify-content-between p-2 px-3" data-bs-toggle="collapse" data-bs-target="#collapseMod<?php echo (int)$mod['id']; ?>">
+                                    <div class="module-header d-flex align-items-center justify-content-between p-2 px-3" data-bs-toggle="collapse" data-bs-target="#collapseMod<?php echo (int)$mod['id']; ?>" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                                         <div class="text-truncate me-2 fw-semibold flex-grow-1 d-flex align-items-center gap-2">
                                             <i class="bi bi-folder2-open text-primary"></i>
                                             <span><?php echo htmlspecialchars($mod['title'], ENT_QUOTES, 'UTF-8'); ?></span>
                                             <span class="badge text-bg-light border text-muted ms-1" style="font-size: 0.7rem;"><?php echo count($mod['items']); ?> lekcji</span>
                                         </div>
-                                        <div class="btn-group btn-group-sm flex-shrink-0" onclick="event.stopPropagation();">
+                                        <div class="btn-group btn-group-sm flex-shrink-0" role="group" aria-label="Akcje modułu" onclick="event.stopPropagation();">
                                             <button type="button" class="btn btn-outline-secondary btn-sm p-1" data-action="move-module" data-id="<?php echo (int)$mod['id']; ?>" data-dir="-1" title="Przesuń wyżej" <?php echo $mIdx === 0 ? 'disabled' : ''; ?>><i class="bi bi-chevron-up"></i></button>
                                             <button type="button" class="btn btn-outline-secondary btn-sm p-1" data-action="move-module" data-id="<?php echo (int)$mod['id']; ?>" data-dir="1" title="Przesuń niżej" <?php echo $mIdx === count($modules) - 1 ? 'disabled' : ''; ?>><i class="bi bi-chevron-down"></i></button>
                                             <button type="button" class="btn btn-outline-secondary btn-sm p-1" data-action="edit-module-trigger" data-id="<?php echo (int)$mod['id']; ?>" data-title="<?php echo htmlspecialchars($mod['title'], ENT_QUOTES, 'UTF-8'); ?>" data-desc="<?php echo htmlspecialchars($mod['description'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" title="Edytuj moduł"><i class="bi bi-pencil"></i></button>
@@ -250,7 +250,7 @@ $csrfToken = generateCsrfToken('course_admin');
                                                         <i class="bi <?php echo $icon; ?> me-1 text-muted"></i>
                                                         <?php echo htmlspecialchars($it['title'], ENT_QUOTES, 'UTF-8'); ?>
                                                     </a>
-                                                    <div class="lesson-actions btn-group btn-group-sm flex-shrink-0" onclick="event.stopPropagation();">
+                                                    <div class="lesson-actions btn-group btn-group-sm flex-shrink-0" role="group" aria-label="Akcje lekcji" onclick="event.stopPropagation();">
                                                         <button type="button" class="btn btn-link text-secondary p-0 px-1" data-action="move-item" data-id="<?php echo (int)$it['id']; ?>" data-dir="-1" title="Przesuń wyżej" <?php echo $iIdx === 0 ? 'disabled' : ''; ?>><i class="bi bi-chevron-up"></i></button>
                                                         <button type="button" class="btn btn-link text-secondary p-0 px-1" data-action="move-item" data-id="<?php echo (int)$it['id']; ?>" data-dir="1" title="Przesuń niżej" <?php echo $iIdx === count($mod['items']) - 1 ? 'disabled' : ''; ?>><i class="bi bi-chevron-down"></i></button>
                                                         <button type="button" class="btn btn-link text-danger p-0 px-1" data-action="delete-item" data-id="<?php echo (int)$it['id']; ?>" title="Usuń lekcję"><i class="bi bi-trash"></i></button>

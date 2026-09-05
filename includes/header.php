@@ -38,3 +38,25 @@ if (!isset($base_url)) {
     <?php if (isset($extraHead)): echo $extraHead; endif; ?>
 </head>
 <body <?php echo isset($bodyClasses) ? 'class="' . implode(' ', $bodyClasses) . '"' : ''; ?> <?php echo isset($bodyAttributes) ? $bodyAttributes : ''; ?>>
+<?php
+// Maintenance Mode Administrator Warning Banner
+if (!empty($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'dyrektor'], true)) {
+    $engineConfigPath = __DIR__ . '/../data/config/engine_config.json';
+    if (file_exists($engineConfigPath)) {
+        $rawConfig = @file_get_contents($engineConfigPath);
+        $parsedConfig = $rawConfig ? json_decode($rawConfig, true) : null;
+        if (!empty($parsedConfig['maintenance_mode'])) {
+            $mMsg = !empty($parsedConfig['maintenance_message']) ? htmlspecialchars($parsedConfig['maintenance_message'], ENT_QUOTES, 'UTF-8') : 'Prace techniczne w toku.';
+            $mUntil = !empty($parsedConfig['maintenance_until']) ? ' (Do: ' . htmlspecialchars(date('d.m H:i', strtotime($parsedConfig['maintenance_until'])), ENT_QUOTES, 'UTF-8') . ')' : '';
+            $engineAdminUrl = htmlspecialchars($base_url) . 'admin/engine.php';
+            echo '<div class="alert alert-danger m-0 rounded-0 border-0 border-bottom border-danger-subtle d-flex align-items-center justify-content-between px-3 py-2 small shadow-sm" style="z-index: 99999; position: relative;" role="alert">';
+            echo '  <div class="d-flex align-items-center gap-2 font-monospace fw-bold">';
+            echo '      <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>';
+            echo '      <span><strong>TRYB KONSERWACJI AKTYWNY</strong> — Serwis jest zablokowany dla zwykłych użytkowników. ' . $mMsg . $mUntil . '</span>';
+            echo '  </div>';
+            echo '  <a href="' . $engineAdminUrl . '" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold flex-shrink-0">Zarządzaj</a>';
+            echo '</div>';
+        }
+    }
+}
+?>

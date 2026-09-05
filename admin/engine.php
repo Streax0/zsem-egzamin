@@ -44,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($action) {
         case 'update_config':
             $configStore->set('maintenance_mode', !empty($_POST['maintenance_mode']));
+            $configStore->set('maintenance_message', trim((string)($_POST['maintenance_message'] ?? '')));
+            $configStore->set('maintenance_until', trim((string)($_POST['maintenance_until'] ?? '')));
             $configStore->set('minification_enabled', !empty($_POST['minification_enabled']));
             $configStore->set('compression_enabled', !empty($_POST['compression_enabled']));
 
@@ -131,6 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $currentConfig = $configStore->all();
 $maintenanceMode = (bool)($currentConfig['maintenance_mode'] ?? false);
+$maintenanceMessage = (string)($currentConfig['maintenance_message'] ?? 'Trwają planowane prace serwisowe. Zapraszamy wkrótce.');
+$maintenanceUntil = (string)($currentConfig['maintenance_until'] ?? '');
 $minificationEnabled = (bool)($currentConfig['minification_enabled'] ?? true);
 $compressionEnabled = (bool)($currentConfig['compression_enabled'] ?? true);
 $wafLevel = (string)($currentConfig['waf_level'] ?? 'medium');
@@ -246,10 +250,22 @@ include '../includes/header.php';
                                 <?php echo csrfTokenField('admin_engine'); ?>
                                 <input type="hidden" name="action" value="update_config">
 
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="maintenance_mode" name="maintenance_mode" value="1" <?php echo $maintenanceMode ? 'checked' : ''; ?>>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="maintenance_mode" name="maintenance_mode" value="1" <?php echo $maintenanceMode ? 'checked' : ''; ?> onchange="document.getElementById('maintenance_details').style.display = this.checked ? 'block' : 'none';">
                                     <label class="form-check-label fw-semibold" for="maintenance_mode">Tryb konserwacji (Maintenance Mode)</label>
                                     <div class="form-text">Blokuje dostęp nie-administratorom podczas prac technicznych.</div>
+                                </div>
+
+                                <div class="mb-3 ps-3 border-start border-warning border-3 ms-1" id="maintenance_details" style="<?php echo $maintenanceMode ? '' : 'display: none;'; ?>">
+                                    <div class="mb-2">
+                                        <label for="maintenance_message" class="form-label small fw-semibold">Komunikat dla użytkowników</label>
+                                        <textarea class="form-control form-control-sm" id="maintenance_message" name="maintenance_message" rows="2" placeholder="Trwają planowane prace serwisowe..."><?php echo htmlspecialchars($maintenanceMessage, ENT_QUOTES, 'UTF-8'); ?></textarea>
+                                    </div>
+                                    <div>
+                                        <label for="maintenance_until" class="form-label small fw-semibold">Data i godzina zakończenia prac (opcjonalnie)</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" id="maintenance_until" name="maintenance_until" value="<?php echo htmlspecialchars($maintenanceUntil, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <div class="form-text small">Włącza zegar odliczający i automatyczne odświeżenie na stronie konserwacji.</div>
+                                    </div>
                                 </div>
 
                                 <div class="form-check form-switch mb-3">

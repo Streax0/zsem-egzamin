@@ -46,49 +46,28 @@ if (!isset($base_url)) {
                 <button type="button" class="help-tag-chip" data-query="xp">#punkty-xp</button>
             </div>
 
-            <!-- Quick Navigation Tiles (6 Action Cards) -->
+            <!-- Quick Navigation Tiles (3 Themed Action Cards) -->
             <div class="help-quick-grid mt-3">
-                <a href="<?php echo htmlspecialchars($base_url); ?>sandbox/cli_lab.php" class="help-quick-card">
-                    <div class="quick-card-icon bg-primary bg-opacity-10 text-primary">
-                        <i class="bi bi-terminal-fill"></i>
-                    </div>
-                    <span class="quick-card-title">CLI Lab</span>
-                    <span class="quick-card-sub">Symulator</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($base_url); ?>sandbox/subnetting_challenge.php" class="help-quick-card">
-                    <div class="quick-card-icon bg-info bg-opacity-10 text-info">
-                        <i class="bi bi-diagram-3-fill"></i>
-                    </div>
-                    <span class="quick-card-title">Subnetting</span>
-                    <span class="quick-card-sub">Podsieci</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($base_url); ?>test.php?mode=exam&setup=1" class="help-quick-card">
+                <a href="#collapseExams" data-bs-toggle="collapse" class="help-quick-card">
                     <div class="quick-card-icon bg-success bg-opacity-10 text-success">
-                        <i class="bi bi-play-circle-fill"></i>
+                        <i class="bi bi-mortarboard-fill"></i>
                     </div>
-                    <span class="quick-card-title">Egzamin</span>
-                    <span class="quick-card-sub">Test CKE</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($base_url); ?>exam/join.php" class="help-quick-card">
-                    <div class="quick-card-icon bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-qr-code-scan"></i>
-                    </div>
-                    <span class="quick-card-title">Sprawdzian</span>
-                    <span class="quick-card-sub">Kod PIN</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($base_url); ?>ranking.php" class="help-quick-card">
-                    <div class="quick-card-icon bg-danger bg-opacity-10 text-danger">
-                        <i class="bi bi-trophy-fill"></i>
-                    </div>
-                    <span class="quick-card-title">Ranking</span>
-                    <span class="quick-card-sub">Punkty XP</span>
+                    <span class="quick-card-title">Instrukcja obsługi egzaminu</span>
+                    <span class="quick-card-sub">Zasady & Przebieg</span>
                 </a>
                 <a href="<?php echo htmlspecialchars($base_url); ?>user/settings.php" class="help-quick-card">
-                    <div class="quick-card-icon bg-secondary bg-opacity-10 text-secondary">
-                        <i class="bi bi-shield-lock-fill"></i>
+                    <div class="quick-card-icon bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-person-gear"></i>
                     </div>
-                    <span class="quick-card-title">Konto</span>
-                    <span class="quick-card-sub">Bezpieczeństwo</span>
+                    <span class="quick-card-title">Zarządzanie kontem i profilem</span>
+                    <span class="quick-card-sub">Konto & Ustawienia</span>
+                </a>
+                <a href="<?php echo htmlspecialchars($base_url); ?>pages/contact.php" class="help-quick-card">
+                    <div class="quick-card-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                    <span class="quick-card-title">Zgłaszanie problemów technicznych</span>
+                    <span class="quick-card-sub">Wsparcie & Pomoc</span>
                 </a>
             </div>
         </div>
@@ -194,7 +173,7 @@ if (!isset($base_url)) {
                             <strong>Punkty XP i Rangi:</strong> Za każdy poprawnie rozwiązany test, misję dzienną oraz ukończone zadanie CLI Lab otrzymujesz punkty XP, które podnoszą Twoją rangę (od <em>Początkującego</em> przez <em>SysAdmina</em> po <em>Mistrza Architektury</em>).
                         </p>
                         <p class="mb-0">
-                            <strong>System Anty-Cheat:</strong> Podczas oficjalnych sprawdzianów system monitoruje opuszczanie karty, kopiowanie tekstu i próby manipulacji czasem.
+                            <strong>Przebieg egzaminu:</strong> Przed rozpoczęciem upewnij się, że masz stabilne połączenie z siecią oraz wystarczającą ilość czasu na dokończenie arkusza.
                         </p>
                     </div>
                 </div>
@@ -224,7 +203,7 @@ if (!isset($base_url)) {
                             <strong>2FA TOTP:</strong> Aktywuj kody jednorazowe w <a href="<?php echo htmlspecialchars($base_url); ?>user/settings.php">Ustawieniach</a> przy użyciu aplikacji Google Authenticator, Microsoft Authenticator lub 2FAS.
                         </p>
                         <p class="mb-0">
-                            <strong>Limit sesji:</strong> Ze względów bezpieczeństwa jedno konto może być aktywne jednocześnie na maksymalnie 2 urządzeniach.
+                            <strong>Wskazówka:</strong> Regularnie sprawdzaj listę aktywnych urządzeń w panelu ustawień profilu.
                         </p>
                     </div>
                 </div>
@@ -297,7 +276,7 @@ if (!isset($base_url)) {
 </div>
 
 <!-- Floating Help Action Button (FAB) -->
-<button class="help-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#helpCenterOffcanvas" data-help-center-trigger aria-controls="helpCenterOffcanvas" aria-expanded="false" aria-label="Otwórz centrum pomocy" title="Centrum Pomocy & Baza Wiedzy">
+<button class="help-fab help-center-fab" id="help-center-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#helpCenterOffcanvas" data-help-center-trigger aria-controls="helpCenterOffcanvas" aria-expanded="false" aria-label="Otwórz centrum pomocy" title="Centrum Pomocy & Baza Wiedzy">
     <i class="bi bi-question-lg"></i>
 </button>
 

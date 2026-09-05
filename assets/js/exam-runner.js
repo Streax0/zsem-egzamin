@@ -136,7 +136,8 @@
                     countInput?.addEventListener('input', syncRankingInfo);
                     syncRankingInfo();
                 })
-                .catch(() => {
+                .catch(err => {
+                    console.warn('Błąd sprawdzania trybu nierankingowego:', err);
                     if (unrankedInfo) unrankedInfo.textContent = 'Dostępne 2 razy dziennie';
                 });
         }
@@ -274,7 +275,18 @@
                     b.classList.remove('active');
                 }
             });
+            if (unrankedSw && val > 0 && val < 40) {
+                unrankedSw.checked = true;
+            }
         });
+
+        // Initial sync of unranked switch with question count
+        if (countInput && unrankedSw) {
+            const initVal = Number(countInput.value || 0);
+            if (initVal > 0 && initVal < 40) {
+                unrankedSw.checked = true;
+            }
+        }
 
         // Presets & Timing Controls
         const presetBtns = document.querySelectorAll('.preset-mode-btn');

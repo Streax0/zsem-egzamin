@@ -25,6 +25,8 @@ function calculateCkeReadinessIndex(PDO $pdo, int $userId): array {
             SELECT id, score_percent, correct_answers, total_questions, time_spent, test_date
             FROM test_results
             WHERE user_id = :uid
+              AND total_questions >= 40
+              AND COALESCE(exclude_from_ranking, 0) = 0
             ORDER BY id DESC
             LIMIT 15
         ");

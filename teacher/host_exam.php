@@ -80,21 +80,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $questions = array_slice($questions, 0, $maxQuestions);
 
         try {
+            // Generate unique access code with retry to avoid collisions
+            $code = '';
+            for ($attempt = 0; $attempt < 10; $attempt++) {
+                $candidateCode = generateAccessCode();
+                $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM exam_sessions WHERE access_code = ? AND status IN ('lobby', 'in_progress')");
+                $checkStmt->execute([$candidateCode]);
+                if ((int)$checkStmt->fetchColumn() === 0) {
+                    $code = $candidateCode;
+                    break;
+                }
+            }
+            if ($code === '') {
+                $code = generateAccessCode();
+            }
+
             $pdo->beginTransaction();
 
-            // Generate unique code
-            $code = generateAccessCode();
             $expiresAt = date('Y-m-d H:i:s', time() + 3600); // 1 hour
 
             $stmt = $pdo->prepare("INSERT INTO exam_sessions (exam_id, access_code, status, expires_at) VALUES (?, ?, 'lobby', ?)");
             $stmt->execute([$examId, $code, $expiresAt]);
-            $sessionId = $pdo->lastInsertId();
+            $sessionId = (int)$pdo->lastInsertId();
 
-            // Save questions to session
+            // Save questions to session (guarantee question exists in DB to prevent foreign key errors)
             $order = 1;
             $stmtQ = $pdo->prepare("INSERT INTO exam_session_questions (session_id, question_id, question_order) VALUES (?, ?, ?)");
             foreach ($questions as $q) {
-                $stmtQ->execute([$sessionId, $q['id'], $order++]);
+                $qId = ensureQuestionRecordExists($pdo, $q);
+                if ($qId > 0) {
+                    $stmtQ->execute([$sessionId, $qId, $order++]);
+                }
             }
 
             // Also update the session record with the actual count if it differs

@@ -7213,8 +7213,8 @@ function readJsonMetadata(string $path): array {
 }
 
 function writeJsonMetadata(string $path, array $data): bool {
-    $json = json_encode($data, JSON_PRETTY_PRINT);
-    return @file_put_contents($path, $json) !== false;
+    $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    return @file_put_contents($path, $json, LOCK_EX) !== false;
 }
 
 function getUploadedFileExtension(string $filename): string {

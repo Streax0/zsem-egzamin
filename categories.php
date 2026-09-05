@@ -128,7 +128,7 @@ $overallPercent = $totalQuestions > 0 ? round(($totalMastered / $totalQuestions)
                         <div class="col-md-5 mt-3 mt-md-0">
                             <div class="search-container">
                                 <i class="bi bi-search"></i>
-                                <input type="text" id="categorySearch" class="form-control form-control-lg" placeholder="Szukaj kategorii...">
+                                <input type="text" id="categorySearch" class="form-control form-control-lg" placeholder="Szukaj kategorii..." aria-label="Szukaj kategorii">
                             </div>
                         </div>
                     </div>

@@ -18,6 +18,10 @@ $currentAccent = $_COOKIE['user_accent'] ?? 'var(--primary-color)';
 if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
     $currentAccent = '#3b82f6';
 }
+$currentSecondaryAccent = $_COOKIE['user_accent_secondary'] ?? '#10b981';
+if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentSecondaryAccent)) {
+    $currentSecondaryAccent = '#10b981';
+}
 $reduceMotion = ($_COOKIE['reduce_motion'] ?? '0') === '1';
 $dashboardView = $_COOKIE['dashboard_view'] ?? 'balanced';
 $defaultTestMode = $_COOKIE['default_test_mode'] ?? 'exam';
@@ -1446,25 +1450,80 @@ include '../includes/header.php';
                                                     </select>
                                                 </div>
 
-                                                <div class="mb-4">
-                                                     <label class="form-label d-block">Kolor akcentu</label>
-                                                     <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
-                                                         <div class="position-relative d-inline-block" style="width: 48px; height: 48px;">
-                                                             <input type="color" class="form-control form-control-color" id="accentColor" value="<?php echo htmlspecialchars($currentAccent); ?>" onchange="updateAccentSetting(this.value); applyUiPreferences(); syncAccentUi(this.value);" style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); cursor: pointer;" title="Niestandardowy kolor">
-                                                             <i class="bi bi-pipette position-absolute start-50 top-50 translate-middle pointer-events-none" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); font-size: 1.1rem; z-index: 2;"></i>
+                                                 <div class="mb-4">
+                                                     <label class="form-label d-flex justify-content-between align-items-center">
+                                                         <span><i class="bi bi-eye me-1 text-primary"></i>Podgląd na żywo kompozycji kolorów</span>
+                                                         <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold px-2 py-1 rounded-pill">Live Preview</span>
+                                                     </label>
+                                                     <div class="card border rounded-4 p-3 shadow-sm" id="themeLivePreviewCard" style="background: var(--panel-bg); transition: all 0.3s ease;">
+                                                         <div id="themePreviewBanner" class="rounded-3 p-3 text-white mb-3 shadow-sm d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, <?php echo htmlspecialchars($currentAccent); ?> 0%, <?php echo htmlspecialchars($currentSecondaryAccent); ?> 100%); transition: background 0.2s ease;">
+                                                             <div>
+                                                                 <div class="fw-bold fs-6">Podgląd kompozycji kolorów</div>
+                                                                 <small class="opacity-90">Kolor główny & Akcent w harmonii</small>
+                                                             </div>
+                                                             <span class="badge rounded-pill bg-white text-dark shadow-sm px-3 py-2 fw-semibold">Aktywny</span>
                                                          </div>
-                                                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                             <button type="button" class="accent-dot" data-color="#3b82f6" style="--dot:#3b82f6" onclick="pickAccent('#3b82f6')" aria-label="Niebieski"></button>
-                                                             <button type="button" class="accent-dot" data-color="#06b6d4" style="--dot:#06b6d4" onclick="pickAccent('#06b6d4')" aria-label="Turkusowy"></button>
-                                                             <button type="button" class="accent-dot" data-color="#10b981" style="--dot:#10b981" onclick="pickAccent('#10b981')" aria-label="Zielony"></button>
-                                                             <button type="button" class="accent-dot" data-color="#6366f1" style="--dot:#6366f1" onclick="pickAccent('#6366f1')" aria-label="Indygo"></button>
-                                                             <button type="button" class="accent-dot" data-color="#8b5cf6" style="--dot:#8b5cf6" onclick="pickAccent('#8b5cf6')" aria-label="Fioletowy"></button>
-                                                             <button type="button" class="accent-dot" data-color="#ec4899" style="--dot:#ec4899" onclick="pickAccent('#ec4899')" aria-label="Różowy"></button>
-                                                             <button type="button" class="accent-dot" data-color="#f43f5e" style="--dot:#f43f5e" onclick="pickAccent('#f43f5e')" aria-label="Karminowy"></button>
-                                                             <button type="button" class="accent-dot" data-color="#f59e0b" style="--dot:#f59e0b" onclick="pickAccent('#f59e0b')" aria-label="Złocisty"></button>
-                                                             <button type="button" class="accent-dot" data-color="#ef4444" style="--dot:#ef4444" onclick="pickAccent('#ef4444')" aria-label="Czerwony"></button>
+                                                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                                             <div class="d-flex align-items-center gap-2">
+                                                                 <button type="button" class="btn btn-sm text-white px-3 fw-semibold shadow-sm" id="themePreviewBtn" style="background: <?php echo htmlspecialchars($currentAccent); ?>; border-color: <?php echo htmlspecialchars($currentAccent); ?>;">Przycisk główny</button>
+                                                                 <span class="badge rounded-pill px-3 py-2 fw-semibold" id="accentSecondaryPreview" data-preview="themePreviewBadge" style="color: <?php echo htmlspecialchars($currentSecondaryAccent); ?>; border: 1px solid <?php echo htmlspecialchars($currentSecondaryAccent); ?>; background: color-mix(in srgb, <?php echo htmlspecialchars($currentSecondaryAccent); ?> 15%, transparent);">Drugi akcent</span>
+                                                             </div>
+                                                             <div class="small text-muted font-monospace d-flex gap-2">
+                                                                 <span>Główny: <strong id="themePreviewPrimaryHex"><?php echo htmlspecialchars($currentAccent); ?></strong></span>
+                                                                 <span>•</span>
+                                                                 <span>Akcent: <strong id="themePreviewSecondaryHex"><?php echo htmlspecialchars($currentSecondaryAccent); ?></strong></span>
+                                                             </div>
+                                                         </div>
+                                                         <div class="progress" style="height: 6px; border-radius: 999px;">
+                                                             <div class="progress-bar" id="themePreviewProgress" role="progressbar" style="width: 75%; background: linear-gradient(90deg, <?php echo htmlspecialchars($currentAccent); ?>, <?php echo htmlspecialchars($currentSecondaryAccent); ?>);" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
                                                          </div>
                                                      </div>
+                                                 </div>
+
+                                                 <div class="mb-4">
+                                                      <label class="form-label d-block">
+                                                          <span class="fw-semibold">Kolor główny</span>
+                                                          <span class="text-muted small ms-1">(Nawigacja, przyciski akcji, nagłówki)</span>
+                                                      </label>
+                                                      <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
+                                                          <div class="position-relative d-inline-block" style="width: 48px; height: 48px;">
+                                                              <input type="color" class="form-control form-control-color" id="accentColor" value="<?php echo htmlspecialchars($currentAccent); ?>" style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); cursor: pointer;" title="Niestandardowy kolor główny">
+                                                              <i class="bi bi-pipette position-absolute start-50 top-50 translate-middle pointer-events-none" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); font-size: 1.1rem; z-index: 2;"></i>
+                                                          </div>
+                                                          <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                              <button type="button" class="accent-dot" data-color="#3b82f6" style="--dot:#3b82f6" onclick="pickAccent('#3b82f6')" aria-label="Niebieski"></button>
+                                                              <button type="button" class="accent-dot" data-color="#06b6d4" style="--dot:#06b6d4" onclick="pickAccent('#06b6d4')" aria-label="Turkusowy"></button>
+                                                              <button type="button" class="accent-dot" data-color="#6366f1" style="--dot:#6366f1" onclick="pickAccent('#6366f1')" aria-label="Indygo"></button>
+                                                              <button type="button" class="accent-dot" data-color="#8b5cf6" style="--dot:#8b5cf6" onclick="pickAccent('#8b5cf6')" aria-label="Fioletowy"></button>
+                                                              <button type="button" class="accent-dot" data-color="#ec4899" style="--dot:#ec4899" onclick="pickAccent('#ec4899')" aria-label="Różowy"></button>
+                                                              <button type="button" class="accent-dot" data-color="#f43f5e" style="--dot:#f43f5e" onclick="pickAccent('#f43f5e')" aria-label="Karminowy"></button>
+                                                              <button type="button" class="accent-dot" data-color="#f59e0b" style="--dot:#f59e0b" onclick="pickAccent('#f59e0b')" aria-label="Złocisty"></button>
+                                                              <button type="button" class="accent-dot" data-color="#ef4444" style="--dot:#ef4444" onclick="pickAccent('#ef4444')" aria-label="Czerwony"></button>
+                                                          </div>
+                                                      </div>
+                                                 </div>
+
+                                                 <div class="mb-4">
+                                                      <label class="form-label d-block">
+                                                          <span class="fw-semibold">Kolor akcentu / drugi kolor</span>
+                                                          <span class="text-muted small ms-1">(Gradienty, etykiety, wyróżnienia, ikony)</span>
+                                                      </label>
+                                                      <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
+                                                          <div class="position-relative d-inline-block" style="width: 48px; height: 48px;">
+                                                              <input type="color" class="form-control form-control-color" id="accentColorSecondary" value="<?php echo htmlspecialchars($currentSecondaryAccent); ?>" style="width: 48px; height: 48px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); cursor: pointer;" title="Niestandardowy drugi kolor">
+                                                              <i class="bi bi-pipette position-absolute start-50 top-50 translate-middle pointer-events-none" style="color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); font-size: 1.1rem; z-index: 2;"></i>
+                                                          </div>
+                                                          <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#10b981" style="--dot:#10b981" onclick="pickSecondaryAccent('#10b981')" aria-label="Szmaragdowy"></button>
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#14b8a6" style="--dot:#14b8a6" onclick="pickSecondaryAccent('#14b8a6')" aria-label="Morski"></button>
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#06b6d4" style="--dot:#06b6d4" onclick="pickSecondaryAccent('#06b6d4')" aria-label="Cyjan"></button>
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#8b5cf6" style="--dot:#8b5cf6" onclick="pickSecondaryAccent('#8b5cf6')" aria-label="Fioletowy"></button>
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#f97316" style="--dot:#f97316" onclick="pickSecondaryAccent('#f97316')" aria-label="Pomarańczowy"></button>
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#f59e0b" style="--dot:#f59e0b" onclick="pickSecondaryAccent('#f59e0b')" aria-label="Złoty"></button>
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#ec4899" style="--dot:#ec4899" onclick="pickSecondaryAccent('#ec4899')" aria-label="Różowy"></button>
+                                                              <button type="button" class="accent-dot secondary-dot" data-color="#3b82f6" style="--dot:#3b82f6" onclick="pickSecondaryAccent('#3b82f6')" aria-label="Niebieski"></button>
+                                                          </div>
+                                                      </div>
                                                  </div>
 
                                                 <div class="mb-4">
@@ -1487,28 +1546,28 @@ include '../includes/header.php';
                                                 <div class="mb-4">
                                                      <label class="form-label d-block">Styl baneru powitalnego</label>
                                                      <div class="welcome-banner-styles-grid">
-                                                         <div class="welcome-banner-style-card" data-style="gradient" onclick="selectWelcomeBannerStyle('gradient')">
+                                                         <div class="welcome-banner-style-card" data-style="gradient" onclick="selectWelcomeBannerStyle('gradient')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWelcomeBannerStyle('gradient');}">
                                                              <div class="banner-preview preview-gradient"></div>
                                                              <div class="banner-style-info">
                                                                  <span class="banner-style-name">Zbalansowany gradient</span>
                                                                  <span class="banner-style-desc">Przejście akcentu w zieleń</span>
                                                              </div>
                                                          </div>
-                                                         <div class="welcome-banner-style-card" data-style="pure" onclick="selectWelcomeBannerStyle('pure')">
+                                                         <div class="welcome-banner-style-card" data-style="pure" onclick="selectWelcomeBannerStyle('pure')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWelcomeBannerStyle('pure');}">
                                                              <div class="banner-preview preview-pure"></div>
                                                              <div class="banner-style-info">
                                                                  <span class="banner-style-name">Czysty akcent</span>
                                                                  <span class="banner-style-desc">Jednolity odcień</span>
                                                              </div>
                                                          </div>
-                                                         <div class="welcome-banner-style-card" data-style="aurora" onclick="selectWelcomeBannerStyle('aurora')">
+                                                         <div class="welcome-banner-style-card" data-style="aurora" onclick="selectWelcomeBannerStyle('aurora')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWelcomeBannerStyle('aurora');}">
                                                              <div class="banner-preview preview-aurora"></div>
                                                              <div class="banner-style-info">
                                                                  <span class="banner-style-name">Kosmiczna zorza</span>
                                                                  <span class="banner-style-desc">Animowana aura</span>
                                                              </div>
                                                          </div>
-                                                         <div class="welcome-banner-style-card" data-style="glass" onclick="selectWelcomeBannerStyle('glass')">
+                                                         <div class="welcome-banner-style-card" data-style="glass" onclick="selectWelcomeBannerStyle('glass')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWelcomeBannerStyle('glass');}">
                                                              <div class="banner-preview preview-glass"></div>
                                                              <div class="banner-style-info">
                                                                  <span class="banner-style-name">Szklany minimalizm</span>
@@ -1651,7 +1710,7 @@ include '../includes/header.php';
                                                     </div>
                                                 </div>
 
-                                                <details class="settings-changelog-accordion mt-4" open>
+                                                <details class="settings-changelog-accordion">
                                                     <summary class="settings-changelog-summary fw-bold mb-3 cursor-pointer text-primary user-select-none">
                                                         <i class="bi bi-clock-history me-2"></i>Historia zmian (Changelog)
                                                         <span class="badge bg-primary bg-opacity-10 text-primary ms-2">Wersja 2.5</span>

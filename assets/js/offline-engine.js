@@ -103,15 +103,21 @@
 
                 this.isSyncing = true;
                 const syncUrl = (window.__ZSEM_BASE_URL || '') + 'ajax/sync_offline_progress.php';
+                const csrfToken = window.__ZSEM_CSRF_TOKEN
+                    || document.querySelector('input[name="csrf_token"]')?.value
+                    || document.querySelector('meta[name="csrf-token"]')?.content
+                    || window.csrfToken
+                    || '';
                 const response = await fetch(syncUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': csrfToken
                     },
                     body: JSON.stringify({
                         batch: pending,
-                        csrf_token: window.__ZSEM_CSRF_TOKEN || ''
+                        csrf_token: csrfToken
                     })
                 });
 
