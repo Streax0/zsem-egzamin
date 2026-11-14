@@ -158,6 +158,9 @@ $extraHead = <<<HTML
         .question-item { transition: all 0.2s; }
         .question-item:hover { background-color: rgba(59,130,246,0.05); }
         .transition-all { transition: all 0.2s ease-in-out; }
+        body.dark-mode .question-selector, [data-bs-theme="dark"] .question-selector { background-color: #111827; border-color: rgba(148, 163, 184, 0.2) !important; }
+        body.dark-mode .question-item, [data-bs-theme="dark"] .question-item { border-color: rgba(148, 163, 184, 0.15) !important; color: #e2e8f0; }
+        body.dark-mode .question-item:hover, [data-bs-theme="dark"] .question-item:hover { background-color: rgba(99, 102, 241, 0.08); }
     </style>
 HTML;
 include '../includes/header.php';

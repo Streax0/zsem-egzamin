@@ -5,9 +5,19 @@ if (!isset($pageTitle)) {
 if (!isset($base_url)) {
     $base_url = file_exists('config/db.php') ? '' : '../';
 }
+$userThemeCookie = $_COOKIE['user_theme'] ?? 'auto';
+$isDarkServer = ($userThemeCookie === 'dark');
+if ($isDarkServer) {
+    if (!isset($bodyClasses)) {
+        $bodyClasses = [];
+    }
+    if (!in_array('dark-mode', $bodyClasses, true)) {
+        $bodyClasses[] = 'dark-mode';
+    }
+}
 ?>
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl"<?php echo $isDarkServer ? ' class="dark-mode" data-bs-theme="dark"' : ''; ?>>
 <head>
     <link rel="icon" href="<?php echo htmlspecialchars($base_url); ?>zsemtech_profile.ico" type="image/x-icon">
     <link rel="manifest" href="<?php echo htmlspecialchars($base_url); ?>assets/manifest.webmanifest">

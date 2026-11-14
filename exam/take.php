@@ -826,6 +826,10 @@ $bodyClassStr = implode(' ', $bodyClasses);
         <?php elseif ($currentQuestion): ?>
         <!-- Question -->
         <div class="dashboard-panel mb-4<?= $aiCopyGuard ? ' ai-copy-guard' : '' ?>">
+            <div id="networkStatusBanner" class="alert alert-warning py-2 px-3 mb-3 d-none align-items-center gap-2" role="status">
+                <i class="bi bi-wifi-off fs-5"></i>
+                <span class="small fw-medium">Utracono połączenie z siecią. Odpowiedź zostanie ponowiona po przywróceniu łączności.</span>
+            </div>
             <?php $examQuestionImage = questionImageSrc($currentQuestion['image_url'] ?? '', '../'); ?>
             <?php if ($examQuestionImage): ?>
                 <img src="<?= htmlspecialchars($examQuestionImage) ?>" class="img-fluid rounded mb-3" alt="Ilustracja do pytania: <?= htmlspecialchars(mb_substr($currentQuestion['question_text'] ?? 'pytanie egzaminacyjne', 0, 90)) ?>" loading="lazy" decoding="async" referrerpolicy="no-referrer">

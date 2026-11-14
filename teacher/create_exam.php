@@ -284,7 +284,9 @@ $extraHead = <<<HTML
             border: 1px solid rgba(148,163,184,.16);
         }
         body.dark-mode .preset-card,
-        body.dark-mode .config-section .form-check.form-switch {
+        body.dark-mode .config-section .form-check.form-switch,
+        [data-bs-theme="dark"] .preset-card,
+        [data-bs-theme="dark"] .config-section .form-check.form-switch {
             background: rgba(15,23,42,.82);
             color: #e5e7eb;
             border-color: rgba(148,163,184,.24);
@@ -308,7 +310,8 @@ $extraHead = <<<HTML
         .nav-link.btn-outline-primary:not(.active) {
             color: var(--bs-body-color, #212529) !important;
         }
-        body.dark-mode .nav-link.btn-outline-primary:not(.active) {
+        body.dark-mode .nav-link.btn-outline-primary:not(.active),
+        [data-bs-theme="dark"] .nav-link.btn-outline-primary:not(.active) {
             color: #e2e8f0 !important;
         }
         .exam-summary-card {

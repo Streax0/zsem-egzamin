@@ -155,14 +155,14 @@ include '../includes/header.php';
                                         <td class="text-end" data-label="Decyzja">
                                             <div class="d-flex justify-content-end gap-2 flex-wrap admin-requests-actions">
                                                 <?php if (($r['status'] ?? '') !== 'closed'): ?>
-                                                <form method="POST">
+                                                <form method="POST" onsubmit="return appConfirmSubmit(this, 'Czy na pewno chcesz zaakceptować tę aplikację nauczyciela? Użytkownik uzyska rolę nauczyciela.');">
                                                     <?= csrfTokenField('admin_requests'); ?>
                                                     <input type="hidden" name="action" value="resolve_teacher_application">
                                                     <input type="hidden" name="request_id" value="<?= (int)$r['id']; ?>">
                                                     <input type="hidden" name="decision" value="approve">
                                                     <button class="btn btn-success btn-sm rounded-pill px-3">Akceptuj</button>
                                                 </form>
-                                                <form method="POST">
+                                                <form method="POST" onsubmit="return appConfirmSubmit(this, 'Czy na pewno chcesz odrzucić tę aplikację nauczyciela?');">
                                                     <?= csrfTokenField('admin_requests'); ?>
                                                     <input type="hidden" name="action" value="resolve_teacher_application">
                                                     <input type="hidden" name="request_id" value="<?= (int)$r['id']; ?>">
@@ -245,14 +245,14 @@ include '../includes/header.php';
                                                     </button>
                                                 <?php endif; ?>
                                                 <?php if ($isTeacherApplication && ($r['status'] ?? '') !== 'closed'): ?>
-                                                <form method="POST">
+                                                <form method="POST" onsubmit="return appConfirmSubmit(this, 'Czy na pewno chcesz zaakceptować tę aplikację nauczyciela? Użytkownik uzyska rolę nauczyciela.');">
                                                     <?= csrfTokenField('admin_requests'); ?>
                                                     <input type="hidden" name="action" value="resolve_teacher_application">
                                                     <input type="hidden" name="request_id" value="<?= $r['id']; ?>">
                                                     <input type="hidden" name="decision" value="approve">
                                                     <button class="btn btn-success btn-sm rounded-pill px-3">Akceptuj</button>
                                                 </form>
-                                                <form method="POST">
+                                                <form method="POST" onsubmit="return appConfirmSubmit(this, 'Czy na pewno chcesz odrzucić tę aplikację nauczyciela?');">
                                                     <?= csrfTokenField('admin_requests'); ?>
                                                     <input type="hidden" name="action" value="resolve_teacher_application">
                                                     <input type="hidden" name="request_id" value="<?= $r['id']; ?>">

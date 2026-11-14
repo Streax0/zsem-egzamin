@@ -314,20 +314,24 @@ $extraHead = <<<HTML
             color: #ffffff !important;
             box-shadow: 0 4px 14px rgba(29, 78, 216, 0.3) !important;
         }
-        body.dark-mode .host-code-actions .btn {
+        body.dark-mode .host-code-actions .btn,
+        [data-bs-theme="dark"] .host-code-actions .btn {
             background: rgba(30, 41, 59, 0.85);
             border-color: rgba(96, 165, 250, 0.4);
             color: #93c5fd;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        body.dark-mode .host-code-actions .btn:hover {
+        body.dark-mode .host-code-actions .btn:hover,
+        [data-bs-theme="dark"] .host-code-actions .btn:hover {
             background: #3b82f6;
             border-color: #3b82f6;
             color: #ffffff;
             box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
         body.dark-mode .host-code-actions .btn[aria-expanded="true"],
-        body.dark-mode .host-code-actions .btn.active {
+        body.dark-mode .host-code-actions .btn.active,
+        [data-bs-theme="dark"] .host-code-actions .btn[aria-expanded="true"],
+        [data-bs-theme="dark"] .host-code-actions .btn.active {
             background: #2563eb !important;
             border-color: #2563eb !important;
             color: #ffffff !important;
@@ -407,11 +411,16 @@ $extraHead = <<<HTML
         body.dark-mode .host-top-card,
         body.dark-mode .host-code-panel,
         body.dark-mode .host-stat-card,
-        body.dark-mode .qr-box {
+        body.dark-mode .qr-box,
+        [data-bs-theme="dark"] .host-top-card,
+        [data-bs-theme="dark"] .host-code-panel,
+        [data-bs-theme="dark"] .host-stat-card,
+        [data-bs-theme="dark"] .qr-box {
             background: #111827 !important;
             border-color: rgba(148,163,184,.24) !important;
         }
-        body.dark-mode .participant-card { background: #0f172a !important; }
+        body.dark-mode .participant-card,
+        [data-bs-theme="dark"] .participant-card { background: #0f172a !important; }
         @media (max-width: 991.98px) {
             .participants-panel { position: static; }
             .access-code { font-size: 2.25rem; letter-spacing: .35rem; }

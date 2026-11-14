@@ -3,13 +3,14 @@
  * Provides offline caching, network-first strategy for dynamic queries,
  * and background offline sync capabilities.
  */
-const CACHE_NAME = 'zsem-tech-v2.1.0';
+const CACHE_NAME = 'zsem-tech-v2.2.0';
 const STATIC_ASSETS = [
     './assets/css/style.css',
     './assets/css/dashboard-new.css',
     './assets/css/fonts.css',
     './assets/js/theme-handler.js',
     './assets/js/devtools-guard.js',
+    './assets/js/utils.js',
     './assets/js/performance-metrics.js',
     './assets/js/app-dialogs.js',
     './assets/js/offline-engine.js',
@@ -19,6 +20,7 @@ const STATIC_ASSETS = [
     './data_question/inf07.json',
     './data_question/inf08.json',
     './zsemtech_profile.ico',
+    './offline.html',
 ];
 
 // Install Event: Pre-cache core application shell and question datasets
@@ -97,10 +99,13 @@ self.addEventListener('fetch', (event) => {
         fetch(request).catch(() => {
             return caches.match(request, { ignoreSearch: true }).then((cached) => {
                 if (cached) return cached;
-                return new Response(
-                    '<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><title>Brak połączenia — ZSEM Tech</title><link rel="stylesheet" href="./assets/css/style.css"></head><body style="font-family:sans-serif;padding:3rem;text-align:center;background:#0f172a;color:#fff;"><h1>📡 Jesteś w trybie offline</h1><p>Twoje postępy zostaną automatycznie zsynchronizowane po przywróceniu połączenia internetowego.</p><button onclick="window.location.reload()" style="background:#6366f1;color:#fff;border:0;padding:10px 20px;border-radius:8px;cursor:pointer;">Spróbuj ponownie</button></body></html>',
-                    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-                );
+                return caches.match('./offline.html', { ignoreSearch: true }).then((offlinePage) => {
+                    if (offlinePage) return offlinePage;
+                    return new Response(
+                        '<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><title>Brak połączenia — ZSEM Tech</title><link rel="stylesheet" href="./assets/css/style.css"></head><body style="font-family:sans-serif;padding:3rem;text-align:center;background:#0f172a;color:#fff;"><h1>📡 Jesteś w trybie offline</h1><p>Twoje postępy zostaną automatycznie zsynchronizowane po przywróceniu połączenia internetowego.</p><button onclick="window.location.reload()" style="background:#6366f1;color:#fff;border:0;padding:10px 20px;border-radius:8px;cursor:pointer;">Spróbuj ponownie</button></body></html>',
+                        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+                    );
+                });
             });
         })
     );

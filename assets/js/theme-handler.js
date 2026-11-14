@@ -9,6 +9,37 @@
     window.__zsemThemeHandlerLoaded = true;
     document.documentElement.classList.add('js-enabled');
 
+    // Immediate early theme application to prevent FOUC when browser prefers dark mode
+    (function initEarlyTheme() {
+        try {
+            const m = document.cookie.match(/(?:^|;\s*)user_theme=([^;]*)/);
+            const savedTheme = m ? decodeURIComponent(m[1]) : (window.localStorage ? window.localStorage.getItem('user_theme') : null) || 'auto';
+            const mExp = document.cookie.match(/(?:^|;\s*)user_theme_explicit=([^;]*)/);
+            const explicitTheme = (mExp ? decodeURIComponent(mExp[1]) : (window.localStorage ? window.localStorage.getItem('user_theme_explicit') : null)) === '1';
+            const systemPrefersDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const isDark = (savedTheme === 'dark') || ((!explicitTheme || savedTheme === 'auto') && systemPrefersDark);
+            if (isDark) {
+                document.documentElement.classList.add('dark-mode');
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                document.documentElement.style.colorScheme = 'dark';
+                if (document.body) {
+                    document.body.classList.add('dark-mode');
+                    document.body.classList.remove('light-mode');
+                    document.body.setAttribute('data-bs-theme', 'dark');
+                }
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+                document.documentElement.style.colorScheme = 'light';
+                if (document.body) {
+                    document.body.classList.remove('dark-mode');
+                    document.body.classList.add('light-mode');
+                    document.body.setAttribute('data-bs-theme', 'light');
+                }
+            }
+        } catch (e) {}
+    })();
+
     // Ensure DevTools guard is loaded and active across the platform
     if (!window.__zsemDevToolsGuardLoaded) {
         const themeScript = document.querySelector('script[src*="theme-handler.js"]');
@@ -29,6 +60,7 @@
 
     const preferenceCookieNames = [
         'user_theme',
+        'user_theme_explicit',
         'user_font_size',
         'user_density',
         'user_accent',
@@ -177,7 +209,11 @@
         if (getCookie('cookie_consent') === 'rejected') {
             preferenceCookieNames.forEach(deleteCookie);
         }
-        const theme = getPreference('user_theme', 'light');
+        const explicitTheme = getPreference('user_theme_explicit', '0') === '1';
+        const savedTheme = getPreference('user_theme', 'auto');
+        const systemPrefersDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const isDark = (savedTheme === 'dark') || ((!explicitTheme || savedTheme === 'auto') && systemPrefersDark);
+        const theme = isDark ? 'dark' : 'light';
         const fontSize = getPreference('user_font_size', '16');
         const density = getPreference('user_density', 'comfortable');
         const accent = getPreference('user_accent', '#3b82f6');
@@ -189,6 +225,9 @@
 
         document.body.classList.toggle('dark-mode', theme === 'dark');
         document.body.classList.toggle('light-mode', theme !== 'dark');
+        document.body.setAttribute('data-bs-theme', theme);
+        document.documentElement.classList.toggle('dark-mode', theme === 'dark');
+        document.documentElement.setAttribute('data-bs-theme', theme);
         document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
         document.documentElement.style.fontSize = (/^(14|16|18)$/.test(fontSize) ? fontSize : '16') + 'px';
         document.documentElement.style.setProperty('--primary-color', cleanPrimary);
@@ -496,34 +535,65 @@
             observer.observe(root, { childList: true, subtree: true });
         }
         initTransitionsAndPrefetch();
+        if (window.matchMedia) {
+            try {
+                const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                const handleThemeChange = () => {
+                    const explicitTheme = getPreference('user_theme_explicit', '0') === '1';
+                    const savedTheme = getPreference('user_theme', 'auto');
+                    if (!explicitTheme || savedTheme === 'auto') {
+                        applySettings();
+                    }
+                };
+                if (typeof mediaQuery.addEventListener === 'function') {
+                    mediaQuery.addEventListener('change', handleThemeChange);
+                } else if (typeof mediaQuery.addListener === 'function') {
+                    mediaQuery.addListener(handleThemeChange);
+                }
+            } catch (e) {
+                // Fallback for older browsers
+            }
+        }
     });
 
     window.updateThemeSetting = function(theme) {
-        const isDark = theme === 'dark';
-        setPreference('user_theme', isDark ? 'dark' : 'light');
-
-        // Zgodnie z wytycznymi, po zmianie na ciemny motyw resetujemy akcent i wygląd panelu do domyślnych dla tego motywu.
-        // Optymalizacja UX: Użytkownik zachowuje możliwość modyfikacji akcentu w obu trybach,
-        // a automatyczny reset gwarantuje natychmiastowe wizualne dopasowanie palety (np. 'glass' dla ciemnego).
-        if (isDark) {
-            setPreference('user_accent', '#6366f1'); // domyślny akcent ciemnego motywu
-            setPreference('welcome_banner_style', 'glass');
+        if (theme === 'auto') {
+            setPreference('user_theme', 'auto');
+            setPreference('user_theme_explicit', '1');
+            const systemPrefersDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (systemPrefersDark) {
+                setPreference('user_accent', '#6366f1');
+                setPreference('welcome_banner_style', 'glass');
+            } else {
+                setPreference('user_accent', '#3b82f6');
+                setPreference('welcome_banner_style', 'gradient');
+            }
         } else {
-            setPreference('user_accent', '#3b82f6'); // domyślny akcent jasnego motywu
-            setPreference('welcome_banner_style', 'gradient');
+            const isDark = theme === 'dark';
+            setPreference('user_theme', isDark ? 'dark' : 'light');
+            setPreference('user_theme_explicit', '1');
+
+            if (isDark) {
+                setPreference('user_accent', '#6366f1'); // domyślny akcent ciemnego motywu
+                setPreference('welcome_banner_style', 'glass');
+            } else {
+                setPreference('user_accent', '#3b82f6'); // domyślny akcent jasnego motywu
+                setPreference('welcome_banner_style', 'gradient');
+            }
         }
 
         applySettings();
 
         // Zaktualizuj elementy interfejsu (jeśli jesteśmy w panelu ustawień)
+        const isCurrentDark = document.body && document.body.classList.contains('dark-mode');
         if (typeof window.syncAccentUi === 'function') {
-            window.syncAccentUi(isDark ? '#6366f1' : '#3b82f6');
+            window.syncAccentUi(isCurrentDark ? '#6366f1' : '#3b82f6');
         }
         if (typeof window.syncWelcomeBannerStyleUi === 'function') {
-            window.syncWelcomeBannerStyleUi(isDark ? 'glass' : 'gradient');
+            window.syncWelcomeBannerStyleUi(isCurrentDark ? 'glass' : 'gradient');
             const welcomeStyleSelect = document.getElementById('welcomeBannerStyleSelect');
             if (welcomeStyleSelect) {
-                welcomeStyleSelect.value = isDark ? 'glass' : 'gradient';
+                welcomeStyleSelect.value = isCurrentDark ? 'glass' : 'gradient';
             }
         }
 

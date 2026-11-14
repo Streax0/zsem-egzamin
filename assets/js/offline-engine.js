@@ -196,6 +196,7 @@
                 pill.style.background = '#f59e0b';
                 pill.style.color = '#0f172a';
                 pill.innerHTML = `<i class="bi bi-arrow-repeat me-1 spin"></i>Synchronizacja (${pendingCount})...`;
+                pill.onclick = null;
                 pill.onclick = () => this.syncAll();
             } else {
                 pill.style.display = 'none';
@@ -203,6 +204,10 @@
         }
 
         showToast(message, type = 'info') {
+            if (typeof window.appNotice === 'function') {
+                window.appNotice(message, type);
+                return;
+            }
             if (typeof window.showAppToast === 'function') {
                 window.showAppToast(message, type);
                 return;

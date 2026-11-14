@@ -19,6 +19,7 @@ $extraHead = <<<HTML
 <style>
         .question-entry { border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; background: var(--panel-bg); }
         .sticky-bottom-bar { position: sticky; bottom: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 1rem; border-top: 1px solid var(--border-color); z-index: 100; margin: 0 -1.5rem; }
+        body.dark-mode .sticky-bottom-bar, [data-bs-theme="dark"] .sticky-bottom-bar { background: rgba(15, 23, 42, 0.92) !important; border-color: rgba(148, 163, 184, 0.2) !important; }
     </style>
 HTML;
 include '../includes/header.php';

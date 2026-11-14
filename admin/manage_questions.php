@@ -463,8 +463,15 @@ $offset = ($page - 1) * $limit;
 $pageQuestions = array_slice($filteredQuestions, $offset, $limit);
 
 $rawFlash = getSessionMessage();
-$flashMessage = $rawFlash['message'] ?? '';
-$flashType = $rawFlash['type'] ?? 'info';
+$flashMessage = '';
+$flashType = 'info';
+if (is_array($rawFlash)) {
+    $flashMessage = $rawFlash['message'] ?? '';
+    $flashType = $rawFlash['type'] ?? 'info';
+} elseif (is_string($rawFlash)) {
+    $flashMessage = $rawFlash;
+    $flashType = 'info';
+}
 
 $pageTitle = 'Zarządzanie Bazą Pytań JSON - ZSEM Tech';
 $extraCss = ['assets/css/dashboard-new.css'];
@@ -588,50 +595,90 @@ $extraHead = <<<HTML
 
     .question-editor-modal .modal-content,
     #previewQuestionModal .modal-content {
-        background: #0f172a;
-        color: #f8fafc;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: var(--panel-bg, #ffffff);
+        color: var(--text-main, #0f172a);
+        border: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
         border-radius: 20px;
-        box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.25);
     }
     .question-editor-modal .form-label,
     #previewQuestionModal h5 {
-        color: #ffffff;
+        color: var(--text-main, #0f172a);
+        font-weight: 700;
     }
     .question-editor-modal .form-control,
     .question-editor-modal .form-select,
     .question-editor-modal textarea {
-        background: rgba(15, 23, 42, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: #ffffff;
+        background: var(--bg-card, #ffffff);
+        border: 1px solid var(--border-color, #cbd5e1);
+        color: var(--text-main, #0f172a);
         border-radius: 10px;
     }
     .question-editor-modal .form-control:focus,
     .question-editor-modal .form-select:focus {
-        background: rgba(15, 23, 42, 0.95);
         border-color: #6366f1;
-        box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+    }
+    [data-bs-theme="dark"] .question-editor-modal .modal-content,
+    body.dark-mode .question-editor-modal .modal-content,
+    [data-bs-theme="dark"] #previewQuestionModal .modal-content,
+    body.dark-mode #previewQuestionModal .modal-content {
+        background: #0f172a;
+        color: #f8fafc;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    }
+    [data-bs-theme="dark"] .question-editor-modal .form-label,
+    body.dark-mode .question-editor-modal .form-label,
+    [data-bs-theme="dark"] #previewQuestionModal h5,
+    body.dark-mode #previewQuestionModal h5 {
         color: #ffffff;
     }
-    .question-editor-modal option {
+    [data-bs-theme="dark"] .question-editor-modal .form-control,
+    body.dark-mode .question-editor-modal .form-control,
+    [data-bs-theme="dark"] .question-editor-modal .form-select,
+    body.dark-mode .question-editor-modal .form-select,
+    [data-bs-theme="dark"] .question-editor-modal textarea,
+    body.dark-mode .question-editor-modal textarea {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+    }
+    [data-bs-theme="dark"] .question-editor-modal option,
+    body.dark-mode .question-editor-modal option {
         background: #0f172a;
         color: #ffffff;
     }
+    [data-bs-theme="dark"] .modal .btn-close,
+    body.dark-mode .modal .btn-close {
+        filter: invert(1) grayscale(100%);
+    }
     .question-preview-box {
-        background: rgba(15, 23, 42, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(99, 102, 241, 0.05);
+        border: 1px solid rgba(99, 102, 241, 0.18);
         border-radius: 14px;
         padding: 1.25rem;
     }
-    .option-pill {
+    [data-bs-theme="dark"] .question-preview-box,
+    body.dark-mode .question-preview-box {
+        background: rgba(15, 23, 42, 0.65);
         border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.04);
+    }
+    .option-pill {
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(255, 255, 255, 0.8);
         border-radius: 10px;
         padding: 0.75rem 1rem;
         margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        color: #1e293b;
+    }
+    [data-bs-theme="dark"] .option-pill,
+    body.dark-mode .option-pill {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
         color: #e2e8f0;
     }
     .option-pill.is-correct {
@@ -1127,18 +1174,30 @@ include '../includes/header.php';
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    function safeParseQuestion(btn) {
+        try {
+            return JSON.parse(btn.getAttribute('data-question') || '{}');
+        } catch (e) {
+            if (window.safeJson) return window.safeJson(btn.getAttribute('data-question'), null);
+            return null;
+        }
+    }
+
     // Preview Event Handler
     document.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const q = JSON.parse(btn.getAttribute('data-question'));
-            document.getElementById('prevCategory').textContent = q.category;
-            document.getElementById('prevFile').textContent = q.file;
-            document.getElementById('prevText').textContent = q.question_text;
+            const q = safeParseQuestion(btn);
+            if (!q) return;
+            document.getElementById('prevCategory').textContent = q.category || 'CKE';
+            document.getElementById('prevFile').textContent = q.file || '';
+            document.getElementById('prevText').textContent = q.question_text || '';
             
             ['A', 'B', 'C', 'D'].forEach(letter => {
                 const optEl = document.getElementById('prevOpt' + letter);
-                optEl.querySelector('span').textContent = q['option_' + letter.toLowerCase()];
-                optEl.classList.toggle('is-correct', q.correct_answer === letter);
+                if (optEl) {
+                    optEl.querySelector('span').textContent = q['option_' + letter.toLowerCase()] || '';
+                    optEl.classList.toggle('is-correct', q.correct_answer === letter);
+                }
             });
 
             const imgWrap = document.getElementById('prevImgWrap');
@@ -1167,16 +1226,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Edit Event Handler
     document.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const q = JSON.parse(btn.getAttribute('data-question'));
-            document.getElementById('edit_orig_file').value = q.file;
-            document.getElementById('edit_orig_index').value = q.index;
-            document.getElementById('edit_category').value = q.category;
-            document.getElementById('edit_text').value = q.question_text;
-            document.getElementById('edit_a').value = q.option_a;
-            document.getElementById('edit_b').value = q.option_b;
-            document.getElementById('edit_c').value = q.option_c;
-            document.getElementById('edit_d').value = q.option_d;
-            document.getElementById('edit_correct').value = q.correct_answer;
+            const q = safeParseQuestion(btn);
+            if (!q) return;
+            document.getElementById('edit_orig_file').value = q.file || '';
+            document.getElementById('edit_orig_index').value = q.index ?? '';
+            document.getElementById('edit_category').value = q.category || 'INF.02';
+            document.getElementById('edit_text').value = q.question_text || '';
+            document.getElementById('edit_a').value = q.option_a || '';
+            document.getElementById('edit_b').value = q.option_b || '';
+            document.getElementById('edit_c').value = q.option_c || '';
+            document.getElementById('edit_d').value = q.option_d || '';
+            document.getElementById('edit_correct').value = q.correct_answer || 'A';
             document.getElementById('edit_image').value = q.image_url || '';
             document.getElementById('edit_explanation').value = q.explanation || '';
             
@@ -1188,15 +1248,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Duplicate Event Handler
     document.querySelectorAll('.duplicate-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const q = JSON.parse(btn.getAttribute('data-question'));
-            document.getElementById('add_target_file').value = q.file;
-            document.getElementById('add_category').value = q.category;
-            document.getElementById('add_text').value = q.question_text + ' (Kopia)';
-            document.getElementById('add_a').value = q.option_a;
-            document.getElementById('add_b').value = q.option_b;
-            document.getElementById('add_c').value = q.option_c;
-            document.getElementById('add_d').value = q.option_d;
-            document.getElementById('add_correct').value = q.correct_answer;
+            const q = safeParseQuestion(btn);
+            if (!q) return;
+            document.getElementById('add_target_file').value = q.file || 'inf02.json';
+            document.getElementById('add_category').value = q.category || 'INF.02';
+            document.getElementById('add_text').value = (q.question_text || '') + ' (Kopia)';
+            document.getElementById('add_a').value = q.option_a || '';
+            document.getElementById('add_b').value = q.option_b || '';
+            document.getElementById('add_c').value = q.option_c || '';
+            document.getElementById('add_d').value = q.option_d || '';
+            document.getElementById('add_correct').value = q.correct_answer || 'A';
             document.getElementById('add_image').value = q.image_url || '';
             document.getElementById('add_explanation').value = q.explanation || '';
             
