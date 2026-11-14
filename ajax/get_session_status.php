@@ -18,6 +18,9 @@ if (!$sessionId) {
 
 securityThrottle('teacher-session-status:' . securityActorKey() . ':' . $sessionId . ':' . $scope, 120, 60, ['success' => false, 'error' => 'rate_limited']);
 
+$teacherId = (int)$_SESSION['user_id'];
+session_write_close();
+
 try {
     // Check if session belongs to teacher
     $stmt = $pdo->prepare("
@@ -25,7 +28,7 @@ try {
         JOIN exams e ON es.exam_id = e.id 
         WHERE es.id = ? AND e.teacher_id = ?
     ");
-    $stmt->execute([$sessionId, $_SESSION['user_id']]);
+    $stmt->execute([$sessionId, $teacherId]);
     $session = $stmt->fetch();
 
     if (!$session) {

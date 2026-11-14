@@ -42,10 +42,10 @@ $hasTargetTime = !empty($maintenanceUntil) && strtotime($maintenanceUntil) > tim
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta http-equiv="refresh" content="60">
     <title>Prace Konserwacyjne — ZSEM Tech</title>
-    <link rel="icon" href="zsemtech_profile.ico" type="image/x-icon">
+    <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
     <link href="assets/css/fonts.css" rel="stylesheet">

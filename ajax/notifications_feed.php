@@ -10,6 +10,7 @@ securityApplyJsonHeaders();
 requireJsonLogin(false, [], ['success' => false, 'error' => 'Unauthorized'], ['success' => false, 'error' => 'Unauthorized']);
 
 $userId = (int)$_SESSION['user_id'];
+session_write_close();
 $baseUrl = securityInputString($_GET['base'] ?? '', 120);
 if (!in_array($baseUrl, ['', '../'], true)) {
     $baseUrl = '';

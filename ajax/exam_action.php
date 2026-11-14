@@ -14,6 +14,7 @@ requireJsonCsrfToken();
 $action = securityInputEnum($_POST['action'] ?? '', ['submit_answer', 'report_violation'], '');
 $userId = isGuestMode() ? 0 : (int)$_SESSION['user_id'];
 $sessionId = securityInputInt($_POST['session_id'] ?? 0, 0, PHP_INT_MAX, 0);
+session_write_close();
 
 if (!$sessionId) {
     echo securityJsonEncode(['success' => false, 'error' => 'No session ID']);
@@ -51,7 +52,7 @@ if (!$participant) {
 }
 
 $stmt = $pdo->prepare("
-    SELECT es.status, es.exam_id, e.allow_answer_changes, e.teacher_id, e.title AS exam_title
+    SELECT es.status, es.exam_id, es.paused_seconds, es.paused_at, e.allow_answer_changes, e.teacher_id, e.title AS exam_title
     FROM exam_sessions es
     JOIN exams e ON e.id = es.exam_id
     WHERE es.id = ?
@@ -129,7 +130,12 @@ switch ($action) {
             $finished = $answeredCount >= $totalQuestions;
             if ($finished) {
                 $startedAt = $participant['started_at'] ?? $participant['joined_at'] ?? null;
-                $totalTimeSpent = $startedAt ? max(1, time() - strtotime($startedAt)) : 0;
+                $accumulatedPause = (int)($sessionInfo['paused_seconds'] ?? 0);
+                if (($sessionStatus ?? '') === 'paused' && !empty($sessionInfo['paused_at'])) {
+                    $accumulatedPause += max(0, time() - strtotime($sessionInfo['paused_at']));
+                }
+                $rawElapsed = $startedAt ? (time() - strtotime($startedAt)) : 0;
+                $totalTimeSpent = max(1, $rawElapsed - $accumulatedPause);
                 $pdo->prepare("UPDATE exam_participants SET status = 'finished', finished_at = NOW(), time_spent = ? WHERE id = ?")
                     ->execute([$totalTimeSpent, $participant['id']]);
             }

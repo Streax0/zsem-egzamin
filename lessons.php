@@ -309,7 +309,7 @@ $runtimeLessonHasPdfColumns = dbColumnExists($pdo, 'lessons', 'pdf_path')
 <!doctype html>
 <html lang="pl">
 <head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
+    <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5, user-scalable=yes">
     <title>Lekcje - ZSEM Tech</title>

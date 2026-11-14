@@ -8,6 +8,7 @@ startSecureSession();
 securityApplyJsonHeaders();
 
 requireJsonLogin(true, [], ['error' => 'unauthorized'], ['error' => 'unauthorized']);
+session_write_close();
 
 $sessionId = securityInputInt($_GET['session'] ?? 0, 0, PHP_INT_MAX, 0);
 $lite = ($_GET['lite'] ?? '') === '1';

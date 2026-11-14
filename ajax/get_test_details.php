@@ -22,6 +22,7 @@ if (function_exists('mfaAccessRequired') && mfaAccessRequired()) {
 }
 
 $userId = (int)$_SESSION['user_id'];
+session_write_close();
 $testId = securityInputInt($_GET['id'] ?? 0, 0, PHP_INT_MAX, 0);
 
 if ($testId <= 0) {

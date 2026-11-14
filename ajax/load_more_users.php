@@ -16,6 +16,7 @@ if (!isLoggedIn()) {
 
 $userId = (int)($_SESSION['user_id'] ?? 0);
 $myRole = (string)($_SESSION['role'] ?? 'user');
+session_write_close();
 $offset = max(0, (int)($_GET['offset'] ?? 6));
 $limit = min(18, max(1, (int)($_GET['limit'] ?? 6)));
 $query = trim((string)($_GET['query'] ?? ''));

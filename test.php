@@ -1138,7 +1138,7 @@ include 'includes/header.php';
                     <input type="hidden" name="question_id" value="<?= (int)$currentQuestion['id'] ?>">
                     <input type="hidden" name="action" value="submit_answer">
                     <input type="hidden" name="answer" id="simSelectedAnswer" value="<?= htmlspecialchars($savedAnswer) ?>">
-                    <div id="answersContainer">
+                    <div id="answersContainer" role="radiogroup" aria-label="Warianty odpowiedzi">
                         <?php 
                         $simIdx = 0;
                         foreach (['A', 'B', 'C', 'D'] as $opt):
@@ -1148,8 +1148,10 @@ include 'includes/header.php';
                                  ?? '';
                             if (trim($text) === '') continue;
                             $simIdx++;
+                            $isSelected = ($savedAnswer === $opt);
+                            $tabIndex = ($isSelected || ($savedAnswer === '' && $simIdx === 1)) ? '0' : '-1';
                         ?>
-                        <div class="sim-answer-option <?= $savedAnswer === $opt ? 'selected' : '' ?>" data-answer="<?= $opt ?>" onclick="selectSimAnswer(this)">
+                        <div class="sim-answer-option <?= $isSelected ? 'selected' : '' ?>" data-answer="<?= $opt ?>" role="radio" aria-checked="<?= $isSelected ? 'true' : 'false' ?>" tabindex="<?= $tabIndex ?>" onclick="selectSimAnswer(this)">
                             <span class="sim-answer-letter"><?= $opt ?><span class="sim-key-indicator" title="Skrót klawiszowy"><?= $simIdx ?></span></span><?= htmlspecialchars($text) ?>
                         </div>
                         <?php endforeach; ?>
@@ -1201,7 +1203,7 @@ include 'includes/header.php';
                         </div>
                         <?php endif; ?>
                     </div>
-                    <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" id="testEndBtn" onclick="confirmEndTest()" title="Zakończ test" aria-label="Zakończ test">
+                    <button type="button" class="test-end-modern-btn d-flex align-items-center justify-content-center" id="testEndBtn" title="Zakończ test" aria-label="Zakończ test">
                         <i class="bi bi-stop-circle"></i>
                     </button>
                 </div>
@@ -1244,7 +1246,7 @@ include 'includes/header.php';
             <?php $questionImage = questionImageSrc($currentQuestion['image_url'] ?? ''); ?>
             <?php if ($questionImage): ?>
                 <img src="<?= htmlspecialchars($questionImage) ?>"
-                     alt="Ilustracja do pytania: <?= htmlspecialchars(mb_substr($currentQuestion['question_text'] ?? 'pytanie testowe', 0, 90)) ?>" class="img-fluid rounded mb-3 shadow-sm" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+                     alt="Ilustracja do pytania: <?= htmlspecialchars(mb_substr($currentQuestion['question_text'] ?? 'pytanie testowe', 0, 90)) ?>" class="img-fluid rounded mb-3 shadow-sm" loading="eager" fetchpriority="high" decoding="async" referrerpolicy="no-referrer">
             <?php endif; ?>
 
             <p class="h4 mb-4 fw-medium question-text-main" style="line-height: 1.5;"><?= nl2br(htmlspecialchars($currentQuestion['question_text'])) ?></p>
@@ -1260,15 +1262,21 @@ include 'includes/header.php';
                 <script>
                 window.__fallbackSelectOption = function(el) {
                     if (!el || el.classList.contains('disabled') || el.classList.contains('correct') || el.classList.contains('incorrect') || document.querySelector('.review-box')) return;
-                    document.querySelectorAll('.quiz-option').forEach(function(o) { o.classList.remove('selected'); });
+                    document.querySelectorAll('.quiz-option').forEach(function(o) { 
+                        o.classList.remove('selected'); 
+                        o.setAttribute('aria-checked', 'false');
+                        o.setAttribute('tabindex', '-1');
+                    });
                     el.classList.add('selected');
+                    el.setAttribute('aria-checked', 'true');
+                    el.setAttribute('tabindex', '0');
                     var input = document.getElementById('selectedAnswer');
                     if (input) input.value = el.dataset.answer || '';
                     var btn = document.getElementById('submitBtn');
                     if (btn) btn.disabled = false;
                 };
                 </script>
-                <div id="answersContainer" class="d-flex flex-column gap-2">
+                <div id="answersContainer" class="d-flex flex-column gap-2" role="radiogroup" aria-label="Warianty odpowiedzi">
                     <?php 
                     $optionsFound = 0;
                     foreach (['A', 'B', 'C', 'D'] as $opt):
@@ -1280,8 +1288,10 @@ include 'includes/header.php';
                              
                         if (trim($text) === '') continue;
                         $optionsFound++;
+                        $isSelected = ($savedAnswer === $opt);
+                        $tabIndex = ($isSelected || ($savedAnswer === '' && $optionsFound === 1)) ? '0' : '-1';
                     ?>
-                    <div class="answer-option quiz-option <?= $savedAnswer === $opt ? 'selected' : '' ?>" data-answer="<?= $opt ?>" onclick="window.QuizEngine ? window.QuizEngine.selectOption(this) : (window.selectQuizOption ? window.selectQuizOption(this) : window.__fallbackSelectOption(this))">
+                    <div class="answer-option quiz-option <?= $isSelected ? 'selected' : '' ?>" data-answer="<?= $opt ?>" role="radio" aria-checked="<?= $isSelected ? 'true' : 'false' ?>" tabindex="<?= $tabIndex ?>" onclick="window.QuizEngine ? window.QuizEngine.selectOption(this) : (window.selectQuizOption ? window.selectQuizOption(this) : window.__fallbackSelectOption(this))">
                         <div class="answer-letter"><?= $opt ?><span class="key-indicator" title="Skrót klawiszowy"><?= $optionsFound ?></span></div>
                         <div class="answer-text"><?= htmlspecialchars($text) ?></div>
                     </div>

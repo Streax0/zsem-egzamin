@@ -65,6 +65,7 @@ if ($requestMethod === 'POST' && !validateCsrfToken((string)($_POST['csrf_token'
 }
 
 $userId = (int)$_SESSION['user_id'];
+session_write_close();
 securityThrottle('course_admin:' . $userId . ':' . securityClientIp(), 180, 60, ['success' => false, 'message' => 'Zbyt wiele zmian naraz. Spróbuj ponownie za chwilę.']);
 
 try {

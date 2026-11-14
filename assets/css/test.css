@@ -1030,6 +1030,12 @@
             .sim-exam-layout {
                 grid-template-columns: 1fr;
             }
+            .sim-exam-side {
+                order: -1;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
             .sim-exam-links {
                 display: none;
             }
@@ -1425,6 +1431,7 @@
         /* Ethereal background mesh glow */
         .quiz-container {
             position: relative;
+            overflow: hidden;
         }
         .quiz-container::before {
             content: '';
@@ -1436,6 +1443,12 @@
             background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, rgba(59, 130, 246, 0) 70%);
             pointer-events: none;
             z-index: 0;
+        }
+        @media (max-width: 767.98px) {
+            .quiz-container::before {
+                width: 100%;
+                left: 0;
+            }
         }
         body.dark-mode .quiz-container::before {
             background: radial-gradient(circle, rgba(96, 165, 250, 0.04) 0%, rgba(96, 165, 250, 0) 70%);

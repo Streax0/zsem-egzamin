@@ -191,9 +191,9 @@ unset($card);
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
+    <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Fiszki - ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
@@ -356,26 +356,30 @@ unset($card);
                                         <div class="flashcard-card-front">
                                             <div class="flashcard-top-bar">
                                                 <span class="flashcard-card-kicker"><i class="bi bi-question-circle me-1"></i>POJĘCIE</span>
-                                                <span class="badge bg-primary bg-opacity-15 text-primary fw-bold" id="flashcardQualFront">INF.02</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-primary bg-opacity-15 text-primary fw-bold" id="flashcardQualFront">INF.02</span>
+                                                    <button type="button" class="btn-tts" id="flashcardTtsFront" title="Odsłuchaj wymowę" aria-label="Odsłuchaj pojęcie">
+                                                        <i class="bi bi-volume-up-fill"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div class="flashcard-text" id="flashcardFrontText">Pojęcie</div>
                                             <div class="flashcard-hint-text">
                                                 <i class="bi bi-hand-index-thumb me-1"></i>Kliknij lub naciśnij <kbd class="kbd-badge">Spacja</kbd>, aby obrócić
                                             </div>
-                                            <button type="button" class="btn-tts" id="flashcardTtsFront" title="Odsłuchaj wymowę" aria-label="Odsłuchaj pojęcie">
-                                                <i class="bi bi-volume-up-fill"></i>
-                                            </button>
                                         </div>
                                         <!-- Back Side -->
                                         <div class="flashcard-card-back">
                                             <div class="flashcard-top-bar">
                                                 <span class="flashcard-card-kicker"><i class="bi bi-lightbulb me-1"></i>DEFINICJA & OPIS</span>
-                                                <span class="badge bg-success bg-opacity-15 text-success fw-bold" id="flashcardQualBack">INF.02</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-success bg-opacity-15 text-success fw-bold" id="flashcardQualBack">INF.02</span>
+                                                    <button type="button" class="btn-tts" id="flashcardTtsBack" title="Odsłuchaj definicję" aria-label="Odsłuchaj definicję">
+                                                        <i class="bi bi-volume-up-fill"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div class="flashcard-text" id="flashcardBackText">Definicja</div>
-                                            <button type="button" class="btn-tts" id="flashcardTtsBack" title="Odsłuchaj definicję" aria-label="Odsłuchaj definicję">
-                                                <i class="bi bi-volume-up-fill"></i>
-                                            </button>
                                         </div>
                                     </div>
                                 </div>

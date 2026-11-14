@@ -645,7 +645,7 @@
 
 @media (max-width: 991.98px) {
   .course-builder-layout, .course-player { grid-template-columns: 1fr; }
-  .course-player-sidebar { border-right: 0; border-bottom: 1px solid var(--border-color); height: auto; position: static; max-height: 380px; }
+  .course-player-sidebar { border-right: 0; border-bottom: 1px solid var(--border-color); height: auto; position: static; max-height: 240px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 }
 
 @media (prefers-reduced-motion: reduce) {

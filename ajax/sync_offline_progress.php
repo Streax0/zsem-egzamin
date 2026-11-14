@@ -17,6 +17,7 @@ if ($userId <= 0) {
     echo securityJsonEncode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
+session_write_close();
 
 $rawInput = file_get_contents('php://input');
 $payload = json_decode($rawInput, true);
@@ -42,6 +43,15 @@ $totalXpAwarded = 0;
 
 try {
     // 1. Process test results batch
+    $stmtTestResult = $pdo->prepare("
+        INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode, start_time, exclude_from_ranking)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    $stmtAns = $pdo->prepare("
+        INSERT INTO test_answers (result_id, question_id, user_answer, correct_answer, is_correct)
+        VALUES (?, ?, ?, ?, ?)
+    ");
+
     foreach ($batch as $testItem) {
         if (!is_array($testItem)) continue;
 
@@ -61,19 +71,11 @@ try {
 
         $pdo->beginTransaction();
 
-        $stmt = $pdo->prepare("
-            INSERT INTO test_results (user_id, total_questions, correct_answers, score_percent, time_spent, mode, start_time, exclude_from_ranking)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-        $stmt->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $mode, $startTime, $excludeFromRanking]);
+        $stmtTestResult->execute([$userId, $totalQ, $correctCount, $scorePct, $timeSpent, $mode, $startTime, $excludeFromRanking]);
         $resultId = (int)$pdo->lastInsertId();
 
         // Process individual answers if provided
         if (!empty($testItem['answers']) && is_array($testItem['answers'])) {
-            $stmtAns = $pdo->prepare("
-                INSERT INTO test_answers (result_id, question_id, user_answer, correct_answer, is_correct)
-                VALUES (?, ?, ?, ?, ?)
-            ");
             foreach ($testItem['answers'] as $ans) {
                 $rawQid = (int)($ans['question_id'] ?? 0);
                 if ($rawQid <= 0) continue;

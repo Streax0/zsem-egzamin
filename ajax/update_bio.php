@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $bio = securityInputString($_POST['bio'] ?? '', 180);
     $userId = (int)$_SESSION['user_id'];
+    session_write_close();
     
     // Simple validation
     $bio = trim($bio);

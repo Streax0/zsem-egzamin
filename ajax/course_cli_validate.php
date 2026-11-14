@@ -23,6 +23,7 @@ try {
     if (!$currentUser) {
         securitySendJson(['success' => false, 'message' => 'Wymagane logowanie.'], 401);
     }
+    session_write_close();
 
     $rawInput = file_get_contents('php://input');
     $data = json_decode($rawInput, true);

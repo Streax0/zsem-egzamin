@@ -8,6 +8,7 @@ securityApplyJsonHeaders();
 requireJsonLogin(false, [], ['success' => false, 'error' => 'Not authenticated'], ['success' => false, 'error' => 'Not authenticated']);
 
 $userId = (int)$_SESSION['user_id'];
+session_write_close();
 
 // Get question ID from POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

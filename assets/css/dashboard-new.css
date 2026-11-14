@@ -234,7 +234,7 @@ h1, h2, h3, h4, h5, h6 {
   min-width: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .main-container {
     margin-left: 0;
   }
@@ -337,8 +337,11 @@ body.dark-mode .teacher-ops-strip-current {
 }
 
 .topbar-icon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
   font-size: 1.15rem;
   color: #cbd5e1;
   cursor: pointer;
@@ -355,6 +358,14 @@ body.dark-mode .teacher-ops-strip-current {
   -webkit-appearance: none;
   appearance: none;
   overflow: visible;
+}
+
+#sidebarToggle,
+#sidebarClose,
+.sidebar-close-btn {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .topbar-icon::before {
@@ -856,28 +867,6 @@ body.dark-mode.welcome-style-glass .welcome-card .btn-welcome-outline {
   color: rgba(255, 255, 255, 0.95);
   font-size: 0.9rem;
   font-weight: 600;
-}
-
-@media (max-width: 991.98px) {
-  .dashboard-hero-inner {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-left,
-  .hero-right {
-    width: 100%;
-  }
-}
-
-@media (max-width: 991.98px) {
-  .dashboard-hero-inner {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-left,
-  .hero-right {
-    width: 100%;
-  }
 }
 
 @media (max-width: 991.98px) {
@@ -1974,7 +1963,7 @@ body.dark-mode .table-hover tbody tr:hover {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .sidebar {
     transform: translateX(-100%);
   }
@@ -2106,7 +2095,7 @@ body.dark-mode .table-hover tbody tr:hover {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .admin-panel:not(.admin-users-table-panel) .table thead {
     display: none;
   }
@@ -2580,7 +2569,7 @@ body.dark-mode .profile-header-meta .text-muted {
     color: #94a3b8 !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
     .top-header .notification-dropdown {
         width: min(360px, calc(100vw - 1rem));
     }
@@ -3117,10 +3106,10 @@ body.dark-mode .dashboard-panel .empty-state i {
 }
 
 /* Force stats cards into a 2-column grid on mobile instead of wrapping to 1 vertical column */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .stats-row {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.65rem !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
   }
   .welcome-card {
     padding: 1.5rem;
@@ -3146,9 +3135,18 @@ body.dark-mode .dashboard-panel .empty-state i {
 
 @media (max-width: 576px) {
   .stats-row {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.5rem !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
   }
+}
+
+@media (max-width: 480px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
   .quick-start-buttons {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -3176,7 +3174,7 @@ body.dark-mode .dashboard-panel .empty-state i {
 }
 
 /* Recent Tests mobile card transform */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .recent-tests-table-wrap {
     overflow: visible !important;
   }

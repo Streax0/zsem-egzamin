@@ -16,6 +16,7 @@ if (!isset($_SESSION['session_start'])) {
 
 $elapsed = time() - (int)$_SESSION['session_start'];
 $remaining = max(0, $maxLifetime - $elapsed);
+session_write_close();
 
 echo securityJsonEncode([
     'success' => true,

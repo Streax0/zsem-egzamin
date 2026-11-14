@@ -11,6 +11,7 @@ requireJsonLogin(false, [], ['ok' => false, 'results' => []], ['ok' => false, 'r
 
 $userId = (int)$_SESSION['user_id'];
 $role = $_SESSION['role'] ?? 'user';
+session_write_close();
 $query = securityInputString($_GET['q'] ?? '', 64);
 
 $sessionLimit = securityConsumeRateLimit('live-user-search:' . securityActorKey(), 80, 60);

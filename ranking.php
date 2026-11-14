@@ -34,9 +34,9 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
+    <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ranking Użytkowników - ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
@@ -452,7 +452,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                     <?php if (count($topUsers) >= 3): ?>
                     <div class="row g-3 mb-4 podium-container align-items-end">
                         <!-- 2nd Place (Silver) -->
-                        <div class="col-4 col-md-4 order-1">
+                        <div class="col-6 col-md-4 order-2 order-md-1">
                             <?php $u2 = $topUsers[1]; $r2 = getRankInfoByXp((int)$u2['xp']); $av2 = userAvatarSrc($u2['avatar_path'] ?? ''); ?>
                             <div class="podium-card podium-card-2 text-center p-3">
                                 <div class="podium-crown-badge silver"><i class="bi bi-award-fill me-1"></i>2. MIEJSCE</div>
@@ -472,7 +472,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                         </div>
 
                         <!-- 1st Place (Gold) -->
-                        <div class="col-4 col-md-4 order-2">
+                        <div class="col-12 col-md-4 order-1 order-md-2">
                             <?php $u1 = $topUsers[0]; $r1 = getRankInfoByXp((int)$u1['xp']); $av1 = userAvatarSrc($u1['avatar_path'] ?? ''); ?>
                             <div class="podium-card podium-card-1 text-center p-3 p-md-4 shadow-lg">
                                 <div class="podium-crown-badge gold"><i class="bi bi-crown-fill me-1"></i>1. MIEJSCE</div>
@@ -492,7 +492,7 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
                         </div>
 
                         <!-- 3rd Place (Bronze) -->
-                        <div class="col-4 col-md-4 order-3">
+                        <div class="col-6 col-md-4 order-3 order-md-3">
                             <?php $u3 = $topUsers[2]; $r3 = getRankInfoByXp((int)$u3['xp']); $av3 = userAvatarSrc($u3['avatar_path'] ?? ''); ?>
                             <div class="podium-card podium-card-3 text-center p-3">
                                 <div class="podium-crown-badge bronze"><i class="bi bi-award-fill me-1"></i>3. MIEJSCE</div>

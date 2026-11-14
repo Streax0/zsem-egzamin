@@ -401,7 +401,7 @@ body{font-family:'Inter',Arial,sans-serif;background:#111;color:#e0e0e0;min-heig
   .cisco-appname{font-size:14px}
 
   /* Cisco form: allow horizontal scroll */
-  .cisco-content{padding:6px 8px 12px}
+  .cisco-content{padding:6px 8px 12px;overflow-x:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .cform .lbl{width:160px}
   .cform input[type=text],.cform select{width:150px}
 

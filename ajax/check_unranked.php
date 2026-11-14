@@ -13,6 +13,7 @@ if (!isLoggedIn()) {
 requireJsonLogin(false, [], ['used' => 0], ['used' => 0]);
 
 $userId = (int)$_SESSION['user_id'];
+session_write_close();
 $today = date('Y-m-d');
 
 try {

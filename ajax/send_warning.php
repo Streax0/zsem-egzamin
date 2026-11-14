@@ -11,6 +11,10 @@ requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, '
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requireJsonCsrfToken();
 
+    $role = (string)($_SESSION['role'] ?? '');
+    $userId = (int)$_SESSION['user_id'];
+    session_write_close();
+
     $participantId = securityInputInt($_POST['participant_id'] ?? 0, 0, PHP_INT_MAX, 0);
     $sessionId = securityInputInt($_POST['session_id'] ?? 0, 0, PHP_INT_MAX, 0);
     $message = securityInputString($_POST['message'] ?? '', 500);
@@ -28,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        if (!roleHasAdminAccess($_SESSION['role'] ?? '')) {
+        if (!roleHasAdminAccess($role)) {
             $stmt = $pdo->prepare("
                 SELECT 1
                 FROM exam_participants p
@@ -37,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 WHERE p.id = ? AND p.session_id = ? AND e.teacher_id = ?
                 LIMIT 1
             ");
-            $stmt->execute([$participantId, $sessionId, $_SESSION['user_id']]);
+            $stmt->execute([$participantId, $sessionId, $userId]);
             if (!$stmt->fetchColumn()) {
                 http_response_code(403);
                 echo securityJsonEncode(['success' => false, 'message' => 'Forbidden']);

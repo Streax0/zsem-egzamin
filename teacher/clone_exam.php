@@ -116,21 +116,6 @@ try {
     $newId = (int)$pdo->lastInsertId();
     setExamAiCopyGuard($pdo, $newId, examAiCopyGuardEnabled($pdo, $examId));
 
-    try {
-        $stmt = $pdo->prepare("SELECT question_id FROM exam_questions WHERE exam_id = ?");
-        $stmt->execute([$examId]);
-        $questions = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        if (!empty($questions)) {
-            $stmtInsert = $pdo->prepare("INSERT INTO exam_questions (exam_id, question_id) VALUES (?, ?)");
-            foreach ($questions as $qId) {
-                $stmtInsert->execute([$newId, $qId]);
-            }
-        }
-    } catch (PDOException $e) {
-        // Newer schema stores selected questions directly on exams.
-    }
-
     setSessionMessage('success', 'Sprawdzian został skopiowany pomyślnie.');
     redirect('index.php');
 } catch (PDOException $e) {

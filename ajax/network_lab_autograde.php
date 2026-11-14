@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 requireJsonCsrfToken();
+session_write_close();
 
 $raw = file_get_contents('php://input');
 $data = json_decode($raw, true);

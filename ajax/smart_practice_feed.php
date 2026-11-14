@@ -14,6 +14,7 @@ try {
     }
 
     $userId = (int)($_SESSION['user_id'] ?? 0);
+    session_write_close();
     
     global $pdo;
     if (!isset($pdo) || !($pdo instanceof PDO)) {

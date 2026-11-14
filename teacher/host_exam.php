@@ -16,12 +16,7 @@ $userId = $_SESSION['user_id'];
 
 // Generate unique access code
 function generateAccessCode() {
-    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    $code = '';
-    for ($i = 0; $i < 6; $i++) {
-        $code .= $chars[random_int(0, strlen($chars) - 1)];
-    }
-    return $code;
+    return generateExamAccessCode();
 }
 
 // Handle POST actions

@@ -20,11 +20,13 @@ if (!isset($_SESSION['session_start'])) {
 }
 
 if (time() - (int)$_SESSION['session_start'] > $maxLifetime) {
+    session_write_close();
     echo securityJsonEncode(['success' => false, 'error' => 'Session expired']);
     exit;
 }
 
 $_SESSION['session_start'] = time();
+session_write_close();
 
 $params = session_get_cookie_params();
 setcookie(

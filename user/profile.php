@@ -76,7 +76,7 @@ if ($canViewProfile) {
     $testResults = getTestResults($pdo, $userId, 50);
     $profileHistoryResults = getUnifiedUserHistory($pdo, $userId, 50);
     $chartTestResults = getQualifiedTestResults($pdo, $userId, 100, 1);
-    $totalQuestions = count(loadQuestions($pdo, false));
+    $totalQuestions = getTotalQuestionsCount($pdo, false);
     $ckeReadiness = calculateCkeReadinessIndex($pdo, $userId);
 
     // Format total time spent

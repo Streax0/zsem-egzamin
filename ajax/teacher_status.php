@@ -9,6 +9,7 @@ securityApplyJsonHeaders();
 requireJsonLogin(false, ['teacher', 'admin', 'dyrektor'], ['success' => false, 'message' => 'Unauthorized'], ['success' => false, 'message' => 'Unauthorized']);
 
 $userId = (int)$_SESSION['user_id'];
+session_write_close();
 securityThrottle('teacher-status:' . securityActorKey(), 80, 60, ['success' => false, 'message' => 'rate_limited']);
 
 try {

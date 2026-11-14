@@ -58,6 +58,7 @@ try {
     $itemId = (int)($_POST['item_id'] ?? 0);
     $item = courseFetchItem($pdo, $itemId);
     $isAdmin = roleHasAdminAccess((string)($_SESSION['role'] ?? 'user'));
+    session_write_close();
     if (!$item || !courseCanUserAccess($pdo, $item, $userId, $isAdmin)) {
         courseProgressFail('Lekcja nie jest obecnie dostępna.', 404);
     }

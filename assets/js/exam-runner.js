@@ -42,9 +42,15 @@
     };
 
     window.selectSimAnswer = function (option) {
-        document.querySelectorAll('.sim-answer-option').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('.sim-answer-option').forEach(el => {
+            el.classList.remove('selected');
+            el.setAttribute('aria-checked', 'false');
+            el.setAttribute('tabindex', '-1');
+        });
         if (!option) return;
         option.classList.add('selected');
+        option.setAttribute('aria-checked', 'true');
+        option.setAttribute('tabindex', '0');
         const input = document.getElementById('simSelectedAnswer');
         const submit = document.getElementById('simSubmitBtn');
         if (input) input.value = option.dataset.answer || '';

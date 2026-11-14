@@ -10,9 +10,9 @@ requireLogin(true);
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
+    <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? '../'); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Laboratorium sieci INF.02 - ZSEM Tech</title>
     <link href="../assets/css/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo htmlspecialchars(assetUrl('assets/css/network-lab.css', '../')); ?>">

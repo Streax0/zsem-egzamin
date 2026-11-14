@@ -411,12 +411,18 @@ const QuizEngine = {
             const container = document.getElementById('answersContainer');
             if (container) {
                 container.innerHTML = '';
+                container.setAttribute('role', 'radiogroup');
+                container.setAttribute('aria-label', 'Warianty odpowiedzi');
                 let idx = 0;
                 for (const [key, text] of Object.entries(q.options || {})) {
                     if (!text || text.trim() === '') continue;
+                    const isSelected = (savedAnswer === key);
                     const opt = document.createElement('div');
-                    opt.className = 'answer-option quiz-option' + (savedAnswer === key ? ' selected' : '');
+                    opt.className = 'answer-option quiz-option' + (isSelected ? ' selected' : '');
                     opt.dataset.answer = key;
+                    opt.setAttribute('role', 'radio');
+                    opt.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+                    opt.setAttribute('tabindex', (isSelected || (!savedAnswer && idx === 0)) ? '0' : '-1');
                     opt.innerHTML = `<div class="answer-letter">${key}<span class="key-indicator" title="Skrót klawiszowy">${idx + 1}</span></div><div class="answer-text">${this.escapeHtml(text)}</div>`;
                     opt.onclick = () => this.selectOption(opt);
                     container.appendChild(opt);
@@ -579,8 +585,14 @@ const QuizEngine = {
 
     selectOption(el) {
         if (!el || el.classList.contains('disabled') || el.classList.contains('correct') || el.classList.contains('incorrect') || document.querySelector('.review-box')) return;
-        document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+        document.querySelectorAll('.quiz-option').forEach(o => {
+            o.classList.remove('selected');
+            o.setAttribute('aria-checked', 'false');
+            o.setAttribute('tabindex', '-1');
+        });
         el.classList.add('selected');
+        el.setAttribute('aria-checked', 'true');
+        el.setAttribute('tabindex', '0');
         const selectedInput = document.getElementById('selectedAnswer');
         if (selectedInput) {
             selectedInput.value = el.dataset.answer || '';
@@ -605,6 +617,42 @@ const QuizEngine = {
                 this.toggleFlagQuestion();
             }
             return;
+        }
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const options = Array.from(document.querySelectorAll('#answersContainer .quiz-option, #answersContainer .sim-answer-option'));
+            if (options.length > 0) {
+                e.preventDefault();
+                const currentIndex = options.findIndex(o => o.classList.contains('selected') || document.activeElement === o);
+                let nextIndex = 0;
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    nextIndex = (currentIndex >= 0 && currentIndex < options.length - 1) ? currentIndex + 1 : 0;
+                } else {
+                    nextIndex = (currentIndex > 0) ? currentIndex - 1 : options.length - 1;
+                }
+                const nextOpt = options[nextIndex];
+                if (nextOpt) {
+                    if (nextOpt.classList.contains('sim-answer-option') && window.selectSimAnswer) {
+                        window.selectSimAnswer(nextOpt);
+                    } else {
+                        this.selectOption(nextOpt);
+                    }
+                    nextOpt.focus();
+                }
+                return;
+            }
+        }
+
+        if (e.key === ' ' || e.key === 'Spacebar') {
+            if (document.activeElement && (document.activeElement.classList.contains('quiz-option') || document.activeElement.classList.contains('sim-answer-option'))) {
+                e.preventDefault();
+                if (document.activeElement.classList.contains('sim-answer-option') && window.selectSimAnswer) {
+                    window.selectSimAnswer(document.activeElement);
+                } else {
+                    this.selectOption(document.activeElement);
+                }
+                return;
+            }
         }
 
         const map = {'1':'A','2':'B','3':'C','4':'D'};

@@ -1204,7 +1204,7 @@ CREATE TABLE exam_violations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     participant_id INT NOT NULL,
     session_id INT NOT NULL,
-    violation_type ENUM('tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'other') NOT NULL,
+    violation_type ENUM('tab_switch', 'window_blur', 'fullscreen_exit', 'copy_paste', 'screenshot_attempt', 'other') NOT NULL,
     question_id INT DEFAULT NULL,
     details TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

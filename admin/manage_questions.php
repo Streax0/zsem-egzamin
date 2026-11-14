@@ -104,7 +104,14 @@ function saveJsonFile(string $filePath, array $questions): bool {
         ];
     }
     $jsonString = json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    return file_put_contents($filePath, $jsonString, LOCK_EX) !== false;
+    $saved = file_put_contents($filePath, $jsonString, LOCK_EX) !== false;
+    if ($saved && class_exists('\\App\\Core\\Engine')) {
+        $engine = \App\Core\Engine::getInstance();
+        if ($engine && $engine->isBooted() && method_exists($engine, 'getCache')) {
+            $engine->getCache()->invalidateTag('questions');
+        }
+    }
+    return $saved;
 }
 
 $availableJsonFiles = getQuestionJsonFiles($dataDir);
@@ -336,28 +343,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             try {
                 $pdo->beginTransaction();
-                $pdo->exec("TRUNCATE TABLE questions");
-                $stmt = $pdo->prepare("
+                
+                // Fetch existing question texts mapped to IDs to avoid deleting referenced rows
+                $existingMap = [];
+                $existingStmt = $pdo->query("SELECT id, question_text FROM questions");
+                while ($row = $existingStmt->fetch(PDO::FETCH_ASSOC)) {
+                    $existingMap[trim((string)$row['question_text'])] = (int)$row['id'];
+                }
+
+                $stmtUpdate = $pdo->prepare("
+                    UPDATE questions 
+                    SET category = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_answer = ?, explanation = ?, image_url = ?
+                    WHERE id = ?
+                ");
+
+                $stmtInsert = $pdo->prepare("
                     INSERT INTO questions (category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
 
                 foreach ($allQuestions as $q) {
-                    $res = $stmt->execute([
-                        $q['category'],
-                        $q['question_text'],
-                        $q['option_a'],
-                        $q['option_b'],
-                        $q['option_c'],
-                        $q['option_d'],
-                        $q['correct_answer'],
-                        !empty($q['explanation']) ? $q['explanation'] : null,
-                        !empty($q['image_url']) ? $q['image_url'] : null
-                    ]);
+                    $qText = trim((string)($q['question_text'] ?? ''));
+                    if ($qText === '') continue;
+
+                    $cat = (string)($q['category'] ?? '');
+                    $optA = (string)($q['option_a'] ?? '');
+                    $optB = (string)($q['option_b'] ?? '');
+                    $optC = (string)($q['option_c'] ?? '');
+                    $optD = (string)($q['option_d'] ?? '');
+                    $ans = (string)($q['correct_answer'] ?? 'A');
+                    $exp = !empty($q['explanation']) ? (string)$q['explanation'] : null;
+                    $img = !empty($q['image_url']) ? (string)$q['image_url'] : null;
+
+                    if (isset($existingMap[$qText])) {
+                        $res = $stmtUpdate->execute([$cat, $optA, $optB, $optC, $optD, $ans, $exp, $img, $existingMap[$qText]]);
+                    } else {
+                        $res = $stmtInsert->execute([$cat, $qText, $optA, $optB, $optC, $optD, $ans, $exp, $img]);
+                        if ($res) {
+                            $existingMap[$qText] = (int)$pdo->lastInsertId();
+                        }
+                    }
                     if ($res) $syncedCount++;
                     else $errorCount++;
                 }
                 $pdo->commit();
+                if (class_exists('\\App\\Core\\Engine')) {
+                    $engine = \App\Core\Engine::getInstance();
+                    if ($engine && $engine->isBooted() && method_exists($engine, 'getCache')) {
+                        $engine->getCache()->invalidateTag('questions');
+                    }
+                }
                 setSessionMessage('success', "Pomyślnie zsynchronizowano $syncedCount pytań z plików JSON do bazy SQL.");
             } catch (Exception $ex) {
                 if ($pdo->inTransaction()) $pdo->rollBack();

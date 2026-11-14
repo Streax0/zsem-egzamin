@@ -6,6 +6,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 startSecureSession();
 securityApplyJsonHeaders();
+session_write_close();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     securitySendJson(['success' => false, 'message' => 'Tylko zapytania POST są dozwolone.'], 405);

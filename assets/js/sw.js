@@ -78,7 +78,7 @@ self.addEventListener('fetch', (event) => {
     // Static CSS/JS/Fonts -> Cache First with Network Fallback
     if (request.destination === 'style' || request.destination === 'script' || request.destination === 'font' || request.destination === 'image') {
         event.respondWith(
-            caches.match(request).then((cached) => {
+            caches.match(request, { ignoreSearch: true }).then((cached) => {
                 if (cached) return cached;
                 return fetch(request).then((response) => {
                     if (response && response.status === 200) {
@@ -86,7 +86,7 @@ self.addEventListener('fetch', (event) => {
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
                     }
                     return response;
-                }).catch(() => caches.match('./zsemtech_profile.ico'));
+                }).catch(() => caches.match('./zsemtech_profile.ico', { ignoreSearch: true }));
             })
         );
         return;
@@ -95,7 +95,7 @@ self.addEventListener('fetch', (event) => {
     // HTML / Dynamic Pages -> Network First with Offline Fallback
     event.respondWith(
         fetch(request).catch(() => {
-            return caches.match(request).then((cached) => {
+            return caches.match(request, { ignoreSearch: true }).then((cached) => {
                 if (cached) return cached;
                 return new Response(
                     '<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><title>Brak połączenia — ZSEM Tech</title><link rel="stylesheet" href="./assets/css/style.css"></head><body style="font-family:sans-serif;padding:3rem;text-align:center;background:#0f172a;color:#fff;"><h1>📡 Jesteś w trybie offline</h1><p>Twoje postępy zostaną automatycznie zsynchronizowane po przywróceniu połączenia internetowego.</p><button onclick="window.location.reload()" style="background:#6366f1;color:#fff;border:0;padding:10px 20px;border-radius:8px;cursor:pointer;">Spróbuj ponownie</button></body></html>',

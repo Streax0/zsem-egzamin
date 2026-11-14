@@ -1703,11 +1703,11 @@ function renderFeaturePageBlockScreen(array $block): void {
     $date = (string)($block['disabled_date'] ?? date('d.m.Y H:i'));
     $roles = implode(', ', $block['target_role_labels'] ?? []);
     $script = $_SERVER['PHP_SELF'] ?? '';
-    $base = (strpos($script, '/teacher/') !== false || strpos($script, '/exam/') !== false || strpos($script, '/duels/') !== false) ? '../' : '';
+    $base = (str_contains($script, '/teacher/') || str_contains($script, '/exam/') || str_contains($script, '/duels/')) ? '../' : '';
     $returnUrl = featureBlockSafeReturnUrl($base . 'index.php');
     // Zwracamy kod 200, by serwery (np. Litespeed/Apache) nie przechwytywały 403/503
     http_response_code(200);
-    echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
+    echo '<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">';
     echo '<title>' . $esc($title) . ' - ZSEM Tech</title>';
     echo '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">';
     echo '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">';
@@ -2019,7 +2019,7 @@ function validateAllowedEmail($email) {
     $email = trim((string)$email);
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
     $domain = strtolower(substr(strrchr($email, '@') ?: '', 1));
-    return $domain !== '' && strpos($domain, '.') !== false;
+    return $domain !== '' && str_contains($domain, '.');
 }
 
 function normalizeClassParts($year, $suffix) {
@@ -2322,7 +2322,7 @@ function questionImageSrc($url, string $basePrefix = ''): ?string {
 
     $resolved = resolveImagePath($safe);
     if ($resolved === null || $resolved === '') return null;
-    if (preg_match('#^https?://#i', $resolved) || strpos($resolved, 'data:') === 0 || strpos($resolved, '/') === 0) {
+    if (str_starts_with($resolved, 'http://') || str_starts_with($resolved, 'https://') || str_starts_with($resolved, 'data:') || str_starts_with($resolved, '/')) {
         return $resolved;
     }
     return rtrim($basePrefix, '/') . ($basePrefix !== '' ? '/' : '') . ltrim($resolved, '/');
@@ -2340,119 +2340,170 @@ function loadQuestions($pdo = null, $includeDbQuestions = true) {
         'json_only' => null,
     ];
 
-    $cacheKey = $includeDbQuestions ? 'with_db' : 'json_only';
+    $hasDb = ($pdo instanceof PDO) && $includeDbQuestions;
+    $cacheKey = $hasDb ? 'with_db' : 'json_only';
     if ($cache[$cacheKey] !== null) {
         return $cache[$cacheKey];
     }
 
-    $questions = [];
-    $seenQuestions = []; // Track text to avoid duplicates
-    $autoId = 1;
+    $loader = function() use ($pdo, $includeDbQuestions) {
+        $questions = [];
+        $seenQuestions = []; // Track text to avoid duplicates
+        $autoId = 1;
 
-    // 1. Try to load from database if PDO provided and the caller wants DB questions
-    if ($pdo && $includeDbQuestions) {
-        try {
-            if (function_exists('dbQueryCached')) {
-                $dbQuestions = dbQueryCached(
-                    $pdo,
-                    "SELECT id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url FROM questions ORDER BY id",
-                    [],
-                    600
-                );
-            } else {
-                $stmt = $pdo->query("SELECT id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url FROM questions ORDER BY id");
-                $dbQuestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // 1. Try to load from database if PDO provided and the caller wants DB questions
+        if ($pdo && $includeDbQuestions) {
+            try {
+                if (function_exists('dbQueryCached')) {
+                    $dbQuestions = dbQueryCached(
+                        $pdo,
+                        "SELECT id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url FROM questions ORDER BY id",
+                        [],
+                        600
+                    );
+                } else {
+                    $stmt = $pdo->query("SELECT id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url FROM questions ORDER BY id");
+                    $dbQuestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+
+                if (!empty($dbQuestions)) {
+                    foreach ($dbQuestions as $q) {
+                        $text = trim($q['question_text'] ?? ($q['question'] ?? ''));
+                        if (empty($text)) continue;
+
+                        $cat = $q['category'] ?? '';
+                        if ($cat === 'EE.08') $cat = 'INF.02';
+
+                        $questions[] = [
+                            'id' => (int)($q['id'] ?? $autoId++),
+                            'category' => $cat,
+                            'question_text' => $text,
+                            'option_a' => $q['option_a'] ?? '',
+                            'option_b' => $q['option_b'] ?? '',
+                            'option_c' => $q['option_c'] ?? '',
+                            'option_d' => $q['option_d'] ?? '',
+                            'correct_answer' => strtoupper($q['correct_answer'] ?? ($q['correct'] ?? '')),
+                            'explanation' => $q['explanation'] ?? '',
+                            'image_url' => resolveImagePath($q['image_url'] ?? ($q['image'] ?? null))
+                        ];
+                        $seenQuestions[$text] = true;
+                        $autoId = max($autoId, (int)($q['id'] ?? 0) + 1);
+                    }
+                }
+            } catch (PDOException $e) {
+                error_log("Database error loading questions: " . $e->getMessage());
             }
+        }
 
-            if (!empty($dbQuestions)) {
-                foreach ($dbQuestions as $q) {
-                    $text = trim($q['question_text'] ?? ($q['question'] ?? ''));
-                    if (empty($text)) continue;
+        // 2. Load from ALL JSON files in data_question directory
+        $dataDir = __DIR__ . '/../data_question/';
+        $jsonFiles = glob($dataDir . '*.json');
+        sort($jsonFiles); // Crucial for stable IDs
+        
+        foreach ($jsonFiles as $jsonPath) {
+            if (file_exists($jsonPath)) {
+                $jsonData = file_get_contents($jsonPath);
+                if (str_starts_with($jsonData, "\xEF\xBB\xBF")) {
+                    $jsonData = substr($jsonData, 3);
+                }
+                $data = json_decode($jsonData, true);
 
-                    $cat = $q['category'] ?? '';
-                    if ($cat === 'EE.08') $cat = 'INF.02';
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $filename = strtolower(basename($jsonPath, '.json'));
+                    
+                    $defaultCategory = '';
+                    if (str_starts_with($filename, 'inf') && strlen($filename) >= 5) {
+                        $num = substr($filename, 3);
+                        $defaultCategory = 'INF.' . $num;
+                    } elseif ($filename === 'questions') {
+                        $defaultCategory = 'Ogólne';
+                    }
 
-                    $questions[] = [
-                        'id' => (int)($q['id'] ?? $autoId++),
-                        'category' => $cat,
-                        'question_text' => $text,
-                        'option_a' => $q['option_a'] ?? '',
-                        'option_b' => $q['option_b'] ?? '',
-                        'option_c' => $q['option_c'] ?? '',
-                        'option_d' => $q['option_d'] ?? '',
-                        'correct_answer' => strtoupper($q['correct_answer'] ?? ($q['correct'] ?? '')),
-                        'explanation' => $q['explanation'] ?? '',
-                        'image_url' => resolveImagePath($q['image_url'] ?? ($q['image'] ?? null))
-                    ];
-                    $seenQuestions[$text] = true;
-                    $autoId = max($autoId, (int)($q['id'] ?? 0) + 1);
+                    $raw = isset($data['questions']) ? $data['questions'] : (is_array($data) && !isset($data['questions']) ? $data : []);
+                    
+                    foreach ($raw as $q) {
+                        $text = trim($q['question'] ?? ($q['question_text'] ?? ''));
+                        if (empty($text) || isset($seenQuestions[$text])) continue;
+
+                        $ansOptions = $q['options'] ?? ($q['answers'] ?? []);
+                        $cat = !empty($q['category']) ? $q['category'] : $defaultCategory;
+                        if ($cat === 'EE.08') $cat = 'INF.02';
+                        if ($cat === 'EE.09') $cat = 'INF.03';
+
+                        // Simplest and most stable ID: SHA-256 of normalized text only
+                        // Category is excluded because it might vary (EE.08 vs INF.02)
+                        $normalizedText = preg_replace('/[^a-z0-9]/', '', strtolower($text));
+                        $stableId = hexdec(substr(hash('sha256', $normalizedText), 0, 7));
+
+                        $questions[] = [
+                            'id' => $stableId,
+                            'category' => $cat,
+                            'question_text' => $text,
+                            'option_a' => $ansOptions['A'] ?? ($q['option_a'] ?? ''),
+                            'option_b' => $ansOptions['B'] ?? ($q['option_b'] ?? ''),
+                            'option_c' => $ansOptions['C'] ?? ($q['option_c'] ?? ''),
+                            'option_d' => $ansOptions['D'] ?? ($q['option_d'] ?? ''),
+                            'correct_answer' => strtoupper($q['correct'] ?? ($q['correct_answer'] ?? '')),
+                            'explanation' => $q['explanation'] ?? ($q['explain'] ?? ''),
+                            'image_url' => resolveImagePath($q['image'] ?? ($q['image_url'] ?? null))
+                        ];
+                        $seenQuestions[$text] = true;
+                    }
                 }
             }
-        } catch (PDOException $e) {
-            error_log("Database error loading questions: " . $e->getMessage());
+        }
+        return $questions;
+    };
+
+    if (class_exists('\\App\\Core\\Engine')) {
+        $engine = \App\Core\Engine::getInstance();
+        if ($engine && $engine->isBooted() && method_exists($engine, 'getCache')) {
+            $cache[$cacheKey] = $engine->getCache()->remember('dataset_questions_' . $cacheKey, 3600, $loader, ['questions']);
+            return $cache[$cacheKey];
         }
     }
 
-    // 2. Load from ALL JSON files in data_question directory
-    $dataDir = __DIR__ . '/../data_question/';
-    $jsonFiles = glob($dataDir . '*.json');
-    sort($jsonFiles); // Crucial for stable IDs
-    
-    foreach ($jsonFiles as $jsonPath) {
-        if (file_exists($jsonPath)) {
-            $jsonData = file_get_contents($jsonPath);
-            if (strncmp($jsonData, "\xEF\xBB\xBF", 3) === 0) {
-                $jsonData = substr($jsonData, 3);
-            }
-            $data = json_decode($jsonData, true);
+    $cache[$cacheKey] = $loader();
+    return $cache[$cacheKey];
+}
 
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $filename = strtolower(basename($jsonPath, '.json'));
-                
-                $defaultCategory = '';
-                if (strpos($filename, 'inf') === 0 && strlen($filename) >= 5) {
-                    $num = substr($filename, 3);
-                    $defaultCategory = 'INF.' . $num;
-                } elseif ($filename === 'questions') {
-                    $defaultCategory = 'Ogólne';
-                }
-
-                $raw = isset($data['questions']) ? $data['questions'] : (is_array($data) && !isset($data['questions']) ? $data : []);
-                
-                foreach ($raw as $q) {
-                    $text = trim($q['question'] ?? ($q['question_text'] ?? ''));
-                    if (empty($text) || isset($seenQuestions[$text])) continue;
-
-                    $ansOptions = $q['options'] ?? ($q['answers'] ?? []);
-                    $cat = !empty($q['category']) ? $q['category'] : $defaultCategory;
-                    if ($cat === 'EE.08') $cat = 'INF.02';
-                    if ($cat === 'EE.09') $cat = 'INF.03';
-
-                    // Simplest and most stable ID: SHA-256 of normalized text only
-                    // Category is excluded because it might vary (EE.08 vs INF.02)
-                    $normalizedText = preg_replace('/[^a-z0-9]/', '', strtolower($text));
-                    $stableId = hexdec(substr(hash('sha256', $normalizedText), 0, 7));
-
-                    $questions[] = [
-                        'id' => $stableId,
-                        'category' => $cat,
-                        'question_text' => $text,
-                        'option_a' => $ansOptions['A'] ?? ($q['option_a'] ?? ''),
-                        'option_b' => $ansOptions['B'] ?? ($q['option_b'] ?? ''),
-                        'option_c' => $ansOptions['C'] ?? ($q['option_c'] ?? ''),
-                        'option_d' => $ansOptions['D'] ?? ($q['option_d'] ?? ''),
-                        'correct_answer' => strtoupper($q['correct'] ?? ($q['correct_answer'] ?? '')),
-                        'explanation' => $q['explanation'] ?? ($q['explain'] ?? ''),
-                        'image_url' => resolveImagePath($q['image'] ?? ($q['image_url'] ?? null))
-                    ];
-                    $seenQuestions[$text] = true;
-                }
-            }
+/**
+ * Invalidate cached question datasets across Engine Cache
+ */
+function invalidateQuestionsCache(): void {
+    if (class_exists('\\App\\Core\\Engine')) {
+        $engine = \App\Core\Engine::getInstance();
+        if ($engine && $engine->isBooted() && method_exists($engine, 'getCache')) {
+            $engine->getCache()->invalidateTag('questions');
         }
     }
+}
 
-    $cache[$cacheKey] = $questions;
-    return $questions;
+/**
+ * Get total count of questions with static memoization and Engine cache
+ */
+function getTotalQuestionsCount(?PDO $pdo = null, bool $includeDbQuestions = true): int {
+    static $counts = [
+        'with_db' => null,
+        'json_only' => null,
+    ];
+    $hasDb = ($pdo instanceof PDO) && $includeDbQuestions;
+    $key = $hasDb ? 'with_db' : 'json_only';
+    if ($counts[$key] !== null) {
+        return $counts[$key];
+    }
+    if (class_exists('\\App\\Core\\Engine')) {
+        $engine = \App\Core\Engine::getInstance();
+        if ($engine && $engine->isBooted() && method_exists($engine, 'getCache')) {
+            $count = $engine->getCache()->remember('dataset_questions_count_' . $key, 3600, function() use ($pdo, $includeDbQuestions) {
+                return count(loadQuestions($pdo, $includeDbQuestions));
+            }, ['questions']);
+            $counts[$key] = (int)$count;
+            return $counts[$key];
+        }
+    }
+    $counts[$key] = count(loadQuestions($pdo, $includeDbQuestions));
+    return $counts[$key];
 }
 
 function normalizeQuestionRow(array $q): array {
@@ -2527,11 +2578,16 @@ function ensureQuestionRecordExists(?PDO $pdo, array $q): int {
     if (!$pdo) {
         return max(1, $qId);
     }
+    static $verified = [];
+    if ($qId > 0 && isset($verified[$qId])) {
+        return $qId;
+    }
     if ($qId > 0) {
         try {
             $checkStmt = $pdo->prepare("SELECT id FROM questions WHERE id = ?");
             $checkStmt->execute([$qId]);
             if ($checkStmt->fetchColumn()) {
+                $verified[$qId] = true;
                 return $qId;
             }
             $text = trim((string)($q['question_text'] ?? ($q['question'] ?? 'Pytanie')));
@@ -2547,6 +2603,7 @@ function ensureQuestionRecordExists(?PDO $pdo, array $q): int {
             $ins = $pdo->prepare("INSERT INTO questions (id, category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $ins->execute([$qId, $cat, $text ?: 'Pytanie', $optA, $optB, $optC, $optD, $ans, $exp, $img]);
+            $verified[$qId] = true;
             return $qId;
         } catch (Throwable $e) {
             try {
@@ -2556,6 +2613,7 @@ function ensureQuestionRecordExists(?PDO $pdo, array $q): int {
                     $findStmt->execute([$text]);
                     $foundId = (int)$findStmt->fetchColumn();
                     if ($foundId > 0) {
+                        $verified[$foundId] = true;
                         return $foundId;
                     }
                 }
@@ -2570,6 +2628,7 @@ function ensureQuestionRecordExists(?PDO $pdo, array $q): int {
                 $findStmt->execute([$text]);
                 $foundId = (int)$findStmt->fetchColumn();
                 if ($foundId > 0) {
+                    $verified[$foundId] = true;
                     return $foundId;
                 }
             }
@@ -2587,11 +2646,24 @@ function ensureQuestionRecordExists(?PDO $pdo, array $q): int {
             $ins->execute([$cat, $text ?: 'Pytanie', $optA, $optB, $optC, $optD, $ans, $exp, $img]);
             $newId = (int)$pdo->lastInsertId();
             if ($newId > 0) {
+                $verified[$newId] = true;
                 return $newId;
             }
         } catch (Throwable $e3) {}
         return 1;
     }
+}
+
+/**
+ * Canonical 6-character exam session access PIN generator
+ */
+function generateExamAccessCode(): string {
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $code = '';
+    for ($i = 0; $i < 6; $i++) {
+        $code .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $code;
 }
 
 /**
@@ -2997,8 +3069,7 @@ function getUserStats($pdo, $userId) {
 
         // Calculate progress percentage based on total questions available
         try {
-            $questions = loadQuestions($pdo);
-            $totalQuestions = is_array($questions) ? count($questions) : 0;
+            $totalQuestions = getTotalQuestionsCount($pdo, true);
             if ($totalQuestions > 0) {
                 $stats['progress_percentage'] = min(100.0, round(($seenCount / $totalQuestions) * 100, 2));
             } else {
@@ -3237,15 +3308,15 @@ function getUnifiedUserHistory(PDO $pdo, int $userId, int $limit = 200): array {
  * @return array Array of category names
  */
 function getAllCategories($pdo = null) {
-    $categories = [];
     $questions = loadQuestions($pdo);
-
+    $seen = [];
     foreach ($questions as $question) {
-        if (isset($question['category']) && !empty($question['category']) && !in_array($question['category'], $categories)) {
-            $categories[] = $question['category'];
+        $cat = $question['category'] ?? '';
+        if ($cat !== '') {
+            $seen[$cat] = true;
         }
     }
-
+    $categories = array_keys($seen);
     sort($categories);
     return $categories;
 }
@@ -4212,7 +4283,7 @@ function syncUserMissionsForPeriod($pdo, $userId, $period = 'daily', $missionCou
         $currentVal = $stats[$key] ?? 0;
         $isComp = ($currentVal >= $m['target_value']) ? 1 : 0;
         $description = (string)($m['mission_description'] ?? '');
-        if (strpos($description, '{target}') !== false && isset($missionPool[$key]['desc'])) {
+        if (str_contains($description, '{target}') && isset($missionPool[$key]['desc'])) {
             $description = str_replace('{target}', (string)$m['target_value'], $missionPool[$key]['desc']);
         }
         
@@ -5678,63 +5749,24 @@ function getDuelAnsweredCount(PDO $pdo, int $duelId, int $userId): int {
 }
 
 function getNotificationPresentationMeta(array $notif): array {
-    $icon = 'bi-info-circle';
-    $tone = 'primary';
-    $label = 'System';
-    switch ($notif['type'] ?? '') {
-        case 'rank_up':
-            $icon = 'bi-graph-up-arrow';
-            $tone = 'success';
-            $label = 'Ranga';
-            break;
-        case 'rank_down':
-            $icon = 'bi-graph-down-arrow';
-            $tone = 'danger';
-            $label = 'Ranga';
-            break;
-        case 'friend_request':
-            $icon = 'bi-person-plus';
-            $tone = 'info';
-            $label = 'Znajomi';
-            break;
-        case 'missions_refresh':
-        case 'daily_missions_refresh':
-        case 'weekly_missions_refresh':
-        case 'monthly_missions_refresh':
-            $icon = 'bi-arrow-repeat';
-            $tone = 'warning';
-            $label = 'Misje';
-            break;
-        case 'mission_complete':
-            $icon = 'bi-trophy';
-            $tone = 'success';
-            $label = 'Misje';
-            break;
-        case 'duel_challenge':
-        case 'duel_accepted':
-        case 'duel_finished':
-            $icon = 'bi-lightning-charge';
-            $tone = 'danger';
-            $label = 'Pojedynek';
-            break;
-        case 'teacher_application_approved':
-        case 'teacher_application_rejected':
-            $icon = 'bi-mortarboard';
-            $tone = 'primary';
-            $label = 'Rola';
-            break;
-        case 'mfa_optional_prompt':
-            $icon = 'bi-shield-lock';
-            $tone = 'warning';
-            $label = 'Bezpieczeństwo';
-            break;
-        case 'app_status':
-            $icon = 'bi-broadcast';
-            $tone = 'info';
-            $label = 'Status';
-            break;
-    }
-    return ['icon' => $icon, 'tone' => $tone, 'label' => $label];
+    $type = (string)($notif['type'] ?? '');
+    return match ($type) {
+        'rank_up' => ['icon' => 'bi-graph-up-arrow', 'tone' => 'success', 'label' => 'Ranga'],
+        'rank_down' => ['icon' => 'bi-graph-down-arrow', 'tone' => 'danger', 'label' => 'Ranga'],
+        'friend_request' => ['icon' => 'bi-person-plus', 'tone' => 'info', 'label' => 'Znajomi'],
+        'missions_refresh', 'daily_missions_refresh', 'weekly_missions_refresh', 'monthly_missions_refresh'
+            => ['icon' => 'bi-arrow-repeat', 'tone' => 'warning', 'label' => 'Misje'],
+        'mission_complete' => ['icon' => 'bi-trophy', 'tone' => 'success', 'label' => 'Misje'],
+        'duel_challenge', 'duel_accepted', 'duel_finished', 'duel_invite'
+            => ['icon' => 'bi-lightning-charge', 'tone' => 'danger', 'label' => 'Pojedynek'],
+        'duel_result'
+            => ['icon' => 'bi-award', 'tone' => 'info', 'label' => 'Wynik pojedynku'],
+        'teacher_application_approved', 'teacher_application_rejected'
+            => ['icon' => 'bi-mortarboard', 'tone' => 'primary', 'label' => 'Rola'],
+        'mfa_optional_prompt' => ['icon' => 'bi-shield-lock', 'tone' => 'warning', 'label' => 'Bezpieczeństwo'],
+        'app_status' => ['icon' => 'bi-broadcast', 'tone' => 'info', 'label' => 'Status'],
+        default => ['icon' => 'bi-info-circle', 'tone' => 'primary', 'label' => 'System'],
+    };
 }
 
 function renderNotificationsDropdownListHtml(PDO $pdo, int $userId, array $notifications, string $baseUrl): string {
@@ -6954,7 +6986,7 @@ function sanitizeQuestionImageUrl($value) {
         return $url;
     }
     $url = ltrim($url, '/');
-    if (preg_match('#^(assets/images|uploads|data/question_images)/[a-zA-Z0-9_./% -]+\.(png|jpe?g|gif|webp|svg)$#i', $url) && strpos($url, '..') === false) {
+    if (preg_match('#^(assets/images|uploads|data/question_images)/[a-zA-Z0-9_./% -]+\.(png|jpe?g|gif|webp|svg)$#i', $url) && !str_contains($url, '..')) {
         return $url;
     }
     return null;
@@ -6989,7 +7021,7 @@ function addQuestion($pdo, $data) {
             INSERT INTO questions (category, question_text, option_a, option_b, option_c, option_d, correct_answer, explanation, image_url)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        return $stmt->execute([
+        $ok = $stmt->execute([
             $data['category'] ?? 'Ogólne',
             $data['question_text'],
             $data['option_a'],
@@ -7000,6 +7032,10 @@ function addQuestion($pdo, $data) {
             $data['explanation'] ?? null,
             $data['image_url'] ?? null
         ]);
+        if ($ok) {
+            invalidateQuestionsCache();
+        }
+        return $ok;
     } catch (PDOException $e) {
         error_log("Error adding question: " . $e->getMessage());
         return false;
@@ -7135,7 +7171,7 @@ function updateQuestion($pdo, $id, $data) {
                 correct_answer = ?, explanation = ?, image_url = ?
             WHERE id = ?
         ");
-        return $stmt->execute([
+        $ok = $stmt->execute([
             $data['category'],
             $data['question_text'],
             $data['option_a'],
@@ -7147,6 +7183,10 @@ function updateQuestion($pdo, $id, $data) {
             $data['image_url'],
             $id
         ]);
+        if ($ok) {
+            invalidateQuestionsCache();
+        }
+        return $ok;
     } catch (PDOException $e) {
         error_log("Error updating question: " . $e->getMessage());
         return false;
@@ -7159,7 +7199,11 @@ function updateQuestion($pdo, $id, $data) {
 function deleteQuestion($pdo, $id) {
     try {
         $stmt = $pdo->prepare("DELETE FROM questions WHERE id = ?");
-        return $stmt->execute([$id]);
+        $ok = $stmt->execute([$id]);
+        if ($ok) {
+            invalidateQuestionsCache();
+        }
+        return $ok;
     } catch (PDOException $e) {
         error_log("Error deleting question: " . $e->getMessage());
         return false;

@@ -18,6 +18,8 @@ if (!securityValidateRequestCsrf('notifications')) {
 }
 
 $myId = (int)$_SESSION['user_id'];
+$myUsername = (string)($_SESSION['username'] ?? 'Gracz');
+session_write_close();
 $duelId = securityInputInt($_POST['duel_id'] ?? 0, 0, PHP_INT_MAX, 0);
 $action = securityInputEnum(strtolower((string)($_POST['action'] ?? '')), ['accept', 'decline'], '');
 securityThrottle('duel-respond:' . securityActorKey(), 30, 60, ['success' => false, 'message' => 'Zbyt wiele akcji naraz.']);
@@ -72,7 +74,7 @@ try {
         $pdo,
         (int)$duel['challenger_id'],
         'duel_accepted',
-        'Użytkownik ' . ($_SESSION['username'] ?? 'Gracz') . ' zaakceptował Twoje wyzwanie!',
+        'Użytkownik ' . $myUsername . ' zaakceptował Twoje wyzwanie!',
         '/duels/take.php?id=' . $duelId
     );
 

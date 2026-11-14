@@ -207,9 +207,9 @@ $shareCardData = [
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
+    <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Wynik testu - System Testów</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">
@@ -494,7 +494,8 @@ $shareCardData = [
             padding: 0 1.25rem;
         }
         .answer-card.open .answer-card-body {
-            max-height: 760px;
+            max-height: min(2500px, 300vh);
+            overflow-y: visible;
             padding: .25rem 1.25rem 1.25rem;
         }
 
@@ -948,7 +949,7 @@ $shareCardData = [
                                 </div>
                             </div>
                             <div class="col-lg-4 d-flex justify-content-center mt-5 mt-lg-0">
-                                <div class="score-circle" role="meter" aria-valuenow="<?php echo round($score_percent); ?>" aria-valuemin="0" aria-valuemax="100" aria-label="Twój wynik procentowy" style="position: relative; width: 180px; height: 180px; background: transparent; border: none; box-shadow: none;">
+                                <div class="score-circle" role="meter" aria-valuenow="<?php echo round($score_percent); ?>" aria-valuemin="0" aria-valuemax="100" aria-label="Twój wynik procentowy" style="position: relative; background: transparent; border: none; box-shadow: none;">
                                     <svg viewBox="0 0 36 36" class="circular-chart" style="width: 100%; height: 100%;" aria-hidden="true">
                                         <path class="circle-bg"
                                             d="M18 2.0845

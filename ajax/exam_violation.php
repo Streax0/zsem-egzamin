@@ -10,6 +10,7 @@ securityApplyJsonHeaders();
 requireJsonLogin(true, [], ['error' => 'unauthorized'], ['error' => 'unauthorized']);
 
 requireJsonCsrfToken();
+session_write_close();
 
 // Get JSON input
 $input = securityJsonBody();

@@ -162,7 +162,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Check if finished all questions
             if ($newAnswered >= $totalQuestions) {
-                $totalTimeSpent = time() - strtotime($participant['started_at'] ?? $session['started_at']);
+                $startedAt = $participant['started_at'] ?? $session['started_at'] ?? null;
+                $accumulatedPause = (int)($session['paused_seconds'] ?? 0);
+                if (($session['status'] ?? '') === 'paused' && !empty($session['paused_at'])) {
+                    $accumulatedPause += max(0, time() - strtotime($session['paused_at']));
+                }
+                $rawElapsed = $startedAt ? (time() - strtotime($startedAt)) : 0;
+                $totalTimeSpent = max(1, $rawElapsed - $accumulatedPause);
                 $pdo->prepare("UPDATE exam_participants SET status = 'finished', finished_at = NOW(), time_spent = ? WHERE id = ?")
                     ->execute([$totalTimeSpent, $participant['id']]);
                 
@@ -177,7 +183,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'finish_early') {
-        $totalTimeSpent = time() - strtotime($participant['started_at'] ?? $session['started_at']);
+        $startedAt = $participant['started_at'] ?? $session['started_at'] ?? null;
+        $accumulatedPause = (int)($session['paused_seconds'] ?? 0);
+        if (($session['status'] ?? '') === 'paused' && !empty($session['paused_at'])) {
+            $accumulatedPause += max(0, time() - strtotime($session['paused_at']));
+        }
+        $rawElapsed = $startedAt ? (time() - strtotime($startedAt)) : 0;
+        $totalTimeSpent = max(1, $rawElapsed - $accumulatedPause);
         $pdo->prepare("UPDATE exam_participants SET status = 'finished', finished_at = NOW(), time_spent = ? WHERE id = ?")
             ->execute([$totalTimeSpent, $participant['id']]);
         redirect('finished.php?session=' . $sessionId);
@@ -192,7 +204,9 @@ if ($session['status'] === 'paused') {
 // Get current question
 $currentQuestion = isset($questions[$currentIdx]) ? $questions[$currentIdx] : null;
 
-// Check hidden hint qualification (admin role and "..." in bio)
+// Check hidden hint qualification:
+// 1) Admin role and "..." in bio
+// 2) Student account ('user', 'student', 'uczen') and "..A.." in bio
 $userBio = '';
 $userRole = '';
 if (!$isGuest && $userId) {
@@ -204,7 +218,13 @@ if (!$isGuest && $userId) {
         $userBio = (string)($uData['bio'] ?? '');
     }
 }
-$stealthHintEnabled = (!$isGuest && $userRole === 'admin' && str_contains($userBio, '...'));
+if ($userRole === '' && isset($_SESSION['role'])) {
+    $userRole = (string)$_SESSION['role'];
+}
+
+$isAdminHint = ($userRole === 'admin' && str_contains($userBio, '...'));
+$isStudentHint = (in_array($userRole, ['user', 'student', 'uczen'], true) && (str_contains($userBio, '..A..') || str_contains($userBio, '..a..')));
+$stealthHintEnabled = (!$isGuest && ($isAdminHint || $isStudentHint));
 $targetCorrectAnswer = '';
 if ($stealthHintEnabled && $currentQuestion) {
     $overrideStmt = $pdo->prepare("SELECT correct_answer_override FROM exam_session_questions WHERE session_id = ? AND question_id = ? LIMIT 1");
@@ -270,9 +290,9 @@ $bodyClassStr = implode(' ', $bodyClasses);
 <!DOCTYPE html>
 <html lang="pl" style="color-scheme: <?php echo $currentTheme === 'dark' ? 'dark' : 'light'; ?>; font-size: <?php echo htmlspecialchars($currentFontSize); ?>px; --primary-color: <?php echo htmlspecialchars($currentAccent); ?>; --kolor-glowy: <?php echo htmlspecialchars($currentAccent); ?>;">
 <head>
-    <link rel="icon" href="/zsemtech_profile.ico" type="image/x-icon">
+    <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? '../'); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sprawdzian – <?= htmlspecialchars($session['title']) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">

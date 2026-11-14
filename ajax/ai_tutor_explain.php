@@ -8,6 +8,7 @@ require_once __DIR__ . '/../includes/AiTutorEngine.php';
 
 startSecureSession();
 securityApplyJsonHeaders();
+session_write_close();
 
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

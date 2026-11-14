@@ -6,6 +6,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 startSecureSession();
 securityApplyJsonHeaders();
+session_write_close();
 
 $type = securityInputEnum($_GET['type'] ?? '', ['username', 'email'], '');
 $value = securityInputString($_GET['value'] ?? '', 100);

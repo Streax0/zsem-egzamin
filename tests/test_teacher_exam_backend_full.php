@@ -284,20 +284,23 @@ runTest("Simulate student answers submission and atomic grade score calculation"
 // Tier 4: Anti-Cheat & Telemetry Logging
 echo "\n▶ TIER 4: Anti-Cheat & Telemetry Logging\n";
 
-runTest("Record anti-cheat violations (tab switch, window blur, copy/paste)", function() use ($pdo, &$testSessionId, &$participant1Id) {
+runTest("Record anti-cheat violations (tab switch, window blur, copy/paste)", function() use ($pdo, &$testSessionId, &$participant1Id, &$createdQuestionIds) {
     $stmt = $pdo->prepare("INSERT INTO exam_violations (participant_id, session_id, violation_type, question_id, created_at) VALUES (?, ?, ?, ?, NOW())");
-    $stmt->execute([$participant1Id, $testSessionId, 'tab_switch', 1]);
-    $stmt->execute([$participant1Id, $testSessionId, 'copy_paste', 2]);
+    $q1 = $createdQuestionIds[0] ?? null;
+    $q2 = $createdQuestionIds[1] ?? null;
+    $stmt->execute([$participant1Id, $testSessionId, 'tab_switch', $q1]);
+    $stmt->execute([$participant1Id, $testSessionId, 'copy_paste', $q2]);
+    $stmt->execute([$participant1Id, $testSessionId, 'screenshot_attempt', $q1]);
 
-    $pdo->prepare("UPDATE exam_participants SET violation_count = violation_count + 2 WHERE id = ?")->execute([$participant1Id]);
+    $pdo->prepare("UPDATE exam_participants SET violation_count = violation_count + 3 WHERE id = ?")->execute([$participant1Id]);
 
     $stmt = $pdo->prepare("SELECT violation_count FROM exam_participants WHERE id = ?");
     $stmt->execute([$participant1Id]);
-    assertEquals(2, (int)$stmt->fetchColumn(), "Violation count must be 2");
+    assertEquals(3, (int)$stmt->fetchColumn(), "Violation count must be 3");
 
     $stmtV = $pdo->prepare("SELECT COUNT(*) FROM exam_violations WHERE session_id = ?");
     $stmtV->execute([$testSessionId]);
-    assertEquals(2, (int)$stmtV->fetchColumn(), "Must have 2 violation rows recorded");
+    assertEquals(3, (int)$stmtV->fetchColumn(), "Must have 3 violation rows recorded");
 });
 
 // Tier 5: Teacher Exam Analysis & Knowledge Gaps Engine

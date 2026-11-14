@@ -49,6 +49,43 @@ $lastPing = time();
 echo "event: connected\ndata: " . json_encode(['status' => 'connected', 'channel' => $channel, 'time' => time()]) . "\n\n";
 flush();
 
+$stmtSession = null;
+$stmtParticipants = null;
+$stmtViolations = null;
+$stmtDuel = null;
+$stmtDuelAnswers = null;
+
+if ($channel === 'exam' && $sessionId > 0) {
+    $stmtSession = $pdo->prepare("
+        SELECT es.id, es.status, es.started_at, es.finished_at 
+        FROM exam_sessions es
+        JOIN exams e ON es.exam_id = e.id
+        WHERE es.id = ? AND (e.teacher_id = ? OR ? IN ('admin', 'dyrektor'))
+    ");
+    $stmtParticipants = $pdo->prepare("
+        SELECT id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, violation_count, last_activity
+        FROM exam_participants
+        WHERE session_id = ?
+        ORDER BY joined_at ASC
+    ");
+    $stmtViolations = $pdo->prepare("
+        SELECT ev.id, ev.participant_id, ev.violation_type, ev.question_id, ev.details, ev.created_at, p.first_name, p.last_name
+        FROM exam_violations ev
+        JOIN exam_participants p ON ev.participant_id = p.id
+        WHERE ev.session_id = ?
+        ORDER BY ev.created_at DESC LIMIT 5
+    ");
+} elseif ($channel === 'duel' && $duelId > 0) {
+    $stmtDuel = $pdo->prepare("
+        SELECT id, challenger_id, opponent_id, status, 
+               challenger_score_percent, opponent_score_percent,
+               challenger_finished_at, opponent_finished_at
+        FROM duels 
+        WHERE id = ? AND (challenger_id = ? OR opponent_id = ?)
+    ");
+    $stmtDuelAnswers = $pdo->prepare("SELECT COUNT(*) FROM duel_answers WHERE duel_id = ? AND user_id = ?");
+}
+
 while (time() - $startTime < $maxExecutionTime) {
     // Check if client disconnected
     if (connection_aborted()) {
@@ -63,38 +100,19 @@ while (time() - $startTime < $maxExecutionTime) {
     }
 
     try {
-        if ($channel === 'exam' && $sessionId > 0) {
+        if ($channel === 'exam' && $sessionId > 0 && $stmtSession && $stmtParticipants && $stmtViolations) {
             // Verify teacher / session access
-            $stmt = $pdo->prepare("
-                SELECT es.id, es.status, es.started_at, es.finished_at 
-                FROM exam_sessions es
-                JOIN exams e ON es.exam_id = e.id
-                WHERE es.id = ? AND (e.teacher_id = ? OR ? IN ('admin', 'dyrektor'))
-            ");
-            $stmt->execute([$sessionId, $userId, $userRole]);
-            $session = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmtSession->execute([$sessionId, $userId, $userRole]);
+            $session = $stmtSession->fetch(PDO::FETCH_ASSOC);
 
             if ($session) {
                 // Fetch live participants
-                $stmtP = $pdo->prepare("
-                    SELECT id, first_name, last_name, class, status, current_question, correct_answers, total_answered, score_percent, violation_count, last_activity
-                    FROM exam_participants
-                    WHERE session_id = ?
-                    ORDER BY joined_at ASC
-                ");
-                $stmtP->execute([$sessionId]);
-                $participants = $stmtP->fetchAll(PDO::FETCH_ASSOC);
+                $stmtParticipants->execute([$sessionId]);
+                $participants = $stmtParticipants->fetchAll(PDO::FETCH_ASSOC);
 
                 // Fetch latest violations
-                $stmtV = $pdo->prepare("
-                    SELECT ev.id, ev.participant_id, ev.violation_type, ev.question_id, ev.details, ev.created_at, p.first_name, p.last_name
-                    FROM exam_violations ev
-                    JOIN exam_participants p ON ev.participant_id = p.id
-                    WHERE ev.session_id = ?
-                    ORDER BY ev.created_at DESC LIMIT 5
-                ");
-                $stmtV->execute([$sessionId]);
-                $violations = $stmtV->fetchAll(PDO::FETCH_ASSOC);
+                $stmtViolations->execute([$sessionId]);
+                $violations = $stmtViolations->fetchAll(PDO::FETCH_ASSOC);
 
                 $payload = [
                     'session_status' => $session['status'],
@@ -110,26 +128,18 @@ while (time() - $startTime < $maxExecutionTime) {
                     flush();
                 }
             }
-        } elseif ($channel === 'duel' && $duelId > 0) {
+        } elseif ($channel === 'duel' && $duelId > 0 && $stmtDuel && $stmtDuelAnswers) {
             // Fetch live duel progress for opponent
-            $stmt = $pdo->prepare("
-                SELECT id, challenger_id, opponent_id, status, 
-                       challenger_score_percent, opponent_score_percent,
-                       challenger_finished_at, opponent_finished_at
-                FROM duels 
-                WHERE id = ? AND (challenger_id = ? OR opponent_id = ?)
-            ");
-            $stmt->execute([$duelId, $userId, $userId]);
-            $duel = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmtDuel->execute([$duelId, $userId, $userId]);
+            $duel = $stmtDuel->fetch(PDO::FETCH_ASSOC);
 
             if ($duel) {
                 $isChallenger = ((int)$duel['challenger_id'] === $userId);
                 $opponentId = $isChallenger ? (int)$duel['opponent_id'] : (int)$duel['challenger_id'];
 
                 // Count opponent answered questions
-                $stmtAns = $pdo->prepare("SELECT COUNT(*) FROM duel_answers WHERE duel_id = ? AND user_id = ?");
-                $stmtAns->execute([$duelId, $opponentId]);
-                $opponentAnswered = (int)$stmtAns->fetchColumn();
+                $stmtDuelAnswers->execute([$duelId, $opponentId]);
+                $opponentAnswered = (int)$stmtDuelAnswers->fetchColumn();
 
                 $payload = [
                     'status' => $duel['status'],

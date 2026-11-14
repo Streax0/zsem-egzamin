@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* Core touch and rendering optimization */
+html, body, button, input, select, textarea, a, .btn, .card, .quiz-option {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 
 /* Nowoczesny panel postępu testu */
 .test-end-modern-btn {
@@ -1336,7 +1340,7 @@ body.dark-mode .glass-card {
 .table-responsive { background: transparent; }
 
 .table-responsive > .table {
-  min-width: 640px;
+  min-width: 720px;
 }
 
 

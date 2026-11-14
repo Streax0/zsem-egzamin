@@ -31,6 +31,7 @@ $csrfToken = (string)($data['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? (
 if (!validateCsrfToken($csrfToken) && !securityValidateRequestCsrf()) {
     securitySendJson(['success' => false, 'message' => 'Nieprawidłowy token CSRF.'], 403);
 }
+session_write_close();
 
 $action = (string)($data['action'] ?? 'search');
 $category = trim((string)($data['category'] ?? 'INF.02'));

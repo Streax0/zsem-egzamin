@@ -101,6 +101,14 @@ Platforma wykorzystuje własne jądro `App\Core\Engine` działające w trybie Si
    php -S localhost:8000
    ```
 
+### Uruchomienie lokalne w XAMPP
+
+1. Skopiuj projekt do `C:\xampp\htdocs\zsem-egzamin`.
+2. W panelu XAMPP uruchom moduły **Apache** i **MySQL**.
+3. W phpMyAdmin utwórz bazę `inf02_platform` z kodowaniem `utf8mb4_unicode_ci`.
+4. Zaimportuj do niej plik `full_schema.sql`.
+5. Otwórz `http://localhost/zsem-egzamin/`. Lokalny plik `.env` używa domyślnego użytkownika XAMPP (`root` bez hasła).
+
 ---
 
 ## 🧪 Testy Zgodności i Jakości Kodu
