@@ -89,6 +89,7 @@ $extraHead = <<<HTML
         .teacher-help-card { border-radius: 8px; border: 1px solid rgba(148,163,184,.22); background: var(--panel-bg); padding: 1.1rem; }
         .teacher-help-card i { font-size: 1.45rem; color: var(--primary-color); }
         .teacher-help-card li { margin-bottom: .45rem; }
+        body.dark-mode .teacher-help-card, [data-bs-theme="dark"] .teacher-help-card { background: var(--panel-bg, #1e293b); color: #f1f5f9; border-color: rgba(148,163,184,.22); }
     </style>
 HTML;
 include '../includes/header.php';
@@ -131,6 +132,5 @@ include '../includes/header.php';
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="../assets/js/theme-handler.js"></script>
 </body>
 </html>

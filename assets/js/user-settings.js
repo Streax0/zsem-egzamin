@@ -108,7 +108,8 @@
             if (target) target.textContent = value;
         };
         const themeSelEl = document.getElementById('themeSelect');
-        const themeValue = (themeSelEl ? themeSelEl.value : 'light') === 'dark' ? 'Ciemny' : 'Jasny';
+        const themeVal = themeSelEl ? themeSelEl.value : 'auto';
+        const themeValue = themeVal === 'dark' ? 'Ciemny' : (themeVal === 'auto' ? 'Automatyczny' : 'Jasny');
         const densSelEl = document.getElementById('densitySelect');
         const densityValue = (densSelEl ? densSelEl.value : 'comfortable') === 'compact' ? 'Kompakt' : 'Wygodny';
         setOverview('theme', themeValue);
@@ -273,7 +274,7 @@
     };
 
     window.resetUiPrefs = function () {
-        ['user_density','user_accent','user_accent_secondary','reduce_motion','user_font_size','user_theme','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
+        ['user_density','user_accent','user_accent_secondary','reduce_motion','user_font_size','user_theme','user_theme_explicit','dashboard_view','default_test_mode','external_new_tab','welcome_banner_style'].forEach(n => {
             const secure = location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = `${n}=; path=/; max-age=0; SameSite=Lax${secure}`;
             try { safeStorage.removeItem(n); } catch (error) {}
@@ -454,9 +455,11 @@
         const fontInput = document.getElementById(fontIds[font] || 'fontMedium');
         if (fontInput) fontInput.checked = true;
 
-        const theme = readPreference('user_theme', 'light');
+        const explicitTheme = readPreference('user_theme_explicit', '0') === '1';
+        let theme = readPreference('user_theme', 'auto');
+        if (!explicitTheme && theme === 'light') theme = 'auto';
         const themeSelect = document.getElementById('themeSelect');
-        if (themeSelect) themeSelect.value = ['light', 'dark'].includes(theme) ? theme : 'light';
+        if (themeSelect) themeSelect.value = ['auto', 'light', 'dark'].includes(theme) ? theme : 'auto';
 
         const density = readPreference('user_density', 'comfortable');
         const densitySelect = document.getElementById('densitySelect');

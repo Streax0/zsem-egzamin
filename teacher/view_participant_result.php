@@ -79,8 +79,8 @@ $pageTitle = 'Szczegóły wyniku: ' . htmlspecialchars($participant['first_name'
 $extraCss = ['assets/css/dashboard-new.css'];
 $extraHead = <<<HTML
 <style>
-body.dark-mode .option-choice-neutral { background: rgba(255,255,255,0.05) !important; color: #e2e8f0 !important; border-color: rgba(255,255,255,0.1) !important; }
-body.dark-mode .bg-light { background-color: rgba(255,255,255,0.05) !important; color: #f1f5f9 !important; }
+body.dark-mode .option-choice-neutral, [data-bs-theme="dark"] .option-choice-neutral { background: rgba(255,255,255,0.05) !important; color: #e2e8f0 !important; border-color: rgba(255,255,255,0.1) !important; }
+body.dark-mode .bg-light, [data-bs-theme="dark"] .bg-light { background-color: rgba(255,255,255,0.05) !important; color: #f1f5f9 !important; }
 </style>
 HTML;
 include '../includes/header.php';

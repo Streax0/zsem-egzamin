@@ -460,7 +460,7 @@ $pageTitle = 'Generator sprawdzianów - ZSEM Tech';
 $extraCss = ['assets/css/dashboard-new.css'];
 $extraHead = <<<HTML
 <style>
-        body.pdf-generator-page { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #f8fafc; }
+        body.pdf-generator-page { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: var(--bs-body-bg, #f8fafc); }
         .generator-shell { max-width: 1480px; margin: 0 auto; }
 
         /* New UI Styles */
@@ -1135,13 +1135,36 @@ $extraHead = <<<HTML
             border-color:rgba(148,163,184,.24) !important;
             color:#e5e7eb;
         }
-        body.dark-mode.pdf-generator-page {
+        body.dark-mode.pdf-generator-page,
+        [data-bs-theme="dark"] body.pdf-generator-page {
+            background-color: #0f172a !important;
             --bs-body-bg:#0f172a;
             --bs-body-color:#f8fafc;
             --bs-secondary-bg:#0f172a;
             --bs-tertiary-bg:#111827;
             --bs-border-color:rgba(148,163,184,.38);
             --bs-form-control-bg:#0f172a;
+        }
+        body.dark-mode .category-btn-wrapper label.btn,
+        [data-bs-theme="dark"] .category-btn-wrapper label.btn {
+            border: 1.5px solid rgba(148, 163, 184, 0.3) !important;
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .category-btn-wrapper label.btn i,
+        [data-bs-theme="dark"] .category-btn-wrapper label.btn i {
+            color: #60a5fa !important;
+        }
+        body.dark-mode .category-btn-wrapper label.btn .badge,
+        [data-bs-theme="dark"] .category-btn-wrapper label.btn .badge {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode .category-btn-wrapper label.btn:hover,
+        [data-bs-theme="dark"] .category-btn-wrapper label.btn:hover {
+            border-color: #60a5fa !important;
+            background: #334155 !important;
+            color: #ffffff !important;
         }
         body.dark-mode .generator-title-row,
         body.dark-mode .generator-title-row .text-muted,

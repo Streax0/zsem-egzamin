@@ -12,7 +12,11 @@ $role = $_SESSION['role'] ?? 'user';
 
 // Get current settings from cookies for UI state
 $currentFontSize = $_COOKIE['user_font_size'] ?? '16';
-$currentTheme = $_COOKIE['user_theme'] ?? 'light';
+$currentTheme = $_COOKIE['user_theme'] ?? 'auto';
+$themeExplicit = ($_COOKIE['user_theme_explicit'] ?? '0') === '1';
+if (!$themeExplicit && $currentTheme === 'light') {
+    $currentTheme = 'auto';
+}
 $currentDensity = $_COOKIE['user_density'] ?? 'comfortable';
 $currentAccent = $_COOKIE['user_accent'] ?? 'var(--primary-color)';
 if (!preg_match('/^#[0-9a-fA-F]{6}$/', $currentAccent)) {
@@ -68,7 +72,7 @@ $activeUserSessions = $deviceSessionManager->getUserSessions((int)$userId, funct
 $settingsHealth = [
     ['key' => 'profile', 'icon' => 'bi-person-check', 'label' => 'Profil', 'value' => ($username !== '' && $email !== '') ? 'OK' : 'Uzupełnij'],
     ['key' => 'security', 'icon' => 'bi-shield-lock', 'label' => 'Bezpieczeństwo', 'value' => $mfaEnabled ? 'MFA aktywne' : ($canUseMfa ? 'MFA opcjonalne' : 'Hasło')],
-    ['key' => 'theme', 'icon' => 'bi-palette', 'label' => 'Motyw', 'value' => $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'],
+    ['key' => 'theme', 'icon' => 'bi-palette', 'label' => 'Motyw', 'value' => $currentTheme === 'dark' ? 'Ciemny' : ($currentTheme === 'auto' ? 'Automatyczny' : 'Jasny')],
     ['key' => 'density', 'icon' => 'bi-sliders', 'label' => 'Interfejs', 'value' => $currentDensity === 'compact' ? 'Kompakt' : 'Wygodny'],
 ];
 ?>
@@ -1445,8 +1449,9 @@ include '../includes/header.php';
                                                 <div class="mb-4">
                                                     <label class="form-label d-block" for="themeSelect">Motyw kolorystyczny</label>
                                                     <select class="form-select" id="themeSelect" onchange="updateThemeSetting(this.value)">
-                                                        <option value="light" <?php echo $currentTheme == 'light' ? 'selected' : ''; ?>>Jasny (domyślny)</option>
-                                                        <option value="dark" <?php echo $currentTheme == 'dark' ? 'selected' : ''; ?>>Ciemny (Beta)</option>
+                                                        <option value="auto" <?php echo $currentTheme === 'auto' ? 'selected' : ''; ?>>Automatyczny (zgodny z systemem / przeglądarką)</option>
+                                                        <option value="light" <?php echo $currentTheme === 'light' ? 'selected' : ''; ?>>Jasny</option>
+                                                        <option value="dark" <?php echo $currentTheme === 'dark' ? 'selected' : ''; ?>>Ciemny</option>
                                                     </select>
                                                 </div>
 
@@ -1625,7 +1630,7 @@ include '../includes/header.php';
                                                     </div>
                                                     <div class="settings-mini-card" data-settings-mini="theme">
                                                         <i class="bi bi-palette"></i>
-                                                        <span>Wygląd: <strong data-settings-mini-value><?php echo $currentTheme === 'dark' ? 'Ciemny' : 'Jasny'; ?></strong></span>
+                                                        <span>Wygląd: <strong data-settings-mini-value><?php echo $currentTheme === 'dark' ? 'Ciemny' : ($currentTheme === 'auto' ? 'Automatyczny' : 'Jasny'); ?></strong></span>
                                                     </div>
                                                 </div>
 

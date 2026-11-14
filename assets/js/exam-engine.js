@@ -12,6 +12,26 @@ const ExamEngine = {
 
     init() {
         this.setupEventListeners();
+        this.setupNetworkWatchdog();
+    },
+
+    setupNetworkWatchdog() {
+        const updateBanner = (online) => {
+            const banner = document.getElementById('networkStatusBanner');
+            if (banner) {
+                if (online) {
+                    banner.className = 'alert alert-success py-2 px-3 mb-3 d-flex align-items-center gap-2';
+                    banner.innerHTML = '<i class="bi bi-wifi fs-5"></i><span class="small fw-medium">Połączenie z siecią zostało przywrócone.</span>';
+                    setTimeout(() => { banner.classList.add('d-none'); }, 3000);
+                } else {
+                    banner.className = 'alert alert-warning py-2 px-3 mb-3 d-flex align-items-center gap-2';
+                    banner.innerHTML = '<i class="bi bi-wifi-off fs-5"></i><span class="small fw-medium">Utracono połączenie z siecią. Odpowiedź zostanie ponowiona po przywróceniu łączności.</span>';
+                    banner.classList.remove('d-none');
+                }
+            }
+        };
+        window.addEventListener('online', () => updateBanner(true));
+        window.addEventListener('offline', () => updateBanner(false));
     },
 
     getCsrfToken(scope = document) {
@@ -48,29 +68,29 @@ const ExamEngine = {
         document.addEventListener('keydown', (e) => this.handleKeyboard(e));
     },
 
-    async submitAnswer() {
-        if (this.state.isBusy) return;
+    async submitAnswer(retryCount = 0) {
+        if (this.state.isBusy && retryCount === 0) return;
 
         const selectedInput = document.getElementById('selectedAnswer');
         const questionIdInput = document.querySelector('input[name="question_id"]');
         const questionOrderInput = document.querySelector('input[name="question_order"]');
         const answerForm = document.getElementById('answerForm');
         const csrfToken = this.getCsrfToken(answerForm || document);
-        const sessionIdInput = new URLSearchParams(window.location.search).get('session');
+        const sessionIdInput = new URLSearchParams(window.location.search).get('session') || '';
 
-        if (!selectedInput.value) {
+        if (!selectedInput?.value) {
             this.notify('Wybierz odpowiedź.', 'warning');
             return;
         }
 
         this.setBusy(true);
-        const timeSpent = Math.round((Date.now() - this.state.questionStartTime) / 1000);
+        const timeSpent = Math.max(0, Math.round((Date.now() - this.state.questionStartTime) / 1000));
 
         const formData = new FormData();
         formData.append('action', 'submit_answer');
         formData.append('session_id', sessionIdInput);
-        formData.append('question_id', questionIdInput.value);
-        formData.append('question_order', questionOrderInput.value);
+        formData.append('question_id', questionIdInput?.value || '');
+        formData.append('question_order', questionOrderInput?.value || '');
         formData.append('answer', selectedInput.value);
         formData.append('time_spent', timeSpent);
         formData.append('csrf_token', csrfToken);
@@ -92,8 +112,13 @@ const ExamEngine = {
             }
         } catch (error) {
             console.error('Exam Error:', error);
-            this.notify('Błąd połączenia. Sprawdź internet.', 'danger');
-            this.setBusy(false);
+            if (retryCount < 2) {
+                this.notify(`Chwilowy brak odpowiedzi serwera. Ponawianie próby (${retryCount + 1}/2)...`, 'warning');
+                setTimeout(() => this.submitAnswer(retryCount + 1), 1500);
+            } else {
+                this.notify('Błąd połączenia. Sprawdź internet i spróbuj ponownie.', 'danger');
+                this.setBusy(false);
+            }
         }
     },
 
@@ -142,17 +167,31 @@ const ExamEngine = {
     },
 
     selectOption(el, letter) {
-        document.querySelectorAll('.answer-option').forEach(o => o.classList.remove('selected'));
+        if (!el) return;
+        document.querySelectorAll('.answer-option').forEach(o => {
+            o.classList.remove('selected');
+            o.setAttribute('aria-selected', 'false');
+        });
         el.classList.add('selected');
-        document.getElementById('selectedAnswer').value = letter;
-        document.getElementById('submitBtn').disabled = false;
+        el.setAttribute('aria-selected', 'true');
+        const selectedInput = document.getElementById('selectedAnswer');
+        if (selectedInput) selectedInput.value = letter;
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) submitBtn.disabled = false;
     },
 
     handleKeyboard(e) {
         if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
-        const map = {'1':'A','2':'B','3':'C','4':'D'};
-        if (map[e.key]) {
-            const opt = document.querySelector(`.answer-option[data-shortcut="${e.key}"]`) || document.querySelector(`.answer-option[data-answer="${map[e.key]}"]`);
+        const key = (e.key || '').toUpperCase();
+        const map = {
+            '1': 'A', 'A': 'A',
+            '2': 'B', 'B': 'B',
+            '3': 'C', 'C': 'C',
+            '4': 'D', 'D': 'D'
+        };
+        if (map[key]) {
+            const opt = document.querySelector(`.answer-option[data-shortcut="${key}"]`) 
+                     || document.querySelector(`.answer-option[data-answer="${map[key]}"]`);
             if (opt) opt.click();
         }
         if (e.key === 'Enter') {

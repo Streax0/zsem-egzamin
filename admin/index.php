@@ -7,7 +7,11 @@ require_once '../includes/functions.php';
 startSecureSession();
 requireLogin();
 
-$currentTheme = $_COOKIE['user_theme'] ?? 'light';
+$currentTheme = $_COOKIE['user_theme'] ?? 'auto';
+$themeExplicit = ($_COOKIE['user_theme_explicit'] ?? '0') === '1';
+if (!$themeExplicit && $currentTheme === 'light') {
+    $currentTheme = 'auto';
+}
 
 function adminBanDurationOptions(): array {
     return [
@@ -1456,6 +1460,10 @@ $extraHead = <<<HTML
             opacity: .34;
             background-color: #0f172a;
         }
+        [data-bs-theme="dark"] .modal .btn-close,
+        body.dark-mode .modal .btn-close {
+            filter: invert(1) grayscale(100%);
+        }
         body.dark-mode .admin-user-email {
             color: #cbd5e1 !important;
         }
@@ -1829,7 +1837,8 @@ $extraHead = <<<HTML
         }
     </style>
 HTML;
-$bodyClasses = ['admin-page', ($currentTheme === 'dark') ? 'dark-mode' : 'light-mode'];
+$themeClass = ($currentTheme === 'dark') ? 'dark-mode' : (($currentTheme === 'light') ? 'light-mode' : '');
+$bodyClasses = array_values(array_filter(['admin-page', $themeClass]));
 include '../includes/header.php';
 ?>
 
@@ -1917,7 +1926,7 @@ include '../includes/header.php';
                             </div>
                             <?php if ($search !== ''): ?>
                                 <div class="col-12 col-md-auto">
-                                    <a href="admin/index.php" class="btn btn-outline-secondary" style="border-radius: 8px; font-weight: 600;"><i class="bi bi-x-lg me-1"></i>Wyczyść filtry</a>
+                                    <a href="index.php" class="btn btn-outline-secondary" style="border-radius: 8px; font-weight: 600;"><i class="bi bi-x-lg me-1"></i>Wyczyść filtry</a>
                                 </div>
                             <?php endif; ?>
                         </form>
@@ -1952,7 +1961,8 @@ include '../includes/header.php';
                                     <?php
                                         $adminClassLabel = adminPanelUserGroupLabel($u);
                                         $adminAvatar = (string)($u['avatar_path'] ?? '');
-                                        $adminAvatarSrc = (preg_match('#^uploads/avatars/[a-zA-Z0-9_.-]+\.webp$#', $adminAvatar) && is_file(__DIR__ . '/' . $adminAvatar)) ? $adminAvatar : '';
+                                        $adminAvatarFile = dirname(__DIR__) . '/' . $adminAvatar;
+                                        $adminAvatarSrc = (preg_match('#^uploads/avatars/[a-zA-Z0-9_.-]+\.webp$#', $adminAvatar) && is_file($adminAvatarFile)) ? ('../' . $adminAvatar) : '';
                                         $adminDisplayName = userDisplayName($u);
                                         $adminHandle = userHandle($u);
                                     ?>
@@ -2770,7 +2780,18 @@ include '../includes/header.php';
                                                     <span class="badge bg-secondary align-self-start"><?php echo htmlspecialchars($report['status']); ?></span>
                                                 </div>
                                                 <?php if (!empty($report['content_url'])): ?>
-                                                    <div class="small mb-2 text-break"><strong>Treść:</strong> <?php echo htmlspecialchars($report['content_url']); ?></div>
+                                                    <?php
+                                                        $cUrl = (string)$report['content_url'];
+                                                        $isSafeUrl = (bool)preg_match('#^(https?://|/)#i', $cUrl);
+                                                    ?>
+                                                    <div class="small mb-2 text-break">
+                                                        <strong>Treść:</strong>
+                                                        <?php if ($isSafeUrl): ?>
+                                                            <a href="<?php echo htmlspecialchars($cUrl); ?>" target="_blank" rel="noopener noreferrer" class="text-primary text-decoration-underline"><?php echo htmlspecialchars($cUrl); ?> <i class="bi bi-box-arrow-up-right small"></i></a>
+                                                        <?php else: ?>
+                                                            <?php echo htmlspecialchars($cUrl); ?>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 <?php endif; ?>
                                                 <div class="small mb-2"><?php echo nl2br(htmlspecialchars($report['description'])); ?></div>
                                                 <div class="small text-muted mb-2">

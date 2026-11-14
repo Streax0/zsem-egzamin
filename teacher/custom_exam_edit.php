@@ -137,9 +137,10 @@ $pageTitle = ($isEdit ? 'Edytuj' : 'Nowy') . ' sprawdzian – ZSEM Tech';
 $extraCss = ['assets/css/dashboard-new.css'];
 $extraHead = <<<HTML
 <style>
-        .q-card { border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; background: #fafbfc; transition: all 0.2s; position: relative; }
+        .q-card { border: 1px solid var(--border-color, #e2e8f0); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; background: var(--panel-bg, #fafbfc); color: var(--text-main, inherit); transition: all 0.2s; position: relative; }
         .q-card:hover { border-color: var(--primary-color); box-shadow: 0 4px 12px rgba(59,130,246,0.08); }
         .q-card .q-number { position: absolute; top: -10px; left: 16px; background: var(--primary-color); color: white; border-radius: 99px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
+        body.dark-mode .q-card, [data-bs-theme="dark"] .q-card { background: #1e293b !important; border-color: rgba(148, 163, 184, 0.2) !important; color: #f1f5f9 !important; }
     </style>
 HTML;
 include '../includes/header.php';

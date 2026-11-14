@@ -8,7 +8,9 @@
   --primary-color-dark: color-mix(in srgb, var(--primary-color) 85%, #000000);
 }
 
-body.dark-mode {
+body.dark-mode,
+html.dark-mode,
+[data-bs-theme="dark"] {
   /* New system */
   --bg-color: #0f172a;
   --panel-bg: #1e293b;
@@ -17,6 +19,13 @@ body.dark-mode {
   --border-color: #334155;
   --primary-color: #60a5fa;
   --primary-color-dark: color-mix(in srgb, var(--primary-color) 85%, #000000);
+
+  /* Bootstrap 5.3 Theme Overrides */
+  --bs-body-bg: #0f172a;
+  --bs-body-color: #f1f5f9;
+  --bs-tertiary-bg: #1e293b;
+  --bs-secondary-bg: #162032;
+  --bs-border-color: #334155;
 
   /* Legacy variables from style.css – kept in sync */
   --kolor-tekst: #f1f5f9;
@@ -324,6 +333,122 @@ body.dark-mode .teacher-ops-strip-current {
   border-color: rgba(96, 165, 250, 0.42);
   background: rgba(37, 99, 235, 0.22);
   color: #bfdbfe;
+}
+
+/* ==================== TEACHER MODULE DARK MODE HARDENING ==================== */
+body.dark-mode .teacher-hero-bento,
+[data-bs-theme="dark"] .teacher-hero-bento {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.16) 0%, rgba(124, 58, 237, 0.1) 100%) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+  color: #f1f5f9 !important;
+}
+
+body.dark-mode .stat-chip,
+[data-bs-theme="dark"] .stat-chip {
+  background-color: #1e293b !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  color: #f1f5f9 !important;
+}
+
+body.dark-mode .btn-light,
+[data-bs-theme="dark"] .btn-light {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #f8fafc !important;
+}
+
+body.dark-mode .btn-light:hover,
+body.dark-mode .btn-light:focus,
+[data-bs-theme="dark"] .btn-light:hover,
+[data-bs-theme="dark"] .btn-light:focus {
+  background-color: #475569 !important;
+  border-color: #64748b !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .badge.bg-light,
+body.dark-mode .badge.bg-light.text-dark,
+[data-bs-theme="dark"] .badge.bg-light,
+[data-bs-theme="dark"] .badge.bg-light.text-dark {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+body.dark-mode .bg-body-tertiary,
+[data-bs-theme="dark"] .bg-body-tertiary {
+  background-color: #1e293b !important;
+  color: #f1f5f9;
+}
+
+body.dark-mode .bg-body-secondary,
+[data-bs-theme="dark"] .bg-body-secondary {
+  background-color: #162032 !important;
+  color: #f1f5f9;
+}
+
+body.dark-mode .q-card,
+[data-bs-theme="dark"] .q-card {
+  background-color: #1e293b !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  color: #f1f5f9 !important;
+}
+
+body.dark-mode .q-card:hover,
+[data-bs-theme="dark"] .q-card:hover {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .sticky-bottom-bar,
+[data-bs-theme="dark"] .sticky-bottom-bar {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+body.dark-mode .teacher-help-card,
+[data-bs-theme="dark"] .teacher-help-card {
+  background-color: #1e293b !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  color: #f1f5f9;
+}
+
+body.dark-mode .preset-card,
+body.dark-mode .config-section .form-check.form-switch,
+[data-bs-theme="dark"] .preset-card,
+[data-bs-theme="dark"] .config-section .form-check.form-switch {
+  background: rgba(15, 23, 42, 0.85) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+body.dark-mode .preset-card:hover,
+[data-bs-theme="dark"] .preset-card:hover {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+body.dark-mode .host-top-card,
+body.dark-mode .host-code-panel,
+body.dark-mode .host-stat-card,
+body.dark-mode .qr-box,
+[data-bs-theme="dark"] .host-top-card,
+[data-bs-theme="dark"] .host-code-panel,
+[data-bs-theme="dark"] .host-stat-card,
+[data-bs-theme="dark"] .qr-box {
+  background: #111827 !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+body.dark-mode .participant-card,
+[data-bs-theme="dark"] .participant-card {
+  background: #0f172a !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+body.dark-mode.pdf-generator-page,
+[data-bs-theme="dark"] body.pdf-generator-page {
+  background-color: #0f172a !important;
 }
 
 .topbar-actions {

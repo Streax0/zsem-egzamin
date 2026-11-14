@@ -1194,7 +1194,8 @@ CREATE TABLE exam_answers (
     FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
     INDEX idx_session_participant (session_id, participant_id),
-    INDEX idx_participant_order (participant_id, question_order)
+    INDEX idx_participant_order (participant_id, question_order),
+    INDEX idx_session_question_correct (session_id, question_id, is_correct)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1210,7 +1211,9 @@ CREATE TABLE exam_violations (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (participant_id) REFERENCES exam_participants(id) ON DELETE CASCADE,
     FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
-    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE SET NULL
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE SET NULL,
+    INDEX idx_session_created (session_id, created_at),
+    INDEX idx_participant_created (participant_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
