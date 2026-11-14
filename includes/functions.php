@@ -357,7 +357,7 @@ function consumeRateLimit(PDO $pdo, string $bucket, string $identity, int $maxAt
 
         $stmt = $pdo->prepare("INSERT INTO rate_limit_events (bucket, identity_hash, ip_address, created_at) VALUES (?, ?, ?, NOW())");
         $stmt->execute([$bucket, $identityHash, mb_substr(clientIpAddress(), 0, 45)]);
-        if (mt_rand(1, 100) === 1) {
+        if (random_int(1, 100) === 1) {
             $pdo->exec("DELETE FROM rate_limit_events WHERE created_at < DATE_SUB(NOW(), INTERVAL 2 DAY)");
         }
         return true;
@@ -2428,10 +2428,10 @@ function loadQuestions($pdo = null, $includeDbQuestions = true) {
                     if ($cat === 'EE.08') $cat = 'INF.02';
                     if ($cat === 'EE.09') $cat = 'INF.03';
 
-                    // Simplest and most stable ID: MD5 of normalized text only
+                    // Simplest and most stable ID: SHA-256 of normalized text only
                     // Category is excluded because it might vary (EE.08 vs INF.02)
                     $normalizedText = preg_replace('/[^a-z0-9]/', '', strtolower($text));
-                    $stableId = hexdec(substr(md5($normalizedText), 0, 7));
+                    $stableId = hexdec(substr(hash('sha256', $normalizedText), 0, 7));
 
                     $questions[] = [
                         'id' => $stableId,
@@ -2664,7 +2664,7 @@ function getQuestionDifficultyBucket(array $question): string {
         return $cache[$key];
     }
 
-    $hashVal = hexdec(substr(md5($text . $qid), 0, 4));
+    $hashVal = hexdec(substr(hash('sha256', $text . $qid), 0, 4));
     $difficulty = 'medium';
     if (strlen($text) < 100 && ($hashVal % 3 === 0)) {
         $difficulty = 'easy';
@@ -2808,14 +2808,17 @@ function getWeightedRandomQuestions($pdo, $questions, $count = 40, $userId = 0) 
         $totalW = 0.0;
         foreach ($available as $a) $totalW += $weights[$a];
         if ($totalW <= 0) break;
-        $r = mt_rand() / mt_getrandmax() * $totalW;
+        $r = (random_int(0, PHP_INT_MAX) / PHP_INT_MAX) * $totalW;
         $cum = 0.0;
         $selected = null;
         foreach ($available as $a) {
             $cum += $weights[$a];
             if ($r <= $cum) { $selected = $a; break; }
         }
-        if ($selected === null) $selected = $available[array_rand($available)];
+        if ($selected === null) {
+            $randKey = array_keys($available)[random_int(0, count($available) - 1)];
+            $selected = $available[$randKey];
+        }
         $result[] = $questions[$selected];
         // remove selected
         $pos = array_search($selected, $available);
