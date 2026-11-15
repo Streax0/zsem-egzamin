@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? 'Sprawdzian');
     $description = trim($_POST['description'] ?? '');
     $questionCount = max(1, min(120, (int)($_POST['question_count'] ?? 40)));
-    $maxParticipants = max(1, min(36, (int)($_POST['max_participants'] ?? 36)));
+    $maxParticipants = max(1, min(150, (int)($_POST['max_participants'] ?? 60)));
     $timePerQuestion = !empty($_POST['time_per_question']) ? (int)$_POST['time_per_question'] : null;
     $totalTime = !empty($_POST['total_time']) ? (int)$_POST['total_time'] : null;
     $shuffleQuestions = isset($_POST['shuffle_questions']) ? 1 : 0;
@@ -591,7 +591,13 @@ include '../includes/header.php';
                                         <div class="row g-3">
                                             <div class="col-md-4">
                                                 <label class="form-label fw-semibold">Limit uczestników</label>
-                                                <input type="number" name="max_participants" class="form-control" value="36" min="1" max="36">
+                                                <input type="number" name="max_participants" id="maxParticipantsInput" class="form-control" value="60" min="1" max="150">
+                                                <div class="quick-participants-grid mt-2 d-flex gap-1 flex-wrap">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0" data-participants="30" style="font-size:0.75rem;">30 (1 klasa)</button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0" data-participants="60" style="font-size:0.75rem;">60 (2 klasy)</button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0" data-participants="90" style="font-size:0.75rem;">90 (3 klasy)</button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0" data-participants="120" style="font-size:0.75rem;">120 (rocznik)</button>
+                                                </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label fw-semibold">Czas na pytanie (sek.)</label>
@@ -640,7 +646,7 @@ include '../includes/header.php';
                                         <h5 class="fw-bold mb-3"><i class="bi bi-clipboard-data me-2"></i>Podgląd</h5>
                                         <div class="summary-row"><span>Pytania</span><strong id="summaryQuestions"><?= $defaultQuestionCount ?></strong></div>
                                         <div class="summary-row"><span>Czas</span><strong id="summaryTime">bez limitu</strong></div>
-                                        <div class="summary-row"><span>Uczestnicy</span><strong id="summaryParticipants">36</strong></div>
+                                        <div class="summary-row"><span>Uczestnicy</span><strong id="summaryParticipants">60</strong></div>
                                         <div class="summary-row"><span>Tryb</span><strong id="summaryMode">egzamin</strong></div>
                                         <div class="summary-row"><span>Zabezpieczenia</span><strong id="summarySecurity">wyłączone</strong></div>
                                         <div class="alert alert-info small border-0 mt-3 mb-0">
@@ -877,7 +883,7 @@ include '../includes/header.php';
             const questionCount = exactCount || parseInt(byName('question_count')?.value || '0', 10) || 0;
             const totalTime = byName('total_time')?.value;
             const perQuestion = byName('time_per_question')?.value;
-            const participants = byName('max_participants')?.value || '36';
+            const participants = byName('max_participants')?.value || '60';
             const mode = byId('examMode')?.checked ? 'egzamin' : 'ćwiczenia';
             const security = byId('antiCheat')?.checked ? 'włączone' : 'wyłączone';
 
@@ -942,6 +948,13 @@ include '../includes/header.php';
         byId('clearWindowBtn')?.addEventListener('click', () => {
             setValue('availableFromInput', '');
             setValue('availableUntilInput', '');
+        });
+
+        document.querySelectorAll('[data-participants]').forEach(button => {
+            button.addEventListener('click', () => {
+                setValue('max_participants', button.dataset.participants);
+                updateSummary();
+            });
         });
 
         document.querySelectorAll('[data-preset]').forEach(button => {

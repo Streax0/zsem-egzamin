@@ -24,9 +24,52 @@ if ($isDarkServer) {
     <meta name="theme-color" content="#4f46e5">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <?php
+    $defaultDesc = $pageDescription ?? 'ZSEM Tech – nowoczesna platforma edukacyjna do przygotowania do egzaminów zawodowych CKE INF.02, EE.08, E.12 i INF.03. Pytania egzaminacyjne, sprawdziany i praktyka online.';
+    $hasExtraDesc = isset($extraHead) && (strpos($extraHead, 'name="description"') !== false || strpos($extraHead, "name='description'") !== false);
+    $hasExtraOgTitle = isset($extraHead) && strpos($extraHead, 'property="og:title"') !== false;
+    $hasExtraOgDesc = isset($extraHead) && strpos($extraHead, 'property="og:description"') !== false;
+    ?>
+    <?php if (!$hasExtraDesc): ?>
+    <meta name="description" content="<?php echo htmlspecialchars($defaultDesc); ?>">
+    <?php endif; ?>
+    <meta name="keywords" content="egzamin zawodowy, inf.02, inf02, ee.08, ee08, e.12, inf.03, technik informatyk, arkusze cke, testy egzaminacyjne, zsem tech">
+    <meta property="og:locale" content="pl_PL">
     <meta property="og:site_name" content="ZSEM Tech">
     <meta property="og:type" content="website">
     <meta property="og:image" content="<?php echo htmlspecialchars($base_url); ?>zsemtech_profile.ico">
+    <?php if (!$hasExtraOgTitle): ?>
+    <meta property="og:title" content="<?php echo htmlspecialchars($pageTitle); ?>">
+    <?php endif; ?>
+    <?php if (!$hasExtraOgDesc): ?>
+    <meta property="og:description" content="<?php echo htmlspecialchars($defaultDesc); ?>">
+    <?php endif; ?>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($pageTitle); ?>">
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($defaultDesc); ?>">
+    <meta name="twitter:image" content="<?php echo htmlspecialchars($base_url); ?>zsemtech_profile.ico">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://zsem-egzamin.online/#website",
+          "url": "https://zsem-egzamin.online/",
+          "name": "ZSEM Tech",
+          "description": "Nowoczesna platforma edukacyjna do egzaminów zawodowych CKE INF.02, EE.08, E.12",
+          "inLanguage": "pl-PL"
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://zsem-egzamin.online/#organization",
+          "name": "ZSEM Tech",
+          "url": "https://zsem-egzamin.online/",
+          "logo": "https://zsem-egzamin.online/zsemtech_profile.ico"
+        }
+      ]
+    }
+    </script>
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">

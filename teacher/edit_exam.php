@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $questionCount = max(1, min(120, (int)($_POST['question_count'] ?? 40)));
-    $maxParticipants = max(1, min(36, (int)($_POST['max_participants'] ?? 36)));
+    $maxParticipants = max(1, min(150, (int)($_POST['max_participants'] ?? ($exam['max_participants'] ?? 60))));
     $timePerQuestion = !empty($_POST['time_per_question']) ? (int)$_POST['time_per_question'] : null;
     $totalTime = !empty($_POST['total_time']) ? (int)$_POST['total_time'] : null;
     $shuffleQuestions = isset($_POST['shuffle_questions']) ? 1 : 0;
@@ -270,6 +270,27 @@ include '../includes/header.php';
                                                     </div>
                                                     <div class="text-muted small mt-2">Zaznaczono: <span id="selectedCount"><?= count($selectedSpecific) ?></span> pytań</div>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="dashboard-panel mb-4 animate-in" style="animation-delay:0.12s">
+                                    <div class="config-section">
+                                        <h5 class="fw-bold mb-3"><i class="bi bi-clock me-2 text-primary"></i>Czas i limity uczestników</h5>
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Limit uczestników</label>
+                                                <input type="number" name="max_participants" class="form-control" value="<?= (int)($exam['max_participants'] ?? 60) ?>" min="1" max="150">
+                                                <div class="form-text">Maksymalnie 150 uczniów.</div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Czas na pytanie (sek.)</label>
+                                                <input type="number" name="time_per_question" class="form-control" placeholder="Brak limitu" min="5" max="600" value="<?= !empty($exam['time_per_question']) ? (int)$exam['time_per_question'] : '' ?>">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Całkowity czas (min.)</label>
+                                                <input type="number" name="total_time" class="form-control" placeholder="Brak limitu" min="1" max="180" value="<?= !empty($exam['total_time']) ? (int)$exam['total_time'] : '' ?>">
                                             </div>
                                         </div>
                                     </div>

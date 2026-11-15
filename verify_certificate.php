@@ -29,6 +29,7 @@ if ($code !== '') {
 }
 
 $pageTitle = 'Weryfikacja Certyfikatu — ZSEM Tech';
+$pageDescription = 'Oficjalny portal weryfikacji certyfikatów i zaświadczeń edukacyjnych platformy ZSEM Tech. Sprawdź autentyczność certyfikatu kwalifikacji.';
 include 'includes/header.php';
 ?>
 

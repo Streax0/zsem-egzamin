@@ -17,7 +17,7 @@ if (!$sessionId) {
     exit;
 }
 
-securityThrottle('exam-status:' . securityActorKey() . ':' . $sessionId, 120, 60, ['error' => 'rate_limited']);
+securityThrottle('exam-status:' . securityActorKey() . ':' . $sessionId, 240, 60, ['error' => 'rate_limited']);
 
 try {
     $stmt = $pdo->prepare("

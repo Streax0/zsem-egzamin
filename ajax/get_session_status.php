@@ -16,19 +16,20 @@ if (!$sessionId) {
     exit;
 }
 
-securityThrottle('teacher-session-status:' . securityActorKey() . ':' . $sessionId . ':' . $scope, 120, 60, ['success' => false, 'error' => 'rate_limited']);
+securityThrottle('teacher-session-status:' . securityActorKey() . ':' . $sessionId . ':' . $scope, 240, 60, ['success' => false, 'error' => 'rate_limited']);
 
 $teacherId = (int)$_SESSION['user_id'];
+$userRole = (string)($_SESSION['role'] ?? 'user');
 session_write_close();
 
 try {
-    // Check if session belongs to teacher
+    // Check if session belongs to teacher or user is admin/dyrektor
     $stmt = $pdo->prepare("
         SELECT es.id, es.exam_id, es.access_code, es.status, es.started_at, es.paused_at, es.paused_seconds, es.finished_at, es.expires_at, es.created_at FROM exam_sessions es 
         JOIN exams e ON es.exam_id = e.id 
-        WHERE es.id = ? AND e.teacher_id = ?
+        WHERE es.id = ? AND (e.teacher_id = ? OR ? IN ('admin', 'dyrektor'))
     ");
-    $stmt->execute([$sessionId, $teacherId]);
+    $stmt->execute([$sessionId, $teacherId, $userRole]);
     $session = $stmt->fetch();
 
     if (!$session) {

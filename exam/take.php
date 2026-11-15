@@ -1075,7 +1075,7 @@ $bodyClassStr = implode(' ', $bodyClasses);
                 conn.innerHTML = '● Offline';
                 conn.className = 'connection-status text-danger';
             });
-    }, 1000);
+    }, 2500);
     </script>
 </body>
 </html>

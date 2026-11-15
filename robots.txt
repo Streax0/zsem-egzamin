@@ -6,6 +6,10 @@ Allow: /courses.php
 Allow: /categories.php
 Allow: /dictionary.php
 Allow: /flashcards.php
+Allow: /practice.php
+Allow: /lessons.php
+Allow: /leaderboard.php
+Allow: /verify_certificate.php
 Allow: /qualification.php
 Allow: /ranking.php
 Allow: /pages/
@@ -21,6 +25,10 @@ Allow: /courses.php
 Allow: /categories.php
 Allow: /dictionary.php
 Allow: /flashcards.php
+Allow: /practice.php
+Allow: /lessons.php
+Allow: /leaderboard.php
+Allow: /verify_certificate.php
 Allow: /qualification.php
 Allow: /ranking.php
 Allow: /pages/
@@ -36,6 +44,10 @@ Allow: /courses.php
 Allow: /categories.php
 Allow: /dictionary.php
 Allow: /flashcards.php
+Allow: /practice.php
+Allow: /lessons.php
+Allow: /leaderboard.php
+Allow: /verify_certificate.php
 Allow: /qualification.php
 Allow: /ranking.php
 Allow: /pages/
@@ -51,6 +63,10 @@ Allow: /courses.php
 Allow: /categories.php
 Allow: /dictionary.php
 Allow: /flashcards.php
+Allow: /practice.php
+Allow: /lessons.php
+Allow: /leaderboard.php
+Allow: /verify_certificate.php
 Allow: /qualification.php
 Allow: /ranking.php
 Allow: /pages/
@@ -71,5 +87,7 @@ Disallow: /Security/
 Disallow: /user/
 Disallow: /scratch/
 Disallow: /data/
+Disallow: /uploads/
+Disallow: /pdf/
 
 Sitemap: https://zsem-egzamin.online/sitemap.xml

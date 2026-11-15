@@ -7,11 +7,43 @@ $pageTitle = 'ZSEM Tech – Nowoczesna Platforma Edukacyjna i Testy Egzaminacyjn
 $extraCss = ['assets/css/landing.css'];
 $extraHead = '
     <meta name="description" content="ZSEM Tech: oficjalna baza ponad 5000 pytań egzaminacyjnych CKE dla kwalifikacji INF.02, INF.03, INF.04, EE.08 i EE.09. Sprawdziany nauczyciela, tryb gościa, pojedynki 1v1 i fiszki IT.">
+    <meta name="keywords" content="egzamin zawodowy, inf.02, ee.08, e.12, inf.03, technik informatyk, arkusze cke, testy egzaminacyjne, zsem tech">
+    <meta property="og:locale" content="pl_PL">
     <meta property="og:title" content="ZSEM Tech – Egzaminy Zawodowe INF & EE | Platforma Edukacyjna">
     <meta property="og:description" content="Przygotuj się do egzaminu zawodowego z bazą pytań CKE, bierz udział w pojedynkach 1v1 i rozwiązuj sprawdziany szkolne online.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://zsem-egzamin.online/">
     <meta property="og:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ZSEM Tech – Egzaminy Zawodowe INF & EE | Platforma Edukacyjna">
+    <meta name="twitter:description" content="Przygotuj się do egzaminu zawodowego z bazą pytań CKE, bierz udział w pojedynkach 1v1 i rozwiązuj sprawdziany szkolne online.">
+    <meta name="twitter:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
+    <link rel="canonical" href="/">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://zsem-egzamin.online/#website",
+          "url": "https://zsem-egzamin.online/",
+          "name": "ZSEM Tech",
+          "description": "Oficjalna platforma edukacyjna do przygotowania do egzaminów zawodowych CKE INF.02, EE.08, E.12",
+          "inLanguage": "pl-PL"
+        },
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://zsem-egzamin.online/#organization",
+          "name": "ZSEM Tech",
+          "url": "https://zsem-egzamin.online/",
+          "logo": "https://zsem-egzamin.online/zsemtech_profile.ico",
+          "sameAs": [
+            "https://zsem-egzamin.online"
+          ]
+        }
+      ]
+    }
+    </script>
 ';
 include 'includes/header.php';
 ?>

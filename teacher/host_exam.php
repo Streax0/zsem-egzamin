@@ -218,6 +218,8 @@ $joinUrl = '';
 $visibleParticipantCount = 0;
 $initialAvgScore = 0;
 $initialFinishedCount = 0;
+$initialLobbyCount = 0;
+$initialTakingCount = 0;
 $initialTotalViolations = 0;
 if ($session) {
     $activeParticipants = array_filter($participants, static fn($p) => ($p['status'] ?? '') !== 'removed');
@@ -227,7 +229,12 @@ if ($session) {
     $finishedScores = [];
     foreach ($activeParticipants as $p) {
         $initialTotalViolations += (int)($p['violation_count'] ?? 0);
-        if (($p['status'] ?? '') === 'finished') {
+        $st = $p['status'] ?? '';
+        if ($st === 'in_lobby') {
+            $initialLobbyCount++;
+        } elseif ($st === 'taking_exam') {
+            $initialTakingCount++;
+        } elseif ($st === 'finished') {
             $initialFinishedCount++;
             $finishedScores[] = (float)($p['score_percent'] ?? 0);
         }
@@ -419,6 +426,53 @@ $extraHead = <<<HTML
             background: #111827 !important;
             border-color: rgba(148,163,184,.24) !important;
         }
+        .participants-list.grid-view {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 0.65rem;
+        }
+        .participants-list.grid-view .participant-card {
+            margin-bottom: 0 !important;
+        }
+        .participant-filter-pills {
+            display: flex;
+            gap: 0.35rem;
+            flex-wrap: wrap;
+        }
+        .participant-filter-btn {
+            font-size: 0.72rem;
+            padding: 0.22rem 0.55rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148,163,184,.28);
+            background: transparent;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .participant-filter-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        .participant-filter-btn.active {
+            background: var(--primary-color, #2563eb);
+            color: #ffffff !important;
+            border-color: var(--primary-color, #2563eb);
+        }
+        .participant-filter-btn .badge {
+            font-size: 0.68rem;
+            padding: 0.15rem 0.38rem;
+        }
+        body.dark-mode .participant-filter-btn,
+        [data-bs-theme="dark"] .participant-filter-btn {
+            border-color: rgba(148,163,184,.22);
+            color: #cbd5e1;
+        }
+        body.dark-mode .participant-filter-btn.active,
+        [data-bs-theme="dark"] .participant-filter-btn.active {
+            background: #2563eb;
+            color: #ffffff !important;
+        }
         body.dark-mode .participant-card,
         [data-bs-theme="dark"] .participant-card { background: #0f172a !important; }
         @media (max-width: 991.98px) {
@@ -547,19 +601,31 @@ include '../includes/header.php';
 
                             <!-- Live Stats -->
                             <div class="row g-3 mb-4 animate-in" style="animation-delay:0.15s">
-                                <div class="col-md-4">
+                                <div class="col-6 col-sm-4 col-xl">
                                     <div class="dashboard-panel host-stat-card text-center p-3">
-                                        <div class="text-muted small mb-1">Średni wynik</div>
-                                        <div class="h3 fw-bold mb-0 text-success" id="avgScore"><?= $initialAvgScore ?>%</div>
+                                        <div class="text-muted small mb-1">W lobby</div>
+                                        <div class="h3 fw-bold mb-0 text-warning" id="lobbyCount"><?= $initialLobbyCount ?></div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-6 col-sm-4 col-xl">
+                                    <div class="dashboard-panel host-stat-card text-center p-3">
+                                        <div class="text-muted small mb-1">Piszą teraz</div>
+                                        <div class="h3 fw-bold mb-0 text-success" id="activeTakingCount"><?= $initialTakingCount ?></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-4 col-xl">
                                     <div class="dashboard-panel host-stat-card text-center p-3">
                                         <div class="text-muted small mb-1">Ukończyło</div>
                                         <div class="h3 fw-bold mb-0 text-primary" id="finishedCount"><?= $initialFinishedCount ?></div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-6 col-sm-6 col-xl">
+                                    <div class="dashboard-panel host-stat-card text-center p-3">
+                                        <div class="text-muted small mb-1">Średni wynik</div>
+                                        <div class="h3 fw-bold mb-0 text-info" id="avgScore"><?= $initialAvgScore ?>%</div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-xl">
                                     <div class="dashboard-panel host-stat-card text-center p-3">
                                         <div class="text-muted small mb-1">Naruszenia</div>
                                         <div class="h3 fw-bold mb-0 text-danger" id="totalViolations"><?= $initialTotalViolations ?></div>
@@ -619,17 +685,51 @@ include '../includes/header.php';
                         </div>
 
                         <!-- Right: Participants -->
-                        <div class="col-lg-4">
+                        <div class="col-lg-4" id="participantsCol">
                             <div class="dashboard-panel participants-panel animate-in" style="animation-delay:0.15s">
                                 <div class="participants-panel-head mb-3">
                                     <div>
                                         <h5 class="fw-bold mb-1"><i class="bi bi-people me-2"></i>Uczestnicy</h5>
                                         <div class="small text-muted"><span class="participant-refresh-dot me-2"></span>Lista odświeża się automatycznie</div>
                                     </div>
-                                    <span class="badge bg-primary bg-opacity-10 text-primary px-3" id="participantsCountBadge">
-                                        <?= $visibleParticipantCount ?> / <?= $session['max_participants'] ?>
-                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" id="toggleGridBtn" title="Przełącz układ: 1 lub 2 kolumny">
+                                            <i class="bi bi-grid-fill" id="toggleGridIcon"></i>
+                                        </button>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-3" id="participantsCountBadge">
+                                            <?= $visibleParticipantCount ?> / <?= $session['max_participants'] ?>
+                                        </span>
+                                    </div>
                                 </div>
+
+                                <!-- Filter & Search Controls for Large Cohorts (50+ students) -->
+                                <div class="mb-3">
+                                    <div class="input-group input-group-sm mb-2">
+                                        <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control border-start-0 ps-0" id="participantSearchInput" placeholder="Szukaj ucznia lub klasy..." autocomplete="off">
+                                        <button class="btn btn-outline-secondary border-start-0" type="button" id="clearSearchBtn" style="display:none;" title="Wyczyść"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+
+                                    <div class="participant-filter-pills mb-2">
+                                        <button type="button" class="participant-filter-btn active" data-filter="all">Wszyscy <span class="badge rounded-pill bg-secondary ms-1" id="pillCountAll">0</span></button>
+                                        <button type="button" class="participant-filter-btn" data-filter="taking_exam">Piszą <span class="badge rounded-pill bg-success ms-1" id="pillCountTaking">0</span></button>
+                                        <button type="button" class="participant-filter-btn" data-filter="in_lobby">Lobby <span class="badge rounded-pill bg-warning text-dark ms-1" id="pillCountLobby">0</span></button>
+                                        <button type="button" class="participant-filter-btn" data-filter="finished">Koniec <span class="badge rounded-pill bg-info ms-1" id="pillCountFinished">0</span></button>
+                                        <button type="button" class="participant-filter-btn" data-filter="violations">Naruszenia <span class="badge rounded-pill bg-danger ms-1" id="pillCountViolations">0</span></button>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <select class="form-select form-select-sm py-0" id="participantSortSelect" style="font-size:0.75rem; height:28px; width:auto;">
+                                            <option value="joined_asc">Dołączenie (domyślnie)</option>
+                                            <option value="name_asc">Nazwisko A-Z</option>
+                                            <option value="violations_desc">Najwięcej naruszeń</option>
+                                            <option value="score_desc">Najwyższy wynik %</option>
+                                            <option value="progress_desc">Najdalsze pytanie</option>
+                                        </select>
+                                        <span class="small text-muted" id="filteredCountInfo" style="font-size:0.75rem;"></span>
+                                    </div>
+                                </div>
+
                                 <div class="participants-list d-flex flex-column gap-2" id="participantsList" data-max-participants="<?= (int)$session['max_participants'] ?>"></div>
                                 <div class="small text-muted mt-3" id="participantsUpdatedAt">Ładowanie listy...</div>
                             </div>
@@ -642,14 +742,21 @@ include '../includes/header.php';
                     const SESSION_IS_LIVE = <?= in_array($session['status'], ['lobby', 'in_progress', 'paused'], true) ? 'true' : 'false' ?>;
                     const INITIAL_PARTICIPANTS = <?= json_encode($participants, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 
+                    let currentRawParticipants = Array.isArray(INITIAL_PARTICIPANTS) ? INITIAL_PARTICIPANTS : [];
+                    let currentFilter = 'all';
+                    let currentSearch = '';
+                    let currentSort = 'joined_asc';
+                    let isGridView = false;
+
                     async function refreshParticipantsOnly() {
                         if (!SESSION_IS_LIVE) return;
                         try {
                             const response = await fetch(`../ajax/get_session_status.php?session_id=${SESSION_ID}&scope=participants`, { cache: 'no-store' });
                             const data = await response.json();
                             if (data.success) {
-                                renderParticipants(data.participants);
-                                updateParticipantMeta(data.participants, data.server_time);
+                                currentRawParticipants = Array.isArray(data.participants) ? data.participants : [];
+                                renderParticipants(currentRawParticipants);
+                                updateParticipantMeta(currentRawParticipants, data.server_time);
                             }
                         } catch (e) {
                             const updated = document.getElementById('participantsUpdatedAt');
@@ -661,7 +768,77 @@ include '../includes/header.php';
                         const container = document.getElementById('participantsList');
                         if (!container) return;
 
-                        if (!Array.isArray(list) || list.length === 0) {
+                        if (Array.isArray(list)) {
+                            currentRawParticipants = list;
+                        }
+                        const raw = currentRawParticipants;
+
+                        const activeList = raw.filter(p => p.status !== 'removed');
+                        const countAll = activeList.length;
+                        const countTaking = activeList.filter(p => p.status === 'taking_exam').length;
+                        const countLobby = activeList.filter(p => p.status === 'in_lobby').length;
+                        const countFinished = activeList.filter(p => p.status === 'finished').length;
+                        const countViolations = activeList.filter(p => (parseInt(p.violation_count, 10) || 0) > 0).length;
+
+                        const pillAll = document.getElementById('pillCountAll');
+                        if (pillAll) pillAll.textContent = countAll;
+                        const pillTaking = document.getElementById('pillCountTaking');
+                        if (pillTaking) pillTaking.textContent = countTaking;
+                        const pillLobby = document.getElementById('pillCountLobby');
+                        if (pillLobby) pillLobby.textContent = countLobby;
+                        const pillFinished = document.getElementById('pillCountFinished');
+                        if (pillFinished) pillFinished.textContent = countFinished;
+                        const pillViolations = document.getElementById('pillCountViolations');
+                        if (pillViolations) pillViolations.textContent = countViolations;
+
+                        // Filter by status pill
+                        let filtered = activeList.filter(p => {
+                            if (currentFilter === 'taking_exam') return p.status === 'taking_exam';
+                            if (currentFilter === 'in_lobby') return p.status === 'in_lobby';
+                            if (currentFilter === 'finished') return p.status === 'finished';
+                            if (currentFilter === 'violations') return (parseInt(p.violation_count, 10) || 0) > 0;
+                            return true;
+                        });
+
+                        // Filter by search query
+                        if (currentSearch.trim()) {
+                            const q = currentSearch.trim().toLowerCase();
+                            filtered = filtered.filter(p => {
+                                const fullName = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
+                                const cls = String(p.class || '').toLowerCase();
+                                return fullName.includes(q) || cls.includes(q);
+                            });
+                        }
+
+                        // Sort
+                        filtered.sort((a, b) => {
+                            if (currentSort === 'name_asc') {
+                                const na = `${a.last_name || ''} ${a.first_name || ''}`.trim();
+                                const nb = `${b.last_name || ''} ${b.first_name || ''}`.trim();
+                                return na.localeCompare(nb, 'pl');
+                            }
+                            if (currentSort === 'violations_desc') {
+                                return (parseInt(b.violation_count, 10) || 0) - (parseInt(a.violation_count, 10) || 0);
+                            }
+                            if (currentSort === 'score_desc') {
+                                return (parseFloat(b.score_percent) || 0) - (parseFloat(a.score_percent) || 0);
+                            }
+                            if (currentSort === 'progress_desc') {
+                                return (parseInt(b.current_question, 10) || 0) - (parseInt(a.current_question, 10) || 0);
+                            }
+                            return (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0);
+                        });
+
+                        const info = document.getElementById('filteredCountInfo');
+                        if (info) {
+                            if (filtered.length !== countAll) {
+                                info.textContent = `Widoczne: ${filtered.length} z ${countAll}`;
+                            } else {
+                                info.textContent = `Łącznie: ${countAll}`;
+                            }
+                        }
+
+                        if (raw.length === 0) {
                             container.innerHTML = `
                                 <div class="participant-empty">
                                     <div>
@@ -674,8 +851,20 @@ include '../includes/header.php';
                             return;
                         }
 
+                        if (filtered.length === 0) {
+                            container.innerHTML = `
+                                <div class="participant-empty py-4 text-center">
+                                    <i class="bi bi-search display-6 opacity-25 d-block mb-2"></i>
+                                    <div class="fw-bold small">Brak wyników</div>
+                                    <div class="text-muted small">Żaden uczestnik nie spełnia kryteriów wyszukiwania</div>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        const prevScroll = container.scrollTop;
                         let html = '';
-                        list.forEach(p => {
+                        filtered.forEach(p => {
                             const id = parseInt(p.id, 10) || 0;
                             const current = Math.max(1, (parseInt(p.current_question, 10) || 0) + 1);
                             const correct = parseInt(p.correct_answers, 10) || 0;
@@ -732,6 +921,7 @@ include '../includes/header.php';
                             `;
                         });
                         container.innerHTML = html;
+                        container.scrollTop = prevScroll;
                     }
 
                     function updateParticipantMeta(list, serverTime) {
@@ -740,6 +930,8 @@ include '../includes/header.php';
                         const avgScoreEl = document.getElementById('avgScore');
                         const finishedCountEl = document.getElementById('finishedCount');
                         const totalViolationsEl = document.getElementById('totalViolations');
+                        const lobbyCountEl = document.getElementById('lobbyCount');
+                        const activeTakingCountEl = document.getElementById('activeTakingCount');
                         const max = document.getElementById('participantsList')?.dataset.maxParticipants || '<?= (int)$session['max_participants'] ?>';
                         
                         if (Array.isArray(list)) {
@@ -747,17 +939,25 @@ include '../includes/header.php';
                             if (badge) badge.textContent = `${activeList.length} / ${max}`;
                             
                             let finishedCount = 0;
+                            let lobbyCount = 0;
+                            let takingCount = 0;
                             let scoreSum = 0;
                             let violations = 0;
                             
                             activeList.forEach(p => {
                                 violations += parseInt(p.violation_count, 10) || 0;
-                                if (p.status === 'finished') {
+                                if (p.status === 'in_lobby') {
+                                    lobbyCount++;
+                                } else if (p.status === 'taking_exam') {
+                                    takingCount++;
+                                } else if (p.status === 'finished') {
                                     finishedCount++;
                                     scoreSum += parseFloat(p.score_percent) || 0;
                                 }
                             });
                             
+                            if (lobbyCountEl) lobbyCountEl.textContent = lobbyCount;
+                            if (activeTakingCountEl) activeTakingCountEl.textContent = takingCount;
                             if (avgScoreEl) {
                                 const avg = finishedCount > 0 ? (scoreSum / finishedCount).toFixed(1).replace('.0', '') : '0';
                                 avgScoreEl.textContent = `${avg}%`;
@@ -773,6 +973,17 @@ include '../includes/header.php';
                         }
                         
                         if (updated) {
+                            let stamp = '';
+                            if (typeof serverTime === 'number' || (/^\d{10,}$/).test(String(serverTime))) {
+                                stamp = new Date(Number(serverTime) * 1000).toLocaleTimeString('pl-PL');
+                            } else if (serverTime && serverTime !== 'start') {
+                                stamp = String(serverTime);
+                            } else {
+                                stamp = new Date().toLocaleTimeString('pl-PL');
+                            }
+                            updated.textContent = `Ostatnie odświeżenie: ${stamp}`;
+                        }
+                    }
                             let stamp = '';
                             if (typeof serverTime === 'number' || (/^\d{10,}$/).test(String(serverTime))) {
                                 stamp = new Date(Number(serverTime) * 1000).toLocaleTimeString('pl-PL');
@@ -844,6 +1055,67 @@ include '../includes/header.php';
                             appNotice('Nie udało się skopiować. Zaznacz tekst ręcznie.', 'warning');
                         }
                     }
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const searchInput = document.getElementById('participantSearchInput');
+                        const clearBtn = document.getElementById('clearSearchBtn');
+                        const sortSelect = document.getElementById('participantSortSelect');
+                        const toggleGridBtn = document.getElementById('toggleGridBtn');
+                        const toggleGridIcon = document.getElementById('toggleGridIcon');
+                        const listContainer = document.getElementById('participantsList');
+                        const filterBtns = document.querySelectorAll('.participant-filter-btn');
+
+                        if (searchInput) {
+                            searchInput.addEventListener('input', (e) => {
+                                currentSearch = e.target.value;
+                                if (clearBtn) clearBtn.style.display = currentSearch ? 'inline-block' : 'none';
+                                renderParticipants(currentRawParticipants);
+                            });
+                        }
+
+                        if (clearBtn) {
+                            clearBtn.addEventListener('click', () => {
+                                if (searchInput) {
+                                    searchInput.value = '';
+                                    currentSearch = '';
+                                    clearBtn.style.display = 'none';
+                                    renderParticipants(currentRawParticipants);
+                                    searchInput.focus();
+                                }
+                            });
+                        }
+
+                        filterBtns.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                filterBtns.forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+                                currentFilter = btn.dataset.filter || 'all';
+                                renderParticipants(currentRawParticipants);
+                            });
+                        });
+
+                        if (sortSelect) {
+                            sortSelect.addEventListener('change', (e) => {
+                                currentSort = e.target.value;
+                                renderParticipants(currentRawParticipants);
+                            });
+                        }
+
+                        if (toggleGridBtn && listContainer) {
+                            toggleGridBtn.addEventListener('click', () => {
+                                isGridView = !isGridView;
+                                listContainer.classList.toggle('grid-view', isGridView);
+                                const participantsCol = document.getElementById('participantsCol');
+                                if (participantsCol) {
+                                    participantsCol.classList.toggle('col-lg-6', isGridView);
+                                    participantsCol.classList.toggle('col-lg-4', !isGridView);
+                                }
+                                if (toggleGridIcon) {
+                                    toggleGridIcon.className = isGridView ? 'bi bi-list-ul' : 'bi bi-grid-fill';
+                                }
+                            });
+                        }
+                    });
 
                     renderParticipants(INITIAL_PARTICIPANTS);
                     updateParticipantMeta(INITIAL_PARTICIPANTS, 'start');

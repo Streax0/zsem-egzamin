@@ -64,6 +64,7 @@ $difficultyLabels = ['beginner' => 'Początkujący', 'intermediate' => 'Średnio
 $difficultyColors = ['beginner' => 'success', 'intermediate' => 'warning', 'advanced' => 'danger'];
 
 $pageTitle = 'Kursy — ZSEM Tech';
+$pageDescription = 'Darmowe kursy online przygotowujące do kwalifikacji zawodowych INF.02, EE.08, E.12. Moduły teoretyczne, laboratoria sieciowe, ćwiczenia i certyfikaty.';
 $extraCss = ['assets/css/dashboard-new.css', 'assets/css/courses.css'];
 include 'includes/header.php';
 ?>

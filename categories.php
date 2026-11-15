@@ -22,6 +22,16 @@ $overallPercent = $totalQuestions > 0 ? round(($totalMastered / $totalQuestions)
     <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Kategorie pytań egzaminacyjnych CKE dla kwalifikacji INF.02, EE.08, E.12. Sieci, systemy operacyjne, urządzenia peryferyjne, diagnostyka i naprawa.">
+    <meta name="keywords" content="kategorie pytań inf.02, pytania cke kategorie, sieci inf 02, systemy operacyjne inf 02, zsem tech">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Kategorie pytań egzaminacyjnych – ZSEM Tech">
+    <meta property="og:description" content="Kategorie pytań egzaminacyjnych CKE dla kwalifikacji INF.02, EE.08, E.12. Sprawdź opanowanie materiału.">
+    <meta property="og:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="/categories.php">
     <title>Kategorie pytań – ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">

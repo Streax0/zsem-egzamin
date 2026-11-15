@@ -37,6 +37,16 @@ $rankProgress = $nextXp ? round(($currentXp / $nextXp) * 100) : 100;
     <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Ranking najlepszych uczniów i techników informatyków na platformie ZSEM Tech. Punkty XP, rozwiązane testy, serie dni i odznaki.">
+    <meta name="keywords" content="ranking inf 02, ranking techników informatyków, punkty xp zsem, ranking uczniów zsem tech">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Ranking Użytkowników – ZSEM Tech">
+    <meta property="og:description" content="Sprawdź tabelę wyników, poziomy doświadczenia i odznaki najlepszych uczniów.">
+    <meta property="og:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="/ranking.php">
     <title>Ranking Użytkowników - ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">

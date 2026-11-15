@@ -32,6 +32,16 @@ foreach ($dictionaryData as $group) {
     <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Słownik najważniejszych pojęć informatycznych, sieciowych i systemowych dla kwalifikacji INF.02 i EE.08. Definicje, protokoły i terminologia egzaminacyjna.">
+    <meta name="keywords" content="słownik inf 02, pojęcia informatyczne, terminologia inf.02, sieci komputerowe pojęcia, zsem tech słownik">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Słownik pojęć IT – Kwalifikacje INF.02 i EE.08">
+    <meta property="og:description" content="Słownik najważniejszych pojęć informatycznych, sieciowych i systemowych dla kwalifikacji INF.02 i EE.08.">
+    <meta property="og:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="/dictionary.php">
     <title>Słownik pojęć – System Edukacyjny INF.02</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous" rel="stylesheet">

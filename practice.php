@@ -385,6 +385,16 @@ unset($qualExams);
     <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Praktyczne przygotowanie do egzaminu zawodowego INF.02, INF.03, INF.04, EE.08. Arkusze egzaminacyjne CKE, zadania praktyczne, konfiguracja i checklisty.">
+    <meta name="keywords" content="egzamin zawodowy praktyka, inf.02 praktyczny, arkusze cke inf.02, ee.08 praktyka, zsem tech">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Praktyka i Arkusze CKE – ZSEM Tech">
+    <meta property="og:description" content="Praktyczne przygotowanie do egzaminu zawodowego INF.02, INF.03, INF.04, EE.08. Arkusze egzaminacyjne CKE, zadania praktyczne i checklisty.">
+    <meta property="og:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="/practice.php">
     <title>Praktyka - ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">

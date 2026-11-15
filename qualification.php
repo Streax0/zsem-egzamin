@@ -49,6 +49,16 @@ $deepInfo = $details[$info['title']] ?? ['tasks' => [], 'check' => [], 'pitfalls
     <link rel="icon" href="<?php echo htmlspecialchars($base_url ?? ''); ?>zsemtech_profile.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Informacje, zakres wymagań i baza pytań CKE dla kwalifikacji <?php echo htmlspecialchars($qual); ?>: <?php echo htmlspecialchars($info['title']); ?>.">
+    <meta name="keywords" content="<?php echo htmlspecialchars($qual); ?>, egzamin zawodowy <?php echo htmlspecialchars($qual); ?>, cke pytania <?php echo htmlspecialchars($qual); ?>, zsem tech">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="ZSEM Tech">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?php echo htmlspecialchars($info['title']); ?> – ZSEM Tech">
+    <meta property="og:description" content="Zakres wymagań, arkusze i testy online dla kwalifikacji <?php echo htmlspecialchars($qual); ?>.">
+    <meta property="og:image" content="https://zsem-egzamin.online/zsemtech_profile.ico">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="/qualification.php?qual=<?php echo urlencode($qual); ?>">
     <title><?php echo htmlspecialchars($info['title']); ?> - ZSEM Tech</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" integrity="sha384-QuGBSgV5Im3DzL2z+8Ko9/hqNy/N0O7zwvXAtfd1MvPKWa/UbeLV65cfm4BV5Wgq" crossorigin="anonymous">

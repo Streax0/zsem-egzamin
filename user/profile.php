@@ -205,23 +205,86 @@ $extraHead = <<<HTML
         .stats-card {
             background-color: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            transition: all 0.2s ease;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
         
         body.dark-mode .stats-card {
             background-color: #1e293b;
             border-color: #334155;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
         }
         
         .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.1);
+        }
+        body.dark-mode .stats-card:hover {
+            box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.4);
+        }
+        .stats-icon-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 0.75rem;
+            transition: transform 0.25s ease;
+        }
+        .stats-card:hover .stats-icon-wrap {
+            transform: scale(1.12);
         }
         .stats-icon {
             font-size: 2rem;
             margin-bottom: 1rem;
+        }
+        .online-pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .cke-readiness-card {
+            border: 1px solid var(--border-color, rgba(148, 163, 184, .16));
+            background: var(--panel-bg, #ffffff);
+            border-radius: 1.25rem;
+            transition: all 0.25s ease;
+        }
+        body.dark-mode .cke-readiness-card {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+            color: #f1f5f9;
+        }
+        body.dark-mode .table {
+            color: #e2e8f0;
+            --bs-table-bg: transparent;
+            --bs-table-color: #e2e8f0;
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+        }
+        body.dark-mode .table thead tr th {
+            background-color: #0f172a !important;
+            color: #94a3b8 !important;
+            border-bottom-color: #334155;
+        }
+        body.dark-mode .table tbody tr td {
+            border-bottom-color: rgba(148, 163, 184, 0.14);
+            color: #e2e8f0;
+        }
+        body.dark-mode .table tbody tr td .text-dark {
+            color: #f1f5f9 !important;
         }
         .highlight-card {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
@@ -969,7 +1032,7 @@ include '../includes/header.php';
                     <div id="collapseEducation" class="accordion-collapse collapse <?php echo !$eduEmpty ? 'show' : ''; ?>" aria-labelledby="headingEducation" data-bs-parent="#professionalAccordion">
                         <div class="accordion-body">
                             <?php foreach ($profileSections['education'] as $item): ?>
-                                <div class="professional-item border rounded p-3 mb-2">
+                                <div class="professional-item border rounded p-3 mb-2 d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-start gap-2">
                                         <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary"><i class="bi bi-mortarboard-fill"></i></span>
                                         <div>
@@ -977,6 +1040,15 @@ include '../includes/header.php';
                                             <div class="small text-muted"><?php echo htmlspecialchars($item['level']); ?><?php echo $item['field'] ? ' • ' . htmlspecialchars($item['field']) : ''; ?> • <?php echo (int)$item['start_year']; ?>-<?php echo $item['end_year'] ? (int)$item['end_year'] : 'obecnie'; ?></div>
                                         </div>
                                     </div>
+                                    <?php if ($isOwnProfile): ?>
+                                    <form action="../actions/profile_section.php" method="POST" class="profile-edit-tools ms-2" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć ten wpis o wykształceniu?')">
+                                        <?php echo csrfTokenField(); ?>
+                                        <input type="hidden" name="type" value="education">
+                                        <input type="hidden" name="section_action" value="delete">
+                                        <input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>">
+                                        <button class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill" type="submit" title="Usuń wpis"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                             <?php if ($isOwnProfile): ?>
@@ -1014,7 +1086,18 @@ include '../includes/header.php';
                                             $platformMeta = $socialPlatforms[$link['platform']] ?? [ucfirst((string)$link['platform']), 'bi-link-45deg'];
                                             [$platformLabel, $icon] = $platformMeta;
                                         ?>
-                                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="<?php echo htmlspecialchars($link['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="bi <?php echo htmlspecialchars($icon); ?> me-1"></i><?php echo htmlspecialchars($platformLabel); ?></a>
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <a class="btn btn-sm btn-outline-primary rounded-pill" href="<?php echo htmlspecialchars($link['url']); ?>" target="_blank" rel="noopener noreferrer"><i class="bi <?php echo htmlspecialchars($icon); ?> me-1"></i><?php echo htmlspecialchars($platformLabel); ?></a>
+                                            <?php if ($isOwnProfile): ?>
+                                            <form action="../actions/profile_section.php" method="POST" class="d-inline profile-edit-tools" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć ten link społecznościowy?')">
+                                                <?php echo csrfTokenField(); ?>
+                                                <input type="hidden" name="type" value="social">
+                                                <input type="hidden" name="section_action" value="delete">
+                                                <input type="hidden" name="id" value="<?php echo (int)$link['id']; ?>">
+                                                <button class="btn btn-sm btn-outline-danger p-0 rounded-circle lh-1" type="submit" title="Usuń link" style="width: 22px; height: 22px; line-height: 22px; text-align: center;"><i class="bi bi-x"></i></button>
+                                            </form>
+                                            <?php endif; ?>
+                                        </div>
                                     <?php endforeach; ?>
                                 </div>
                                 <?php if ($isOwnProfile): ?>
@@ -1037,9 +1120,21 @@ include '../includes/header.php';
                             <?php if (!empty($profileSections['languages']) || $isOwnProfile): ?>
                             <div class="<?php echo empty($profileSections['languages']) ? 'professional-empty-subsection' : ''; ?>" <?php echo (empty($profileSections['languages']) && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
                                 <h6 class="fw-bold">Języki</h6>
-                                <div class="mb-3">
+                                <div class="mb-3 d-flex flex-wrap gap-2">
                                     <?php foreach ($profileSections['languages'] as $item): ?>
-                                        <span class="badge bg-light text-dark border me-1 mb-1"><?php echo htmlspecialchars($item['language_name']); ?> • <?php echo htmlspecialchars($item['level']); ?></span>
+                                        <span class="badge bg-light text-dark border p-2 rounded-3 d-inline-flex align-items-center gap-2">
+                                            <i class="bi bi-translate text-primary"></i>
+                                            <span><strong><?php echo htmlspecialchars($item['language_name']); ?></strong> • <?php echo htmlspecialchars($item['level']); ?></span>
+                                            <?php if ($isOwnProfile): ?>
+                                            <form action="../actions/profile_section.php" method="POST" class="d-inline profile-edit-tools" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć ten język?')">
+                                                <?php echo csrfTokenField(); ?>
+                                                <input type="hidden" name="type" value="language">
+                                                <input type="hidden" name="section_action" value="delete">
+                                                <input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>">
+                                                <button class="btn btn-sm text-danger p-0 border-0 lh-1" type="submit" title="Usuń język"><i class="bi bi-x-circle-fill"></i></button>
+                                            </form>
+                                            <?php endif; ?>
+                                        </span>
                                     <?php endforeach; ?>
                                 </div>
                                 <?php if ($isOwnProfile): ?>
@@ -1095,9 +1190,20 @@ include '../includes/header.php';
                                     <div class="col-md-6 col-xl-3 professional-section <?php echo empty($profileSections[$key]) ? 'is-empty professional-empty-subsection' : ''; ?>" <?php echo (empty($profileSections[$key]) && $isOwnProfile) ? 'style="display:none;"' : ''; ?>>
                                         <h6 class="fw-bold"><i class="bi <?php echo $icon; ?> me-1"></i><?php echo $label; ?></h6>
                                         <?php foreach ($profileSections[$key] as $item): ?>
-                                            <div class="professional-item small border rounded p-2 mb-2">
-                                                <div class="fw-bold"><?php echo htmlspecialchars($item['name'] ?? $item['organization'] ?? ''); ?></div>
-                                                <div class="text-muted"><?php echo htmlspecialchars($item['organization'] ?? $item['provider'] ?? $item['role_name'] ?? ''); ?></div>
+                                            <div class="professional-item small border rounded p-2 mb-2 d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <div class="fw-bold"><?php echo htmlspecialchars($item['name'] ?? $item['organization'] ?? ''); ?></div>
+                                                    <div class="text-muted"><?php echo htmlspecialchars($item['organization'] ?? $item['provider'] ?? $item['role_name'] ?? ''); ?></div>
+                                                </div>
+                                                <?php if ($isOwnProfile): ?>
+                                                <form action="../actions/profile_section.php" method="POST" class="profile-edit-tools ms-2" style="display:none;" onsubmit="return appConfirmSubmit(this, 'Usunąć tę pozycję?')">
+                                                    <?php echo csrfTokenField(); ?>
+                                                    <input type="hidden" name="type" value="<?php echo $key === 'certificates' ? 'certificate' : ($key === 'courses' ? 'course' : ($key === 'volunteering' ? 'volunteering' : 'organization')); ?>">
+                                                    <input type="hidden" name="section_action" value="delete">
+                                                    <input type="hidden" name="id" value="<?php echo (int)$item['id']; ?>">
+                                                    <button class="btn btn-sm btn-outline-danger py-0 px-2 rounded-pill" type="submit" title="Usuń"><i class="bi bi-trash3" style="font-size:0.75rem;"></i></button>
+                                                </form>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endforeach; ?>
                                         <?php if ($isOwnProfile): ?>
@@ -1148,7 +1254,7 @@ include '../includes/header.php';
                 </div>
             <?php else: ?>
                 <!-- CKE Exam Readiness Widget -->
-                <div class="card border-0 shadow-sm p-4 rounded-4 bg-body mb-4">
+                <div class="card cke-readiness-card border-0 shadow-sm p-4 rounded-4 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3 fs-5"><i class="bi bi-graph-up-arrow"></i></span>
@@ -1184,7 +1290,7 @@ include '../includes/header.php';
                     <div class="col-md-3 col-6">
                         <div class="card stats-card h-100">
                             <div class="card-body text-center p-3">
-                                <div class="stats-icon text-primary mb-2">
+                                <div class="stats-icon-wrap bg-primary bg-opacity-10 text-primary mb-2">
                                     <i class="bi bi-file-text"></i>
                                 </div>
                                 <h4 class="fw-bold mb-0"><?php echo $stats['total_tests']; ?></h4>
@@ -1195,7 +1301,7 @@ include '../includes/header.php';
                     <div class="col-md-3 col-6">
                         <div class="card stats-card h-100">
                             <div class="card-body text-center p-3">
-                                <div class="stats-icon text-success mb-2">
+                                <div class="stats-icon-wrap bg-success bg-opacity-10 text-success mb-2">
                                     <i class="bi bi-trophy"></i>
                                 </div>
                                 <h4 class="fw-bold mb-0"><?php echo $stats['average_score']; ?>%</h4>
@@ -1206,7 +1312,7 @@ include '../includes/header.php';
                     <div class="col-md-3 col-6">
                         <div class="card stats-card h-100">
                             <div class="card-body text-center p-3">
-                                <div class="stats-icon text-warning mb-2">
+                                <div class="stats-icon-wrap bg-warning bg-opacity-10 text-warning mb-2">
                                     <i class="bi bi-clock"></i>
                                 </div>
                                 <h4 class="fw-bold mb-0"><?php echo floor($stats['total_time_spent'] / 60); ?>m</h4>
@@ -1217,7 +1323,7 @@ include '../includes/header.php';
                     <div class="col-md-3 col-6">
                         <div class="card stats-card h-100">
                             <div class="card-body text-center p-3">
-                                <div class="stats-icon text-info mb-2">
+                                <div class="stats-icon-wrap bg-info bg-opacity-10 text-info mb-2">
                                     <i class="bi bi-check-circle"></i>
                                 </div>
                                 <h4 class="fw-bold mb-0"><?php echo $stats['mastered_questions']; ?></h4>
@@ -1481,7 +1587,7 @@ include '../includes/header.php';
                                 $isOnline = $showOnlineStatusFriend ? isUserOnline($friend['last_activity']) : false;
                             ?>
                             <div class="d-flex align-items-center gap-2 mb-3">
-                                <div class="user-avatar-small text-primary fw-bold" style="width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: var(--bg-color);">
+                                <div class="user-avatar-small text-primary fw-bold" style="width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background-color: var(--bg-color); border: 1px solid var(--border-color);">
                                     <?php echo strtoupper(substr($friend['username'], 0, 1)); ?>
                                 </div>
                                 <div class="flex-grow-1">
@@ -1490,12 +1596,15 @@ include '../includes/header.php';
                                             <?php echo htmlspecialchars($friend['username']); ?>
                                         </a>
                                     </div>
-                                    <div class="<?php echo $isOnline ? 'text-success' : 'text-muted'; ?> small" style="font-size: 0.7rem;">
-                                        <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
-                                        <?php echo $isOnline ? 'Online' : 'Offline'; ?>
+                                    <div class="<?php echo $isOnline ? 'text-success' : 'text-muted'; ?> small d-flex align-items-center gap-1" style="font-size: 0.75rem;">
+                                        <?php if ($isOnline): ?>
+                                            <span class="online-pulse"></span> Online
+                                        <?php else: ?>
+                                            <i class="bi bi-circle-fill text-muted opacity-50" style="font-size: 0.5rem;"></i> Offline
+                                        <?php endif; ?>
                                     </div>
                                 </div>
-                                <a href="social.php" class="btn btn-link btn-sm text-muted p-0"><i class="bi bi-chat-dots"></i></a>
+                                <a href="social.php" class="btn btn-link btn-sm text-muted p-0" title="Wiadomość"><i class="bi bi-chat-dots"></i></a>
                             </div>
                             <?php endforeach;
                         else: ?>
@@ -1565,40 +1674,47 @@ include '../includes/header.php';
                 </div>
             </form>
             <?php endif; ?>
-            <?php foreach ($profileSections['comments'] as $comment): ?>
-                <article class="comment-card mb-3">
-                    <div class="comment-card-grid">
-                        <div class="comment-avatar" aria-hidden="true">
-                            <?php $commentAvatar = userAvatarSrc($comment['avatar_path'] ?? '', '../'); ?>
-                            <?php if ($commentAvatar): ?>
-                                <img src="<?php echo htmlspecialchars($commentAvatar); ?>" alt="" class="comment-avatar-img" loading="lazy" decoding="async">
-                            <?php else: ?>
-                                <?php echo strtoupper(substr($comment['username'], 0, 1)); ?>
+            <?php if (empty($profileSections['comments'])): ?>
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-chat-dots fs-1 d-block mb-2 opacity-50"></i>
+                    <p class="mb-0 small">Brak komentarzy. Bądź pierwszą osobą, która doda wpis na profilu!</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($profileSections['comments'] as $comment): ?>
+                    <article class="comment-card mb-3">
+                        <div class="comment-card-grid">
+                            <div class="comment-avatar" aria-hidden="true">
+                                <?php $commentAvatar = userAvatarSrc($comment['avatar_path'] ?? '', '../'); ?>
+                                <?php if ($commentAvatar): ?>
+                                    <img src="<?php echo htmlspecialchars($commentAvatar); ?>" alt="" class="comment-avatar-img" loading="lazy" decoding="async">
+                                <?php else: ?>
+                                    <?php echo strtoupper(substr($comment['username'], 0, 1)); ?>
+                                <?php endif; ?>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                                    <a href="profile.php?id=<?php echo (int)$comment['author_id']; ?>" class="comment-author-link"><?php echo htmlspecialchars($comment['username']); ?><?php echo getUserBadgeHtml($comment['role'] ?? 'user', (int)($comment['is_verified'] ?? 0)); ?></a>
+                                    <span class="small text-muted comment-meta"><i class="bi bi-clock me-1"></i><?php echo date('d.m.Y H:i', strtotime($comment['created_at'])); ?></span>
+                                </div>
+                                <div class="comment-bubble">
+                                    <?php echo htmlspecialchars($comment['comment_text']); ?>
+                                </div>
+                            </div>
+                            <?php if ((int)$comment['author_id'] === $myId || roleHasAdminAccess($myRole)): ?>
+                            <form action="../actions/profile_comment.php" method="POST" class="comment-delete-form" onsubmit="return appConfirmSubmit(this, 'Usunąć ten komentarz?')">
+                                <?php echo csrfTokenField(); ?>
+                                <input type="hidden" name="comment_action" value="delete">
+                                <input type="hidden" name="profile_user_id" value="<?php echo $userId; ?>">
+                                <input type="hidden" name="comment_id" value="<?php echo (int)$comment['id']; ?>">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                    <i class="bi bi-trash"></i> Usuń
+                                </button>
+                            </form>
                             <?php endif; ?>
                         </div>
-                        <div class="min-w-0">
-                            <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-                                <a href="profile.php?id=<?php echo (int)$comment['author_id']; ?>" class="comment-author-link"><?php echo htmlspecialchars($comment['username']); ?><?php echo getUserBadgeHtml($comment['role'] ?? 'user', (int)($comment['is_verified'] ?? 0)); ?></a>
-                                <span class="small text-muted comment-meta"><i class="bi bi-clock me-1"></i><?php echo date('d.m.Y H:i', strtotime($comment['created_at'])); ?></span>
-                            </div>
-                            <div class="comment-bubble">
-                                <?php echo htmlspecialchars($comment['comment_text']); ?>
-                            </div>
-                        </div>
-                        <?php if ((int)$comment['author_id'] === $myId || roleHasAdminAccess($myRole)): ?>
-                        <form action="../actions/profile_comment.php" method="POST" class="comment-delete-form">
-                            <?php echo csrfTokenField(); ?>
-                            <input type="hidden" name="comment_action" value="delete">
-                            <input type="hidden" name="profile_user_id" value="<?php echo $userId; ?>">
-                            <input type="hidden" name="comment_id" value="<?php echo (int)$comment['id']; ?>">
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                <i class="bi bi-trash"></i> Usuń
-                            </button>
-                        </form>
-                        <?php endif; ?>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
 
@@ -1659,21 +1775,34 @@ include '../includes/header.php';
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM" crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('progressChart').getContext('2d');
-            new Chart(ctx, {
+            const chartCanvas = document.getElementById('progressChart');
+            if (!chartCanvas) return;
+            const ctx = chartCanvas.getContext('2d');
+            const isDarkMode = () => document.body.classList.contains('dark-mode') || document.documentElement.classList.contains('dark-mode');
+            
+            const getChartColors = () => {
+                const dark = isDarkMode();
+                return {
+                    textColor: dark ? '#94a3b8' : '#64748b',
+                    gridColor: dark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
+                };
+            };
+            
+            let currentColors = getChartColors();
+            const chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: <?php echo json_encode($chartLabels); ?>,
                     datasets: [{
                         label: 'Wynik (%)',
                         data: <?php echo json_encode($chartData); ?>,
-                        borderColor: 'rgb(75, 192, 192)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.12)',
                         borderWidth: 3,
                         fill: true,
-                        tension: 0.1,
+                        tension: 0.35,
                         pointRadius: 5,
-                        pointBackgroundColor: 'rgb(75, 192, 192)',
+                        pointBackgroundColor: '#6366f1',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointHoverRadius: 7
@@ -1699,24 +1828,52 @@ include '../includes/header.php';
                             beginAtZero: true,
                             max: 100,
                             ticks: {
+                                color: currentColors.textColor,
                                 callback: function(value) {
                                     return value + '%';
                                 }
                             },
+                            grid: {
+                                color: currentColors.gridColor
+                            },
                             title: {
                                 display: true,
-                                text: 'Wynik (%)'
+                                text: 'Wynik (%)',
+                                color: currentColors.textColor
                             }
                         },
                         x: {
+                            ticks: {
+                                color: currentColors.textColor
+                            },
+                            grid: {
+                                color: currentColors.gridColor
+                            },
                             title: {
                                 display: true,
-                                text: 'Data'
+                                text: 'Data',
+                                color: currentColors.textColor
                             }
                         }
                     }
                 }
             });
+
+            // Live theme toggle observer
+            const themeObserver = new MutationObserver(() => {
+                const updated = getChartColors();
+                if (chartInstance && chartInstance.options && chartInstance.options.scales) {
+                    chartInstance.options.scales.x.ticks.color = updated.textColor;
+                    chartInstance.options.scales.x.grid.color = updated.gridColor;
+                    chartInstance.options.scales.x.title.color = updated.textColor;
+                    chartInstance.options.scales.y.ticks.color = updated.textColor;
+                    chartInstance.options.scales.y.grid.color = updated.gridColor;
+                    chartInstance.options.scales.y.title.color = updated.textColor;
+                    chartInstance.update('none');
+                }
+            });
+            themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+            themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-bs-theme'] });
         });
     </script>
     <?php endif; ?>
@@ -1812,7 +1969,17 @@ include '../includes/header.php';
             const commentCount = document.getElementById('commentCharCount');
             if (commentInput && commentCount) {
                 const syncCommentCount = () => {
-                    commentCount.textContent = commentInput.value.length;
+                    const len = commentInput.value.length;
+                    commentCount.textContent = len;
+                    if (len >= 95) {
+                        commentCount.classList.remove('text-warning');
+                        commentCount.classList.add('text-danger');
+                    } else if (len >= 80) {
+                        commentCount.classList.remove('text-danger');
+                        commentCount.classList.add('text-warning');
+                    } else {
+                        commentCount.classList.remove('text-warning', 'text-danger');
+                    }
                 };
                 commentInput.addEventListener('input', syncCommentCount);
                 syncCommentCount();

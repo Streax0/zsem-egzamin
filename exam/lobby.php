@@ -336,7 +336,7 @@ $bodyClassStr = implode(' ', $bodyClasses);
             })
             .catch(() => {});
     }
-    setInterval(checkStatus, 1000);
+    setInterval(checkStatus, 1800);
     </script>
     <?php include '../includes/help_center.php'; ?>
 </body>

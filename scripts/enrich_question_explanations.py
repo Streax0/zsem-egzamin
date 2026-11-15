@@ -17,7 +17,7 @@ import sys
 import shutil
 import ipaddress
 
-ROOT_DIR = r"c:\Users\damia\OneDrive\Pulpit\stronammmmmmmm\public_html"
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, "data_question")
 DICT_PATH = os.path.join(ROOT_DIR, "data", "dictionary.json")
 

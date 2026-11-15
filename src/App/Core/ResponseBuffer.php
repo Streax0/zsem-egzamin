@@ -79,7 +79,7 @@ class ResponseBuffer
         if ($this->compressionEnabled && !headers_sent() && !empty($buffer)) {
             $acceptEncoding = $_SERVER['HTTP_ACCEPT_ENCODING'] ?? '';
 
-            if (strpos($acceptEncoding, 'br') !== false && function_exists('brotli_compress')) {
+            if (str_contains($acceptEncoding, 'br') && function_exists('brotli_compress')) {
                 $compressed = @brotli_compress($buffer);
                 if ($compressed !== false) {
                     header('Content-Encoding: br');
@@ -88,7 +88,7 @@ class ResponseBuffer
                 }
             }
 
-            if (strpos($acceptEncoding, 'gzip') !== false && function_exists('gzencode')) {
+            if (str_contains($acceptEncoding, 'gzip') && function_exists('gzencode')) {
                 $compressed = @gzencode($buffer, 6);
                 if ($compressed !== false) {
                     header('Content-Encoding: gzip');
