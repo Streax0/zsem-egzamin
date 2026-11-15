@@ -426,53 +426,6 @@ $extraHead = <<<HTML
             background: #111827 !important;
             border-color: rgba(148,163,184,.24) !important;
         }
-        .participants-list.grid-view {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 0.65rem;
-        }
-        .participants-list.grid-view .participant-card {
-            margin-bottom: 0 !important;
-        }
-        .participant-filter-pills {
-            display: flex;
-            gap: 0.35rem;
-            flex-wrap: wrap;
-        }
-        .participant-filter-btn {
-            font-size: 0.72rem;
-            padding: 0.22rem 0.55rem;
-            border-radius: 999px;
-            border: 1px solid rgba(148,163,184,.28);
-            background: transparent;
-            color: var(--text-color);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .participant-filter-btn:hover {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-        .participant-filter-btn.active {
-            background: var(--primary-color, #2563eb);
-            color: #ffffff !important;
-            border-color: var(--primary-color, #2563eb);
-        }
-        .participant-filter-btn .badge {
-            font-size: 0.68rem;
-            padding: 0.15rem 0.38rem;
-        }
-        body.dark-mode .participant-filter-btn,
-        [data-bs-theme="dark"] .participant-filter-btn {
-            border-color: rgba(148,163,184,.22);
-            color: #cbd5e1;
-        }
-        body.dark-mode .participant-filter-btn.active,
-        [data-bs-theme="dark"] .participant-filter-btn.active {
-            background: #2563eb;
-            color: #ffffff !important;
-        }
         body.dark-mode .participant-card,
         [data-bs-theme="dark"] .participant-card { background: #0f172a !important; }
         @media (max-width: 991.98px) {
